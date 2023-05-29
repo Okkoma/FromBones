@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#FBDIR=FromBones-Vulkan
+FBDIR=FromBones
+
 # checks the platform
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	PLATFORM=linux
@@ -17,11 +20,11 @@ fi
 if [[ "$PLATFORM" == "linux" ]]; then
 	DEVPATH=/media/DATA
 	URHO3D=$DEVPATH/Dev/Urho3D/Urho3D-Vulkan
-	FROMBONES=$DEVPATH/Dev/Projets/FromBones-Vulkan
+	FROMBONES=$DEVPATH/Dev/Projets/$FBDIR
 	OKKOLOCAL=~/.local/share/OkkoStudio/FromBones
 elif [[ "$PLATFORM" == "win64" ]]; then
 	URHO3D=/mnt/d/DEV/Urho3D/Urho3D-Vulkan
-	FROMBONES=/mnt/d/DEV/Projets/FromBones-Vulkan
+	FROMBONES=/mnt/d/DEV/Projets/$FBDIR
 	# OKKOLOCAL=/mnt/c/Users/Christophe/AppData/Roaming/OkkoStudio/FromBones
 fi
 

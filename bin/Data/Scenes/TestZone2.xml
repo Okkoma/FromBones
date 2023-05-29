@@ -18,15 +18,15 @@
 			<attribute name="WorldSize" value="0 0" />
 			<!-- <attribute name="WorldSize" value="1 1" /> -->
 			<attribute name="ChunkNum" value="8 8" />
-			<!-- <attribute name="Default Map Point" value="22 18" />	 -->
-			<attribute name="Default Map Point" value="-127 1" />	
-			<!-- <attribute name="Default Map Point" value="25 16" />	 -->
+			<attribute name="Default Map Point" value="22 18" />
+			<!-- <attribute name="Default Map Point" value="-127 1" /> -->
+			<!-- <attribute name="Default Map Point" value="25 16" /> -->
 			<!-- <attribute name="Default Map Point" value="-8 -11" /> -->
 			<!-- <attribute name="Default Map Point" value="-9 -2" /> -->
 			<!-- <attribute name="Default Map Point" value="-15 -1" /> -->
 			<!-- <attribute name="Default Map Point" value="25 18" /> -->
-			<!-- <attribute name="Default Map Point" value="26 17" />			 -->
-			<!-- <attribute name="Default Map Point" value="-15 -3" />			 -->
+			<!-- <attribute name="Default Map Point" value="26 17" /> -->
+			<!-- <attribute name="Default Map Point" value="-15 -3" /> -->
 			<!-- <attribute name="Default Map Point" value="-12 -7" /> -->
 			<!-- <attribute name="Default Map Point" value="-8 19" /> -->
 			<attribute name="Map - Model" value="anlworldVM-ellipsoid-zone2.xml" />

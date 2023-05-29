@@ -275,7 +275,9 @@ void ObjectFeatured::SetViewConfiguration(int modeltype)
 
         /// BACKVIEW
         // remove window if background is block
-        AddFeatureFilter(REPLACEFEATUREBACK, BackView_ViewId, BackGround_ViewId, MapFeatureType::Window, MapFeatureType::RoomWall, MapFeatureType::Threshold);
+        //AddFeatureFilter(REPLACEFEATUREBACK, BackView_ViewId, BackGround_ViewId, MapFeatureType::Window, MapFeatureType::RoomWall, MapFeatureType::Threshold);
+        // always remove window in backview
+        AddFeatureFilter(REPLACEFEATURE, BackView_ViewId, MapFeatureType::Window, MapFeatureType::RoomWall);
         AddFeatureFilter(REPLACEFEATURE, BackView_ViewId, MapFeatureType::CorridorPlateForm, MapFeatureType::NoMapFeature);
         AddFeatureFilter(REPLACEFEATURE, BackView_ViewId, MapFeatureType::RoomPlateForm, MapFeatureType::RoomWall);
         AddFeatureFilter(REPLACEFEATURE, BackView_ViewId, MapFeatureType::RoomFloor, MapFeatureType::RoomWall);
