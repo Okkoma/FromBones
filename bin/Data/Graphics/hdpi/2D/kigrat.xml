@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="ki_avbrasd" x="1733" y="503" width="22" height="62" />
+	<SubTexture name="ki_avbrasg" x="574" y="530" width="19" height="57" />
+	<SubTexture name="ki_bouche1" x="656" y="810" width="47" height="52" />
+	<SubTexture name="ki_bouche2" x="1359" y="810" width="54" height="52" />
+	<SubTexture name="ki_brasd" x="1359" y="647" width="32" height="82" />
+	<SubTexture name="ki_brasg" x="785" y="733" width="27" height="70" />
+	<SubTexture name="ki_cordelance" x="1767" y="937" width="47" height="17" />
+	<SubTexture name="ki_corps" x="1143" y="408" width="78" height="118" />
+	<SubTexture name="ki_epee" x="1718" y="382" width="40" height="120" />
+	<SubTexture name="ki_fourreau" x="785" y="644" width="32" height="88" />
+	<SubTexture name="ki_lance" x="1477" y="907" width="289" height="31" />
+	<SubTexture name="ki_maind" x="981" y="869" width="30" height="35" />
+	<SubTexture name="ki_maind2" x="1393" y="863" width="36" height="47" />
+	<SubTexture name="ki_maing" x="202" y="812" width="24" height="24" />
+	<SubTexture name="ki_oeil1" x="658" y="935" width="34" height="20" />
+	<SubTexture name="ki_oeil2" x="1583" y="621" width="27" height="14" />
+	<SubTexture name="ki_oeil3" x="375" y="937" width="32" height="19" />
+	<SubTexture name="ki_oreille" x="983" y="741" width="52" height="66" />
+	<SubTexture name="ki_pagne" x="1" y="690" width="77" height="80" />
+	<SubTexture name="ki_piedd" x="339" y="748" width="61" height="61" />
+	<SubTexture name="ki_piedg" x="285" y="748" width="53" height="61" />
+	<SubTexture name="ki_pommeau" x="467" y="864" width="40" height="45" />
+	<SubTexture name="ki_queue" x="1185" y="937" width="75" height="17" />
+	<SubTexture name="ki_tete01" x="159" y="434" width="138" height="120" />
+	<SubTexture name="ki_tete02" x="298" y="434" width="138" height="120" />
+	<SubTexture name="ki_tete03" x="1" y="468" width="138" height="120" />
+</TextureAtlas>

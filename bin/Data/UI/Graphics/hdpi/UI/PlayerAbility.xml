@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<element>
+    <attribute name="Name" value="Abilities" />
+    <attribute name="Size" value="500 100" />
+    <attribute name="Horiz Alignment" value="Center" />
+    <attribute name="Focus Mode" value="Focusable" />
+	<element>
+		<attribute name="Name" value="SlotZone" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<attribute name="Layout Spacing" value="4" />
+		<attribute name="Vert Alignment" value="Center" />
+		<element type="Button">
+			<attribute name="Name" value="Abi_1" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="96 96" />
+			<attribute name="Max Size" value="96 96" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="96 96" />
+                <attribute name="Max Size" value="96 96" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_2" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="96 96" />
+			<attribute name="Max Size" value="96 96" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Horiz Alignment" value="Center" />                  
+                <attribute name="Min Size" value="96 96" />
+                <attribute name="Max Size" value="96 96" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_3" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="96 96" />
+			<attribute name="Max Size" value="96 96" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="96 96" />
+                <attribute name="Max Size" value="96 96" />
+            </element>
+		</element>
+			<element type="Button">
+			<attribute name="Name" value="Abi_4" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="96 96" />
+			<attribute name="Max Size" value="96 96" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="96 96" />
+                <attribute name="Max Size" value="96 96" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_5" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="96 96" />
+			<attribute name="Max Size" value="96 96" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="96 96" />
+                <attribute name="Max Size" value="96 96" />
+            </element>
+		</element>
+	</element>
+</element>

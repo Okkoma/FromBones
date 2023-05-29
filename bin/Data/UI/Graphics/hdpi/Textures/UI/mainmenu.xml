@@ -1,0 +1,7 @@
+<texture>
+<!--	<filter mode="bilinear" /> -->
+    <mipmap enable="false" />
+    <quality low="0" />
+	<!-- <filter mode="nearest" /> -->
+	<srgb enable="true" />
+</texture>

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="dar_ailed" x="1116" y="1" width="185" height="360" />
+	<SubTexture name="dar_aileg" x="1480" y="1" width="152" height="336" />
+	<SubTexture name="dar_barbe" x="245" y="1041" width="57" height="80" />
+	<SubTexture name="dar_corps" x="912" y="477" width="176" height="200" />
+	<SubTexture name="dar_flame1" x="1116" y="362" width="182" height="272" />
+	<SubTexture name="dar_flame2" x="1792" y="1" width="194" height="285" />
+	<SubTexture name="dar_halooeil" x="1671" y="1126" width="47" height="42" />
+	<SubTexture name="dar_langue" x="150" y="870" width="43" height="27" />
+	<SubTexture name="dar_machoire" x="816" y="1103" width="147" height="52" />
+	<SubTexture name="dar_main" x="1493" y="804" width="37" height="100" />
+	<SubTexture name="dar_oeil" x="1978" y="1146" width="25" height="31" />
+	<SubTexture name="dar_tete" x="270" y="734" width="204" height="164" />
+	<SubTexture name="dar_torche1" x="912" y="678" width="348" height="186" />
+	<SubTexture name="dar_torche2" x="686" y="865" width="321" height="146" />
+</TextureAtlas>

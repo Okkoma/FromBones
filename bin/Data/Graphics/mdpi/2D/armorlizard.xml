@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="armure_01" x="425" y="615" width="64" height="50" />
+	<SubTexture name="ceinture_01" x="347" y="693" width="71" height="39" />
+	<SubTexture name="ceinture_02" x="92" y="363" width="23" height="20" />
+	<SubTexture name="epaule_d" x="600" y="734" width="36" height="29" />
+	<SubTexture name="epaule_g" x="790" y="154" width="24" height="27" />
+</TextureAtlas>

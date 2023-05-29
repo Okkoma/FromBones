@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="ki_lance" x="256" y="826" width="192" height="20" />
+	<SubTexture name="ki_cordelance" x="167" y="845" width="31" height="11" />
+</TextureAtlas>

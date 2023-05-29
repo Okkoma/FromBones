@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/Grounds/TerrainADetailNew1.png" basewidth="128" baseheight="128" edgeoffset="0" >
+	<Terrain name="BorderA" neighbors="Connected0" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+		<Decals width="144" height="32" startx="0" starty="478" spacing="0" >
+    		<Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+		    <Decal col="1" row="0" width="1" height="1" connection="TopConnect" />
+		    <Decal col="2" row="0" width="1" height="1" connection="TopConnect" />
+		    <Decal col="0" row="0" width="1" height="1" connection="BottomConnect" />
+		    <Decal col="1" row="0" width="1" height="1" connection="BottomConnect" />
+		    <Decal col="2" row="0" width="1" height="1" connection="BottomConnect" />
+		</Decals>
+	    <Decals width="32" height="144" startx="478" starty="0" spacing="0" >
+		    <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+		    <Decal col="0" row="1" width="1" height="1" connection="LeftConnect" />
+		    <Decal col="0" row="2" width="1" height="1" connection="LeftConnect" />
+		    <Decal col="0" row="0" width="1" height="1" connection="RightConnect" />
+		    <Decal col="0" row="1" width="1" height="1" connection="RightConnect" />
+		    <Decal col="0" row="2" width="1" height="1" connection="RightConnect" />
+		</Decals>
+	</Terrain>
+</TileSheet>

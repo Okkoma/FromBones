@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/plants.png">
+	<SubTexture name="branche" x="412" y="1" width="109" height="243" />
+	<SubTexture name="fe01c" x="1" y="289" width="224" height="189" />
+	<SubTexture name="fe02c" x="411" y="454" width="155" height="151" />
+	<SubTexture name="fe03c" x="226" y="439" width="184" height="154" />
+	<SubTexture name="pl01" x="296" y="1" width="115" height="245" />
+	<SubTexture name="pl02" x="782" y="234" width="92" height="228" />
+	<SubTexture name="pl03" x="412" y="245" width="100" height="198" />
+	<SubTexture name="pl04" x="522" y="237" width="128" height="216" />
+	<SubTexture name="tr01" x="522" y="1" width="259" height="235" />
+	<SubTexture name="tr02" x="1" y="1" width="148" height="287" />
+	<SubTexture name="tr03" x="1" y="594" width="245" height="96" />
+	<SubTexture name="tr04" x="875" y="456" width="94" height="118" />
+	<SubTexture name="tr05" x="651" y="449" width="120" height="141" />
+	<SubTexture name="tr06" x="226" y="258" width="52" height="100" />
+	<SubTexture name="tr07" x="977" y="1" width="24" height="76" />
+	<SubTexture name="tr08" x="567" y="454" width="71" height="57" />
+	<SubTexture name="tr10" x="875" y="234" width="118" height="221" />
+	<SubTexture name="tr11" x="150" y="1" width="145" height="256" />
+	<SubTexture name="tr12" x="296" y="247" width="103" height="191" />
+	<SubTexture name="tr13" x="651" y="237" width="96" height="211" />
+	<SubTexture name="tr14" x="772" y="575" width="148" height="114" />
+	<SubTexture name="tr15" x="1" y="479" width="136" height="114" />
+	<SubTexture name="tr9" x="782" y="1" width="194" height="232" />
+</TextureAtlas>

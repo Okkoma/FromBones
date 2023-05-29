@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="armoirecadre1" x="403" y="527" width="81" height="103" />
+	<SubTexture name="armoirecadre2" x="179" y="467" width="85" height="107" />
+	<SubTexture name="armoirefond" x="1010" y="20" width="11" height="11" />
+	<SubTexture name="armoirepied1" x="923" y="291" width="26" height="15" />
+	<SubTexture name="armoirepied2" x="950" y="291" width="36" height="12" />
+	<SubTexture name="armoireplateau" x="923" y="307" width="84" height="10" />
+	<SubTexture name="armoirepoignet1" x="1010" y="32" width="12" height="11" />
+	<SubTexture name="armoirepoignet2" x="1010" y="44" width="12" height="11" />
+	<SubTexture name="armoirepoignet3" x="987" y="291" width="23" height="12" />
+	<SubTexture name="armoireportefermee1" x="383" y="631" width="77" height="73" />
+	<SubTexture name="armoireportefermee2" x="918" y="617" width="75" height="75" />
+	<SubTexture name="armoireporteouverte1" x="604" y="655" width="83" height="48" />
+	<SubTexture name="armoireporteouverte2" x="73" y="373" width="54" height="74" />
+	<SubTexture name="armoiretiroir1" x="846" y="291" width="76" height="19" />
+</TextureAtlas>

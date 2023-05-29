@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r7">
+    <folder id="0">
+        <file id="0" name="pilier.png" width="535" height="330" pivot_x="0" pivot_y="1"/>
+        <file id="1" name="pierres_bas.png" width="384" height="198" pivot_x="0" pivot_y="1"/>
+        <file id="2" name="drap_03.png" width="559" height="222" pivot_x="0" pivot_y="1"/>
+        <file id="3" name="drap_02.png" width="699" height="339" pivot_x="0" pivot_y="1"/>
+        <file id="4" name="drap_01.png" width="661" height="137" pivot_x="0" pivot_y="1"/>
+        <file id="5" name="pierres_haut.png" width="496" height="231" pivot_x="0" pivot_y="1"/>
+    </folder>
+    <entity id="0" name="pilier">
+        <animation id="0" name="idle" length="1000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="3" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="0" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="4" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="1" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="2" key="0" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="0" z_index="5"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="pilier">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="151.60181" y="68.914027" angle="269.967793"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="pierres_bas">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-195.930561" y="156.927374" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="drap_03">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="83.592704" y="126.876011" pivot_x="0.11808" pivot_y="0.278401" angle="245.998531"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="drap_02">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-30.98487" y="245.576838" pivot_x="0.112321" pivot_y="0.327574" angle="245.705629"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="drap_01">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" x="-61.798697" y="0.303374" pivot_x="0.13006" pivot_y="0.579364" angle="197.63299"/>
+                </key>
+            </timeline>
+            <timeline id="5" name="pierres_haut">
+                <key id="0" spin="0">
+                    <object folder="0" file="5" x="-257.640665" y="317.188832" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="wind" length="3000" interval="100">
+            <mainline>
+                <key id="0" curve_type="cubic" c1="0.0188" c2="0.9437">
+                    <object_ref id="0" timeline="3" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="0" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="4" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="1" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="2" key="0" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="0" z_index="5"/>
+                </key>
+                <key id="1" time="1494" curve_type="cubic" c1="0.0188" c2="0.9437">
+                    <object_ref id="0" timeline="3" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="0" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="4" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="1" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="2" key="1" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="0" z_index="5"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="pilier">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="151.60181" y="68.914027" angle="269.967793"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="pierres_bas">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-195.930561" y="156.927374" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="drap_03">
+                <key id="0">
+                    <object folder="0" file="2" x="83.592704" y="126.876011" pivot_x="0.11808" pivot_y="0.278401" angle="245.998531"/>
+                </key>
+                <key id="1" time="1494" spin="-1">
+                    <object folder="0" file="2" x="83.592704" y="126.876011" pivot_x="0.11808" pivot_y="0.278401" angle="251.733554"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="drap_02">
+                <key id="0" spin="-1">
+                    <object folder="0" file="3" x="-30.98487" y="245.576838" pivot_x="0.112321" pivot_y="0.327574" angle="245.705629"/>
+                </key>
+                <key id="1" time="1494">
+                    <object folder="0" file="3" x="-30.98487" y="245.576838" pivot_x="0.112321" pivot_y="0.327574" angle="242.871925"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="drap_01">
+                <key id="0">
+                    <object folder="0" file="4" x="-61.798697" y="0.303374" pivot_x="0.13006" pivot_y="0.579364" angle="197.63299"/>
+                </key>
+                <key id="1" time="1494" spin="-1">
+                    <object folder="0" file="4" x="-61.798697" y="0.303374" pivot_x="0.13006" pivot_y="0.579364" angle="201.138366"/>
+                </key>
+            </timeline>
+            <timeline id="5" name="pierres_haut">
+                <key id="0" spin="0">
+                    <object folder="0" file="5" x="-257.640665" y="317.188832" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

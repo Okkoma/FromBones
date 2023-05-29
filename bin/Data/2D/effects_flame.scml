@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" fx="1" name="effet_flame03.png" width="92" height="39" pivot_x="0" pivot_y="0.5"/>
+        <file id="1" fx="1" name="effet_flame02.png" width="143" height="72" pivot_x="0" pivot_y="0.5"/>
+        <file id="2" fx="1" name="effet_flame01.png" width="158" height="60" pivot_x="0" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="EffectFlame">
+        <character_map id="0" name="Fire">
+            <map folder="0" file="0" target_folder="0" target_file="0"/>
+            <map folder="0" file="1" target_folder="0" target_file="1"/>
+            <map folder="0" file="2" target_folder="0" target_file="2"/>
+        </character_map>
+        <character_map id="1" name="No_Fire">
+            <map folder="0" file="2"/>
+            <map folder="0" file="1"/>
+            <map folder="0" file="0"/>
+        </character_map>
+        <animation id="0" name="use" length="2000" interval="100">
+            <mainline>
+                <key id="0" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="300" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="452" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="732" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+                <key id="4" time="1070" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                </key>
+                <key id="5" time="1350" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="5" z_index="0"/>
+                </key>
+                <key id="6" time="1640" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="6" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="effet_flame01">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" y="-1" angle="0" scale_x="1.174501" scale_y="1.245902" a="0.71429"/>
+                </key>
+                <key id="1" time="300" spin="0">
+                    <object folder="0" file="2" y="-1" angle="0" scale_x="1.1745" scale_y="-1.2459" a="0.71429"/>
+                </key>
+                <key id="2" time="452" spin="0">
+                    <object folder="0" file="1" y="-1" angle="0" scale_x="1.495383" scale_y="1.369863" a="0.71429"/>
+                </key>
+                <key id="3" time="732" spin="0">
+                    <object folder="0" file="1" y="-1" angle="0" scale_x="1.49538" scale_y="-1.36986" a="0.71429"/>
+                </key>
+                <key id="4" time="1070" spin="0">
+                    <object folder="0" file="0" y="-1" angle="0" scale_x="2.021177" scale_y="1.85" a="0.71429"/>
+                </key>
+                <key id="5" time="1350" spin="0">
+                    <object folder="0" file="1" y="-1" angle="0" scale_x="1.637732" scale_y="1.780822" a="0.71429"/>
+                </key>
+                <key id="6" time="1640" spin="0">
+                    <object folder="0" file="1" y="-1" angle="0" scale_x="1.396822" scale_y="-1.325373" a="0.71429"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="effect_aura_01" x="36" y="730" width="147" height="40" />
+	<SubTexture name="effect_hypno_01" x="929" y="240" width="74" height="103" />
+	<SubTexture name="effect_hypno_02" x="671" y="309" width="62" height="94" />
+	<SubTexture name="effect_morsure_01" x="905" y="591" width="91" height="63" />
+	<SubTexture name="effect_morsure_02" x="73" y="562" width="95" height="67" />
+	<SubTexture name="effect_morsure_03" x="1001" y="433" width="22" height="61" />
+	<SubTexture name="effect_morsure_04" x="1004" y="240" width="19" height="59" />
+	<SubTexture name="va_avbras_d_01" x="793" y="309" width="7" height="24" />
+	<SubTexture name="va_avbras_g_01" x="985" y="82" width="14" height="36" />
+	<SubTexture name="va_bras_d_01" x="793" y="356" width="7" height="20" />
+	<SubTexture name="va_bras_g_01" x="510" y="440" width="9" height="24" />
+	<SubTexture name="va_cape_bottom_01" x="592" y="382" width="57" height="84" />
+	<SubTexture name="va_cape_bottom_02" x="905" y="516" width="109" height="74" />
+	<SubTexture name="va_cape_top_01" x="734" y="309" width="58" height="91" />
+	<SubTexture name="va_cape_top_02" x="804" y="516" width="100" height="77" />
+	<SubTexture name="va_cheveux_01" x="313" y="537" width="25" height="11" />
+	<SubTexture name="va_cou_01" x="339" y="537" width="14" height="11" />
+	<SubTexture name="va_cou_02" x="478" y="800" width="24" height="24" />
+	<SubTexture name="va_dents_b" x="278" y="471" width="11" height="4" />
+	<SubTexture name="va_gorge_h" x="500" y="846" width="20" height="10" />
+	<SubTexture name="va_jambe_d_01" x="1006" y="103" width="17" height="43" />
+	<SubTexture name="va_jambe_g_01" x="1004" y="300" width="18" height="43" />
+	<SubTexture name="va_machoire_01" x="179" y="826" width="24" height="18" />
+	<SubTexture name="va_main_d_01" x="1015" y="527" width="8" height="10" />
+	<SubTexture name="va_main_d_02" x="115" y="843" width="19" height="13" />
+	<SubTexture name="va_main_g_01" x="791" y="561" width="9" height="10" />
+	<SubTexture name="va_main_g_02" x="624" y="467" width="18" height="16" />
+	<SubTexture name="va_oreille_d" x="1015" y="516" width="7" height="10" />
+	<SubTexture name="va_oreille_g" x="139" y="282" width="10" height="15" />
+	<SubTexture name="va_pied" x="623" y="826" width="21" height="17" />
+	<SubTexture name="va_tete_01" x="888" y="705" width="27" height="34" />
+	<SubTexture name="va_tete_02" x="364" y="771" width="28" height="28" />
+	<SubTexture name="va_tibia_d_01" x="510" y="413" width="10" height="26" />
+	<SubTexture name="va_tibia_d_02" x="302" y="187" width="10" height="40" />
+	<SubTexture name="va_tibia_g_01" x="510" y="384" width="10" height="28" />
+	<SubTexture name="va_tibia_g_02" x="1006" y="189" width="10" height="40" />
+	<SubTexture name="va_tunique_01" x="653" y="731" width="35" height="35" />
+</TextureAtlas>

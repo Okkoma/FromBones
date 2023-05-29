@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="spc_bouche1" x="1012" y="274" width="10" height="9" />
+	<SubTexture name="spc_bouche1h" x="734" y="295" width="14" height="13" />
+	<SubTexture name="spc_bouche1r" x="696" y="172" width="8" height="7" />
+	<SubTexture name="spc_boulet1" x="690" y="284" width="35" height="24" />
+	<SubTexture name="spc_bras1" x="1008" y="102" width="7" height="40" />
+	<SubTexture name="spc_chaine1" x="772" y="616" width="13" height="6" />
+	<SubTexture name="spc_corps1" x="659" y="181" width="75" height="102" />
+	<SubTexture name="spc_corps2" x="137" y="270" width="73" height="100" />
+	<SubTexture name="spc_corps3" x="939" y="284" width="83" height="95" />
+	<SubTexture name="spc_doigt1" x="117" y="440" width="13" height="15" />
+	<SubTexture name="spc_doigt2" x="638" y="380" width="17" height="16" />
+	<SubTexture name="spc_doigt3" x="972" y="591" width="22" height="22" />
+	<SubTexture name="spc_doigt4" x="248" y="598" width="26" height="15" />
+	<SubTexture name="spc_manche1" x="776" y="400" width="40" height="62" />
+	<SubTexture name="spc_manche2" x="846" y="466" width="40" height="56" />
+	<SubTexture name="spc_manche3" x="774" y="534" width="16" height="37" />
+	<SubTexture name="spc_oeil1" x="707" y="539" width="16" height="34" />
+	<SubTexture name="spc_oeil1h" x="307" y="527" width="20" height="38" />
+	<SubTexture name="spc_oeil1r" x="824" y="342" width="14" height="30" />
+	<SubTexture name="spc_oeil2" x="1016" y="102" width="6" height="34" />
+	<SubTexture name="spc_oeil2h" x="735" y="172" width="11" height="38" />
+	<SubTexture name="spc_oeil2r" x="1018" y="1" width="5" height="30" />
+	<SubTexture name="spc_pied1" x="604" y="557" width="102" height="37" />
+	<SubTexture name="spc_pied2" x="633" y="486" width="97" height="52" />
+	<SubTexture name="spc_pied3" x="328" y="560" width="111" height="35" />
+	<SubTexture name="spc_pied4" x="526" y="508" width="77" height="51" />
+</TextureAtlas>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="lo_halodent01" x="126" y="937" width="40" height="19" />
+	<SubTexture name="lo_halodent02" x="171" y="912" width="39" height="23" />
+	<SubTexture name="lo_machoire" x="1204" y="908" width="63" height="28" />
+	<SubTexture name="lo_patte1" x="250" y="938" width="39" height="15" />
+	<SubTexture name="lo_patte2" x="80" y="827" width="26" height="22" />
+	<SubTexture name="lo_patte3" x="1479" y="845" width="23" height="16" />
+	<SubTexture name="lo_pattear1" x="1205" y="811" width="109" height="52" />
+	<SubTexture name="lo_pattear2" x="301" y="865" width="93" height="42" />
+	<SubTexture name="lo_pattear3" x="831" y="938" width="39" height="14" />
+	<SubTexture name="lo_patteav1" x="708" y="907" width="74" height="31" />
+	<SubTexture name="lo_queue" x="80" y="864" width="172" height="47" />
+	<SubTexture name="lo_tete01" x="1418" y="524" width="151" height="119" />
+	<SubTexture name="lo_tete02" x="850" y="523" width="149" height="119" />
+	<SubTexture name="lo_torse" x="1733" y="621" width="145" height="102" />
+	<SubTexture name="lo_ventre" x="128" y="748" width="100" height="63" />
+</TextureAtlas>

@@ -1,0 +1,91 @@
+Version 05102016
+
+TODO :
+
+===========================================
+I Reseaux
+
+1.Bugs
+-> dans sPlay, ClientMode en restartmode bug si attente que le node soit detruit ===> OK
+-> dans sPlay, ServerMode en restartmode bug recreation player a priori ====> OK
+-> résoudre bug sur client lors du changement d'avatar en innerview puis sortie vers le frontview => pb de mise à jour du viewZ lors du changement d'avatar ?
+-> si deconnexion du serveur quitter le sPlay pour le client pour repasser en sMainMenu
+-> mauvaise position en ClientMode si restartmode
+
+2.Déplacement clients
+-> vérifier les timesteps client/serveur pour l'interpolation linéaire
+
+3.Gestion Mutli-Map mode réseau :
+-> Le serveur détient toutes les maps en cours d'exploration et donc tous les nodes utilisés.
+-> lors de la création de map en mémoire, le serveur s'occupe d'affecter et de gérer les nodes entités. Il envoie les types et les nodeid et composantid aux clients qui chargent ces maps avec les bons ids. ensuite la replication peut commencer.
+-> faire des tests sur 32 à 64 joueurs réseaux sur un serveur: si massive multi-player ce sera des serveurs en cluster.
+
+4.ObjectPool mode réseau :
+->
+
+
+5.Protocole de Connexions Client/Serveur
+-> revoir le protocole de connexion pour permettre aux clients (acomptes de personnage) à se reconnecter à leur personnage sauvegardé sur le serveur.
+
+6. En mode arena, ne pas utiliser les factions mais les id directement
+=> OK
+
+===========================================
+II Map Generator / Colliders
+
+1.Bugs
+-> certains colliders murs en fond ne sont pas actifs => OK
+-> TileDecals sous les Tiles pb de layering ?
+=> OK, creation de batches supplementaires
+
+===========================================
+III BackGround Layers
+
+1. creation GEF_Scrolling nuage
+=> OK
+2. TODO Layer Background colline, montagne, foret, centre de la terre etc ...
+
+===========================================
+IV Map destructible
+=> impact à quantifier sur les TiledFeatureData, TiledSkinnedData, StaticTiledObject2D
+=> impact à voir sur les colliders
+
+===========================================
+V Map World Creation
+=> Restructuration autour de AnlWorldModel
+=> une carte d'evolution permettrait de changer l'aspect des zones
+---> exemple suite à destruction d'un barrage, une grande quantité d'eau se retrouve dans une zone aride
+     compteur sur le temps passé, la zone se transforme progressivement en une zone avec vegetation etc ... (simlife en plateformer pfff)
+==> rejouabilité accrue, après une longue période sans jeu; le décors évolue; les zones sont soumises à des catastrophes naturelles, le monde change. Possibilité de remonter
+à une période ultérieure et d'agir sur les causes des catastrophes (evolution des quetes)
+
+===========================================
+VI Water Layers
+
+===========================================
+VII Bugs
+
+Bugs :
+
+- bug difficile à reproduire avec l'inventaire (GOC_Inventory, GOC_Collectable, Player)
+=> création de beaucoup de money , potion et tout autre objet ainsi que non suppression des UI sprite lors du transfert vers zone inventaire
+==> vérifier et dumper l'inventaire lorsqu'il y a pb
+
+- bug difficile à reproduire avec le mapworld
+=> masquage de l'avatar lors du changemap
+
+- pb de generation des rooms avec les parametres de size mini,maxi transmis de mapworld vers mapgenerator
+=> OK ! pensez à bien corriger les valeurs de zview dans les .xml si changement dans le viewManager de ces valeurs
+
+===========================================
+VIII AI
+
+===========================================
+XIX Story
+
+===========================================
+X MainMenu
+
+===========================================
+XI Intro + Accroche
+

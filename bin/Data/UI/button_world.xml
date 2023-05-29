@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="world_halo" x="824" y="1226" width="136" height="87"/>
+	<SubTexture name="worldoff" x="824" y="1316" width="125" height="73"/>
+</TextureAtlas>

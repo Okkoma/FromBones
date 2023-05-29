@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<engine_cfg>
+	<parameter name="WindowTitle" value="FromBones" />
+	<parameter name="WindowIcon" value="Textures/UI/icone.png" />
+
+	<parameter name="WindowResizable" value="false" />
+	<parameter name="WindowWidth" value="640" />
+	<parameter name="WindowHeight" value="480" />
+	<parameter name="RefreshRate" value="60" />
+
+	<variable name="deviceDPI_" value ="ldpi" />
+	<variable name="uiDeviceDPI_" value ="mdpi" />
+
+	<parameter name="ResourcePaths" value="CoreData;Data" />
+
+	<parameter name="LogName" value="FromBones.log" />
+	<parameter name="LogQuiet" value="true" />
+	<parameter name="LogLevel" value="2" />
+
+	<parameter name="WorkerThreads" value="true" />
+
+	<parameter name="Headless" value="false" />
+	<parameter name="Shadows" value="false" />
+	<parameter name="TripleBuffer" value="false" />
+	<parameter name="FlushGPU" value="true" />
+	<parameter name="MaterialQuality" value ="0" />
+	<parameter name="TextureQuality" value ="0" />
+	<parameter name="TextureFilterMode" value ="1" />
+	<parameter name="MultiSample" value ="0" />
+
+	<parameter name="FullScreen" value="true" />
+	<parameter name="VSync" value="false" />
+<!--	<variable name="frameLimiter_" value ="50" /> -->
+	
+	<variable name="multiViews_" value ="false" />
+	<variable name="renderShapes_" value ="true" />
+	<variable name="tileSpanning_" value ="0.11" />
+	<variable name="enlightScene_" value ="false" />
+
+	<parameter name="UIEnable" value="true" />
+	<variable name="language_" value ="1" />
+	<variable name="HUDEnabled_" value ="true" />
+
+	<variable name="SoundEnabled_" value ="true" />
+	<variable name="MusicEnabled_" value ="false" />
+
+	<variable name="touchEnabled_" value ="false" />
+	<variable name="forceTouch_" value="false" />
+	<variable name="screenJoystick_" value="false" />
+	<variable name="ctrlCameraEnabled_" value ="true" />
+
+	<variable name="networkMode_" value ="local" />
+	<!-- <variable name="networkServerIP_" value="88.163.159.128" /> -->
+	<variable name="networkServerIP_" value="127.0.0.1" />
+	<variable name="networkServerPort_" value="2345" />
+
+	<variable name="physics3DEnabled_" value ="false" />
+	<variable name="physics2DEnabled_" value ="true" />
+
+	<variable name="fluidEnabled_" value ="false" />
+	<variable name="asynLoadingWorldMap_" value ="true" />
+
+	<variable name="debugRenderEnabled_" value ="true" />
+	<variable name="debugPathFinder_" value ="false" />
+	<variable name="debugPhysics_" value ="false" />
+	<variable name="debugLights_" value ="false" />
+	<variable name="debugWorld2D_" value ="false" />
+	<variable name="debugWorld2DTagged_" value ="false" />
+	<variable name="debugUI_" value ="false" />
+	<variable name="debugFluid_" value ="false" />
+	<variable name="debugSprite2D_" value ="false" />
+	<variable name="debugBodyExploder_" value ="false" />
+	<variable name="debugScrollingShape_" value ="false" />
+	<variable name="debugObjectTiled_" value ="false" />
+	<variable name="debugRenderShape_" value ="false" />
+
+	<!-- <variable name="initState_" value ="MainMenu" /> -->
+</engine_cfg>

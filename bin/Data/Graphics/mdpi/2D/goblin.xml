@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="ere_besace_01" x="194" y="491" width="47" height="32" />
+	<SubTexture name="ere_bras_d_01_gob" x="1288" y="483" width="25" height="42" />
+	<SubTexture name="ere_bras_g_01_gob" x="1742" y="479" width="21" height="43" />
+	<SubTexture name="ere_capear_01" x="979" y="441" width="39" height="54" />
+	<SubTexture name="ere_capeav_01" x="1430" y="424" width="29" height="62" />
+	<SubTexture name="ere_ceinture_01" x="1019" y="493" width="41" height="32" />
+	<SubTexture name="ere_ceinture_02" x="615" y="527" width="28" height="14" />
+	<SubTexture name="ere_jambe_01" x="1699" y="486" width="20" height="36" />
+	<SubTexture name="ere_jambe_02" x="2022" y="481" width="23" height="43" />
+	<SubTexture name="ere_oreille_ar_01_gob" x="1136" y="528" width="13" height="8" />
+	<SubTexture name="ere_oreille_av_01_gob" x="644" y="527" width="18" height="11" />
+	<SubTexture name="ere_pied_01" x="822" y="351" width="16" height="11" />
+	<SubTexture name="ere_pied_02" x="1955" y="527" width="17" height="10" />
+	<SubTexture name="ere_tibia_01" x="1092" y="205" width="12" height="19" />
+	<SubTexture name="ere_tibia_02" x="1348" y="300" width="12" height="17" />
+	<SubTexture name="ere_torse_01" x="1481" y="481" width="41" height="43" />
+	<SubTexture name="ere_torse_02" x="193" y="445" width="36" height="45" />
+	<SubTexture name="ere_visage_01_gob" x="1214" y="486" width="40" height="39" />
+	<SubTexture name="ere_yeux_01_gob" x="1114" y="205" width="17" height="18" />
+	<SubTexture name="ere_yeux_02_gob" x="2000" y="521" width="17" height="18" />
+</TextureAtlas>

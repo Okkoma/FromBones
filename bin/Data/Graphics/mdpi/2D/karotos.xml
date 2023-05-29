@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="kar_bouche_01" x="1" y="528" width="18" height="9" />
+	<SubTexture name="kar_bouche_02" x="840" y="346" width="11" height="17" />
+	<SubTexture name="kar_corps_01" x="1393" y="487" width="52" height="38" />
+	<SubTexture name="kar_oeil" x="1734" y="314" width="10" height="11" />
+	<SubTexture name="kar_oreille_d" x="1315" y="323" width="11" height="38" />
+	<SubTexture name="kar_oreille_g" x="965" y="461" width="13" height="34" />
+	<SubTexture name="kar_patte_ar_d_01" x="1539" y="298" width="13" height="25" />
+	<SubTexture name="kar_patte_ar_g_01" x="2000" y="484" width="15" height="36" />
+	<SubTexture name="kar_patte_av_d_01" x="1105" y="205" width="8" height="19" />
+	<SubTexture name="kar_patte_av_g_01" x="1742" y="426" width="10" height="21" />
+	<SubTexture name="kar_queue" x="965" y="444" width="11" height="13" />
+</TextureAtlas>

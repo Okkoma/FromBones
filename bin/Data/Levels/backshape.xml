@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Backgrounds/backshape.png">
+	<SubTexture name="backinnerlayer.png"	x="0"	y="0"	width="512"	height="512"/>
+	<SubTexture name="backviewlayer.png"	x="512"	y="0"	width="512"	height="512"/>
+	<SubTexture name="backgroundlayer.png"	x="0"	y="512"	width="512"	height="512"/>
+	<SubTexture name="backrock.png"			x="512"	y="512"	width="512"	height="512"/>		
+</TextureAtlas>

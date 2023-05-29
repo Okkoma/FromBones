@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="TA" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables">
+		<variant name="GOA_EffectID1" hash="-1925564961" type="Int" value="9" /> <!-- 9=Hypno1 Effect in Preloader -->
+	</attribute>
+	<component type="AnimatedSprite2D">
+		<attribute name="Animation Set" value="AnimationSet2D;2D/rayon_hypno.scml" />
+		<attribute name="TextureFx" value="1" /> <!-- Unlit -->
+	</component>
+	<component type="RigidBody2D" />
+	<component type="GOC_Animator2D" >
+		<attribute name="Default Orientation" value="-1" />
+		<attribute name="Template" value="AnimatorTemplate_Effect" />
+		<attribute name="State" value="State_Spawn" />
+	</component>
+</node>

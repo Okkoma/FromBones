@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="FUR_Plant04" />
+	<attribute name="Position" value="0.0 0.0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="0.5 0.5 1" />
+	<attribute name="Variables" >
+		<variant name="GOA_LayerAlignement" hash="-1272207671" type="Int" value="-1" />
+		<!-- GO_Furniture -->
+		<!-- <variant name="GOA_TypeCtrl" hash="544566091" type="Int" value="64" /> 	 -->
+	</attribute>
+	<component type="StaticSprite2D">
+		<attribute name="Sprite" value="SpriteSheet2D;2D/plantsstaticnew.xml@herbe02" />
+	</component>
+	<!-- <component type="RigidBody2D" />
+	<component type="GOC_Destroyer" /> -->
+</node>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="V1" />
+
+	<Module type="Constant"					name="one"								value="1.0" />
+	<Module type="Constant"					name="terrainaddvalue"		value="0.61" />
+	<Module type="Constant"					name="terrainmultvalue"		value="4.0" />
+
+	<Module type="Radial"           name="radial"							radius="5.0" />
+	<Module type="ScaleDomain"      name="radialshape"				source="radial" scalex="0.3" scaley="1" />
+	<Module type="TranslateDomain"  name="ellipsoid"					source="radialshape" ty="-4" />   <!-- Juste pour recentrer la map0,0 vers la surface plutot qu'au centre de la planete -->
+	<Module type="Cache"            name="groundshape"				source="ellipsoid" />
+
+	<Module type="Fractal"          name="lowland_base"				fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC" octaves="6" frequency="1" />
+	<Module type="ScaleDomain"      name="lowland_scale"			source="lowland_base" scalex="0.1" scaley="0" />
+
+	<Module type="TranslateDomain"  name="lowland_terrain"		source="groundshape" tx="lowland_scale" ty="lowland_scale" screenshot="true" />
+
+	<Module type="Fractal"          name="highland_base"			fractaltype="RIDGEDMULTI" basistype="GRADIENT" interptype="QUINTIC" octaves="1" frequency="4" />
+	<Module type="ScaleDomain"      name="highland_scale"			source="highland_base" scalex="0.45" scaley="0.1" />
+
+	<Module type="TranslateDomain"  name="highland_terrain"		source="groundshape" tx="highland_scale" ty="highland_scale"  screenshot="true" />
+
+	<Module type="Fractal"          name="mountain_base"			fractaltype="BILLOW" basistype="GRADIENT" interptype="QUINTIC" octaves="4" frequency="2" />
+	<Module type="ScaleDomain"      name="mountain_scale"			source="mountain_base"  scalex="0.8" scaley="0.1" />
+
+	<Module type="TranslateDomain"  name="mountain_terrain"		source="groundshape" tx="mountain_scale" ty="mountain_scale" screenshot="true" />
+
+	<Module type="Fractal"          name="outer_mixer"				fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC" octaves="3" frequency="0.5" />
+	<Module type="Blend"            name="outer_lowhigh"			low="lowland_terrain" high="highland_terrain" control="outer_mixer" />
+	<Module type="Blend"            name="outer_mixed"				low="outer_lowhigh" high="mountain_terrain" control="outer_mixer" />
+
+	<Module type="Combiner"					name="outer_inv"					operation="SUB" source="one;outer_mixed"  screenshot="true" />
+	<Module type="CacheArray"       name="outer"							source="outer_inv" screenshot="true" />
+
+	<Module type="Bias"             name="outer_attenuate"		source="outer_mixed" bias="0.93" screenshot="true" />
+
+	<Module type="Fractal"          name="cave_base"					fractaltype="RIDGEDMULTI" basistype="GRADIENT" interptype="QUINTIC" octaves="1" frequency="4" />
+	<Module type="Fractal"          name="cave_perturb" 			fractaltype="FBM" basistype="GRADIENT" interptype="CUBIC" octaves="6" frequency="2" />
+	<Module type="ScaleDomain"      name="cave_perturb_scale"	source="cave_perturb" scalex="0.5" scaley="0.5" />
+	<Module type="Combiner"         name="cave_attenuate"			operation="MULT" source="outer_attenuate;cave_base" screenshot="true" />
+	<Module type="TranslateDomain"  name="inner"							source="cave_attenuate" tx="cave_perturb_scale" screenshot="true" />
+
+	<Module type="Combiner"					name="terrainmapadd"			operation="ADD" source="outer;terrainaddvalue" />
+	<Module type="Combiner"		    	name="terrainmapmult"			operation="MULT" source="terrainmapadd;terrainmultvalue" />
+	<Module type="Clamp"		    		name="terrainmap"					source="terrainmapmult" low="0" high="3" renderable="TerrainMap" />
+
+	<Module type="Select"           name="inners"							low="1" high="0" control="inner" threshold="0.9" falloff="0" />
+	<Module type="Select"           name="outers"							low="1" high="0" control="outer" threshold="0.5" renderable="GroundMap" screenshot="true" />
+	<Module type="Combiner"         name="terrain"						operation="MULT" source="outers;inners" renderable="CaveMap"  screenshot="true" />
+</AnlWorldModel>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="porte01a" x="532" y="457" width="44" height="108" />
+	<SubTexture name="porte01b" x="286" y="454" width="71" height="111" />
+	<SubTexture name="porte01c" x="73" y="467" width="105" height="111" />
+	<SubTexture name="porte02a" x="358" y="454" width="44" height="108" />
+	<SubTexture name="porte02b" x="1" y="373" width="71" height="111" />
+	<SubTexture name="porte02c" x="302" y="342" width="105" height="111" />
+</TextureAtlas>

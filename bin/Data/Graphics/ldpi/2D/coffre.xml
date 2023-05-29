@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="coffre_bas01" x="1" y="1" width="94" height="60" />
+	<SubTexture name="coffre_haut01" x="129" y="45" width="98" height="42" />
+	<SubTexture name="coffre_haut02" x="129" y="1" width="85" height="43" />
+	<SubTexture name="halo" x="179" y="94" width="54" height="23" />
+	<SubTexture name="or_pepite01" x="252" y="24" width="3" height="2" />
+	<SubTexture name="or_pepite02" x="247" y="29" width="4" height="3" />
+	<SubTexture name="or_pepite03" x="247" y="24" width="4" height="4" />
+	<SubTexture name="or_pepite04" x="247" y="11" width="8" height="6" />
+	<SubTexture name="or_pepite05" x="215" y="36" width="9" height="7" />
+	<SubTexture name="or_tas01" x="1" y="137" width="56" height="18" />
+	<SubTexture name="rayon" x="155" y="137" width="72" height="16" />
+</TextureAtlas>

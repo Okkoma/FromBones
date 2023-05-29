@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="VM" />
+	
+	<Module type="Radial"           name="radial" />
+	<Module type="Substract" 		name="radialshape" 				params="5 radial" />
+	<Module type="ScaleX"		    name="ellipsoid"				params="radialshape 0.3"  />	
+	<Module type="TranslateY"  		name="groundshape"				params="ellipsoid -3" />
+
+	<Module type="SimpleFBM"        name="lowland_base"             params="GRADIENT QUINTIC 6 1 17892" />
+	<Module type="ScaleDomain"		name="lowland_scale"          	params="lowland_base 0.1" />
+	<Module type="ScaleY"		    name="lowland_y_scale"          params="lowland_scale 0" />	
+	<Module type="TranslateY"  		name="lowland_offsety"          params="lowland_y_scale -0.5" />
+	
+	<Module type="TranslateDomain" 	name="NoDecalX"			        params="groundshape lowland_offsety" />
+
+	<Module type="SimpleFBM"        name="fbm2"			            params="GRADIENT QUINTIC 6 1 17892" />
+	
+	<Module type="DX" 				name="DecalX2"         			params="NoDecalX fbm2" screenshot="true" />
+</AnlWorldModel>

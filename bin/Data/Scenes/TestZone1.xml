@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="Scene" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" />
+	<node>
+		<attribute name="Is Enabled" value="true" />
+		<attribute name="Name" value="World" />
+		<attribute name="Position" value="0 0 0" />
+		<attribute name="Rotation" value="1 0 0 0" />
+		<attribute name="Scale" value="4 4 1" />
+		<attribute name="Variables" />
+		<component type="World2D">
+			<attribute name="WorldPoint" value="0 4" />
+			<attribute name="WorldSize" value="0 0" />
+			<attribute name="ChunkNum" value="8 8" />
+			<attribute name="Default Map Point" value="0 9" />
+			
+			<attribute name="Map - Model" value="anlworldVM-ellipsoid-zone1.xml" />
+			<attribute name="Map - TileSize" value="64 64" />		
+			<attribute name="Map - Seed" value="66536" />				
+			<!-- if No Params Here for z=20 then it's Random DefaultParams for DungeonGenerator (roomMinSize_, roomMaxSize_, roomProb ...) -->
+			<attribute name="Map - Params" value="z:INNERVIEW|i:200;65;65;3;15;-1" />
+			<!-- <attribute name="Map - Authorized Categories" value="Containers|GOT_Skeleton" /> -->
+			<attribute name="Map - Num Entities" value="5 10" />
+			<attribute name="Map - Add Objects" value="true" />
+			<attribute name="Map - Add Border" value="false" />
+			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7" />
+			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond3" />
+			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond1" />
+			
+			<attribute name="Collider - Force Shape Type" value="true" />
+			<attribute name="Collider - Shape Type" value="Chains" />
+		</component>
+	</node>
+</node>

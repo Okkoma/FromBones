@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/newdirttiles1024_0.png" basewidth="128" baseheight="128" edgeoffset="0" >
+	<Terrain name="dirt_02" neighbors="Connected0" type="Sand" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+		<Tiles width="128" height="128" spacing="0" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="3" width="2" height="2" connection="AllConnect" />
+            <Tile col="0" row="5" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="5" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+		<Decals width="32" height="144" startx="516" starty="1" spacing="2" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="2" row="0" width="1" height="1" connection="RightConnect" />
+            <Decal col="3" row="0" width="1" height="1" connection="RightConnect" />
+		</Decals>
+        <Decals width="144" height="32" startx="516" starty="147" spacing="2" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="2" width="1" height="1" connection="BottomConnect" />
+            <Decal col="0" row="3" width="1" height="1" connection="BottomConnect" />
+		</Decals>
+        <!-- <Decals flooring="vegetation" width="144" height="64" startx="516" starty="294" hotspoty="0.25f" spacing="2" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+		</Decals> -->
+	</Terrain>
+<!--	<Terrain name="dirt_furnitures02" neighbors="Connected0" >-->
+<!--		<Features name="Window" />-->
+<!--		<Tiles width="64" height="64" hotspotx="0" hotspoty="1" spacing="0" margin="0">-->
+<!--            <Tile col="6" row="3" width="1" height="1" connection="AllConnect" property="Blocked|Transparent" />-->
+<!--		</Tiles>-->
+<!--	</Terrain>-->
+	<Skin name="ground_02" neighbors="Connected0" >
+		<Associate terrain="dirt_02" feature="OuterFloor" />
+		<Associate terrain="dirt_02" feature="InnerFloor" />
+		<Associate terrain="dirt_02" feature="Door" />
+	</Skin>
+	<Skin name="dungeon_02" neighbors="Connected0" >
+		<!-- <Associate terrain="dirt_02" feature="OuterFloor" /> -->
+		<Associate terrain="dirt_02" feature="RoomFloor" />
+		<Associate terrain="dirt_02" feature="RoomWall" />
+		<Associate terrain="dirt_02" feature="RoomPlateForm" />
+		<Associate terrain="dirt_02" feature="CorridorPlateForm" />
+		<Associate terrain="dirt_02" feature="CorridorWall" />
+		<Associate terrain="dirt_02" feature="InnerFloor" />
+		<Associate terrain="dirt_02" feature="Door" />
+<!--		<Associate terrain="dirt_furnitures02" feature="Window" />-->
+	</Skin>
+</TileSheet>

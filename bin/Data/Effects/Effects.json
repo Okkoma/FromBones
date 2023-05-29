@@ -1,0 +1,34 @@
+{
+	"Griffes":{
+		"category":"Objects",
+		"fileName":"Effects/griffes.xml",
+		"typeProperty":"GOT_None|GOT_Effect",
+		"replicateMode":0,
+		"qtyInPool":5,
+		"defaultValue":0
+	},
+	"HaloPortal":{
+		"category":"Objects",
+		"fileName":"Effects/haloportal.xml",
+		"typeProperty":"GOT_None|GOT_Effect|GOT_Furniture",
+		"replicateMode":0,
+		"qtyInPool":2,
+		"defaultValue":0
+	},
+	"rayonhypno":{
+		"category":"Objects",
+		"fileName":"Effects/rayonhypno.xml",
+		"typeProperty":"GOT_Ability|GOT_Effect",
+		"replicateMode":0,
+		"qtyInPool":5,
+		"defaultValue":0
+	},
+	"rayontransfo":{
+		"category":"Objects",
+		"fileName":"Effects/rayontransfo.xml",
+		"typeProperty":"GOT_Ability|GOT_Effect",
+		"replicateMode":0,
+		"qtyInPool":5,
+		"defaultValue":0
+	}
+}

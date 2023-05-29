@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="epee-arete.png" width="312" height="72" pivot_x="0.255435" pivot_y="0.52381"/>
+        <file id="1" name="effet_poison01.png" width="159" height="39" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="2" name="effet_poison02.png" width="108" height="48" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="3" name="effet_poison03.png" width="51" height="54" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="epee-arete">
+        <animation id="0" name="nomove" length="8000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                </key>
+                <key id="1" time="2440">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="1" z_index="4"/>
+                </key>
+                <key id="2" time="4398">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="2" z_index="4"/>
+                </key>
+                <key id="3" time="6780">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="3" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="3" z_index="4"/>
+                </key>
+                <key id="4" time="8000">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="4" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="4" z_index="4"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="epee-arete">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="1.00004" y="1.00002" angle="0"/>
+                </key>
+                <key id="1" time="2440" spin="0">
+                    <object folder="0" file="0" x="1.00004" y="1.00002" angle="0"/>
+                </key>
+                <key id="2" time="4398" spin="0">
+                    <object folder="0" file="0" x="1.00004" y="1.00002" angle="0"/>
+                </key>
+                <key id="3" time="6780" spin="0">
+                    <object folder="0" file="0" x="1.00004" y="1.00002" angle="0"/>
+                </key>
+                <key id="4" time="8000" spin="0">
+                    <object folder="0" file="0" x="1.00004" y="1.00002" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="effet_poison01">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="63.134325" y="-2.088553" angle="0" scale_x="0.661774" scale_y="-0.585228" a="0"/>
+                </key>
+                <key id="1" time="2440" spin="0">
+                    <object folder="0" file="1" x="63.134325" y="-2.088553" angle="0" scale_x="0.661774" scale_y="-0.585228" a="0"/>
+                </key>
+                <key id="2" time="4398" spin="0">
+                    <object folder="0" file="1" x="80.242729" y="1.883497" angle="0" scale_y="-0.76341" a="0.83673"/>
+                </key>
+                <key id="3" time="6780" spin="0">
+                    <object folder="0" file="1" x="78.009478" y="4.613026" angle="0" scale_y="-0.76341" a="0.10448"/>
+                </key>
+                <key id="4" time="8000" spin="0">
+                    <object folder="0" file="1" x="134.337021" y="0.146525" angle="0" scale_x="1.115452" scale_y="-1.295593" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="effet_poison02">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="52.174364" y="8.639664" angle="1.258258" scale_x="0.531194" scale_y="0.51952" a="0"/>
+                </key>
+                <key id="1" time="2440">
+                    <object folder="0" file="2" x="52.174364" y="8.639664" angle="1.258258" scale_x="0.531194" scale_y="0.51952" a="0"/>
+                </key>
+                <key id="2" time="4398">
+                    <object folder="0" file="2" x="59.68079" y="22.376727" angle="12.039417" scale_y="0.8" a="0.82653"/>
+                </key>
+                <key id="3" time="6780" spin="0">
+                    <object folder="0" file="2" x="92.246351" y="28.586403" angle="26.146022" scale_x="1.039409" scale_y="0.639347" a="0.10448"/>
+                </key>
+                <key id="4" time="8000" spin="-1">
+                    <object folder="0" file="2" x="109.864217" y="37.767544" angle="26.146022" scale_x="1.039409" scale_y="1.039733" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="effet_poison03">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="118.146641" y="11.498593" angle="0" scale_x="0.451462" scale_y="0.430868" a="0"/>
+                </key>
+                <key id="1" time="2440">
+                    <object folder="0" file="3" x="118.146641" y="11.498593" angle="0" scale_x="0.451462" scale_y="0.430868" a="0"/>
+                </key>
+                <key id="2" time="4398">
+                    <object folder="0" file="3" x="158.032442" y="29.598843" angle="24.276203" scale_x="1.058537" scale_y="0.733972" a="0.87755"/>
+                </key>
+                <key id="3" time="6780">
+                    <object folder="0" file="3" x="201.871453" y="27.983846" angle="51.10545" scale_x="1.453101" scale_y="1.30641" a="0.10448"/>
+                </key>
+                <key id="4" time="8000" spin="-1">
+                    <object folder="0" file="3" x="234.873934" y="54.286576" angle="94.096689" scale_x="1.58484" scale_y="1.498028" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="effet_poison01_000">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="80.962134" y="1.962926" angle="0" scale_y="0.442974" a="0"/>
+                </key>
+                <key id="1" time="2440" spin="0">
+                    <object folder="0" file="1" x="80.962134" y="1.962926" angle="0" scale_y="0.442974" a="0"/>
+                </key>
+                <key id="2" time="4398" spin="0">
+                    <object folder="0" file="1" x="83.077817" y="11.787852" angle="0" a="0.49254"/>
+                </key>
+                <key id="3" time="6780" spin="0">
+                    <object folder="0" file="1" x="110.864138" y="2.736896" angle="0" a="0.10448"/>
+                </key>
+                <key id="4" time="8000" spin="0">
+                    <object folder="0" file="1" x="111.856694" y="-1.977744" angle="0" scale_x="1.083181" scale_y="1.650492" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

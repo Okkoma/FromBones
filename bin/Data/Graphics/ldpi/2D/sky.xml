@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Backgrounds/sky.png">
+	<SubTexture name="sun.png"	x="518"	y="0"	width="265"	height="248"/>
+	<SubTexture name="moon.png"	x="784"	y="0"	width="103"	height="103"/>
+	<SubTexture name="sky.png"	x="0"	y="0"	width="512"	height="512"/>
+</TextureAtlas>
+

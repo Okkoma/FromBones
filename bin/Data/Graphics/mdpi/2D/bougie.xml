@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="bougie1" x="184" y="651" width="45" height="49" />
+	<SubTexture name="flamme_bougie" x="230" y="651" width="26" height="41" />
+	<SubTexture name="halo_lum1" x="184" y="575" width="75" height="75" />
+</TextureAtlas>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="bouchon_00" x="486" y="24" width="13" height="19" />
+	<SubTexture name="colerette_00" x="161" y="135" width="13" height="10" />
+	<SubTexture name="flacon_00" x="448" y="134" width="35" height="57" />
+	<SubTexture name="liquide_rose_00" x="457" y="237" width="30" height="34" />
+	<SubTexture name="liquide_rose_01" x="1" y="267" width="30" height="31" />
+	<SubTexture name="liquide_rose_02" x="226" y="259" width="30" height="33" />
+	<SubTexture name="liquide_vert_00" x="1" y="232" width="30" height="34" />
+	<SubTexture name="liquide_vert_01" x="257" y="259" width="30" height="31" />
+	<SubTexture name="liquide_vert_02" x="195" y="259" width="30" height="33" />
+	<SubTexture name="potion_rose" x="67" y="122" width="35" height="59" />
+	<SubTexture name="potion_verte" x="188" y="104" width="35" height="59" />
+	<SubTexture name="reflet_00" x="224" y="104" width="27" height="52" />
+</TextureAtlas>

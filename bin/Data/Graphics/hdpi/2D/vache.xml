@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="effects_blast_white" x="711" y="809" width="139" height="56" />
+	<SubTexture name="effects_conc1" x="477" y="1" width="259" height="245" />
+	<SubTexture name="effects_halo_white" x="1732" y="867" width="40" height="37" />
+	<SubTexture name="effects_splash1_w" x="1432" y="936" width="78" height="23" />
+	<SubTexture name="effects_splash2_w" x="1608" y="867" width="76" height="39" />
+	<SubTexture name="effects_splash3_w" x="1479" y="810" width="27" height="34" />
+	<SubTexture name="effects_splash4_w" x="886" y="911" width="53" height="25" />
+	<SubTexture name="vac_bouche1" x="1636" y="734" width="88" height="70" />
+	<SubTexture name="vac_bouche2" x="966" y="647" width="96" height="93" />
+	<SubTexture name="vac_bras1" x="1974" y="1" width="60" height="148" />
+	<SubTexture name="vac_bras2" x="600" y="529" width="117" height="118" />
+	<SubTexture name="vac_corne1" x="79" y="690" width="48" height="76" />
+	<SubTexture name="vac_corne2" x="1733" y="724" width="40" height="74" />
+	<SubTexture name="vac_mamelle" x="1241" y="647" width="117" height="92" />
+	<SubTexture name="vac_oeil1_f" x="708" y="907" width="56" height="30" />
+	<SubTexture name="vac_oeil1_o" x="1685" y="867" width="46" height="37" />
+	<SubTexture name="vac_oeil2_f" x="377" y="810" width="20" height="26" />
+	<SubTexture name="vac_oeil2_o" x="2022" y="689" width="25" height="33" />
+	<SubTexture name="vac_oreille1" x="1315" y="863" width="77" height="49" />
+	<SubTexture name="vac_oreille2" x="1986" y="858" width="50" height="50" />
+	<SubTexture name="vac_pied1" x="1151" y="535" width="89" height="112" />
+	<SubTexture name="vac_pied2" x="718" y="644" width="66" height="94" />
+	<SubTexture name="vac_queue" x="1759" y="501" width="96" height="119" />
+	<SubTexture name="vac_tete" x="1233" y="396" width="184" height="138" />
+	<SubTexture name="vac_torse" x="1544" y="1" width="188" height="206" />
+</TextureAtlas>

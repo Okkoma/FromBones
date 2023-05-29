@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Backgrounds/nuages.png">
+	<SubTexture name="nuage1.png"	x="0"	y="0"	width="512"	height="512"/>
+	<SubTexture name="nuage2.png"	x="512"	y="0"	width="512"	height="512"/>
+	<SubTexture name="nuage3.png"	x="512"	y="512"	width="512"	height="512"/>
+</TextureAtlas>

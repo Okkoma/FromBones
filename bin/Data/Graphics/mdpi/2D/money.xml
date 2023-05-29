@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="or_pepite04" x="500" y="14" width="10" height="8" />
+	<SubTexture name="or_pepite01" x="500" y="37" width="3" height="3" />
+	<SubTexture name="or_pepite02" x="506" y="23" width="5" height="4" />
+	<SubTexture name="or_pepite03" x="500" y="23" width="5" height="6" />
+	<SubTexture name="or_pepite05" x="438" y="60" width="12" height="10" />
+	<SubTexture name="or_tas01" x="194" y="97" width="74" height="24" />
+</TextureAtlas>

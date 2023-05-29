@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TerrainAtlas NghMode="Connected0">
+	<TileSheet name="Levels/tileset_dirty.xml" />	
+	<TileSheet name="Levels/tileset_grass.xml" />	
+	<TileSheet name="Levels/tileset_ice.xml" />
+</TerrainAtlas>

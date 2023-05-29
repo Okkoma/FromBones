@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Actors/particules.png">
+	<SubTexture name="effet_pike"		x="0"	y="220"	width="143"	height="104" />
+	<SubTexture name="effet_poison03"	x="0"	y="325"	width="51"	height="54" />
+	<SubTexture name="greenspiral"		x="0"	y="380"	width="32"	height="32" />
+	<SubTexture name="sun"				x="0"	y="413"	width="32"	height="32" />
+	<SubTexture name="torche1"			x="0"	y="0"	width="229"	height="122" />
+	<SubTexture name="torche2"			x="0"	y="123"	width="211"	height="96" />
+	<SubTexture name="bulledair"		x="0"	y="458"	width="52"	height="52" />
+</TextureAtlas>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="feudecamp1.png" width="63" height="33" pivot_x="0.5" pivot_y="0"/>
+        <file id="1" fx="1" name="feu1.png" width="43" height="64" pivot_x="0.5" pivot_y="0"/>
+        <file id="2" fx="1" name="halo_lum1.png" width="75" height="75" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="Cheminee">
+        <animation id="0" name="nomove" length="750" interval="100">
+            <mainline>
+                <key id="0" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="feudecamp1">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="use" length="750" interval="100">
+            <mainline>
+                <key id="0" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="184" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                </key>
+                <key id="2" time="363" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                </key>
+                <key id="3" time="571" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                </key>
+                <key id="4" time="750" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="feudecamp1">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+                <key id="1" time="184" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+                <key id="2" time="363" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+                <key id="3" time="571" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+                <key id="4" time="750" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="feu1">
+                <key id="0" curve_type="instant">
+                    <object folder="0" file="1" x="0.602409" y="13.253012" angle="0"/>
+                </key>
+                <key id="1" time="184" curve_type="instant">
+                    <object folder="0" file="1" x="-2.170554" y="8.105344" angle="354.152224" scale_x="-1"/>
+                </key>
+                <key id="2" time="363" curve_type="instant">
+                    <object folder="0" file="1" x="2.149431" y="10.276972" angle="0" scale_x="1.191128" scale_y="0.978364"/>
+                </key>
+                <key id="3" time="571" curve_type="instant">
+                    <object folder="0" file="1" x="1.38897" y="13.862635" angle="354.152224" scale_x="-1.065193" scale_y="0.829556" a="0.93878"/>
+                </key>
+                <key id="4" time="750" curve_type="instant">
+                    <object folder="0" file="1" x="0.602409" y="13.253012" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="halo_lum1">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="0.504601" y="46.472236" angle="0" scale_x="1.582832" scale_y="1.747912"/>
+                </key>
+                <key id="1" time="184" spin="0">
+                    <object folder="0" file="2" x="0.331291" y="41.362879" angle="0" scale_x="1.262381" scale_y="1.291513"/>
+                </key>
+                <key id="2" time="363" spin="0">
+                    <object folder="0" file="2" x="0.504601" y="41.686017" angle="0" scale_x="1.689648" scale_y="1.738202"/>
+                </key>
+                <key id="3" time="571" spin="0">
+                    <object folder="0" file="2" x="0.504601" y="43.23451" angle="0" scale_x="1.301224" scale_y="1.743421"/>
+                </key>
+                <key id="4" time="750" spin="0">
+                    <object folder="0" file="2" x="0.504601" y="53.472236" angle="0" scale_x="1.582832" scale_y="1.747912"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

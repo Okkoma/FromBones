@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet4.png">
+	<SubTexture name="red_avbras_d00" x="268" y="526" width="71" height="14" />
+	<SubTexture name="red_avbras_g00" x="544" y="501" width="83" height="22" />
+	<SubTexture name="red_bras_d00" x="457" y="501" width="86" height="29" />
+	<SubTexture name="red_bras_g00" x="678" y="493" width="110" height="57" />
+	<SubTexture name="red_casque00" x="1" y="410" width="83" height="82" />
+	<SubTexture name="red_effect_grifferouge00" x="837" y="1" width="82" height="136" />
+	<SubTexture name="red_effect_halo" x="220" y="293" width="121" height="108" />
+	<SubTexture name="red_effect_lamenoire00" x="591" y="294" width="158" height="114" />
+	<SubTexture name="red_effect_poing" x="855" y="396" width="100" height="98" />
+	<SubTexture name="red_effect_pwrar01" x="345" y="286" width="117" height="124" />
+	<SubTexture name="red_effect_pwrar02" x="693" y="1" width="143" height="149" />
+	<SubTexture name="red_effect_pwrar03" x="327" y="1" width="116" height="160" />
+	<SubTexture name="red_effect_pwrav01" x="120" y="402" width="105" height="92" />
+	<SubTexture name="red_effect_pwrav02" x="855" y="294" width="116" height="101" />
+	<SubTexture name="red_effect_pwrav03" x="920" y="1" width="101" height="115" />
+	<SubTexture name="red_effect_pwrhuge" x="693" y="151" width="266" height="142" />
+	<SubTexture name="red_esprit_00" x="1" y="310" width="118" height="99" />
+	<SubTexture name="red_main_d00" x="592" y="252" width="56" height="34" />
+	<SubTexture name="red_main_g00" x="649" y="252" width="42" height="30" />
+	<SubTexture name="red_oeil1" x="668" y="169" width="19" height="15" />
+	<SubTexture name="red_oeil2" x="1006" y="117" width="16" height="20" />
+	<SubTexture name="red_pied_d00" x="956" y="451" width="66" height="18" />
+	<SubTexture name="red_pied_d01" x="94" y="495" width="99" height="56" />
+	<SubTexture name="red_pied_g00" x="268" y="497" width="80" height="28" />
+	<SubTexture name="red_pied_g01" x="875" y="495" width="130" height="53" />
+	<SubTexture name="red_torse_ar00" x="568" y="1" width="124" height="150" />
+	<SubTexture name="red_torse_av00" x="444" y="1" width="123" height="152" />
+</TextureAtlas>

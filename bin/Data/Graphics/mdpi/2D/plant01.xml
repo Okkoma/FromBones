@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/plants.png">
+	<SubTexture name="pl01" x="198" y="1" width="77" height="163" />
+	<SubTexture name="pl02" x="654" y="1" width="61" height="152" />
+	<SubTexture name="pl03" x="947" y="1" width="66" height="132" />
+	<SubTexture name="pl04" x="796" y="1" width="85" height="144" />
+</TextureAtlas>

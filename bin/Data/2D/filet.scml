@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="manche_filet.png" width="292" height="45" pivot_x="0.130137" pivot_y="0.27907"/>
+        <file id="1" name="toile2.png" width="132" height="133" pivot_x="0.5" pivot_y="0"/>
+        <file id="2" name="toile1.png" width="168" height="128" pivot_x="0.5" pivot_y="0"/>
+    </folder>
+    <entity id="0" name="filet">
+        <animation id="0" name="nomove" length="1000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="358">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="manche_filet">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="1" y="-3" angle="0" scale_y="-1"/>
+                </key>
+                <key id="1" time="358" spin="0">
+                    <object folder="0" file="0" x="0.29078" y="-0.163121" angle="0" scale_y="-1"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="toile1">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="177" y="1" angle="180" scale_x="-1"/>
+                </key>
+                <key id="1" time="358" spin="0">
+                    <object folder="0" file="2" x="173.028369" y="5.765957" angle="180" scale_x="-1"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

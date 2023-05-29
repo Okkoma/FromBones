@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="pod_bouche" x="745" y="233" width="3" height="4" />
+	<SubTexture name="pod_corps1" x="836" y="565" width="44" height="31" />
+	<SubTexture name="pod_oeil1" x="351" y="332" width="12" height="17" />
+	<SubTexture name="pod_oeil2" x="590" y="584" width="10" height="5" />
+	<SubTexture name="pod_patte1" x="220" y="614" width="35" height="15" />
+	<SubTexture name="pod_patte2" x="947" y="562" width="14" height="27" />
+	<SubTexture name="pod_patte3" x="1" y="616" width="35" height="13" />
+	<SubTexture name="pod_patte4" x="735" y="240" width="13" height="27" />
+	<SubTexture name="pod_tenta1" x="262" y="371" width="35" height="82" />
+	<SubTexture name="pod_tenta2" x="888" y="156" width="19" height="84" />
+	<SubTexture name="pod_tenta3" x="106" y="374" width="23" height="65" />
+</TextureAtlas>

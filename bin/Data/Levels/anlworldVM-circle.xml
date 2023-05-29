@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="VM" />
+
+	<Module type="Seed" 			name="seed"					params="17892" />
+
+	<Module type="Radial"           name="radial" />
+	<Module type="Substract" 		name="radialshape" 			params="2 radial" />
+
+	<Module type="SimpleFBM"        name="lowland_base"         params="GRADIENT QUINTIC 3 1 seed" />
+	<Module type="ScaleDomain"		name="lowland_scale"        params="lowland_base 0.5" />
+	<Module type="ScaleY"		    name="lowland_y_scale"      params="lowland_scale 0.1" />
+	<Module type="TranslateY"  		name="lowland_offsety"      params="lowland_y_scale 0" />
+
+	<Module type="TranslateDomain" 	name="lowland_terrain"      params="radialshape lowland_offsety" />
+
+	<Module type="Substract"		name="outer_inv"			params="1 lowland_terrain" />
+	<Module type="CacheArray"  		name="outer"				params="outer_inv" />
+
+	<Module type="Bias"		    	name="outer_attenuate_inv"	params="outer 0.1" />
+	<Module type="Substract"		name="outer_attenuate"		params="1 outer_attenuate_inv" />
+
+	<Module type="SimpleRidgedMF"   name="cave_base"			params="GRADIENT QUINTIC 1 4 seed" />
+	<Module type="ScaleDomain"		name="cave_scale"			params="cave_base 1" />
+	<Module type="SimpleFBM"		name="cave_pertub"			params="GRADIENT QUINTIC 6 2 seed" />
+	<Module type="ScaleDomain"		name="cave_pertub_scale"	params="cave_pertub 0.5" />
+	<Module type="Multiply"		    name="cave_attenuate"		params="outer_attenuate cave_scale" />
+	<Module type="TranslateX"  		name="inner"				params="cave_attenuate cave_pertub_scale" />
+
+	<Module type="Step"  			name="inners"         		params="inner 0.9" />
+	<Module type="Step"  			name="outers"         		params="outer 0.5" renderable="GroundMap" />
+	<Module type="Multiply"		    name="terrain"         		params="outers inners" renderable="CaveMap" screenshot="true" />
+
+	<Module type="CellularBasis"	name="terrainmap"      		params="0 1 0 0 0 0 0 0 0 seed" renderable="TerrainMap" />
+
+	<Module type="ValueBasis"		name="valuemap"      		params="QUINTIC seed" />
+	<Module type="Add"				name="recentervaluemap"    	params="valuemap 0.5" />
+	<Module type="Clamp"			name="clampvaluemap"    	params="recentervaluemap 0 1" />
+	<Module type="Multiply"			name="biomemap"      		params="clampvaluemap 10" renderable="BiomeMap" />
+
+</AnlWorldModel>

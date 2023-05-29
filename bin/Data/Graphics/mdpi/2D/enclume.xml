@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="enclume" x="577" y="550" width="134" height="104" />
+</TextureAtlas>

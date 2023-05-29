@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="armureskel01" x="718" y="687" width="64" height="43" />
+	<SubTexture name="armureepauled01" x="675" y="734" width="38" height="27" />
+	<SubTexture name="armureepauleg01" x="569" y="734" width="30" height="30" />
+	<SubTexture name="armureskel02" x="718" y="731" width="61" height="37" />
+	<SubTexture name="empty" x="1" y="1" width="1" height="1" />
+</TextureAtlas>

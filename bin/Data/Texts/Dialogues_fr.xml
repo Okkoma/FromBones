@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<dialoguedata>
+	<dialogue name="accept" >
+        <message>Oui</message>
+	</dialogue>
+	<dialogue name="decline" >
+        <message>Non</message>
+	</dialogue>
+	<dialogue name="shop" >
+        <message>Boutique</message>
+	</dialogue>
+	<dialogue name="talk" >
+        <message>Parler</message>
+	</dialogue>
+	<dialogue name="merchandise1" >
+        <message>Hello ! ...|Veux-tu voir la boutique ou bien juste parler ?</message>
+        <response name="shop" next="bargain1" />
+        <response name="talk" next="rockgolem1" />
+	</dialogue>
+	<dialogue name="bargain1" >
+        <message>Ok, voici mes articles ...</message>
+		<command>
+		{
+			import "game" for Speaker
+			Speaker.setEnableShop(true)
+			Speaker.toggleDialogueFrame(false)
+		}
+		</command>
+	</dialogue>
+	<dialogue name="bye1" >
+        <message>Et bien à la prochaine !</message>
+		<command>
+		{
+			import "game" for Speaker
+			Speaker.toggleDialogueFrame(false, 2)
+		}
+		</command>
+	</dialogue>
+	<dialogue name="rockgolem1" >
+		<message>Veux-tu que je te parle des Golems de Pierre vivants dans la region ?</message>
+        <response name="accept" next="rockgolem1_1" />
+        <response name="decline" next="bye1" />
+    </dialogue>
+	<dialogue name="rockgolem1_1" >
+		<message>Ce sont d'imposants geants issus de la première ère de notre monde, engendrés par les restes de la magie primordiale et de la Terre Mère ...</message>
+		<message>J'ai entendu dire que si l'on plantait une graine d'Eliegor sur sa tete alors, ce géant se lierait pour toujours à son donateur !</message>
+		<message>Mais biensur ce n'est qu'une histoire ancienne ... enfin si tu es assez teméraire peut-être serais-tu interessé par cette graine ...</message>
+		<message>Cette semence provient d'une fleur d'un rouge violacé intense, que l'on trouve généralement au sommet de certaines montagnes.</message>
+		<message>Veux-tu partir en quete du Golem D'Eliegor ?</message>
+        <response name="accept" next="rockgolem1_2" />
+        <response name="decline" next="bye1" />
+    </dialogue>
+	<dialogue name="rockgolem1_2" >
+		<message>Et bien, il te faudra être trés prudent et avoir la main verte ! Equipe-toi bien avant de partir ...</message>
+		<command>
+		{
+			import "game" for Contributor
+			Contributor.addMission("Eliegor")
+		}
+		</command>
+		<message>Veux-tu voir des objets dans ma boutique ?</message>
+        <response name="accept" next="bargain1" />
+        <response name="decline" next="bye1" />
+	</dialogue>
+</dialoguedata>

@@ -1,0 +1,3 @@
+<technique vs="Text" ps="Text" >
+	<pass name="front" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

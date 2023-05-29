@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="portal_01.png" width="166" height="339" pivot_x="0" pivot_y="1"/>
+        <file id="1" name="halo_tete.png" width="59" height="48" pivot_x="0" pivot_y="1"/>
+        <file id="2" name="portal_runed.png" width="43" height="185" pivot_x="0" pivot_y="1"/>
+        <file id="3" name="portal_runeg.png" width="23" height="195" pivot_x="0" pivot_y="1"/>
+        <file id="4" name="portal_halop.png" width="85" height="214" pivot_x="0" pivot_y="1"/>
+    </folder>
+    <entity id="0" name="portal">
+        <animation id="0" name="no_move" length="5000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="2500">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="halo_tete">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="0.06716"/>
+                </key>
+                <key id="1" time="2500" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="0.46269"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="portal_runed">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0" a="0"/>
+                </key>
+                <key id="1" time="2500" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0" a="0.4403"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="portal_runeg">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0" a="0"/>
+                </key>
+                <key id="1" time="2500" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0" a="0.4403"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="inactive" length="5000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="halo_tete">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="0.06716"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="portal_runed">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="portal_runeg">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0" a="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="use" length="2000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                </key>
+                <key id="1" time="255">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                </key>
+                <key id="2" time="259">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                </key>
+                <key id="3" time="398">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                </key>
+                <key id="4" time="534">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="3" z_index="3"/>
+                </key>
+                <key id="5" time="2000">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="4" z_index="3"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="halo_tete">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="0.06716"/>
+                </key>
+                <key id="1" time="255" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="1"/>
+                </key>
+                <key id="2" time="259" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0"/>
+                </key>
+                <key id="3" time="2000" spin="0">
+                    <object folder="0" file="1" x="-14.25" y="273.75" angle="0" a="0.06716"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="portal_runed">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0" a="0"/>
+                </key>
+                <key id="1" time="255" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0"/>
+                </key>
+                <key id="2" time="259" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0"/>
+                </key>
+                <key id="3" time="2000" spin="0">
+                    <object folder="0" file="2" x="26.25" y="189.75" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="portal_runeg">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0" a="0"/>
+                </key>
+                <key id="1" time="255" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0"/>
+                </key>
+                <key id="2" time="259" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0"/>
+                </key>
+                <key id="3" time="2000" spin="0">
+                    <object folder="0" file="3" x="-63.75" y="194.25" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="portal_halop">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" x="-39.448052" y="208.441558" angle="0" a="0"/>
+                </key>
+                <key id="1" time="255" spin="0">
+                    <object folder="0" file="4" x="-39.448052" y="208.441558" angle="0"/>
+                </key>
+                <key id="2" time="259" spin="0">
+                    <object folder="0" file="4" x="-39.448052" y="208.441558" angle="0"/>
+                </key>
+                <key id="3" time="534" spin="0">
+                    <object folder="0" file="4" x="-39.448052" y="208.441558" angle="0" a="0"/>
+                </key>
+                <key id="4" time="2000" spin="0">
+                    <object folder="0" file="4" x="-39.448052" y="208.441558" angle="0" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="Animation_HaloPortal" object_type="point">
+                <key id="0" time="259" spin="0">
+                    <object x="-33.75" y="108" angle="55.619655"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

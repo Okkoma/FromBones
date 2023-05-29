@@ -1,0 +1,4 @@
+<technique vs="ShaderGrounds" ps="ShaderGrounds" >
+    <pass name="alpha" vsdefines="VERTEXLIGHT" psdefines="VERTEXLIGHT" depthtest="false" depthwrite="true" blend="alpha" />
+    <pass name="litalpha" vsdefines="PERPIXEL" psdefines="PERPIXEL" depthtest="false" depthwrite="false" blend="addalpha" />
+</technique>

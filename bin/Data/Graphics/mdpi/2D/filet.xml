@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="filet" x="425" y="688" width="292" height="45" />
+	<SubTexture name="manche_filet" x="425" y="688" width="292" height="45" />
+	<SubTexture name="toile1" x="438" y="306" width="168" height="128" />
+	<SubTexture name="toile2" x="790" y="290" width="132" height="133" />
+</TextureAtlas>

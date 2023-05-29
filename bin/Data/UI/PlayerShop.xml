@@ -1,0 +1,307 @@
+<?xml version="1.0"?>
+<element type="Window">
+	<attribute name="Name" value="PlayerShop" />
+    <attribute name="Is Movable" value="true" />
+    <attribute name="Is Resizable" value="false" />
+    <attribute name="Layout Mode" value="Vertical" />
+    <attribute name="Layout Spacing" value="4" />
+    <attribute name="Layout Border" value="6 6 6 6" />
+    <attribute name="Resize Border" value="6 6 6 6" />
+	<attribute name="Min Size" value="362 552" />
+	<attribute name="Max Size" value="362 552" />
+    <attribute name="Opacity" value="0.8" />
+	<attribute name="Focus Mode" value="Focusable" />
+	<element>
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Vertical" />
+		<attribute name="Layout Spacing" value="4" />
+		<element style="HorizontalPanel">
+			<attribute name="Layout Mode" value="Horizontal" />
+	        <attribute name="Layout Spacing" value="4" />
+			<attribute name="Min Size" value="356 32" />
+			<attribute name="Max Size" value="356 32" />
+			<element type="Text">
+				<attribute name="Name" value="TitleText" />
+				<attribute name="Text" value="Shop" />
+				<attribute name="Min Anchor" value="0.5 0.5" />
+				<attribute name="Max Anchor" value="0.5 0.5" />
+				<attribute name="Pivot" value="0.5 0.5" />
+				<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Font" value="Font;Fonts/aby32.xml" />
+				<attribute name="Font Size" value="32" />
+				<attribute name="Vert Alignment" value="Center" />
+				<attribute name="Text Alignment" value="Center" />
+				<attribute name="Auto Localizable" value="true" />
+			</element>
+			<element type="Button" >
+	            <attribute name="Name" value="OkButton" />
+				<attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
+	            <attribute name="Sprite Hover" value="icon_close_on" />
+	            <attribute name="Pressed Image Offset" value="0 0" />
+	            <attribute name="Min Size" value="32 32" />
+	            <attribute name="Max Size" value="32 32" />
+	            <attribute name="Focus Mode" value="NotFocusable" />
+	        </element>
+		</element>
+		<element type="BorderImage" style="EditorDivider" >
+	        <attribute name="Min Size" value="356 11" />
+	        <attribute name="Max Size" value="356 11" />
+	    </element>
+		<element>
+			<attribute name="Min Size" value="362 250" />
+			<attribute name="Max Size" value="362 250" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Layout Mode" value="Vertical" />
+			<element>
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<attribute name="Layout Spacing" value="5" />
+				<element>
+					<attribute name="Name" value="ShopSlotZone" />
+					<attribute name="Min Size" value="350 196" />
+					<attribute name="Max Size" value="350 196" />
+					<attribute name="Min Anchor" value="0 0.5" />
+					<attribute name="Max Anchor" value="0 0.5" />
+					<attribute name="Pivot" value="0 0.5" />
+					<attribute name="Layout Mode" value="Vertical" />
+					<attribute name="Layout Spacing" value="2" />
+					<element>
+						<attribute name="Name" value="SlotZone1" />
+						<attribute name="Min Size" value="350 64" />
+						<attribute name="Max Size" value="350 64" />
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Layout Mode" value="Horizontal" />
+						<attribute name="Layout Spacing" value="4" />
+						<element>
+							<attribute name="Name" value="Shop_1" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+							<attribute name="Is Enabled" value="true" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_2" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+							<attribute name="Is Enabled" value="true" />
+							<attribute name="Bring To Front" value="true" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_3" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_4" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_5" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+					<element>
+						<attribute name="Name" value="SlotZone2" />
+						<attribute name="Min Size" value="350 64" />
+						<attribute name="Max Size" value="350 64" />
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Layout Mode" value="Horizontal" />
+						<attribute name="Layout Spacing" value="4" />
+						<element>
+							<attribute name="Name" value="Shop_6" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_7" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_8" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_9" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_10" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+					<element>
+						<attribute name="Name" value="SlotZone3" />
+						<attribute name="Min Size" value="350 64" />
+						<attribute name="Max Size" value="350 64" />
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Layout Mode" value="Horizontal" />
+						<attribute name="Layout Spacing" value="4" />
+						<element>
+							<attribute name="Name" value="Shop_11" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+							<attribute name="Is Enabled" value="true" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_12" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_13" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_14" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+						<element>
+							<attribute name="Name" value="Shop_15" />
+							<attribute name="Min Size" value="64 64" />
+							<attribute name="Max Size" value="64 64" />
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+				</element>
+			</element>
+		</element>
+		<element>
+			<attribute name="Min Size" value="350 120" />
+			<attribute name="Max Size" value="350 120" />
+			<attribute name="Min Anchor" value="0.5 0" />
+			<attribute name="Max Anchor" value="0.5 0" />
+			<attribute name="Pivot" value="0.5 0" />
+			<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Layout Mode" value="Vertical" />
+			<element type="BorderImage" style="EditorDivider">
+				<attribute name="Min Size" value="320 11" />
+				<attribute name="Max Size" value="320 11" />
+			</element>
+			<element type="Text">
+				<attribute name="Name" value="BasketText" />
+				<attribute name="Min Anchor" value="0.5 0" />
+				<attribute name="Max Anchor" value="0.5 0" />
+				<attribute name="Pivot" value="0.5 0" />
+				<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Font" value="Font;Fonts/aby22.xml" />
+				<attribute name="Font Size" value="22" />
+				<attribute name="Text" value="Basket" />
+				<attribute name="Text Alignment" value="Center" />
+				<attribute name="Auto Localizable" value="true" />
+			</element>
+			<element style="Panel">
+				<attribute name="Name" value="BasketSlotZone" />
+				<attribute name="Min Size" value="0 64" />
+				<attribute name="Max Size" value="500 64" />
+				<attribute name="Min Anchor" value="0.5 0" />
+				<attribute name="Max Anchor" value="0.5 0" />
+				<attribute name="Pivot" value="0.5 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<element>
+					<attribute name="Name" value="Basket_1" />
+					<attribute name="Min Size" value="64 64" />
+					<attribute name="Max Size" value="64 64" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Is Enabled" value="true" />
+				</element>
+				<element>
+					<attribute name="Name" value="Basket_2" />
+					<attribute name="Min Size" value="64 64" />
+					<attribute name="Max Size" value="64 64" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Is Enabled" value="true" />
+				</element>
+				<element>
+					<attribute name="Name" value="Basket_3" />
+					<attribute name="Min Size" value="64 64" />
+					<attribute name="Max Size" value="64 64" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Is Enabled" value="true" />
+				</element>
+				<element>
+					<attribute name="Name" value="Basket_4" />
+					<attribute name="Min Size" value="64 64" />
+					<attribute name="Max Size" value="64 64" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Is Enabled" value="true" />
+				</element>
+				<element>
+					<attribute name="Name" value="Basket_5" />
+					<attribute name="Min Size" value="64 64" />
+					<attribute name="Max Size" value="64 64" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Is Enabled" value="true" />
+				</element>
+			</element>
+		</element>
+		<element>
+			<attribute name="Min Size" value="350 100" />
+			<attribute name="Max Size" value="350 100" />
+			<attribute name="Min Anchor" value="0.5 0" />
+			<attribute name="Max Anchor" value="0.5 0" />
+			<attribute name="Pivot" value="0.5 0" />
+			<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Layout Mode" value="Vertical" />
+			<element type="BorderImage" style="EditorDivider">
+				<attribute name="Min Size" value="320 11" />
+				<attribute name="Max Size" value="320 11" />
+			</element>
+			<element type="Button">
+				<attribute name="Name" value="PriceButton" />
+				<attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
+		        <attribute name="Border" value="4 4 4 4" />
+				<attribute name="Min Size" value="120 80" />
+				<attribute name="Max Size" value="120 80" />
+				<attribute name="Color" value="0.5 0.5 0.5 0.9" />
+				<attribute name="Horiz Alignment" value="Center" />
+				<attribute name="Pressed Image Offset" value="0 0" />
+		        <attribute name="Hover Image Offset" value="0 0" />
+		        <attribute name="Pressed Child Offset" value="-1 1" />
+				<element type="Text">
+					<attribute name="Name" value="PriceText" />
+					<attribute name="Font" value="Font;Fonts/aby32.xml" />
+					<attribute name="Font Size" value="32" />
+					<attribute name="Min Anchor" value="0.5 0" />
+					<attribute name="Max Anchor" value="0.5 0" />
+					<attribute name="Pivot" value="0.5 0" />
+					<attribute name="Horiz Alignment" value="Center" />
+					<attribute name="Vert Alignment" value="Center" />
+					<attribute name="Text Alignment" value="Center" />
+				</element>
+			</element>
+		</element>
+	</element>
+</element>

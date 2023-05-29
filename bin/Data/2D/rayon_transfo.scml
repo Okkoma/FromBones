@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="effect_morsure_02.png" width="100" height="70" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="rayon_transfo">
+        <obj_info name="rayon_transfo" type="bone" w="101.552" h="5.2"/>
+        <obj_info name="TA" type="box" w="60.2498" h="43.5" pivot_x="0" pivot_y="0"/>
+        <animation id="0" name="spawn" length="600" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <bone_ref id="0" timeline="0" key="0"/>
+                    <object_ref id="0" parent="0" timeline="1" key="0" z_index="0"/>
+                    <object_ref id="1" parent="0" timeline="2" key="0" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="3" key="0" z_index="2"/>
+                    <object_ref id="3" parent="0" timeline="4" key="0" z_index="3"/>
+                    <object_ref id="4" parent="0" timeline="5" key="0" z_index="4"/>
+                </key>
+                <key id="1" time="433">
+                    <bone_ref id="0" timeline="0" key="0"/>
+                    <object_ref id="0" parent="0" timeline="1" key="1" z_index="0"/>
+                    <object_ref id="1" parent="0" timeline="2" key="1" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="3" key="1" z_index="2"/>
+                    <object_ref id="3" parent="0" timeline="4" key="0" z_index="3"/>
+                    <object_ref id="4" parent="0" timeline="5" key="1" z_index="4"/>
+                </key>
+                <key id="2" time="551">
+                    <bone_ref id="0" timeline="0" key="1"/>
+                    <object_ref id="0" parent="0" timeline="1" key="2" z_index="0"/>
+                    <object_ref id="1" parent="0" timeline="2" key="2" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="3" key="2" z_index="2"/>
+                    <object_ref id="3" parent="0" timeline="4" key="1" z_index="3"/>
+                    <object_ref id="4" parent="0" timeline="5" key="2" z_index="4"/>
+                </key>
+                <key id="3" time="599">
+                    <bone_ref id="0" timeline="0" key="2"/>
+                    <object_ref id="0" parent="0" timeline="1" key="3" z_index="0"/>
+                    <object_ref id="1" parent="0" timeline="2" key="3" z_index="1"/>
+                    <object_ref id="2" parent="0" timeline="3" key="3" z_index="2"/>
+                    <object_ref id="3" parent="0" timeline="5" key="3" z_index="3"/>
+                </key>
+            </mainline>
+            <timeline id="0" obj="0" name="rayon_transfo" object_type="bone">
+                <key id="0" spin="0">
+                    <bone angle="180"/>
+                </key>
+                <key id="1" time="551" spin="0">
+                    <bone angle="180"/>
+                </key>
+                <key id="2" time="599" spin="0">
+                    <bone angle="180" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="effect_morsure_02_000">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="27.554521" y="-37.187454" angle="180"/>
+                </key>
+                <key id="1" time="433" spin="0">
+                    <object folder="0" file="0" x="529.840932" y="-70.183944" angle="180" scale_x="1.588675" scale_y="2.348924" a="0.250939"/>
+                </key>
+                <key id="2" time="551" spin="0">
+                    <object folder="0" file="0" x="768.507334" y="-234.408249" angle="180" scale_x="1.68291" scale_y="2.564859" a="0.13103"/>
+                </key>
+                <key id="3" time="599" spin="0">
+                    <object folder="0" file="0" x="626.072551" y="-184.669118" angle="180" scale_x="1.68291" scale_y="2.564859" a="0.13103"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="effect_morsure_02_001">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="21.814261" y="32.708649" angle="180" scale_y="0.711881"/>
+                </key>
+                <key id="1" time="433" spin="0">
+                    <object folder="0" file="0" x="569.846361" y="72.911434" angle="180" scale_x="1.341188" scale_y="2.059461" a="0.239052"/>
+                </key>
+                <key id="2" time="551" spin="0">
+                    <object folder="0" file="0" x="760.987262" y="242.315093" angle="180" scale_x="1.395805" scale_y="2.27518" a="0.11724"/>
+                </key>
+                <key id="3" time="599" spin="0">
+                    <object folder="0" file="0" x="681.856827" y="203.88031" angle="180" scale_x="1.395805" scale_y="2.27518" a="0.11724"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="effect_morsure_02_002">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="46.463611" y="-3.083558" angle="180" scale_x="1.150663" scale_y="1.260221"/>
+                </key>
+                <key id="1" time="433" spin="0">
+                    <object folder="0" file="0" x="537.470276" y="0.077044" angle="180" scale_x="2.039773" scale_y="2.997364" a="0.330058"/>
+                </key>
+                <key id="2" time="551" spin="0">
+                    <object folder="0" file="0" x="764.755976" y="0.58299" angle="180" scale_x="3.525233" scale_y="4.55666" a="0.222815"/>
+                </key>
+                <key id="3" time="599" spin="0">
+                    <object folder="0" file="0" x="764.755976" y="0.58299" angle="180" scale_x="3.525233" scale_y="4.55666" a="0.222815"/>
+                </key>
+            </timeline>
+            <timeline id="4" obj="1" name="TA" object_type="box">
+                <key id="0" spin="0">
+                    <object x="95.070754" y="-85.726415" pivot_x="0" pivot_y="1" angle="180" scale_x="1.585062" scale_y="3.431034"/>
+                </key>
+                <key id="1" time="551" spin="0">
+                    <object x="760.629766" y="-101.833333" pivot_x="0" pivot_y="1" angle="180" scale_x="1.585062" scale_y="4.756705"/>
+                </key>
+            </timeline>
+            <timeline id="5" name="effect_morsure_02_003">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="19.157895" angle="180" scale_x="0.654486" scale_y="3.651722" a="0.37931"/>
+                </key>
+                <key id="1" time="433" spin="0">
+                    <object folder="0" file="0" x="457.694896" y="0.137611" angle="180" scale_x="5.584229" scale_y="3.699783" a="0.285136"/>
+                </key>
+                <key id="2" time="551" spin="0">
+                    <object folder="0" file="0" x="667.955766" y="0.137611" angle="180" scale_x="4.647137" scale_y="9.561297" a="0.2069"/>
+                </key>
+                <key id="3" time="599" spin="0">
+                    <object folder="0" file="0" x="667.955766" y="0.137611" angle="180" scale_x="4.647137" scale_y="9.561297" a="0.2069"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

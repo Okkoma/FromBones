@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="scrapemeat1" x="486" y="44" width="24" height="19" />
+	<SubTexture name="scrapemeat2" x="135" y="299" width="30" height="22" />
+	<SubTexture name="scrapemeat3" x="396" y="273" width="50" height="31" />
+	<SubTexture name="scrapemeat4" x="166" y="319" width="34" height="20" />
+	<SubTexture name="scrapemeat5" x="447" y="304" width="32" height="22" />
+</TextureAtlas>

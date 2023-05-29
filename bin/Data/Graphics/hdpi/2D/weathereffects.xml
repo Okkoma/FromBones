@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Backgrounds/weathereffects.png">
+	<SubTexture name="moon.png"	x="344"	y="316"	width="103"	height="103" frameX="-0" frameY="-0" frameWidth="103" frameHeight="103"/>
+	<SubTexture name="nuage01.png"	x="0"	y="243"	width="344"	height="216" frameX="-0" frameY="-0" frameWidth="344" frameHeight="216"/>
+	<SubTexture name="nuage02.png"	x="0"	y="106"	width="353"	height="137" frameX="-0" frameY="-0" frameWidth="353" frameHeight="137"/>
+	<SubTexture name="nuage03.png"	x="315"	y="459"	width="140"	height="91" frameX="-0" frameY="-0" frameWidth="140" frameHeight="91"/>
+	<SubTexture name="nuage04.png"	x="344"	y="243"	width="135"	height="73" frameX="-0" frameY="-0" frameWidth="135" frameHeight="73"/>
+	<SubTexture name="nuage05.png"	x="0"	y="0"	width="391"	height="106" frameX="-0" frameY="-0" frameWidth="391" frameHeight="106"/>
+	<SubTexture name="nuage06.png"	x="0"	y="801"	width="267"	height="66" frameX="-0" frameY="-0" frameWidth="267" frameHeight="66"/>
+	<SubTexture name="nuage07.png"	x="0"	y="459"	width="315"	height="147" frameX="-0" frameY="-0" frameWidth="315" frameHeight="147"/>
+	<SubTexture name="nuage08.png"	x="0"	y="936"	width="209"	height="64" frameX="-0" frameY="-0" frameWidth="209" frameHeight="64"/>
+	<SubTexture name="nuage09.png"	x="274"	y="665"	width="146"	height="105" frameX="-0" frameY="-0" frameWidth="146" frameHeight="105"/>
+	<SubTexture name="nuage10.png"	x="0"	y="867"	width="223"	height="69" frameX="-0" frameY="-0" frameWidth="223" frameHeight="69"/>
+	<SubTexture name="nuage11.png"	x="0"	y="606"	width="274"	height="195" frameX="-0" frameY="-0" frameWidth="274" frameHeight="195"/>
+	<SubTexture name="nuage12.png"	x="315"	y="550"	width="129"	height="47" frameX="-0" frameY="-0" frameWidth="129" frameHeight="47"/>
+	<SubTexture name="nuage13.png"	x="274"	y="606"	width="169"	height="59" frameX="-0" frameY="-0" frameWidth="169" frameHeight="59"/>
+	<SubTexture name="sun.png"	x="267"	y="801"	width="196"	height="196" frameX="-0" frameY="-0" frameWidth="196" frameHeight="196"/>
+</TextureAtlas>
+

@@ -1,0 +1,6 @@
+<texture>
+    <mipmap enable="false" />
+    <quality high="0" />
+    <filter mode="bilinear" />
+	<srgb enable="true" />
+</texture>

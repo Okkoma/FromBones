@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/plantsstaticnew.png">
+	<SubTexture name="planche3" x="214" y="378" width="57" height="19" />
+	<SubTexture name="planche4" x="214" y="398" width="56" height="18" />
+	<SubTexture name="poutre1" x="466" y="431" width="134" height="21" />
+</TextureAtlas>

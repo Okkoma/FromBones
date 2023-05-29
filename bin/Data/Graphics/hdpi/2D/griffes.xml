@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="effet_griffe" x="430" y="1030" width="92" height="84" />
+</TextureAtlas>

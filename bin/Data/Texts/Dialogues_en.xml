@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<dialoguedata>
+	<dialogue name="accept" >
+        <message>Yes</message>
+	</dialogue>
+	<dialogue name="decline" >
+        <message>No</message>
+	</dialogue>
+	<dialogue name="merchandise1" >
+        <message>Hello !...| Do you wan to do bargain ?</message>
+        <response name="accept" next="bargain1" />
+        <response name="decline" next="bye1" />
+	</dialogue>
+	<dialogue name="bargain1" >
+        <message>there is my stuff ...</message>
+		<command>
+		{
+			import "game" for Timer
+			import "game" for Actor
+			Timer.wait(1)
+			Actor.setEnableShop(true)
+		}
+		</command>
+	</dialogue>
+	<dialogue name="bye1" >
+        <message>See you later !</message>
+		<command>
+		{
+			import "game" for Timer
+			Timer.wait(1)
+		}
+		</command>
+	</dialogue>
+</dialoguedata>

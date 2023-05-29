@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="bombe_01" x="1" y="183" width="83" height="90" />
+	<SubTexture name="bombe_scrap01" x="732" y="264" width="28" height="28" />
+	<SubTexture name="bombe_scrap02" x="990" y="346" width="30" height="31" />
+	<SubTexture name="bombe_scrap03" x="881" y="426" width="16" height="15" />
+	<SubTexture name="bombe_scrap04" x="627" y="428" width="14" height="12" />
+	<SubTexture name="etincelle_jaune" x="70" y="327" width="51" height="45" />
+	<SubTexture name="etincelle_rouge" x="223" y="292" width="47" height="58" />
+	<SubTexture name="ficelle_grise" x="379" y="118" width="10" height="15" />
+</TextureAtlas>

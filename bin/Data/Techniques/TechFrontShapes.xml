@@ -1,0 +1,3 @@
+<technique vs="ShaderFrontShapes" ps="ShaderFrontShapes" >
+	<pass name="front" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

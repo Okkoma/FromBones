@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="pod_splash1" x="1455" y="1173" width="150" height="29" />
+	<SubTexture name="pod_splash2" x="1" y="1172" width="111" height="30" />
+	<SubTexture name="pod_splash3" x="635" y="1196" width="62" height="18" />
+</TextureAtlas>

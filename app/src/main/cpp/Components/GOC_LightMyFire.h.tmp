@@ -1,0 +1,35 @@
+#pragma once
+
+
+namespace Urho3D
+{
+    class RigidBody2D;
+    class CollisionShape2D;
+    struct ContactInfo;
+}
+
+using namespace Urho3D;
+
+
+class GOC_LightMyFire : public Component
+{
+    URHO3D_OBJECT(GOC_LightMyFire, Component);
+
+    public :
+        GOC_LightMyFire(Context* context);
+        virtual ~GOC_LightMyFire();
+
+        static void RegisterObject(Context* context);
+
+        virtual void OnSetEnabled();
+
+    protected :
+        virtual void OnNodeSet(Node* node);
+
+    private :
+        void HandleContact(StringHash eventType, VariantMap& eventData);
+
+        RigidBody2D* body_;
+};
+
+

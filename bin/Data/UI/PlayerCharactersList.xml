@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<element type="Window">
+	<attribute name="Name" value="CharactersList" />
+	<attribute name="Is Movable" value="false" />
+	<attribute name="Is Resizable" value="false" />
+	<attribute name="Size" value="230 230" />
+	<attribute name="Texture" value="Texture2D;Textures/UI/game_equipment.png" />
+	<attribute name="Image Rect" value="0 0 1 1" /> <!-- transparent window -->
+	<attribute name="Border" value="0 0 0 0" />
+	<attribute name="Resize Border" value="0 0 0 0" />
+	<attribute name="Vert Alignment" value="Center" />
+	<attribute name="Opacity" value="0.8" />
+    <element type="BorderImage">
+        <attribute name="Name" value="Slot_1" />
+        <attribute name="Sprite" value="UI/game_equipment.xml@slot" />
+        <attribute name="Size" value="70 70" />
+        <attribute name="Priority" value="90" />
+		<attribute name="Vert Alignment" value="Center" />
+    	<element type="Button">
+    		<attribute name="Min Size" value="64 64" />
+    		<attribute name="Max Size" value="64 64" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_equipment.png" />
+    		<attribute name="Hover Image Offset" value="0 0" />
+    		<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Horiz Alignment" value="Center" />
+			<attribute name="Vert Alignment" value="Center" />
+    	</element>
+    </element>
+    <element type="BorderImage">
+        <attribute name="Name" value="Slot_2" />
+        <attribute name="Sprite" value="UI/game_equipment.xml@slot" />
+        <attribute name="Size" value="70 70" />
+        <attribute name="Priority" value="100" />
+		<attribute name="Vert Alignment" value="Center" />
+    	<element type="Button">
+    		<attribute name="Min Size" value="64 64" />
+    		<attribute name="Max Size" value="64 64" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_equipment.png" />
+    		<attribute name="Hover Image Offset" value="0 0" />
+    		<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Horiz Alignment" value="Center" />
+			<attribute name="Vert Alignment" value="Center" />
+    	</element>
+    </element>
+    <element type="BorderImage">
+        <attribute name="Name" value="Slot_3" />
+        <attribute name="Sprite" value="UI/game_equipment.xml@slot" />
+        <attribute name="Size" value="70 70" />
+        <attribute name="Priority" value="80" />
+		<attribute name="Vert Alignment" value="Center" />
+    	<element type="Button">
+    		<attribute name="Min Size" value="64 64" />
+    		<attribute name="Max Size" value="64 64" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_equipment.png" />
+    		<attribute name="Hover Image Offset" value="0 0" />
+    		<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Horiz Alignment" value="Center" />
+			<attribute name="Vert Alignment" value="Center" />
+    	</element>
+    </element>
+	<element type="BorderImage">
+        <attribute name="Name" value="I_Select" />
+		<attribute name="Sprite" value="UI/game_equipment.xml@slothalo" />
+        <attribute name="Size" value="84 84" />
+		<attribute name="Color" value="1 0.5 0" />
+        <attribute name="Priority" value="110" />
+		<attribute name="Vert Alignment" value="Center" />
+		<attribute name="Opacity" value="0.5" />
+	</element>
+	<element type="Button">
+		<attribute name="Name" value="I_ArrowL" />
+		<attribute name="Sprite" value="UI/game_equipment.xml@slotarrowl_off" />
+        <attribute name="Sprite Hover" value="slotarrowl_on" />
+		<attribute name="Size" value="33 44" />
+		<attribute name="Pressed Image Offset" value="0 0" />
+		<attribute name="Priority" value="105" />
+		<attribute name="Vert Alignment" value="Center" />
+	</element>
+	<element type="Button">
+		<attribute name="Name" value="I_ArrowR" />
+		<attribute name="Sprite" value="UI/game_equipment.xml@slotarrowr_off" />
+        <attribute name="Sprite Hover" value="slotarrowr_on" />
+		<attribute name="Size" value="33 44" />
+		<attribute name="Pressed Image Offset" value="0 0" />
+		<attribute name="Priority" value="105" />
+		<attribute name="Vert Alignment" value="Center" />
+	</element>
+</element>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="marmite" x="203" y="673" width="122" height="95" />
+</TextureAtlas>

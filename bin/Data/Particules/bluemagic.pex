@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<particleEmitterConfig>
+	<sprite name="SpriteSheet2D;Particules/particules.xml@effet_poison03" />
+	<texture name="effet_poison03.png" />
+	<sourcePosition x="0" y="0" />
+	<sourcePositionVariance x="20.2" y="0" />
+	<speed value="0" />
+	<speedVariance value="101.01" />
+	<particleLifeSpan value="1" />
+	<particleLifespanVariance value="0" />
+	<angle value="0" />
+	<angleVariance value="32.73" />
+	<gravity x="0" y="-500" />
+	<radialAcceleration value="0" />
+	<tangentialAcceleration value="0" />
+	<radialAccelVariance value="0" />
+	<tangentialAccelVariance value="0" />
+	<startColor red="0" green="0" blue="1" alpha="1" />
+	<startColorVariance red="0" green="0" blue="0" alpha="0" />
+	<finishColor red="0" green="0" blue="1" alpha="0" />
+	<finishColorVariance red="0" green="0" blue="0" alpha="0" />
+	<maxParticles value="40" />
+	<startParticleSize value="25.25" />
+	<startParticleSizeVariance value="23.23" />
+	<finishParticleSize value="44.44" />
+	<FinishParticleSizeVariance value="0" />
+	<duration value="5" />
+	<emitterType value="0" />
+	<maxRadius value="0" />
+	<maxRadiusVariance value="10" />
+	<minRadius value="60" />
+	<minRadiusVariance value="0" />
+	<rotatePerSecond value="720" />
+	<rotatePerSecondVariance value="0" />
+	<blendFuncSource value="770" />
+	<blendFuncDestination value="1" />
+	<rotationStart value="0" />
+	<rotationStartVariance value="0" />
+	<rotationEnd value="0" />
+	<rotationEndVariance value="0" />
+</particleEmitterConfig>

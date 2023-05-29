@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/tile_pavement_1024.png" basewidth="128" baseheight="128" edgeoffset="0" >
+	<Terrain name="pavement01" neighbors="Connected0" type="Pavement" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall" />
+		<Tiles width="128" height="128" spacing="0" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="1" height="1" connection="AllConnect" />
+			<Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="1" width="1" height="1" connection="AllConnect" />
+			<Tile col="0" row="0" width="2" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+		<Decals width="32" height="144" startx="516" starty="1" spacing="2" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="RightConnect" />
+		</Decals>
+        <Decals width="144" height="32" startx="516" starty="147" spacing="2" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="BottomConnect" />
+		</Decals>
+	</Terrain>
+	<Skin name="dungeon_06" neighbors="Connected0" >
+		<Associate terrain="pavement01" feature="RoomFloor" />
+		<Associate terrain="pavement01" feature="RoomWall" />
+		<Associate terrain="pavement01" feature="RoomPlateForm" />
+		<Associate terrain="pavement01" feature="CorridorPlateForm" />
+		<Associate terrain="pavement01" feature="CorridorWall" />
+	</Skin>
+</TileSheet>

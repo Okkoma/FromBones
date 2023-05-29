@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="actorinteract.png" width="31" height="98" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="dialogmarker">
+        <animation id="0" name="on" length="600" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="399">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="actorinteract">
+                <key id="0">
+                    <object folder="0" file="0"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="0" angle="4.085617" scale_y="1"/>
+                </key>
+                <key id="2" time="399">
+                    <object folder="0" file="0" angle="353.829825" scale_y="1"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

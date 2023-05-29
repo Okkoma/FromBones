@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="effects_splash1_w.png" width="52" height="15" pivot_x="0.955882" pivot_y="0.380952"/>
+        <file id="1" name="effects_splash2_w.png" width="51" height="26" pivot_x="0.079365" pivot_y="0.3"/>
+        <file id="2" name="effects_splash3_w.png" width="18" height="23" pivot_x="0" pivot_y="1"/>
+        <file id="3" name="effects_splash4_w.png" width="35" height="17" pivot_x="0" pivot_y="1"/>
+        <file id="4" name="effects_blast_white.png" width="93" height="37" pivot_x="1" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="milkblast1">
+        <obj_info name="TAL" type="box" w="65.6085" h="76.1905" pivot_x="0" pivot_y="0"/>
+        <animation id="0" name="use" length="500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="394">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="2" time="473">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="3" time="500">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="effects_blast_white">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" x="-0.450012" angle="0" scale_x="0.71151" scale_y="0.807311" a="0.295572"/>
+                </key>
+                <key id="1" time="394" spin="0">
+                    <object folder="0" file="4" x="-0.344006" angle="0" scale_x="1.816292" scale_y="1.702702"/>
+                </key>
+                <key id="2" time="473" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2.758127" scale_y="2.455992"/>
+                </key>
+                <key id="3" time="500" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="1.712328" scale_y="1.586723" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" obj="0" name="TAL" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-64.914672" y="38.113553" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="1" time="473" spin="0">
+                    <object x="-64.914672" y="37.725956" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="2" time="500" spin="0">
+                    <object x="-64.914672" y="37.725956" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="splash" length="500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="0" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="0" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="0" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="0" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="0" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="0" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="0" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="0" z_index="12"/>
+                </key>
+                <key id="1" time="391">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="1" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="1" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="1" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="1" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="1" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="1" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="1" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="1" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="1" z_index="12"/>
+                </key>
+                <key id="2" time="394">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="3" time="417">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="2" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="2" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="2" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="2" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="2" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="2" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="2" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="2" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="2" z_index="12"/>
+                </key>
+                <key id="4" time="473">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="3" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="3" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="3" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="3" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="3" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="3" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="3" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="3" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="3" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="3" z_index="12"/>
+                </key>
+                <key id="5" time="500">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="4" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="4" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="4" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="4" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="4" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="4" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="4" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="4" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="4" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="4" z_index="12"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="effects_blast_white">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" x="-0.450012" angle="0" scale_x="0.71151" scale_y="0.807311" a="0.295572"/>
+                </key>
+                <key id="1" time="394" spin="0">
+                    <object folder="0" file="4" x="-0.344813" angle="0" scale_x="1.636365" scale_y="1.695884" a="0.994636"/>
+                </key>
+                <key id="2" time="473" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="2.410283" scale_y="2.455992"/>
+                </key>
+                <key id="3" time="500" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="1.712328" scale_y="1.586723" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" obj="0" name="TAL" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-64.914672" y="38.113553" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="1" time="473" spin="0">
+                    <object x="-64.914672" y="37.725956" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="2" time="500" spin="0">
+                    <object x="-64.914672" y="37.725956" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="effects_splash3_w">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-24.142597" y="-66.03146" angle="223.702113" scale_x="1.342044"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="2" x="-70.608894" y="-63.650533" angle="189.996397" a="0.337437"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="2" x="-35.012162" y="-71.466243" angle="223.702113" scale_x="1.342044"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-81.67748" y="-118.19738" angle="189.996397" a="0.6194"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="2" x="-117.393953" y="-144.314955" angle="189.996397" a="0.203386"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="effects_splash4_w">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-8.871776" y="72.864698" angle="156.454287"/>
+                </key>
+                <key id="1" time="391" spin="0">
+                    <object folder="0" file="3" x="-72.960792" y="110.951928" angle="156.454287" scale_x="1.455265" scale_y="1.445118" a="0.208287"/>
+                </key>
+                <key id="2" time="417" spin="0">
+                    <object folder="0" file="3" x="-25.176124" y="73.951655" angle="156.454287"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="3" x="-78.977325" y="110.69167" angle="156.454287" a="0.50746"/>
+                </key>
+                <key id="4" time="500" spin="0">
+                    <object folder="0" file="3" x="-74.583571" y="167.978871" angle="156.454287" a="0.094677"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="effects_splash2_w">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="9.279194" y="-11.269088" angle="244.488508"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="1" x="-10.031929" y="-77.037015" angle="200.234204" scale_x="1.742495" scale_y="1.228526" a="0.406553"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="1" x="-11.37298" y="-22.138653" angle="244.488508"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="1" x="-15.466712" y="-75.950059" angle="200.234204" a="0.74627"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="1" x="-28.357098" y="-109.676329" angle="200.234204" a="0.245045"/>
+                </key>
+            </timeline>
+            <timeline id="5" name="effects_splash1_w">
+                <key id="0">
+                    <object folder="0" file="0" x="7.919208" y="18.72794" angle="274.966571"/>
+                </key>
+                <key id="1" time="391" spin="-1">
+                    <object folder="0" file="0" x="-31.627758" y="70.098815" angle="303.476298" scale_x="1.585559" scale_y="1.221359" a="0.303245"/>
+                </key>
+                <key id="2" time="417">
+                    <object folder="0" file="0" x="-8.38514" y="19.814897" angle="274.966571"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="0" x="-10.883728" y="74.063909" angle="303.476298" a="0.73881"/>
+                </key>
+                <key id="4" time="500" spin="-1">
+                    <object folder="0" file="0" x="-15.644904" y="102.477871" angle="303.476298" a="0.13784"/>
+                </key>
+            </timeline>
+            <timeline id="6" name="effects_splash1_w_000">
+                <key id="0">
+                    <object folder="0" file="0" x="-3.22537" y="19.33035" angle="311.221907" scale_x="0.630676" scale_y="1.660777"/>
+                </key>
+                <key id="1" time="391" spin="-1">
+                    <object folder="0" file="0" x="-10.742396" y="39.089054" angle="347.416984" scale_x="1.932775" scale_y="3.768339" a="0.41045"/>
+                </key>
+                <key id="2" time="417">
+                    <object folder="0" file="0" x="-19.529718" y="20.417307" angle="311.221907" scale_x="0.630676" scale_y="1.660777"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="0" x="-12.916309" y="44.906568" angle="347.416984" scale_x="1.00992" scale_y="1.660777"/>
+                </key>
+                <key id="4" time="500" spin="-1">
+                    <object folder="0" file="0" x="-39.416614" y="66.798791" angle="347.416984" scale_x="1.00992" scale_y="1.660777" a="0.18657"/>
+                </key>
+            </timeline>
+            <timeline id="7" name="effects_splash1_w_001">
+                <key id="0" spin="-1">
+                    <object folder="0" file="0" x="-10.648109" y="-16.706346" angle="46.293381" scale_x="0.455572" scale_y="-1.231221"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="0" x="-9.024222" y="-40.711061" angle="5.631818" scale_x="1.679832" scale_y="-5.612148" a="0.54478"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="0" x="-21.517674" y="-22.141129" angle="46.293381" scale_x="0.455572" scale_y="-1.231221"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="0" x="-14.459005" y="-39.624105" angle="5.631818" scale_x="0.810366" scale_y="-1.91352"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="0" x="-50.175478" y="-65.74168" angle="5.631818" scale_x="0.810366" scale_y="-1.91352" a="0.32836"/>
+                </key>
+            </timeline>
+            <timeline id="8" name="effects_splash3_w_000">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-36.34794" y="-41.921979" angle="189.996397" scale_x="1.18177" scale_y="0.493118"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="2" x="-57.058953" y="-84.013369" angle="170.068956" scale_x="4.56822" scale_y="1.823401" a="0.54478"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="2" x="-57.000114" y="-52.791544" angle="189.996397" scale_x="1.18177" scale_y="0.493118"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-54.930968" y="-80.109512" angle="170.068956" scale_x="1.18177" scale_y="0.493118"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="2" x="-126.746645" y="-131.257705" angle="170.068956" scale_x="1.18177" scale_y="0.493118" a="0.32836"/>
+                </key>
+            </timeline>
+            <timeline id="9" name="effects_splash3_w_001">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-17.372036" y="-41.319569" angle="209.75823" scale_x="0.659045" scale_y="0.718864"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="2" x="-136.350707" y="-59.411779" angle="163.762295" scale_x="0.659045" scale_y="0.718864" a="0.54478"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="2" x="-38.02421" y="-52.189134" angle="209.75823" scale_x="0.659045" scale_y="0.718864"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-42.58157" y="-56.013126" angle="163.762295" scale_x="0.659045" scale_y="0.718864"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="2" x="-84.819783" y="-83.217657" angle="163.762295" scale_x="0.659045" scale_y="0.718864" a="0.32836"/>
+                </key>
+            </timeline>
+            <timeline id="10" name="effects_splash3_w_002">
+                <key id="0">
+                    <object folder="0" file="2" x="-30.153597" y="42.507041" angle="121.77228"/>
+                </key>
+                <key id="1" time="391" spin="-1">
+                    <object folder="0" file="2" x="-17.192937" y="48.473959" angle="134.782705" a="0.41045"/>
+                </key>
+                <key id="2" time="417">
+                    <object folder="0" file="2" x="-46.457945" y="43.593998" angle="121.77228"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-17.254174" y="72.601332" angle="134.782705"/>
+                </key>
+                <key id="4" time="500" spin="-1">
+                    <object folder="0" file="2" x="-66.993916" y="113.507639" angle="134.782705" a="0.18657"/>
+                </key>
+            </timeline>
+            <timeline id="11" name="effects_splash3_w_003">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-44.611429" y="90.699812" angle="163.799331" scale_x="1.271523" scale_y="0.493118"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="2" x="-68.465634" y="48.2576" angle="143.755284" scale_x="4.124045" scale_y="2.331403" a="0.41045"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="2" x="-60.915777" y="91.786769" angle="163.799331" scale_x="1.271523" scale_y="0.493118"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-84.724054" y="80.131452" angle="143.755284" scale_x="1.271523" scale_y="1.045085"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="2" x="-134.463796" y="121.037759" angle="143.755284" scale_x="1.271523" scale_y="1.045085" a="0.18657"/>
+                </key>
+            </timeline>
+            <timeline id="12" name="effects_splash3_w_004">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-40.996971" y="53.350415" angle="151.24583" scale_x="1.093442" scale_y="0.718864"/>
+                </key>
+                <key id="1" time="391">
+                    <object folder="0" file="2" x="-119.626185" y="83.347317" angle="139.056872" scale_x="1.488501" scale_y="1.250943" a="0.41045"/>
+                </key>
+                <key id="2" time="417" spin="-1">
+                    <object folder="0" file="2" x="-57.301319" y="54.437372" angle="151.24583" scale_x="1.093442" scale_y="0.718864"/>
+                </key>
+                <key id="3" time="473" spin="0">
+                    <object folder="0" file="2" x="-74.234268" y="63.368749" angle="139.056872" scale_x="1.488501" scale_y="1.250943"/>
+                </key>
+                <key id="4" time="500">
+                    <object folder="0" file="2" x="-102.23488" y="110.796796" angle="139.056872" scale_x="1.488501" scale_y="1.250943" a="0.18657"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+    <entity id="1" name="milkblast2">
+        <obj_info name="TAL" type="box" w="65.6085" h="76.1905" pivot_x="0" pivot_y="0"/>
+        <animation id="0" name="use" length="400" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="2" time="287">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="effects_blast_white">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="0.188088" scale_y="0.821231" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="4" x="23" angle="0" scale_x="3.292818" scale_y="2.722592" a="0.9403"/>
+                </key>
+                <key id="2" time="287" spin="0">
+                    <object folder="0" file="4" x="15" angle="0" scale_x="1.352609" scale_y="1.072211" a="0.12412"/>
+                </key>
+            </timeline>
+            <timeline id="1" obj="0" name="TAL" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-5" y="-1" pivot_x="0.914516" pivot_y="0.5275" angle="0"/>
+                </key>
+                <key id="1" time="287" spin="0">
+                    <object x="-5" pivot_x="0.914516" pivot_y="0.5275" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="splash" length="400" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="0" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="0" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="0" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="0" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="0" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="0" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="0" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="0" z_index="12"/>
+                </key>
+                <key id="1" time="200">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="1" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="1" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="1" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="1" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="1" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="1" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="1" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="1" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="1" z_index="12"/>
+                </key>
+                <key id="2" time="380">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="2" z_index="4"/>
+                    <object_ref id="5" timeline="5" key="2" z_index="5"/>
+                    <object_ref id="6" timeline="6" key="2" z_index="6"/>
+                    <object_ref id="7" timeline="7" key="2" z_index="7"/>
+                    <object_ref id="8" timeline="8" key="2" z_index="8"/>
+                    <object_ref id="9" timeline="9" key="2" z_index="9"/>
+                    <object_ref id="10" timeline="10" key="2" z_index="10"/>
+                    <object_ref id="11" timeline="11" key="2" z_index="11"/>
+                    <object_ref id="12" timeline="12" key="2" z_index="12"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="effects_blast_white">
+                <key id="0" spin="0">
+                    <object folder="0" file="4" angle="0" scale_x="0.188088" scale_y="0.821231" a="0"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="4" x="23" angle="0" scale_x="3.012436" scale_y="2.722592" a="0.9403"/>
+                </key>
+                <key id="2" time="380" spin="0">
+                    <object folder="0" file="4" x="15" angle="0" scale_x="1.352609" scale_y="1.072211" a="0.12412"/>
+                </key>
+            </timeline>
+            <timeline id="1" obj="0" name="TAL" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-2" y="-1" pivot_x="0.960241" pivot_y="0.5275" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="effects_splash3_w">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-35.012162" y="-71.466243" angle="223.702113" scale_x="1.342044"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="2" x="-230.074897" y="-153.60175" angle="189.996397" a="0.337437"/>
+                </key>
+                <key id="2" time="380">
+                    <object folder="0" file="2" x="-359.462991" y="-175.231528" angle="189.996397" a="0.337437"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="effects_splash4_w">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-25.176124" y="73.951655" angle="156.454287"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="3" x="-135.606229" y="172.47979" angle="156.454287" scale_x="1.455265" scale_y="1.445118" a="0.208287"/>
+                </key>
+                <key id="2" time="380" spin="0">
+                    <object folder="0" file="3" x="-185.890287" y="186.806929" angle="156.454287" scale_x="1.455265" scale_y="1.445118" a="0.208287"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="effects_splash2_w">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="-11.37298" y="-22.138653" angle="244.488508"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="1" x="-11.011721" y="-50.092741" angle="200.234204" scale_x="4.201266" scale_y="3.033561" a="0.406553"/>
+                </key>
+                <key id="2" time="380">
+                    <object folder="0" file="1" x="-168.947571" y="-126.557411" angle="200.234204" scale_x="2.707358" scale_y="1.540968" a="0.406553"/>
+                </key>
+            </timeline>
+            <timeline id="5" name="effects_splash1_w">
+                <key id="0">
+                    <object folder="0" file="0" x="-8.38514" y="19.814897" angle="274.966571"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="0" x="-9.061928" y="66.133719" angle="332.73262" scale_x="2.787357" scale_y="5.050208" a="0.303245"/>
+                </key>
+                <key id="2" time="380" spin="-1">
+                    <object folder="0" file="0" x="-74.898122" y="56.919611" angle="323.254536" scale_x="2.634377" scale_y="2.923399" a="0.303245"/>
+                </key>
+            </timeline>
+            <timeline id="6" name="effects_splash1_w_000">
+                <key id="0">
+                    <object folder="0" file="0" x="-19.529718" y="20.417307" angle="311.221907" scale_x="0.630676" scale_y="1.660777"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="0" x="-28.608286" y="150.877175" angle="347.416984" scale_x="1.932775" scale_y="3.768339" a="0.41045"/>
+                </key>
+                <key id="2" time="380" spin="-1">
+                    <object folder="0" file="0" x="-108.404712" y="167.577376" angle="315.482439" scale_x="1.932775" scale_y="2.281084" a="0.41045"/>
+                </key>
+            </timeline>
+            <timeline id="7" name="effects_splash1_w_001">
+                <key id="0" spin="-1">
+                    <object folder="0" file="0" x="-21.517674" y="-22.141129" angle="46.293381" scale_x="0.455572" scale_y="-1.231221"/>
+                </key>
+                <key id="1" time="200">
+                    <object folder="0" file="0" x="-9.299789" y="-93.344251" angle="41.665003" scale_x="2.368305" scale_y="-6.922268" a="0.54478"/>
+                </key>
+                <key id="2" time="380" spin="-1">
+                    <object folder="0" file="0" x="-112.519105" y="-113.760869" angle="55.88787" scale_x="1.779999" scale_y="-3.164054" a="0.54478"/>
+                </key>
+            </timeline>
+            <timeline id="8" name="effects_splash3_w_000">
+                <key id="0">
+                    <object folder="0" file="2" x="-57.000114" y="-52.791544" angle="189.996397" scale_x="1.18177" scale_y="0.493118"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="2" x="-131.936479" y="-196.322004" angle="211.782791" scale_x="4.56822" scale_y="3.838896" a="0.54478"/>
+                </key>
+                <key id="2" time="380">
+                    <object folder="0" file="2" x="-250.956481" y="-138.912843" angle="170.068956" scale_x="4.56822" scale_y="1.823401" a="0.54478"/>
+                </key>
+            </timeline>
+            <timeline id="9" name="effects_splash3_w_001">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-38.02421" y="-52.189134" angle="209.75823" scale_x="0.659045" scale_y="0.718864"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="2" x="-220.291307" y="-84.197449" angle="163.762295" scale_x="1.548839" scale_y="-1.761763" a="0.54478"/>
+                </key>
+                <key id="2" time="380">
+                    <object folder="0" file="2" x="-359.112469" y="-86.144425" angle="163.762295" scale_x="1.98736" scale_y="-1.043882" a="0.54478"/>
+                </key>
+            </timeline>
+            <timeline id="10" name="effects_splash3_w_002">
+                <key id="0">
+                    <object folder="0" file="2" x="-46.457945" y="43.593998" angle="121.77228"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="2" x="-217.453194" y="177.163487" angle="134.782705" a="0.41045"/>
+                </key>
+                <key id="2" time="380" spin="-1">
+                    <object folder="0" file="2" x="-356.860224" y="205.462694" angle="134.782705" a="0.41045"/>
+                </key>
+            </timeline>
+            <timeline id="11" name="effects_splash3_w_003">
+                <key id="0">
+                    <object folder="0" file="2" x="-60.915777" y="91.786769" angle="163.799331" scale_x="1.271523" scale_y="0.493118"/>
+                </key>
+                <key id="1" time="200">
+                    <object folder="0" file="2" x="-142.669552" y="91.031636" angle="174.291821" scale_x="4.124045" scale_y="2.331403" a="0.41045"/>
+                </key>
+                <key id="2" time="380" spin="-1">
+                    <object folder="0" file="2" x="-225.572854" y="97.458432" angle="181.730752" scale_x="3.100207" scale_y="1.868829" a="0.41045"/>
+                </key>
+            </timeline>
+            <timeline id="12" name="effects_splash3_w_004">
+                <key id="0" spin="-1">
+                    <object folder="0" file="2" x="-57.301319" y="54.437372" angle="151.24583" scale_x="1.093442" scale_y="0.718864"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <object folder="0" file="2" x="-176.63782" y="146.28363" angle="139.056872" scale_x="1.488501" scale_y="1.250943" a="0.41045"/>
+                </key>
+                <key id="2" time="380">
+                    <object folder="0" file="2" x="-241.580416" y="176.287181" angle="139.056872" scale_x="3.63628" scale_y="1.250943" a="0.41045"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

@@ -1,0 +1,306 @@
+{
+	"FUR_Feudecamp":{
+		"category":"Dungeon",
+		"sscategory":"Hall|Corridor|Forge",
+		"fileName":"Furnitures/feudecamp.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "FUR_Bougie":{
+		"category":"Dungeon",
+		"sscategory":"Office",
+		"fileName":"Furnitures/bougie.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "FUR_Table":{
+		"category":"Dungeon",
+		"sscategory":"Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",
+		"fileName":"Furnitures/table.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 100,
+		"defaultValue":0
+	}
+	, "FUR_TableGarnie":{
+		"category":"Dungeon",
+		"sscategory":"Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",
+		"fileName":"Furnitures/tablegarnie.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":0
+	}
+	, "FUR_Armoire":{
+		"category":"Dungeon",
+		"sscategory":"Chamber|Office|Bedroom",
+		"fileName":"Furnitures/armoire.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
+		"replicateMode":1,
+		"entityVariation":1,
+		"qtyInPool": 50,
+		"defaultValue":0
+	}
+	, "Marmite":{
+		"category":"Dungeon",
+		"sscategory":"Kitchen|Refectory|Sorcererroom|Priestroom",
+		"fileName":"Furnitures/marmite.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Tool|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 20,
+		"defaultValue":0
+	}
+	, "FUR_Tenture":{
+		"category":"Dungeon",
+		"sscategory":"Hall|Bedroom|Office|Sorcererroom|Priestroom",
+		"fileName":"Furnitures/tenture.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnBack|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 100,
+		"defaultValue":0
+	}
+	, "GOT_Porte":{
+		"category":"DungeonThreshold",
+		"fileName":"Furnitures/porte.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnBack|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 200,
+		"entityVariation":1,
+		"defaultValue":0
+	}
+	, "FUR_Cheminee":{
+		"category":"Dungeon",
+		"sscategory":"Refectory|Bedroom|Office",
+		"fileName":"Furnitures/cheminee.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"defaultValue":0
+	}
+	, "FUR_ChemineeAllumee":{
+		"category":"Dungeon",
+		"sscategory":"Kitchen|Refectory|Bedroom|Office",
+		"fileName":"Furnitures/chemineeallumee.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "Enclume":{
+		"category":"Dungeon",
+		"sscategory":"Forge",
+		"fileName":"Furnitures/enclume.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Tool|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":0
+	}
+	, "GOT_Portal":{
+		"category":"Dungeon",
+		"sscategory":"Hall|Sorcererroom",
+		"fileName":"Furnitures/portal.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Usable|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "GOT_Sanctuary":{
+		"category":"Dungeon",
+		"sscategory":"Priestroom",
+		"fileName":"Furnitures/sanctuary.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "GOT_SteleRip":{
+		"category":"Dungeon",
+		"sscategory":"Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",
+		"fileName":"Furnitures/stelerip.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"maxDropQty":1,
+		"defaultValue":0
+	}
+	, "FUR_Plant01":{
+		"category":"BiomeExternal|BiomeExternalSides|BiomeBackGround|BiomeBackGroundSides",
+		"fileName":"Furnitures/plant01_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 1000,
+		"scaleVariation":4,
+		"defaultValue":0
+	}
+	, "FUR_Plant02":{
+		"category":"BiomeExternal|BiomeBackGround",
+		"fileName":"Furnitures/plant02_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 1000,
+		"scaleVariation":4,
+		"defaultValue":0
+	}
+	, "FUR_Plant03":{
+		"category":"BiomeExternal|BiomeExternalSides",
+		"fileName":"Furnitures/plant03_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 1000,
+		"scaleVariation":6,
+		"defaultValue":0
+	}
+	, "FUR_Plant04":{
+		"category":"BiomeExternal|BiomeBackGround",
+		"fileName":"Furnitures/plant04_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 1000,
+		"scaleVariation":6,
+		"defaultValue":0
+	}
+	, "FUR_Plant05":{
+		"category":"BiomeCave",
+		"fileName":"Furnitures/plant05_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 500,
+		"scaleVariation":5,
+		"defaultValue":0
+	}
+	, "FUR_Plant06":{
+		"category":"BiomeCave",
+		"fileName":"Furnitures/plant06_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 500,
+		"scaleVariation":5,
+		"defaultValue":0
+	}
+	, "FUR_Plant07":{
+		"category":"BiomeCave",
+		"fileName":"Furnitures/plant07_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 500,
+		"scaleVariation":3,
+		"defaultValue":0
+	}
+	, "FUR_Plant08":{
+		"category":"BiomeCave|BiomeCaveSides|BiomeCaveBottom",
+		"fileName":"Furnitures/plant08_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 4000,
+		"scaleVariation":3,
+		"defaultValue":0
+	}
+	, "FUR_Ronce01":{
+		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides|BiomeCaveBottom",
+		"fileName":"Furnitures/ronce01_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 500,
+		"scaleVariation":3,
+		"defaultValue":0
+	}
+	, "FUR_EliegorFlower":{
+		"category":"BiomeExternal",
+		"fileName":"Furnitures/eliegorflower_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 200,
+		"scaleVariation":3,
+		"defaultValue":0
+	}
+	, "FUR_Tronc01":{
+		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides",
+		"fileName":"Furnitures/tronc01_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"scaleVariation":5,
+		"defaultValue":0
+	}
+	, "FUR_Tronc02":{
+		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides",
+		"fileName":"Furnitures/tronc02_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"scaleVariation":5,
+		"defaultValue":0
+	}
+	, "FUR_RockPic01":{
+		"category":"Dungeon",
+		"sscategory":"Pit",
+		"fileName":"Furnitures/rockpic01_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 20,
+		"scaleVariation":5,
+		"maxDropQty":10,
+		"defaultValue":0,
+		"sizex":0
+	}
+	, "FUR_RockPic02":{
+		"category":"Dungeon",
+		"sscategory":"Pit",
+		"fileName":"Furnitures/rockpic02_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 20,
+		"scaleVariation":1,
+		"maxDropQty":10,
+		"defaultValue":0,
+		"sizex":0
+	}
+	, "FUR_RockPic03":{
+		"category":"Dungeon",
+		"sscategory":"Pit",
+		"fileName":"Furnitures/rockpic03_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 20,
+		"scaleVariation":3,
+		"maxDropQty":10,
+		"defaultValue":0,
+		"sizex":0
+	}
+	, "FUR_WoodPic01":{
+		"category":"BiomeExternal|BiomeExternalSides",
+		"fileName":"Furnitures/woodpic01_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"scaleVariation":1,
+		"defaultValue":0
+	}
+	, "FUR_WoodPic02":{
+		"category":"BiomeExternal|BiomeExternalSides",
+		"fileName":"Furnitures/woodpic02_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"scaleVariation":1,
+		"defaultValue":0
+	}
+	, "FUR_WoodPic03":{
+		"category":"BiomeExternal|BiomeExternalSides",
+		"fileName":"Furnitures/woodpic03_static.xml",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
+		"replicateMode":1,
+		"qtyInPool": 50,
+		"scaleVariation":1,
+		"defaultValue":0
+	}
+}

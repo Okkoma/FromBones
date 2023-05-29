@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="start_halo" x="537" y="1948" width="261" height="87"/>
+	<SubTexture name="startoff" x="561" y="1621" width="261" height="87"/>
+</TextureAtlas>

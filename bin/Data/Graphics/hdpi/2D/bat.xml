@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="bat_aile_00" x="467" y="810" width="77" height="53" />
+	<SubTexture name="bat_aile_01" x="543" y="864" width="77" height="45" />
+	<SubTexture name="bat_aile_02" x="285" y="810" width="91" height="54" />
+	<SubTexture name="bat_ant_00" x="560" y="910" width="53" height="23" />
+	<SubTexture name="bat_ant_01" x="300" y="908" width="42" height="28" />
+	<SubTexture name="bat_bouche_00" x="71" y="937" width="54" height="20" />
+	<SubTexture name="bat_bouche_01" x="1" y="885" width="57" height="33" />
+	<SubTexture name="bat_bouche_02" x="1107" y="869" width="57" height="33" />
+	<SubTexture name="bat_bouche_03" x="906" y="809" width="61" height="53" />
+	<SubTexture name="bat_patte_00" x="1899" y="937" width="79" height="16" />
+	<SubTexture name="bat_patte_01" x="1" y="937" width="69" height="22" />
+	<SubTexture name="bat_patte_02" x="574" y="588" width="24" height="42" />
+	<SubTexture name="bat_tronc_00" x="1396" y="740" width="111" height="69" />
+	<SubTexture name="bat_tronc_01" x="1063" y="648" width="111" height="82" />
+	<SubTexture name="bat_yeux_00" x="1986" y="909" width="47" height="28" />
+	<SubTexture name="bat_yeux_01" x="343" y="908" width="47" height="28" />
+	<SubTexture name="bat_yeux_02" x="1268" y="934" width="46" height="21" />
+</TextureAtlas>

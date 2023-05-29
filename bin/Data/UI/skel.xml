@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="skel" x="561" y="1491" width="384" height="128"/>
+	<SubTexture name="skel_halo" x="602" y="1098" width="384" height="128"/>
+</TextureAtlas>

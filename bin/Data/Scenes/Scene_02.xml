@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="Scene" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" />
+	<node>
+		<attribute name="Is Enabled" value="true" />
+		<attribute name="Name" value="World" />
+		<attribute name="Position" value="0 0 0" />
+		<attribute name="Rotation" value="1 0 0 0" />
+		<attribute name="Scale" value="3 3 1" />
+		<attribute name="Variables" />
+		<component type="World2D">
+			<attribute name="WorldPoint" value="0 1" />
+			<attribute name="WorldSize" value="0 0" />
+			<attribute name="ChunkNum" value="4 4" />
+            <attribute name="Default Map Point" value="0 0" />
+            
+			<attribute name="Map - TileSize" value="64 64" />            
+<!--            <attribute name="Map - Seed" value="984034" />-->
+<!--            <attribute name="Map - Params" value="z:INNERVIEW|i:200;65;65;3;15;-1" />-->
+			<attribute name="Map - Add Objects" value="true" />
+			<!-- <attribute name="Map - Add ImageLayer" value="Data/Levels/Textures/fond01.png" /> -->
+			<attribute name="Collider - Shape Type" value="Chains" />
+ 			<!-- <attribute name="Collider - Force Shape Type" value="true" />			 -->
+		</component>
+	</node>
+</node>

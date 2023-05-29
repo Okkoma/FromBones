@@ -1,0 +1,3 @@
+<technique vs="ShaderRenderShapes" ps="ShaderRenderShapes" vsdefines="VERTEXLIGHT" psdefines="VERTEXLIGHT" >
+	<pass name="alpha" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

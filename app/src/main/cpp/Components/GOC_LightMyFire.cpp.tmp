@@ -1,0 +1,150 @@
+#include <Urho3D/Urho3D.h>
+
+#include <Urho3D/IO/Log.h>
+
+#include <Urho3D/Graphics/Light.h>
+
+#include <Urho3D/Urho2D/RigidBody2D.h>
+#include <Urho3D/Urho2D/PhysicsEvents2D.h>
+#include <Urho3D/Urho2D/PhysicsWorld2D.h>
+#include <Urho3D/Urho2D/CollisionBox2D.h>
+
+
+#include "GOC_LightMyFire.h"
+
+
+
+GOC_LightMyFire::GOC_LightMyFire(Context* context) :
+    Component(context)
+
+{
+//    URHO3D_LOGINFOF("GOC_LightMyFire()");
+}
+
+GOC_LightMyFire::~GOC_LightMyFire()
+{
+//    URHO3D_LOGINFOF("~GOC_Detector()");
+}
+
+void GOC_LightMyFire::RegisterObject(Context* context)
+{
+    context->RegisterFactory<GOC_Detector>();
+
+//    URHO3D_ACCESSOR_ATTRIBUTE("Trigger Event In", GetTriggerEventInAttr, SetTriggerEventInAttr, String, GOE::GetEventName(GO_DETECTORPLAYERIN), AM_FILE);
+//    URHO3D_ACCESSOR_ATTRIBUTE("Trigger Event Out", GetTriggerEventOutAttr, SetTriggerEventOutAttr, String, GOE::GetEventName(GO_DETECTORPLAYEROFF), AM_FILE);
+//    URHO3D_ACCESSOR_ATTRIBUTE("Direction Out", GetDirectionOut, SetDirectionOut, IntVector2, IntVector2::ZERO, AM_FILE);
+//    URHO3D_ATTRIBUTE("Wall Detector Only", bool, wallDetector_, false, AM_FILE);
+//    URHO3D_ATTRIBUTE("Same View Only", bool, viewDetector_, false, AM_FILE);
+//    URHO3D_ATTRIBUTE("Attack Only", bool, attackDetector_, false, AM_FILE);
+//    URHO3D_ATTRIBUTE("Stick Target", bool, stickTarget_, false, AM_FILE);
+//    URHO3D_ACCESSOR_ATTRIBUTE("Detected Categories", GetDetectedCategoriesAttr, SetDetectedCategoriesAttr, String, String::EMPTY, AM_FILE);
+
+}
+/*
+void GOC_Detector::SetTriggerEventInAttr(const String& eventname)
+{
+    eventIn_ = StringHash(eventname);
+//    URHO3D_LOGINFOF("GOC_Detector() - SetTriggerEventInAttr : eventname=%s", eventname.CString());
+}
+
+const String& GOC_Detector::GetTriggerEventInAttr() const
+{
+    return GOE::GetEventName(eventIn_);
+}
+
+void GOC_Detector::SetTriggerEventOutAttr(const String& eventname)
+{
+    eventOut_ = StringHash(eventname);
+}
+
+const String& GOC_Detector::GetTriggerEventOutAttr() const
+{
+    return GOE::GetEventName(eventOut_);
+}
+*/
+void GOC_LightMyFire::OnSetEnabled()
+{
+//    if (GameStatics::ClientMode_)
+//        return;
+
+//    URHO3D_LOGINFOF("GOC_LightMyFire() - OnSetEnabled : enabled=%s", IsEnabledEffective() ? "true" : "false");
+
+    if (IsEnabledEffective())
+    {
+        body_ = node_->GetComponent<RigidBody2D>();
+
+        if (!body_ && node_->GetParent())
+            body_ = node_->GetParent()->GetComponent<RigidBody2D>();
+
+        if (body_)
+        {
+            SubscribeToEvent(body_->GetNode(), E_PHYSICSBEGINCONTACT2D, URHO3D_HANDLER(GOC_LightMyFire, HandleContact));
+            SubscribeToEvent(body_->GetNode(), E_PHYSICSENDCONTACT2D, URHO3D_HANDLER(GOC_LightMyFire, HandleContact));
+        }
+    }
+    else
+    {
+        UnsubscribeFromAllEvents();
+    }
+}
+
+void GOC_Detector::OnNodeSet(Node* node)
+{
+    if (node)
+        OnSetEnabled();
+    else
+        UnsubscribeFromAllEvents();
+}
+
+void GOC_LightMyFire::HandleContact(StringHash eventType, VariantMap& eventData)
+{
+//    URHO3D_LOGINFOF("GOC_LightMyFire() - HandleContact() : this=%u %s(%u) ... ", this, node_->GetName().CString(), node_->GetID());
+
+    const ContactInfo& cinfo = eventType == E_PHYSICSBEGINCONTACT2D ? GameStatics::physicsWorld_->GetBeginContactInfo(eventData[PhysicsBeginContact2D::P_CONTACTINFO].GetUInt())
+                                                                    : GameStatics::physicsWorld_->GetEndContactInfo(eventData[PhysicsEndContact2D::P_CONTACTINFO].GetUInt());
+
+    RigidBody2D* b1 = cinfo.bodyA_;
+    RigidBody2D* b2 = cinfo.bodyB_;
+    RigidBody2D* other = 0;
+    CollisionShape2D* csBody = 0;
+    CollisionShape2D* csOther = 0;
+
+    if (b1 == body_)
+    {
+        other = b2;
+        csBody = cinfo.shapeA_;
+        csOther = cinfo.shapeB_;
+    }
+    else if (b2 == body_)
+    {
+        other = b1;
+        csBody = cinfo.shapeB_;
+        csOther = cinfo.shapeA_;
+    }
+    else
+        return;
+
+    if (!other->GetNode())
+        return;
+
+    if (viewDetector_ && csOther->GetViewZ() != csBody->GetViewZ())
+        return;
+
+    if (!attackDetector_ && csOther->IsTrigger())
+        return;
+
+    unsigned otherNodeID = other->GetNode()->GetID();
+
+//    URHO3D_LOGINFOF("GOC_Detector() - HandleContact() : this=%u ... thisNode=%s(%u) with otherNode=%s(%u)", this,
+//                    node_->GetName().CString(), node_->GetID(), other->GetNode()->GetName().CString(), otherNodeID);
+
+    if (eventType == E_PHYSICSBEGINCONTACT2D)
+    {
+
+    }
+    else
+    {
+
+    }
+}
+

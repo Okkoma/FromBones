@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="V1" />
+	
+	<Module type="Radial"           name="radial" 							cx="0" cy="0" radius="5" screenshot="true" />
+	<Module type="ScaleDomain"      name="radialshape"                 		source="radial" scalex="0.3" scaley="1" />
+    <Module type="Cache"            name="ground_gradient"                  source="radialshape" screenshot="true" />
+
+	<Module type="Fractal"          name="lowland_shape_fractal"            fractaltype="BILLOW" basistype="GRADIENT" interptype="QUINTIC" octaves="2" frequency="0.25" />
+	<Module type="AutoCorrect"      name="lowland_autocorrect"              source="lowland_shape_fractal" low="0" high="1" />
+	<Module type="ScaleOffset"      name="lowland_scale"                    source="lowland_autocorrect" scale="0.125" offset="-0.45" />
+	<Module type="ScaleDomain"      name="lowland_y_scale"                  source="lowland_scale" scaley="0" />
+	
+	<Module type="TranslateDomain"  name="lowland_terrain"                  source="ground_gradient" ty="lowland_y_scale" />
+
+	<Module type="Fractal"          name="highland_shape_fractal"           fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC" octaves="4" frequency="2" />
+	<Module type="AutoCorrect"      name="highland_autocorrect"             source="highland_shape_fractal" low="-1" high="1" />
+	<Module type="ScaleOffset"      name="highland_scale"                   source="highland_autocorrect" scale="0.25" offset="0" />
+	<Module type="ScaleDomain"      name="highland_y_scale"                 source="highland_scale" scaley="0" />
+	
+	<Module type="TranslateDomain"  name="highland_terrain"                 source="ground_gradient" ty="highland_y_scale" />
+
+	<Module type="Fractal"          name="mountain_shape_fractal"           fractaltype="RIDGEDMULTI" basistype="GRADIENT" interptype="QUINTIC" octaves="8" frequency="1" />
+	<Module type="AutoCorrect"      name="mountain_autocorrect"             source="mountain_shape_fractal" low="-1" high="1" />
+	<Module type="ScaleOffset"      name="mountain_scale"                   source="mountain_autocorrect" scale="0.45" offset="0.15" />
+	<Module type="ScaleDomain"      name="mountain_y_scale"                 source="mountain_scale" scaley="0.25" />
+	
+	<Module type="TranslateDomain"  name="mountain_terrain"                 source="ground_gradient" ty="mountain_y_scale" />
+
+	<Module type="Fractal"          name="outer_mixer"            			fractaltype="FBM" basistype="GRADIENT" interptype="QUINTIC" octaves="3" frequency="0.5" />
+	<Module type="Select"           name="outer_lowhigh"          			low="lowland_terrain" high="highland_terrain" control="outer_mixer" threshold="0.25" falloff="0.15" />
+	<Module type="Select"           name="outer_mixed"	 		            low="outer_lowhigh" high="mountain_terrain" control="outer_mixer" threshold="0.55" falloff="0.2" />
+	<Module type="CacheArray"       name="outer"    						source="outer_mixed" screenshot="true" />
+	
+	<Module type="Select"           name="outers"                    		low="0" high="1" control="outer" threshold="0.2" renderable="GroundMap" screenshot="true" />
+	
+	<Module type="Bias"             name="outer_attenuate"             		source="outer" bias="0.65" />
+	
+	<Module type="Fractal"          name="cave_base"          	            fractaltype="RIDGEDMULTI" basistype="GRADIENT" interptype="QUINTIC" octaves="1" frequency="4" />
+	<Module type="Fractal"          name="cave_perturb"             		fractaltype="FBM" basistype="GRADIENT" interptype="CUBIC" octaves="6" frequency="2" />
+	<Module type="ScaleDomain"      name="cave_perturb_scale"               source="cave_perturb"  scalex="0.5" scaley="0.5" />
+	<Module type="Combiner"         name="cave_attenuate"             		operation="MULT" source="outer_attenuate;cave_base" />
+	<Module type="TranslateDomain"  name="inner"		                    source="cave_attenuate" tx="cave_perturb_scale" screenshot="true" />
+	<Module type="Select"           name="inners"                   		low="1" high="0" control="inner" threshold="0.5" falloff="0" screenshot="true" />
+	
+	<Module type="Combiner"         name="terrain"           				operation="MULT" source="outers;inners" renderable="CaveMap" screenshot="true" />
+</AnlWorldModel>

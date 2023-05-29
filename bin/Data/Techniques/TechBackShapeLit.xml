@@ -1,0 +1,4 @@
+<technique vs="BackShape" ps="BackShape" >
+    <pass name="alpha" depthtest="false" depthwrite="false" blend="alpha" />
+    <!-- <pass name="postopaque" depthwrite="false" vs="Outline" ps="Outline" cull="cw" /> -->
+</technique>

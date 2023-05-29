@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/UI/game_dialog.png">
+	<SubTexture name="actordialogframebig" x="1" y="1" width="382" height="150" />
+	<SubTexture name="actordialogframemedium" x="1" y="152" width="202" height="51" />
+	<SubTexture name="actordialogframesmall" x="384" y="79" width="111" height="51" />
+	<SubTexture name="actordialogrequest" x="410" y="1" width="64" height="47" />
+	<SubTexture name="actorinteract" x="384" y="1" width="25" height="77" />
+</TextureAtlas>

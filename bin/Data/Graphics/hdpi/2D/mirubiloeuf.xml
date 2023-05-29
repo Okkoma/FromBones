@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="mir_embryon" x="475" y="897" width="179" height="132" />
+	<SubTexture name="mir_oeuf" x="416" y="483" width="275" height="250" />
+</TextureAtlas>

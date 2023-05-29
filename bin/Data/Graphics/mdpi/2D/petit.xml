@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="bouche_clair" x="503" y="209" width="8" height="5" />
+	<SubTexture name="bouche_sombre" x="1012" y="205" width="9" height="5" />
+	<SubTexture name="bras_01_d_b" x="315" y="158" width="10" height="14" />
+	<SubTexture name="bras_01_g_b" x="503" y="179" width="9" height="12" />
+	<SubTexture name="casque" x="1" y="1" width="73" height="67" hotspotx="48" hotspoty="44" />
+	<SubTexture name="corps_01_b" x="1004" y="32" width="17" height="29" />
+	<SubTexture name="empty" x="1" y="1" width="1" height="1" />
+	<SubTexture name="epaule_d1" x="1" y="1" width="13" height="9" hotspotx="6" hotspoty="4" />
+	<SubTexture name="epaule_d2" x="1" y="1" width="11" height="9" hotspotx="5" hotspoty="4" />
+	<SubTexture name="epaule_g1" x="1" y="1" width="11" height="8" hotspotx="5" hotspoty="4" />
+	<SubTexture name="epaule_g2" x="1" y="1" width="10" height="7" hotspotx="5" hotspoty="3" />
+	<SubTexture name="jambe_01_g_a" x="1012" y="185" width="9" height="10" />
+	<SubTexture name="jambe_01_g_b" x="1012" y="171" width="9" height="13" />
+	<SubTexture name="main_01_d_a" x="768" y="323" width="20" height="11" />
+	<SubTexture name="main_01_d_b" x="419" y="212" width="16" height="10" />
+	<SubTexture name="main_01_d_c" x="1005" y="300" width="15" height="8" />
+	<SubTexture name="main_01_g_a" x="470" y="289" width="18" height="11" />
+	<SubTexture name="main_01_g_b" x="1005" y="290" width="16" height="9" />
+	<SubTexture name="main_01_g_c" x="1005" y="309" width="15" height="7" />
+	<SubTexture name="meche_bas" x="503" y="192" width="11" height="9" />
+	<SubTexture name="meche_centre" x="315" y="173" width="9" height="4" />
+	<SubTexture name="meche_haut" x="1005" y="317" width="15" height="6" />
+	<SubTexture name="oeil" x="1012" y="196" width="7" height="8" />
+	<SubTexture name="oeil_hitted" x="1" y="1" width="12" height="7" />
+	<SubTexture name="petitarmor" x="1" y="1" width="19" height="22" hotspotx="9" hotspoty="11" />
+	<SubTexture name="petitepee" x="1" y="1" width="68" height="28" hotspotx="14" hotspoty="13" />
+	<SubTexture name="pied_01_g_a" x="768" y="345" width="20" height="9" />
+	<SubTexture name="pied_01_g_b" x="768" y="335" width="20" height="9" />
+	<SubTexture name="sourcis" x="805" y="280" width="12" height="7" />
+	<SubTexture name="tete_01_c" x="844" y="675" width="45" height="45" />
+</TextureAtlas>

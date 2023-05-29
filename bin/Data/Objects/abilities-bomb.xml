@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="ABIBomb" />
+	<attribute name="Position" value="0.0 0.0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="0.25 0.25 1" />
+	<attribute name="Variables">
+		<variant name="GOA_EffectID1" hash="-1925564961" type="Int" value="7" /> <!-- 7=Bomb1 Effect in Preloader -->
+	</attribute>
+	<component type="AnimatedSprite2D">
+		<attribute name="Animation Set" value="AnimationSet2D;2D/bombe.scml" />
+	</component>
+	<component type="RigidBody2D">
+		<attribute name="Body Type" value="Dynamic" />
+		<attribute name="Fixed Rotation" value="false" />
+		<attribute name="Allow Sleep" value="false" />
+	</component>
+	<component type="CollisionCircle2D">
+		<attribute name="Center" value="0 0.5" />
+		<attribute name="Radius" value="0.5" />
+		<attribute name="Density" value="5" />
+		<attribute name="Friction" value="0.9" />
+		<attribute name="Extra Contact Bits" value="0" /> <!-- Contact UnStable -->
+	</component>
+	<component type="GOC_Attack" >
+		<attribute name="Life base bonus" value="-5" />
+	</component>
+	<component type="GOC_Animator2D" >
+		<attribute name="Template" value="AnimatorTemplate_Usable_Tick5" />
+		<attribute name="State" value="State_Use" />
+	</component>
+	<component type="GOC_Destroyer">
+	</component>
+	<component type="ScrapsEmitter">
+		<attribute name="Type" value="Scraps_Bomb" />
+		<attribute name="Size" value="500 500" />
+		<attribute name="Num Scraps" value="9" />
+		<attribute name="Life Time" value="5" />
+		<attribute name="Density" value="500" />
+		<attribute name="Centered Initial Impulse" value="80" />
+		<attribute name="Trig Event" value="SPRITER_Explode" />
+		<attribute name="Is Collider" value="true" />
+		<attribute name="Destroy Node" value="false" />
+	</component>
+	<component type="Light">
+		<attribute name="Light Type" type="Enum" value="Point" />
+		<attribute name="Color" value="1 1 1 1" />
+		<attribute name="Specular Intensity" value="0" />
+		<attribute name="Range" value="1" />
+		<!-- <attribute name="Spot FOV" value="30" />
+		<attribute name="Spot Aspect Ratio" value="1" /> -->
+		<attribute name="Can Be Occluded" value="true" />
+		<attribute name="Cast Shadows" value="false" />
+		<attribute name="Per Vertex" value="true" />
+	</component>
+	<component type="GOC_SoundEmitter" >
+		<attribute name="Template" value="SoundTemplate_Bomb" />
+	</component>
+</node>

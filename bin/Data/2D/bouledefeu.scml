@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" fx="1" name="bouledefeu1.png" width="71" height="21" pivot_x="1" pivot_y="0.5"/>
+        <file id="1" fx="1" name="bouledefeu2.png" width="74" height="15" pivot_x="1" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="bouledefeu">
+        <obj_info name="TA" type="box" w="60" h="60" pivot_x="0" pivot_y="0"/>
+        <obj_info name="TA_000" type="box" w="26.9231" h="30.1923" pivot_x="0" pivot_y="0"/>
+        <character_map id="0" name="Fire">
+            <map folder="0" file="0" target_folder="0" target_file="0"/>
+            <map folder="0" file="1" target_folder="0" target_file="1"/>
+        </character_map>
+        <character_map id="1" name="No_Fire">
+            <map folder="0" file="0"/>
+        </character_map>
+        <animation id="0" name="use" length="500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="123">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="2" time="125">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="3" time="250">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="4" time="252">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="5" time="374">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+                <key id="6" time="375">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="bouledefeu1">
+                <key id="0" curve_type="instant">
+                    <object folder="0" file="0" x="10" angle="0"/>
+                </key>
+                <key id="1" time="125" curve_type="instant">
+                    <object folder="0" file="0" x="10" angle="0" scale_y="-1"/>
+                </key>
+                <key id="2" time="250" curve_type="instant">
+                    <object folder="0" file="0" x="10" angle="0" scale_y="0.841412"/>
+                </key>
+                <key id="3" time="375" curve_type="instant">
+                    <object folder="0" file="0" x="10" angle="0" scale_y="-0.859704"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="bouledefeu2">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-10.151665" y="-0.369914" angle="0" scale_x="0.877889" scale_y="0.708288"/>
+                </key>
+                <key id="1" time="123" curve_type="instant">
+                    <object folder="0" file="1" x="-14.191665" y="-0.369914" angle="0" scale_x="0.99837" scale_y="0.75859"/>
+                </key>
+                <key id="2" time="125" spin="0">
+                    <object folder="0" file="1" x="-12.151665" y="-0.369914" angle="0" scale_y="-1"/>
+                </key>
+                <key id="3" time="250" curve_type="instant">
+                    <object folder="0" file="1" x="-29.047769" y="-0.555442" angle="0" scale_x="0.879047" scale_y="-0.719067"/>
+                </key>
+                <key id="4" time="252" spin="0">
+                    <object folder="0" file="1" x="-11.047769" y="-0.555442" angle="0" scale_x="0.825884" scale_y="0.71907"/>
+                </key>
+                <key id="5" time="374" spin="0">
+                    <object folder="0" file="1" x="-11.047769" y="-0.555442" angle="0" scale_x="1.12631" scale_y="1.000014" a="0.385961"/>
+                </key>
+                <key id="6" time="375" curve_type="instant">
+                    <object folder="0" file="1" x="-11.047769" y="-0.555442" angle="0" scale_x="1.13043" scale_y="-0.71907" a="0.37755"/>
+                </key>
+            </timeline>
+            <timeline id="2" obj="1" name="TA_000" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-13.076923" y="14.807692" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="explode" length="200" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                </key>
+                <key id="1" time="47">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="1" z_index="4"/>
+                </key>
+                <key id="2" time="87">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="2" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="2" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="2" z_index="4"/>
+                </key>
+                <key id="3" time="130">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="3" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="3" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="3" z_index="4"/>
+                </key>
+                <key id="4" time="200">
+                    <object_ref id="0" timeline="0" key="4" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="4" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="4" z_index="3"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="bouledefeu1">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="10" y="0.129366" angle="0" scale_x="0.893986" scale_y="0.987887"/>
+                </key>
+                <key id="1" time="47" spin="0">
+                    <object folder="0" file="0" x="12.988212" y="-0.453561" angle="0" scale_x="0.734574" scale_y="1.460969"/>
+                </key>
+                <key id="2" time="87" spin="0">
+                    <object folder="0" file="0" x="17.894684" y="-0.646831" angle="0" scale_x="0.691542" scale_y="1.440138" a="0.64286"/>
+                </key>
+                <key id="3" time="130" spin="0">
+                    <object folder="0" file="0" x="23.480142" y="-0.206549" angle="0" scale_x="0.809919" scale_y="1.218812" a="0.34694"/>
+                </key>
+                <key id="4" time="200" curve_type="instant">
+                    <object folder="0" file="0" x="18.989651" y="-0.517464" angle="0" scale_x="0.670768" scale_y="0.976126" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="bouledefeu2">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-1.613502" y="-1.663575" angle="0" scale_x="1.04085" scale_y="-0.70829"/>
+                </key>
+                <key id="1" time="47" spin="-1">
+                    <object folder="0" file="1" x="2.152227" y="-2.434834" angle="0" scale_x="0.887077" scale_y="-1.432348"/>
+                </key>
+                <key id="2" time="87">
+                    <object folder="0" file="1" x="-8.713726" y="-12.388928" angle="336.856876" scale_x="1.04085" scale_y="-3.270199"/>
+                </key>
+                <key id="3" time="130" spin="0">
+                    <object folder="0" file="1" x="-17.04185" y="1.82231" angle="0" scale_x="1.076655" scale_y="-6.022539" a="0.95918"/>
+                </key>
+                <key id="4" time="200" spin="0">
+                    <object folder="0" file="1" x="-30.233106" y="9.962327" angle="0" scale_x="2.048959" scale_y="-6.950262" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="bouledefeu2_000">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="-3.036529" y="3.381703" angle="358.256599" scale_x="0.877889" scale_y="0.708288"/>
+                </key>
+                <key id="1" time="47" spin="-1">
+                    <object folder="0" file="1" x="3.877368" y="10.533377" angle="352.372744" scale_x="0.731569" scale_y="1.637402"/>
+                </key>
+                <key id="2" time="87" spin="-1">
+                    <object folder="0" file="1" x="15.988405" y="15.524749" angle="330.211007" scale_x="0.877889" scale_y="3.711688"/>
+                </key>
+                <key id="3" time="130" spin="-1">
+                    <object folder="0" file="1" x="12.791526" y="12.434527" angle="304.5142" scale_x="1.143794" scale_y="4.468204" a="0.95918"/>
+                </key>
+                <key id="4" time="200">
+                    <object folder="0" file="1" x="-14.831455" y="20.90093" angle="273.811528" scale_x="1.532057" scale_y="5.846652" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="bouledefeu2_001">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-8.858004" y="-3.345334" angle="11.628762" scale_x="0.605198" scale_y="0.708288"/>
+                </key>
+                <key id="1" time="47">
+                    <object folder="0" file="1" x="-1.228041" y="-13.441816" angle="11.628762" scale_x="0.471882" scale_y="2.117383"/>
+                </key>
+                <key id="2" time="87">
+                    <object folder="0" file="1" x="7.920461" y="-13.491092" angle="39.856633" scale_x="0.605198" scale_y="3.308168"/>
+                </key>
+                <key id="3" time="130">
+                    <object folder="0" file="1" x="19.007238" y="-19.261022" angle="42.20611" scale_x="1.061432" scale_y="5.012708" a="0.95918"/>
+                </key>
+                <key id="4" time="200" spin="-1">
+                    <object folder="0" file="1" x="8.469644" y="-17.030363" angle="64.096711" scale_x="1.47311" scale_y="7.54275" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="4" obj="0" name="TA" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-42.248062" y="25.581395" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="1" time="47" spin="0">
+                    <object x="-42.248062" y="25.581395" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="2" time="87" spin="0">
+                    <object x="-42.248062" y="25.581395" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+                <key id="3" time="130" spin="0">
+                    <object x="-42.248062" y="25.581395" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<journaldata>
+	<mission name="Eliegor" title="A la recherche d'Eliegor" sequenced="true" >
+		<objective type="GGOAT_Collector" delay="0" >
+			<object type="EliegorSeed" qty="1" />
+			<text name="intro">Je pars a la recherche de la graine d'Eliegor. Commencons par rechercher la fleur couleur rouge violace, sur le sommet de la montagne la plus proche.</text>
+			<text name="success">J'ai reussi a extraire une graine de cette jolie fleur.</text>
+		</objective>
+		<objective type="GGOAT_Creator" delay="0" >
+			<condition type="HasAttacked" actor1="$1" actor2="GOT_RockGolem" arg="Pelle" />
+			<action type="GivesItem" actor1="$1" actor2="$2" arg="EliegorSeed" />
+			<text name="intro">Il me reste a trouver ce golem de pierre... et lui planter la graine sur sa tete.</text>
+			<text name="success">La graine est rentrée dans sa tete.</text>
+		</objective>
+		<objective type="GGOAT_Creator" delay="0" >
+			<condition type="HasAttacked" actor1="$1" actor2="$2" arg="Arrosoir" />
+			<condition type="HasItem" actor1="$2" arg="EliegorSeed" />
+			<action type="ChangesEntity" actor1="$2" arg="EliegorGolem" />
+			<action type="ReceivesFollower" actor1="$1" arg="$2" />
+			<text name="intro">Il reste a arroser !</text>
+			<text name="success">c'est maintenant mon compagnon d'aventure !</text>
+		</objective>
+		<reward category="Follower" type="EliegorGolem" />
+		<!-- <reward category="Avatar" type="EliegorGolem" fromtype="" partindex="" qty="" /> -->
+		<!-- <reward category="Items" type="PotionRegen" fromtype="" partindex="" qty="5" /> -->
+	</mission>
+</journaldata>

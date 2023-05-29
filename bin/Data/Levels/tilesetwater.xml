@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/Grounds/watertiles.png" basewidth="64" baseheight="64">
+	<Terrain name="water_01" type="Water" >
+		<Features name="Water" />
+		<Tiles width="64" height="64" hotspotx="0" hotspoty="0" spacing="0" margin="0">
+            <Tile col="0" row="0" connection="RightBottomLeftConnect"/>
+            <Tile col="1" row="0" connection="RightBottomLeftConnect"/>
+            <Tile col="0" row="1" connection="AllConnect"/>
+            <Tile col="1" row="1" connection="AllConnect"/>
+		</Tiles>
+	</Terrain>
+	<Skin name="ground_01" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="dungeon_01" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="ground_02" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="dungeon_02" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="ground_03" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="dungeon_03" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="ground_04" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+	<Skin name="dungeon_04" option="skinExist" >
+		<Associate terrain="water_01" feature="Water" />
+	</Skin>
+</TileSheet>

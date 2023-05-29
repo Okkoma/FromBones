@@ -1,0 +1,1649 @@
+<?xml version="1.0"?>
+<element type="Window">
+    <attribute name="Name" value="Options" />
+    <attribute name="Is Movable" value="true" />
+    <attribute name="Is Resizable" value="false" />
+    <attribute name="Min Size" value="782 582" />
+    <attribute name="Max Size" value="782 582" />
+    <attribute name="Layout Mode" value="Vertical" />
+    <attribute name="Layout Spacing" value="10" />
+    <attribute name="Layout Border" value="6 6 6 6" />
+    <attribute name="Resize Border" value="6 6 6 6" />
+    <attribute name="Opacity" value="0.8" />
+    <attribute name="Horiz Alignment" value="Center" />
+    <attribute name="Vert Alignment" value="Center" />
+    <attribute name="Pivot" value="0.5 0.5" />
+
+    <element>
+        <attribute name="Min Size" value="770 100" />
+        <attribute name="Max Size" value="770 100" />
+        <element type="Text" style="OptionText">
+            <attribute name="Name" value="TitleText" />
+            <attribute name="Text" value="Options" />
+        </element>
+        <element type="Button" >
+            <attribute name="Name" value="closebutton" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
+            <attribute name="Sprite Hover" value="icon_close_on" />
+            <!-- <attribute name="Texture" value="Texture2D;Textures/game_equipment.png" />
+            <attribute name="Image Rect" value="192 135 224 167" /> -->
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <!-- <attribute name="Hover Image Offset" value="33 0" /> -->
+            <attribute name="Min Size" value="32 32" />
+            <attribute name="Max Size" value="32 32" />
+            <attribute name="Focus Mode" value="NotFocusable" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Vert Alignment" value="Top" />
+        </element>
+    </element>
+
+    <element>
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="10" />
+        <attribute name="Min Size" value="776 410" />
+        <attribute name="Max Size" value="776 410" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Vert Alignment" value="Center" />
+
+        <!-- Lateral Option Categories Bar -->
+        <element>
+            <attribute name="Layout Mode" value="Vertical" />
+            <attribute name="Layout Spacing" value="10" />
+            <attribute name="Horiz Alignment" value="Left" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Min Size" value="200 410" />
+            <attribute name="Max Size" value="200 410" />
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Game" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Game" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="World" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="World" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Player" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Player" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Interface" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Interface" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Graphics" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Graphics" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Sounds" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Sounds" />
+                </element>
+            </element>
+            <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Developper" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Developper" />
+                </element>
+            </element>
+        </element>
+
+        <!-- Content of the categories -->
+        <element>
+            <attribute name="Name" value="Content" />
+            <attribute name="Layout Mode" value="Free" />
+            <attribute name="Min Size" value="566 410" />
+            <attribute name="Max Size" value="566 410" />
+
+            <!-- Content of the category "Game" -->
+            <element>
+                <attribute name="Name" value="Game" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="50" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 200" />
+                <attribute name="Max Size" value="566 350" />
+
+                <element type="Button" style="OptionButton">
+                    <attribute name="Name" value="Load" />
+                    <attribute name="Min Size" value="200 50" />
+                    <attribute name="Max Size" value="200 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Text" value="Load" />
+                    </element>
+                </element>
+
+                <element type="Button" style="OptionButton">
+                    <attribute name="Name" value="Save" />
+                    <attribute name="Min Size" value="200 50" />
+                    <attribute name="Max Size" value="200 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Text" value="Save" />
+                    </element>
+                </element>
+
+                <element type="Button" style="OptionButton">
+                    <attribute name="Name" value="Quit" />
+                    <attribute name="Min Size" value="200 50" />
+                    <attribute name="Max Size" value="200 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Text" value="Quit" />
+                    </element>
+                </element>
+            </element>
+
+            <!-- Content of the category "World" -->
+            <element>
+                <attribute name="Name" value="World" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="10" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 400" />
+                <attribute name="Max Size" value="566 400" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Name" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+
+                    <element type="DropDownList" style="OptionEditableDropDownList">
+                        <attribute name="Name" value="WorldName" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />                      
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="TestZone2" />
+                                            <attribute name="Is Editable" value="false" />                                         
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="Custom" />
+                                            <attribute name="Is Editable" value="true" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>                                       
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Model" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="WorldModel" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Flat" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Ellipse" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Circle" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Size" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="WorldSize" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Tiny" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Small" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Medium" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Large" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Huge" />
+                                        </element>                                                                                
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Seed" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="WorldSeed" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Random" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="1000" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="2000" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="66536" />
+                                        </element>                                        
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 180" />
+                    <attribute name="Max Size" value="350 180" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="BorderImage" >
+                        <attribute name="Min Size" value="170 170" />
+                        <attribute name="Max Size" value="170 170" />
+                        <attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
+                        <attribute name="Border" value="4 4 4 4" />
+                        <attribute name="Resize Border" value="8 8 8 8" />
+                        <element type="Button" >
+                            <attribute name="Name" value="WorldSnapShot" />
+                            <attribute name="Min Size" value="160 160" />
+                            <attribute name="Max Size" value="160 160" />
+                            <attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Vert Alignment" value="Center" />
+                            <attribute name="Hover Image Offset" value="0 0" />
+                            <attribute name="Pressed Image Offset" value="0 0" />
+                            <attribute name="Pressed Child Offset" value="0 0" />
+                        </element>
+                        <element type="Button" style="OptionButton">
+                            <attribute name="Name" value="GenerateWorldMap" />
+                            <attribute name="Min Size" value="25 25" />
+                            <attribute name="Max Size" value="25 25" />
+                            <element type="Text" style="OptionText22_NoL10">
+                                <attribute name="Text" value="G" />
+                            </element>
+                            <attribute name="Horiz Alignment" value="Left" />
+                            <attribute name="Vert Alignment" value="Bottom" />
+                        </element>
+                        <element type="Button" style="OptionButton">
+                            <attribute name="Name" value="EditWorldMap" />
+                            <attribute name="Min Size" value="60 25" />
+                            <attribute name="Max Size" value="25 25" />
+                            <element type="Text" style="OptionText22_NoL10">
+                                <attribute name="Text" value="Edit" />
+                            </element>
+                            <attribute name="Horiz Alignment" value="Right" />
+                            <attribute name="Vert Alignment" value="Bottom" />
+                        </element>
+                    </element>
+                </element>
+
+            </element>
+
+            <!-- Content of the category "Player" -->
+            <element>
+                <attribute name="Name" value="Player" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="25" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 125" />
+                <attribute name="Max Size" value="566 350" />
+
+                <!-- "NumPlayers" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <!-- <attribute name="Vert Alignment" value="Center" /> -->
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="Num Players" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="NumPlayers" />
+                        <attribute name="Min Size" value="200 50" />
+                        <attribute name="Max Size" value="200 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="1" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="2" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="3" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="4" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <!-- "ControlP1" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <!-- <attribute name="Vert Alignment" value="Center" /> -->
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="Control P1" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="ControlP1" />
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="140 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="KeyBoard" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Joystick" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="ScreenJoy" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Touch" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ConfigControls_1" />
+                        <attribute name="Min Size" value="50 50" />
+                        <attribute name="Max Size" value="50 50" />
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="..." />
+                        </element>
+                    </element>
+                </element>
+
+                <!-- "ControlP2" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="Control P2" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="ControlP2" />
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="140 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="KeyBoard" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Joystick" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="ScreenJoy" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Touch" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="CPU" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ConfigControls_2" />
+                        <attribute name="Min Size" value="50 50" />
+                        <attribute name="Max Size" value="50 50" />
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="..." />
+                        </element>
+                    </element>
+                </element>
+
+                <!-- "ControlP3" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="Control P3" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="ControlP3" />
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="140 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="KeyBoard" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Joystick" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="ScreenJoy" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Touch" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="CPU" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ConfigControls_3" />
+                        <attribute name="Min Size" value="50 50" />
+                        <attribute name="Max Size" value="50 50" />
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="..." />
+                        </element>
+                    </element>
+                </element>
+
+                <!-- "ControlP4" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="Control P4" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="ControlP4" />
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="140 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="1" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="KeyBoard" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Joystick" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="ScreenJoy" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Touch" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="CPU" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ConfigControls_4" />
+                        <attribute name="Min Size" value="50 50" />
+                        <attribute name="Max Size" value="50 50" />
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="..." />
+                        </element>
+                    </element>
+                </element>
+            </element>
+
+            <!-- Content of the category "Config Controls" -->
+            <element>
+                <attribute name="Name" value="ConfigControls" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="40" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 185" />
+                <attribute name="Max Size" value="566 350" />
+
+                <element>
+                    <attribute name="Layout Mode" value="Vertical" />
+                    <attribute name="Layout Spacing" value="35" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Vert Alignment" value="Center" />
+                    <attribute name="Min Size" value="566 185" />
+                    <attribute name="Max Size" value="566 185" />
+                    <element>
+                        <attribute name="Min Size" value="566 75" />
+                        <attribute name="Max Size" value="566 75" />
+                        <attribute name="Horiz Alignment" value="Center" />
+                        <attribute name="Layout Mode" value="Horizontal" />
+                        <attribute name="Layout Spacing" value="20" />
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Up" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Up" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="Z" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Down" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Down" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="S" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Left" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Left" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="Q" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Right" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Right" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="D" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Jump" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Jump" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="Space" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                    <element>
+                        <attribute name="Min Size" value="566 75" />
+                        <attribute name="Max Size" value="566 75" />
+                        <attribute name="Horiz Alignment" value="Center" />
+                        <attribute name="Layout Mode" value="Horizontal" />
+                        <attribute name="Layout Spacing" value="20" />
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Fire1" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Fire1" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="F" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Fire2" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Fire2" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="E" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Fire3" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Fire3" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="R" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Status" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Status" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="A" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Interact" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Interact" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText22">
+                                    <attribute name="Text" value="X" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="40" />
+                    <attribute name="Min Size" value="566 50" />
+                    <attribute name="Max Size" value="566 50" />
+
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ResetControl" />
+                        <attribute name="Min Size" value="100 50" />
+                        <attribute name="Max Size" value="100 50" />
+                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="Reset" />
+                            <attribute name="Text Alignment" value="Center" />
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="ApplyControl" />
+                        <attribute name="Min Size" value="100 50" />
+                        <attribute name="Max Size" value="100 50" />
+                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="Apply" />
+                            <attribute name="Text Alignment" value="Center" />
+                        </element>
+                    </element>
+                    <element type="Button" style="CategoryButton">
+                        <attribute name="Name" value="Player" />
+                        <attribute name="Min Size" value="100 50" />
+                        <attribute name="Max Size" value="100 50" />
+                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
+                        <element type="Text" style="OptionText">
+                            <attribute name="Text" value="Close" />
+                            <attribute name="Text Alignment" value="Center" />
+                        </element>
+                    </element>
+                </element>
+
+            </element>
+
+            <!-- Content of the category "Interface" -->
+            <element>
+                <attribute name="Name" value="Interface" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="50" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 150" />
+                <attribute name="Max Size" value="566 150" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Language" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Language" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="English" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="Francais" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Reactivity" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Reactivity" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="2" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="50" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="100" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="150" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="200" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="250" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+            </element>
+
+            <!-- Content of the category "Graphics" -->
+            <element>
+                <attribute name="Name" value="Graphics" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="25" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 200" />
+                <attribute name="Max Size" value="566 350" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="530 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Resolution" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Resolution" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="250 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="530 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Fullscreen" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Fullscreen" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="250 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="No" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Yes" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="530 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Texture Quality" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="TextureQuality" />
+
+                        <attribute name="Is Enabled" value="false" />
+                        
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="250 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="2" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="Low" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="Med" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="High" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="Max" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="530 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Texture Filter" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="TextureFilter" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="250 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="2" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Min" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Med" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="High" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="530 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Underground" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Underground" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="250 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Lighted" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Darked" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+            </element>
+
+            <!-- Content of the category "Sounds" -->
+            <element>
+                <attribute name="Name" value="Sounds" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="50" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 150" />
+                <attribute name="Max Size" value="566 150" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Music" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Music" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="None" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="1" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="2" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="3" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="4" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="5" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Text" value="Effect" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Effect" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="None" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="1" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="2" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="3" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="4" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                            <attribute name="Text" value="5" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+            </element>
+
+            <!-- Content of the category "Developper" -->
+            <element>
+                <attribute name="Name" value="Developper" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="10" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 400" />
+                <attribute name="Max Size" value="566 400" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="Fluid" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="FluidEnable" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="RenderShapes" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="RenderShapes" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="RenderDebug" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="RenderDebug" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="DebugPhysics" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="DebugPhysics" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="DebugWorld" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="DebugWorld" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="DebugRShapes" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="DebugRenderShapes" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+                
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="270 50" />
+                        <attribute name="Text" value="DebugRttScene" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="DebugRttScene" />
+                        <attribute name="Min Size" value="170 50" />
+                        <attribute name="Max Size" value="170 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true" >
+                            <element type="ListView" internal="true" >
+                                <element type="BorderImage" internal="true" >
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+                
+<!--
+                <element type="Button" style="OptionButton">
+                    <attribute name="Name" value="ResetMaps" />
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Text" value="ResetMaps" />
+                    </element>
+                </element>
+
+                <element type="Button" style="OptionButton">
+                    <attribute name="Name" value="SaveMapsFeatures" />
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Text" value="SaveMapsFeatures" />
+                    </element>
+                </element>
+-->
+            </element>
+        </element>
+    </element>
+
+    <element>
+        <attribute name="Min Size" value="770 50" />
+        <attribute name="Max Size" value="770 50" />
+        <element type="Button" >
+            <attribute name="Name" value="applybutton" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@markcheck1" />
+            <attribute name="Sprite Hover" value="markcheck0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Min Size" value="32 32" />
+            <attribute name="Max Size" value="32 32" />
+            <attribute name="Focus Mode" value="NotFocusable" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Vert Alignment" value="Center" />
+        </element>
+    </element>
+</element>

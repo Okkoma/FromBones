@@ -1,0 +1,13 @@
+{
+    "Potion":{
+        "materials":"ElsarionMeat, Bone",
+        "tools":"Marmite"
+    },
+    "PotionRegen":{
+        "materials":"ElsarionMeat, AileDark",
+        "tools":"Marmite"
+    },
+    "EliegorSeedPlus":{
+        "materials":"EliegorSeed, Potion"
+    }
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="bouledefeu1" x="25" y="804" width="71" height="22" />
+	<SubTexture name="bouledefeu2" x="936" y="829" width="74" height="16" />
+</TextureAtlas>

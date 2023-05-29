@@ -1,0 +1,7 @@
+<texture>
+    <mipmap enable="false" />
+    <quality low="0" />
+<!--	<filter mode="linear" /> -->
+	<srgb enable="true" />
+	<dpiscml ratio="0.5" />
+</texture>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="build/win64/static/release/FromBones.cbp" />
+		<Project filename="../../Urho3D/Urho3D-Vulkan/build/win64/static/release/Urho3D.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

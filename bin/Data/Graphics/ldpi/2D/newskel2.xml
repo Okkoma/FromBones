@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="bandeauoeil01" x="539" y="494" width="66" height="27" />
+	<SubTexture name="blackcape01" x="352" y="1" width="77" height="118" />
+	<SubTexture name="blackcape02" x="622" y="116" width="121" height="95" />
+	<SubTexture name="blackcape03" x="430" y="1" width="88" height="115" />
+	<SubTexture name="effet_poison01" x="151" y="526" width="120" height="30" />
+	<SubTexture name="empty" x="1" y="1" width="1" height="1" />
+	<SubTexture name="jambebois01" x="605" y="558" width="38" height="14" />
+	<SubTexture name="maskorbite" x="223" y="450" width="53" height="40" />
+	<SubTexture name="pistoletballe1" x="609" y="219" width="11" height="10" />
+	<SubTexture name="pistoletfeu1" x="321" y="191" width="28" height="19" />
+	<SubTexture name="pistoletfeu2" x="118" y="453" width="44" height="39" />
+	<SubTexture name="pistoletmoveballe1" x="247" y="232" width="24" height="9" />
+	<SubTexture name="plumage01" x="188" y="557" width="35" height="18" />
+	<SubTexture name="plumage02" x="450" y="444" width="30" height="39" />
+	<SubTexture name="plumage03" x="407" y="257" width="32" height="42" />
+	<SubTexture name="skelarmure1" x="1" y="1" width="63" height="42" hotspotx="32" hotspoty="21" />
+	<SubTexture name="skelarmure2" x="1" y="1" width="60" height="37" hotspotx="32" hotspoty="15" />
+	<SubTexture name="skelarmureepauled" x="1" y="1" width="38" height="27" hotspotx="19" hotspoty="14" />
+	<SubTexture name="skelarmureepauleg" x="1" y="1" width="29" height="30" hotspotx="14" hotspoty="15" />
+	<SubTexture name="skelavbrasd01" x="396" y="558" width="46" height="16" />
+	<SubTexture name="skelavbrasg01" x="443" y="558" width="43" height="16" />
+	<SubTexture name="skelbassin01" x="359" y="490" width="43" height="35" />
+	<SubTexture name="skelbrasd01" x="224" y="557" width="40" height="18" />
+	<SubTexture name="skelbrasg01" x="563" y="558" width="41" height="15" />
+	<SubTexture name="skelcasque" x="1" y="1" width="89" height="83" hotspotx="59" hotspoty="54" />
+	<SubTexture name="skelceinture" x="1" y="1" width="53" height="26" hotspotx="26" hotspoty="13" />
+	<SubTexture name="skelcrane01" x="321" y="212" width="85" height="89" />
+	<SubTexture name="skelcrane02" x="622" y="212" width="82" height="84" />
+	<SubTexture name="skelcrane03" x="505" y="219" width="89" height="84" />
+	<SubTexture name="skelcranefissure" x="70" y="337" width="23" height="14" />
+	<SubTexture name="skelcrochet" x="1" y="1" width="83" height="35" hotspotx="29" hotspoty="12" />
+	<SubTexture name="skeljambed01" x="747" y="1" width="15" height="41" />
+	<SubTexture name="skeljambeg01" x="747" y="84" width="16" height="37" />
+	<SubTexture name="skelmachoire01" x="1" y="443" width="52" height="42" />
+	<SubTexture name="skelmachoire02" x="723" y="483" width="43" height="39" />
+	<SubTexture name="skelmaind01" x="723" y="442" width="34" height="40" />
+	<SubTexture name="skelmaind02" x="403" y="490" width="30" height="31" />
+	<SubTexture name="skelmaing01" x="279" y="232" width="34" height="43" />
+	<SubTexture name="skelmaing02" x="118" y="493" width="32" height="33" />
+	<SubTexture name="skeloeiljaune01" x="237" y="232" width="9" height="9" />
+	<SubTexture name="skeloeiljaune02" x="433" y="212" width="7" height="9" />
+	<SubTexture name="skeloeilvert01" x="609" y="230" width="9" height="9" />
+	<SubTexture name="skeloeilvert02" x="760" y="144" width="7" height="9" />
+	<SubTexture name="skelpiedd01" x="112" y="557" width="40" height="20" />
+	<SubTexture name="skelpiedg01" x="153" y="557" width="34" height="20" />
+	<SubTexture name="skelpistolet" x="1" y="1" width="61" height="85" hotspotx="32" hotspoty="10" />
+	<SubTexture name="skelsword" x="1" y="1" width="145" height="43" hotspotx="30" hotspoty="20" />
+	<SubTexture name="skeltibiad01" x="747" y="43" width="16" height="40" />
+	<SubTexture name="skeltibiag01" x="744" y="122" width="15" height="36" />
+	<SubTexture name="skeltorse01" x="643" y="297" width="64" height="64" />
+	<SubTexture name="tricorne01" x="279" y="378" width="68" height="63" />
+</TextureAtlas>

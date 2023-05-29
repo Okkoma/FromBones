@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="largesword" x="474" y="435" width="240" height="100" hotspotx="50" hotspoty="48" />
+	<SubTexture name="effet_flame01" x="685" y="626" width="158" height="60" />
+	<SubTexture name="effet_flame02" x="233" y="361" width="143" height="72" />
+	<SubTexture name="effet_flame03" x="347" y="734" width="92" height="39" />
+</TextureAtlas>

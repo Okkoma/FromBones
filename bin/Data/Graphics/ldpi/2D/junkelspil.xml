@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="jun_avbras_01" x="195" y="264" width="10" height="2" />
+	<SubTexture name="jun_bouche_02" x="290" y="594" width="22" height="21" />
+	<SubTexture name="jun_bouche_03" x="799" y="571" width="29" height="24" />
+	<SubTexture name="jun_bouche_04" x="604" y="321" width="20" height="18" />
+	<SubTexture name="jun_bras_01" x="178" y="264" width="16" height="3" />
+	<SubTexture name="jun_corne_01" x="137" y="264" width="5" height="4" />
+	<SubTexture name="jun_dent_01" x="745" y="211" width="3" height="8" />
+	<SubTexture name="jun_dent_02" x="1018" y="32" width="4" height="9" />
+	<SubTexture name="jun_dent_03" x="745" y="227" width="3" height="5" />
+	<SubTexture name="jun_dent_04" x="360" y="350" width="4" height="5" />
+	<SubTexture name="jun_dent_05" x="745" y="220" width="2" height="6" />
+	<SubTexture name="jun_flamme_01" x="227" y="569" width="18" height="26" />
+	<SubTexture name="jun_flamme_02" x="351" y="244" width="13" height="27" />
+	<SubTexture name="jun_flamme_03" x="938" y="466" width="24" height="50" />
+	<SubTexture name="jun_flamme_04" x="994" y="446" width="24" height="55" />
+	<SubTexture name="jun_oeil_01" x="360" y="356" width="4" height="5" />
+	<SubTexture name="jun_orbite_01" x="147" y="472" width="8" height="8" />
+	<SubTexture name="jun_oreille_01" x="824" y="310" width="14" height="31" />
+	<SubTexture name="jun_oreille_02" x="351" y="272" width="9" height="21" />
+	<SubTexture name="jun_poing_01" x="824" y="373" width="12" height="11" />
+	<SubTexture name="jun_pupille_01" x="1018" y="42" width="3" height="8" />
+	<SubTexture name="jun_tete_01" x="157" y="527" width="37" height="41" />
+</TextureAtlas>

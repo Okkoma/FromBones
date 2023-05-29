@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="bur_barbe" x="1" y="428" width="39" height="26" />
+	<SubTexture name="bur_corps_1" x="84" y="281" width="49" height="52" />
+	<SubTexture name="bur_corpsboule" x="961" y="315" width="48" height="49" />
+	<SubTexture name="bur_main_g" x="769" y="442" width="23" height="21" />
+	<SubTexture name="bur_maind" x="265" y="465" width="24" height="15" />
+	<SubTexture name="bur_nez" x="769" y="464" width="20" height="15" />
+	<SubTexture name="bur_oeil" x="663" y="483" width="11" height="6" />
+	<SubTexture name="bur_oreille_d" x="68" y="392" width="11" height="15" />
+	<SubTexture name="bur_oreille_g" x="952" y="445" width="18" height="18" />
+	<SubTexture name="bur_pied_d" x="577" y="443" width="16" height="20" />
+	<SubTexture name="bur_pied_g" x="519" y="441" width="21" height="24" />
+	<SubTexture name="bur_pupille" x="1" y="1" width="7" height="4" hotspotx="3" hotspoty="2" />
+</TextureAtlas>

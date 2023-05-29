@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="chaise1" x="1" y="283" width="42" height="75" />
+	<SubTexture name="chaise2" x="894" y="220" width="43" height="87" />
+	<SubTexture name="table1" x="44" y="340" width="109" height="62" />
+</TextureAtlas>

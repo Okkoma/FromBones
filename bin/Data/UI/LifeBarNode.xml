@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="LifeBar" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" />
+	<component type="StaticSprite2D">
+		<attribute name="Layer" value="200 -1" />
+		<attribute name="Sprite" value="SpriteSheet2D;UI/game_equipment.xml@healthbar" />
+	</component>
+</node>

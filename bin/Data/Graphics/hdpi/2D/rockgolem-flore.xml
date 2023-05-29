@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet4.png">
+	<SubTexture name="eliegorflower" x="435" y="1" width="210" height="327" />
+	<SubTexture name="roc_corps01" x="1" y="1" width="433" height="612" />
+	<SubTexture name="roc_coude01" x="1" y="811" width="198" height="148" />
+	<SubTexture name="roc_epaule01" x="917" y="810" width="254" height="168" />
+	<SubTexture name="roc_fondbouche01" x="1672" y="967" width="169" height="111" />
+	<SubTexture name="roc_halobouche01" x="220" y="1037" width="295" height="54" />
+	<SubTexture name="roc_machoire01" x="236" y="798" width="425" height="181" />
+	<SubTexture name="roc_main01" x="669" y="565" width="247" height="247" />
+	<SubTexture name="roc_oeildf01" x="1960" y="629" width="78" height="51" />
+	<SubTexture name="roc_oeildo01" x="834" y="515" width="36" height="32" />
+	<SubTexture name="roc_oeilgf01" x="379" y="980" width="91" height="42" />
+	<SubTexture name="roc_oeilgo01" x="863" y="813" width="45" height="30" />
+	<SubTexture name="roc_orbited01" x="1960" y="681" width="73" height="49" />
+	<SubTexture name="roc_orbiteg01" x="1938" y="913" width="84" height="44" />
+	<SubTexture name="roc_rockg01" x="917" y="565" width="253" height="239" />
+	<SubTexture name="roc_rockg02" x="236" y="614" width="193" height="183" />
+	<SubTexture name="roc_rockg03" x="1338" y="810" width="116" height="119" />
+	<SubTexture name="roc_rockg04" x="1486" y="796" width="185" height="172" />
+	<SubTexture name="roc_rockg05" x="435" y="577" width="207" height="208" />
+	<SubTexture name="roc_rockg06" x="1170" y="299" width="176" height="191" />
+	<SubTexture name="roc_rockg07" x="1171" y="491" width="83" height="86" />
+	<SubTexture name="roc_rockg08" x="1938" y="784" width="90" height="128" />
+	<SubTexture name="roc_rockg09" x="1338" y="930" width="130" height="106" />
+	<SubTexture name="roc_rockg10" x="1898" y="429" width="142" height="137" />
+	<SubTexture name="roc_rockg11" x="662" y="813" width="200" height="142" />
+	<SubTexture name="roc_rockg12" x="1960" y="731" width="58" height="49" />
+	<SubTexture name="roc_rockg13" x="1820" y="231" width="44" height="53" />
+	<SubTexture name="roc_rockg14" x="1469" y="969" width="144" height="98" />
+	<SubTexture name="roc_rockg15" x="662" y="956" width="182" height="120" />
+	<SubTexture name="rockpic1" x="1898" y="231" width="149" height="197" />
+	<SubTexture name="ronce1" x="877" y="305" width="292" height="259" />
+</TextureAtlas>

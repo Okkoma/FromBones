@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/plantsstaticnew.png">
+	<SubTexture name="arbre01" x="1" y="1" width="578" height="747" hotspotx="289" hotspoty="685" />
+	<SubTexture name="arbre02" x="580" y="1" width="619" height="643" hotspotx="310" hotspoty="589" />
+	<SubTexture name="champi01" x="1200" y="394" width="227" height="224" hotspotx="114" hotspoty="188" />
+	<SubTexture name="champi02" x="1461" y="662" width="241" height="170" hotspotx="121" hotspoty="161" />
+	<SubTexture name="champi03" x="1200" y="619" width="260" height="195" hotspotx="130" hotspoty="171" />
+	<SubTexture name="champi04" x="1" y="749" width="243" height="149" hotspotx="122" hotspoty="151" />
+	<SubTexture name="cordage1" x="2029" y="1" width="17" height="17" />
+	<SubTexture name="cordage2" x="1374" y="364" width="35" height="24" />
+	<SubTexture name="cordage3" x="1848" y="312" width="48" height="18" />
+	<SubTexture name="cordage4" x="1428" y="554" width="68" height="24" />
+	<SubTexture name="eliegorflower" x="1534" y="334" width="210" height="327" hotspotx="105" hotspoty="327" />
+	<SubTexture name="herbe01" x="580" y="645" width="341" height="288" hotspotx="171" hotspoty="220" />
+	<SubTexture name="herbe02" x="922" y="645" width="96" height="176" hotspotx="48" hotspoty="164" />
+	<SubTexture name="planche1" x="245" y="749" width="188" height="81" />
+	<SubTexture name="planche2" x="1848" y="230" width="188" height="81" />
+	<SubTexture name="planche3" x="434" y="749" width="114" height="38" />
+	<SubTexture name="planche4" x="1019" y="784" width="110" height="36" />
+	<SubTexture name="poutre1" x="1703" y="813" width="267" height="42" />
+	<SubTexture name="rockpic1" x="1863" y="594" width="149" height="197" hotspotx="75" hotspoty="189" />
+	<SubTexture name="rockpic2" x="1534" y="1" width="313" height="332" hotspotx="157" hotspoty="264" />
+	<SubTexture name="rockpic3" x="1848" y="1" width="180" height="228" hotspotx="90" hotspoty="225" />
+	<SubTexture name="ronce1" x="1745" y="334" width="292" height="259" hotspotx="146" hotspoty="250" />
+	<SubTexture name="tronc1" x="1374" y="1" width="159" height="362" hotspotx="80" hotspoty="362" />
+	<SubTexture name="tronc2" x="1200" y="1" width="173" height="392" hotspotx="87" hotspoty="378" />
+	<SubTexture name="woodpic1" x="1428" y="364" width="96" height="189" hotspotx="48" hotspoty="192" />
+	<SubTexture name="woodpic2" x="1745" y="594" width="117" height="218" hotspotx="59" hotspoty="223" />
+	<SubTexture name="woodpic3" x="1019" y="645" width="177" height="138" hotspotx="89" hotspoty="144" />
+</TextureAtlas>

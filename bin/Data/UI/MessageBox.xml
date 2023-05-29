@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<element type="Window"> <!-- style="DialogWindow"> -->
+    <attribute name="Name" value="MessageBox" />
+    <attribute name="Is Movable" value="false" />
+    <attribute name="Is Resizable" value="false" />
+    <attribute name="Size" value="400 300" />
+    <attribute name="Position" value="200 150" />
+    <attribute name="Layout Mode" value="Vertical" />
+    <attribute name="Layout Spacing" value="10" />
+    <attribute name="Layout Border" value="6 6 6 6" />
+    <attribute name="Resize Border" value="6 6 6 6" />
+    <attribute name="Opacity" value="0.8" />
+
+    <element type="Text" style="OptionText">
+        <attribute name="Name" value="TitleText" />
+    </element>
+
+    <element type="BorderImage" style="EditorDivider" />
+
+    <element type="Text" style="OptionText">
+        <attribute name="Name" value="MessageText" />
+    </element>
+
+    <element type="Button" style="CategoryButton">
+        <attribute name="Name" value="OkButton" />
+        <attribute name="Min Size" value="70 56" />
+        <attribute name="Max Size" value="400 56" />
+        <element type="Text" style="OptionText">
+            <attribute name="Name" value="Text" />
+            <attribute name="Text" value="yes" />
+        </element>
+    </element>
+
+    <element type="Button" style="CategoryButton">
+        <attribute name="Name" value="CancelButton" />
+        <attribute name="Min Size" value="70 56" />
+        <attribute name="Max Size" value="400 56" />
+        <element type="Text" style="OptionText">
+            <attribute name="Name" value="Text" />
+            <attribute name="Text" value="NO" />
+        </element>
+    </element>
+
+</element>

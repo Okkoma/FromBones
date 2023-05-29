@@ -1,0 +1,3 @@
+<technique>
+	<pass name="dialog" vs="Text" ps="Text" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

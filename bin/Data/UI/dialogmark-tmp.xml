@@ -1,0 +1,3 @@
+<TextureAtlas imagePath="Textures/UI/actorinteract.png">
+	<SubTexture name="actorinteract" x="0" y="0" width="31" height="98"/>
+</TextureAtlas>

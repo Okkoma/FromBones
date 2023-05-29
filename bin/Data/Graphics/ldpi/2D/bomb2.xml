@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="bombe_01.png"	x="659"	y="417"	width="110"	height="118" frameX="-0" frameY="-0" frameWidth="110" frameHeight="118"/>
+	<SubTexture name="bombe_scrap01.png"	x="943"	y="0"	width="37"	height="37" frameX="-0" frameY="-0" frameWidth="37" frameHeight="37"/>
+	<SubTexture name="bombe_scrap02.png"	x="921"	y="265"	width="39"	height="41" frameX="-0" frameY="-0" frameWidth="39" frameHeight="41"/>
+	<SubTexture name="bombe_scrap03.png"	x="756"	y="1003"	width="21"	height="19" frameX="-0" frameY="-0" frameWidth="21" frameHeight="19"/>
+	<SubTexture name="bombe_scrap04.png"	x="538"	y="548"	width="19"	height="16" frameX="-0" frameY="-0" frameWidth="19" frameHeight="16"/>
+	<SubTexture name="corde.png"	x="135"	y="1007"	width="15"	height="15" frameX="-0" frameY="-0" frameWidth="15" frameHeight="15"/>
+	<SubTexture name="cordel.png"	x="922"	y="472"	width="15"	height="30" frameX="-0" frameY="-0" frameWidth="15" frameHeight="30"/>
+	<SubTexture name="etincelle_jaune.png"	x="849"	y="888"	width="67"	height="60" frameX="-0" frameY="-0" frameWidth="67" frameHeight="60"/>
+	<SubTexture name="etincelle_rouge.png"	x="857"	y="279"	width="62"	height="77" frameX="-0" frameY="-0" frameWidth="62" frameHeight="77"/>
+	<SubTexture name="ficelle_grise.png"	x="779"	y="1003"	width="13"	height="19" frameX="-0" frameY="-0" frameWidth="13" frameHeight="19"/>
+</TextureAtlas>

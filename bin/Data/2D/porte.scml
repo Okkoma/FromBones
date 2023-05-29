@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="porte01a.png" width="44" height="108" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="1" name="porte01c.png" width="105" height="111" pivot_x="0.92" pivot_y="0.5"/>
+        <file id="2" name="porte01b.png" width="71" height="111" pivot_x="0.87" pivot_y="0.5"/>
+        <file id="3" name="porte02a.png" width="44" height="108" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="4" name="porte02b.png" width="71" height="111" pivot_x="0.87" pivot_y="0.5"/>
+        <file id="5" name="porte02c.png" width="105" height="111" pivot_x="0.92" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="porte">
+        <animation id="0" name="nomove" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte01a">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="opening_full" length="200" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="88" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="150" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte01a">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="-4" y="62" angle="0"/>
+                </key>
+                <key id="1" time="88" spin="0">
+                    <object folder="0" file="2" x="-4" y="62" angle="0"/>
+                </key>
+                <key id="2" time="150" spin="0">
+                    <object folder="0" file="1" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="opened_full" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte01a">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+    <entity id="1" name="porte2">
+        <animation id="0" name="nomove" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte02a">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="opening_full" length="200" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="72">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+                <key id="2" time="88" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                </key>
+                <key id="3" time="150" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte02a">
+                <key id="0" spin="0">
+                    <object folder="0" file="3" x="-4" y="62" angle="0"/>
+                </key>
+                <key id="1" time="72" spin="0">
+                    <object folder="0" file="3" x="-4" y="62" angle="0"/>
+                </key>
+                <key id="2" time="88" spin="0">
+                    <object folder="0" file="4" x="-4" y="62" angle="0"/>
+                </key>
+                <key id="3" time="150" spin="0">
+                    <object folder="0" file="5" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="opened_full" length="1000" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="porte02a">
+                <key id="0" spin="0">
+                    <object folder="0" file="5" x="-4" y="62" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

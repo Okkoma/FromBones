@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="DialogMarker" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" />
+	<component type="AnimatedSprite2D">
+		<attribute name="Custom Spritesheet" value="UI/game_dialog.xml" />
+		<attribute name="Animation Set" value="AnimationSet2D;UI/dialogmark.scml" />
+		<attribute name="Animation" value="on" />
+	</component>
+	<component type="RigidBody2D" />
+	<component type="CollisionBox2D">
+		<attribute name="Size" value="1 1" />
+		<attribute name="Center" value="0 0" />
+		<attribute name="Category Bits" value="8192" />  <!-- Is a SceneUI -->
+		<attribute name="Mask Bits" value="8192" />      <!-- Collide with SceneUI -->
+	</component>
+</node>

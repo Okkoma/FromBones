@@ -1,0 +1,3 @@
+<technique vs="WaterRefract" ps="WaterRefract" >
+	<pass name="water" depthtest="less" depthwrite="true" />
+</technique>

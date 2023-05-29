@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="mir_oeuf.png" width="183" height="166" pivot_x="0.5" pivot_y="0.5"/>
+        <file id="1" name="mir_embryon.png" width="120" height="82" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="mirubiloeuf">
+        <obj_info name="bone_000" type="bone" w="149.075" h="10"/>
+        <obj_info name="TA" type="box" w="121" h="131" pivot_x="0" pivot_y="0"/>
+        <animation id="0" name="use" length="1000" interval="100">
+            <mainline>
+                <key id="0">
+                    <bone_ref id="0" timeline="2" key="0"/>
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="3" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="198">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="3" key="0" z_index="2"/>
+                </key>
+                <key id="2" time="399">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="3" key="0" z_index="2"/>
+                </key>
+                <key id="3" time="599">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="3" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="3" key="0" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="oeuf">
+                <key id="0" spin="-1">
+                    <object folder="0" file="0" x="-0.371747" y="83.271375" angle="0"/>
+                </key>
+                <key id="1" time="198" spin="-1">
+                    <object folder="0" file="0" x="-0.104368" y="90.758006" angle="270.298744"/>
+                </key>
+                <key id="2" time="399" spin="-1">
+                    <object folder="0" file="0" x="0.694927" y="83.45911" angle="180.270536"/>
+                </key>
+                <key id="3" time="599" spin="-1">
+                    <object folder="0" file="0" x="0.917596" y="91.472631" angle="89.612538"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="embryon">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="0.078524" y="87.041528" angle="0" scale_x="1.183128" scale_y="1.23404"/>
+                </key>
+                <key id="1" time="198" spin="-1">
+                    <object folder="0" file="1" x="5.158738" y="87.041528" angle="288.401738" scale_x="1.131236" scale_y="1.064459"/>
+                </key>
+                <key id="2" time="399" spin="-1">
+                    <object folder="0" file="1" x="-19.71895" y="65.198884" angle="232.978679" scale_x="0.967773" scale_y="0.990246"/>
+                </key>
+                <key id="3" time="599" spin="-1">
+                    <object folder="0" file="1" x="-24.026968" y="78.199365" angle="147.928071" scale_y="1.094826"/>
+                </key>
+            </timeline>
+            <timeline id="2" obj="0" name="bone_000" object_type="bone">
+                <key id="0" spin="-1">
+                    <bone x="-0.743494" y="76.951673" angle="89.571361"/>
+                </key>
+                <key id="1" time="198">
+                    <bone x="-0.743494" y="76.951673" angle="88.97036"/>
+                </key>
+            </timeline>
+            <timeline id="3" obj="1" name="TA" object_type="box">
+                <key id="0" spin="0">
+                    <object x="-59" y="146" pivot_x="0" pivot_y="1" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="explode" length="600" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <bone_ref id="0" timeline="2" key="0"/>
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="200">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="600">
+                    <bone_ref id="0" timeline="2" key="2"/>
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="oeuf">
+                <key id="0" spin="-1">
+                    <object folder="0" file="0" x="-0.371747" y="83.271375" angle="0"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="0" x="-0.104368" y="90.758006" angle="270.298744"/>
+                </key>
+                <key id="2" time="600">
+                    <object folder="0" file="0" x="-0.371747" y="-0.685844" angle="270.196723" scale_x="0.254744" scale_y="1.330097" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="embryon">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="0.078524" y="87.041528" angle="0" scale_x="1.183128" scale_y="1.23404"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="1" x="5.158738" y="87.041528" angle="288.401738" scale_x="1.131236" scale_y="1.064459"/>
+                </key>
+                <key id="2" time="600">
+                    <object folder="0" file="1" x="0.613283" y="1.74741" angle="268.844403" scale_x="0.286128" scale_y="1.362307" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" obj="0" name="bone_000" object_type="bone">
+                <key id="0" spin="-1">
+                    <bone x="-0.743494" y="76.951673" angle="89.571361"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <bone x="-0.743494" y="76.951673" angle="88.97036"/>
+                </key>
+                <key id="2" time="600">
+                    <bone x="-0.743494" y="76.951673" angle="88.97036"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="entity" length="600" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <bone_ref id="0" timeline="2" key="0"/>
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="200">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="400">
+                    <bone_ref id="0" timeline="2" key="1"/>
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="3" key="0" z_index="2"/>
+                </key>
+                <key id="3" time="600">
+                    <bone_ref id="0" timeline="2" key="2"/>
+                    <object_ref id="0" timeline="0" key="2" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="oeuf">
+                <key id="0" spin="-1">
+                    <object folder="0" file="0" x="-0.371747" y="83.271375" angle="0"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="0" x="-0.104368" y="90.758006" angle="270.298744"/>
+                </key>
+                <key id="2" time="600">
+                    <object folder="0" file="0" x="-0.371747" y="-0.685844" angle="270.196723" scale_x="0.254744" scale_y="1.330097" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="embryon">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="0.078524" y="87.041528" angle="0" scale_x="1.183128" scale_y="1.23404"/>
+                </key>
+                <key id="1" time="200" spin="-1">
+                    <object folder="0" file="1" x="5.158738" y="87.041528" angle="288.401738" scale_x="1.131236" scale_y="1.064459"/>
+                </key>
+                <key id="2" time="600">
+                    <object folder="0" file="1" x="0.613283" y="1.74741" angle="268.844403" scale_x="0.286128" scale_y="1.362307" a="0"/>
+                </key>
+            </timeline>
+            <timeline id="2" obj="0" name="bone_000" object_type="bone">
+                <key id="0" spin="-1">
+                    <bone x="-0.743494" y="76.951673" angle="89.571361"/>
+                </key>
+                <key id="1" time="200" spin="0">
+                    <bone x="-0.743494" y="76.951673" angle="88.97036"/>
+                </key>
+                <key id="2" time="600">
+                    <bone x="-0.743494" y="76.951673" angle="88.97036"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="Entity_Elsarion" object_type="point">
+                <key id="0" time="400" spin="0">
+                    <object x="-1.612903" y="37.903226" angle="357.273689"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

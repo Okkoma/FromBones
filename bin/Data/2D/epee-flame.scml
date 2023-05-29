@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="largesword.png" width="240" height="100" pivot_x="0.208333" pivot_y="0.510204"/>
+        <file id="1" fx="1" name="effet_flame03.png" width="92" height="39" pivot_x="0" pivot_y="0.5"/>
+        <file id="2" fx="1" name="effet_flame02.png" width="143" height="72" pivot_x="0" pivot_y="0.5"/>
+        <file id="3" fx="1" name="effet_flame01.png" width="158" height="60" pivot_x="0" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="LargeSword">
+        <animation id="0" name="use" length="1000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="1" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="0" key="0" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="largesword">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="IN_Effect" object_type="point">
+                <key id="0" spin="0">
+                    <object x="16" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

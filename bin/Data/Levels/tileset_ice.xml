@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/icetiles.png" basewidth="64" baseheight="64" >
+	<Terrain name="ice_01" neighbors="Connected0" type="Rock" >
+		<!-- <Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerSpace|InnerFloor|OuterFloor|RoomInnerSpace|Door" /> -->
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+		<Tiles width="64" height="64" spacing="0">
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="2" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="2" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="1" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="1" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="4" width="2" height="2" connection="AllConnect" />
+            <Tile col="0" row="6" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="4" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="6" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+		<Decals width="64" height="64" spacing="0">
+            <Decal col="5" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="6" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="7" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="7" row="2" width="1" height="1" connection="RightConnect" />
+            <Decal col="5" row="1" width="1" height="1" connection="BottomConnect" />
+            <Decal col="6" row="1" width="1" height="1" connection="BottomConnect" />
+            <Decal col="7" row="1" width="1" height="1" connection="LeftConnect" />
+        </Decals>
+	</Terrain>
+	<!-- <Terrain name="ice_furnitures01" neighbors="Connected0" > -->
+		<!-- <Features name="Window" /> -->
+        <!-- <Tiles width="64" height="64" spacing="0"> -->
+            <!-- <Tile col="6" row="3" width="1" height="1" connection="AllConnect" property="Blocked|Transparent" /> -->
+        <!-- </Tiles> -->
+	<!-- </Terrain> -->
+	<Skin name="ground_04" neighbors="Connected0" >
+		<Associate terrain="ice_01" feature="OuterFloor" />
+		<Associate terrain="ice_01" feature="InnerFloor" />
+		<Associate terrain="ice_01" feature="Door" />
+	</Skin>
+	<Skin name="dungeon_04" neighbors="Connected0" >
+		<Associate terrain="ice_01" feature="RoomFloor" />
+		<Associate terrain="ice_01" feature="RoomWall" />
+		<Associate terrain="ice_01" feature="RoomPlateForm" />
+		<Associate terrain="ice_01" feature="CorridorPlateForm" />
+		<Associate terrain="ice_01" feature="CorridorWall" />
+		<Associate terrain="ice_01" feature="InnerFloor" />
+		<Associate terrain="ice_01" feature="Door" />
+	</Skin>	
+</TileSheet>

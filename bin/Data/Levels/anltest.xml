@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="VM" />
+	<Module type="SimpleFBM" name="gradienttest" params="GRADIENT QUINTIC 2 1 17892" renderable="TestMap" screenshot="true" />
+</AnlWorldModel>

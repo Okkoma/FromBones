@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FromBonesVk</string>
+    <string name="icon">@drawable/ic_launcher_red</string>
+    <string name="iconrounded">@drawable/ic_launcher_round_red</string>
+</resources>

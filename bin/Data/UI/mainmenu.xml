@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="sable" x="0" y="0" width="2018" height="416"/>
+	<SubTexture name="sun" x="0" y="898" width="600" height="591"/>
+</TextureAtlas>

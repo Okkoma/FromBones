@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="arena_halo" x="663" y="759" width="201" height="72"/>
+	<SubTexture name="arenaoff" x="602" y="1412" width="201" height="72"/>
+</TextureAtlas>

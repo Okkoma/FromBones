@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="scrapgrass1" x="69" y="116" width="30" height="21" />
+	<SubTexture name="scrapgrass2" x="103" y="88" width="32" height="27" />
+	<SubTexture name="scrapgrass3" x="136" y="88" width="42" height="25" />
+	<SubTexture name="scrapgrass4" x="136" y="114" width="35" height="22" />
+</TextureAtlas>

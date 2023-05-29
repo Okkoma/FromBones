@@ -1,0 +1,21 @@
+<material>
+    <!-- <technique name="Techniques/DiffLitParticleAlpha2.xml" quality="1" />
+	<technique name="Techniques/Urho2D.xml" quality="0" />
+	<texture unit="diffuse" name="Textures/Grounds/backinnerlayer.png" />
+	<cull value="none" />
+    <parameter name="UOffset" value="1 0 0 0" />
+    <parameter name="VOffset" value="0 1 0 0" /> -->
+
+    <technique name="Techniques/TechBackShapeLit.xml" quality="1" />
+    <technique name="Techniques/TechBackShape.xml" quality="0" />
+    <texture unit="diffuse" name="Textures/Grounds/backshape.png" />
+    <!-- Number of Packed Textures following X and Y -->
+    <parameter name="NumTiles" value="2 2" />
+    <!-- Index of the texture that will be used in this material -->
+    <parameter name="TileIndex" value="0 0" />
+    <!-- <parameter name="WireEffects" value="5 10 0 0" /> -->
+    <cull value="none" />
+    <!-- ADDED -->
+    <!-- <parameter name="OutlineWidth" value="0.01" />
+    <parameter name="OutlineColor" value="1 1 0 1" /> -->
+</material>

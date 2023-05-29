@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="bougie1.png" width="48" height="53" pivot_x="0.5" pivot_y="0"/>
+        <file id="1" fx="1" name="flamme_bougie.png" width="26" height="41" pivot_x="0.5" pivot_y="0"/>
+        <file id="2" fx="1" name="halo_lum1.png" width="75" height="75" pivot_x="0.5" pivot_y="0.5"/>
+    </folder>
+    <entity id="0" name="bougie">
+        <animation id="0" name="nomove" length="1000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="bougie1">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="7.291667" angle="0"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="use" length="2000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="0" z_index="2"/>
+                </key>
+                <key id="1" time="175" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="1" z_index="2"/>
+                </key>
+                <key id="2" time="332">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="2" z_index="2"/>
+                </key>
+                <key id="3" time="541">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="3" z_index="2"/>
+                </key>
+                <key id="4" time="728">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="2" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="4" z_index="2"/>
+                </key>
+                <key id="5" time="944">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="5" z_index="2"/>
+                </key>
+                <key id="6" time="1141">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="3" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="6" z_index="2"/>
+                </key>
+                <key id="7" time="1367">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="4" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="7" z_index="2"/>
+                </key>
+                <key id="8" time="1665">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="8" z_index="2"/>
+                </key>
+                <key id="9" time="1840">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="2" key="5" z_index="1"/>
+                    <object_ref id="2" timeline="1" key="9" z_index="2"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="bougie1">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="7.291667" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="flamme_bougie">
+                <key id="0" curve_type="instant">
+                    <object folder="0" file="1" x="0.629845" y="40.128391" angle="3.114262" a="0.83673"/>
+                </key>
+                <key id="1" time="175" spin="-1">
+                    <object folder="0" file="1" x="0.629845" y="40.128391" angle="5.171541" scale_x="0.884477" a="0.90816"/>
+                </key>
+                <key id="2" time="332" curve_type="instant">
+                    <object folder="0" file="1" x="-0.145349" y="43.229167" angle="353.518541" scale_x="-0.764812" scale_y="0.852167" a="0.76531"/>
+                </key>
+                <key id="3" time="541" curve_type="instant">
+                    <object folder="0" file="1" x="-0.145349" y="43.422965" angle="353.400461" scale_x="-0.700336" scale_y="0.852167" a="0.81633"/>
+                </key>
+                <key id="4" time="728" curve_type="instant">
+                    <object folder="0" file="1" x="0.436047" y="43.302035" angle="4.839501" scale_x="0.794382" a="0.73469"/>
+                </key>
+                <key id="5" time="944" curve_type="instant">
+                    <object folder="0" file="1" x="-1.30814" y="43.035368" angle="357.35552" scale_x="-1" a="0.59184"/>
+                </key>
+                <key id="6" time="1141" curve_type="instant">
+                    <object folder="0" file="1" x="-1.30814" y="43.035368" angle="353.89812" scale_x="-0.721709" scale_y="1.02951" a="0.85714"/>
+                </key>
+                <key id="7" time="1367" curve_type="instant">
+                    <object folder="0" file="1" x="0.436047" y="43.035368" angle="4.839501" scale_x="0.779707" scale_y="0.928607" a="0.67347"/>
+                </key>
+                <key id="8" time="1665" curve_type="instant">
+                    <object folder="0" file="1" x="-0.726744" y="43.229167" angle="355.191733" scale_x="-0.729534" scale_y="0.753969" a="0.86735"/>
+                </key>
+                <key id="9" time="1840" curve_type="instant">
+                    <object folder="0" file="1" x="-0.726744" y="43.229167" angle="351.469234" scale_x="-0.909742" scale_y="0.826945" a="0.81633"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="halo_lum1">
+                <key id="0" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.486822" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.87755"/>
+                </key>
+                <key id="1" time="332" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.753488" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.56122"/>
+                </key>
+                <key id="2" time="728" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.959404" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.633286"/>
+                </key>
+                <key id="3" time="944" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.847129" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.84694"/>
+                </key>
+                <key id="4" time="1367" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.726782" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.67347"/>
+                </key>
+                <key id="5" time="1665" spin="0">
+                    <object folder="0" file="2" x="0.944186" y="69.868699" angle="0" scale_x="1.575887" scale_y="1.978784" a="0.779567"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="FUR_Feudecamp" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" >
+		<!-- <variant name="GOA_LayerAlignement" hash="-1272207671" type="Int" value="-1" /> -->
+		<variant name="GOA_Fire" hash="-769545092" type="Bool" value="true" />
+		<!-- GO_Furniture -->
+		<!-- <variant name="GOA_TypeCtrl" hash="544566091" type="Int" value="64" /> 	 -->
+	</attribute>
+	<component type="AnimatedSprite2D">
+		<attribute name="Custom Spritesheet" value="2D/furnituresdung01.xml" />
+		<attribute name="Animation Set" value="AnimationSet2D;2D/feudecamp.scml" />
+		<attribute name="TextureFx" value="1" /> <!-- Unlit -->
+		<attribute name="Animation" value="nomove" />
+	</component>
+	<component type="RigidBody2D">
+		<attribute name="Body Type" value="Dynamic" />
+        <attribute name="Use Fixture Mass" value="false" />
+		<attribute name="Mass" value="0.5" />
+		<attribute name="Mass Center" value="0.0 0.025" />
+		<attribute name="Fixed Rotation" value="false" />
+		<attribute name="Allow Sleep" value="true" />
+	</component>
+	<component type="CollisionBox2D">
+		<attribute name="Size" value="0.2 0.2" />
+		<attribute name="Center" value="0 0.1" />
+		<attribute name="Density" value="50" />
+		<attribute name="Friction" value="1" />
+		<attribute name="Category Bits" value="512" /> <!-- Is an Inside Object -->
+		<attribute name="Mask Bits" value="675" />    <!-- CM_InsideObject 675 -->		
+		<attribute name="Extra Contact Bits" value="31" /> <!-- Contact Stable -->
+		<attribute name="ViewZ" value="70" />
+	</component>
+	<component type="CollisionCircle2D">
+		<attribute name="Trigger" value="true" />
+		<attribute name="Radius" value="0.5" />
+		<attribute name="Center" value="0 0.5" />
+		<attribute name="Category Bits" value="512" /> <!-- Is an Inside Object -->
+		<attribute name="Mask Bits" value="8867" />    <!-- Collide with SceneUI 8192 + CM_InsideObject 675 -->
+	</component>
+	<component type="GOC_Animator2D">
+		<attribute name="Template" value="AnimatorTemplate_InteractiveFire" />
+		<attribute name="State" value="State_Unlighted" />
+	</component>
+	<component type="GOC_Destroyer" />
+	<node>
+		<attribute name="Position" value="0 0.5 0" />
+		<attribute name="Variables" >
+			<variant name="GOA_Fire" hash="-769545092" type="Bool" value="true" />
+		</attribute>
+		<component type="Light">
+			<attribute name="Light Type" type="Enum" value="Point" />
+			<attribute name="Color" value="0.75 0.75 0.7 1" />
+			<attribute name="Specular Intensity" value="0" />
+			<attribute name="Range" value="2" />
+			<attribute name="Can Be Occluded" value="false" />
+			<attribute name="Cast Shadows" value="false" />
+			<attribute name="Per Vertex" value="true" />
+		</component>
+	</node>
+</node>

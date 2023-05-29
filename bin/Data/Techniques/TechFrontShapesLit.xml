@@ -1,0 +1,3 @@
+<technique vs="ShaderFrontShapes" ps="ShaderFrontShapes" vsdefines="VERTEXLIGHT" psdefines="VERTEXLIGHT" >
+	<pass name="front" depthtest="false" depthwrite="false" blend="alpha" lighting="pervertex" />
+</technique>

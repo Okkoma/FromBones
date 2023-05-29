@@ -1,0 +1,4 @@
+<technique vs="BackShape" ps="BackShape" vsdefines="VERTEXLIGHT" psdefines="VERTEXLIGHT" >
+    <pass name="alpha" depthwrite="false" blend="alpha" />
+    <!-- <pass name="postopaque" depthwrite="false" vs="Outline" ps="Outline" cull="cw" /> -->
+</technique>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="halo_tete" x="544" y="655" width="59" height="48" />
+	<SubTexture name="portal_01" x="133" y="1" width="168" height="343" />
+	<SubTexture name="portal_halop" x="599" y="331" width="91" height="218" />
+	<SubTexture name="portal_runed" x="716" y="331" width="44" height="187" />
+	<SubTexture name="portal_runeg" x="691" y="331" width="24" height="196" />
+</TextureAtlas>

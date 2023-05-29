@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="avbras_d" x="173" y="120" width="11" height="22" />
+	<SubTexture name="avbras_g" x="173" y="143" width="11" height="20" />
+	<SubTexture name="bras_d" x="712" y="426" width="24" height="18" />
+	<SubTexture name="bras_g" x="893" y="354" width="14" height="17" />
+	<SubTexture name="halo_yeux_01" x="651" y="427" width="16" height="14" />
+	<SubTexture name="jambe_d" x="651" y="398" width="24" height="28" />
+	<SubTexture name="jambe_g" x="955" y="415" width="29" height="18" />
+	<SubTexture name="lizarmure" x="1" y="1" width="37" height="29" hotspotx="18" hotspoty="14" />
+	<SubTexture name="lizcasque" x="1" y="1" width="50" height="34" hotspotx="38" hotspoty="17" />
+	<SubTexture name="lizceinture1" x="1" y="1" width="41" height="22" hotspotx="28" hotspoty="7" />
+	<SubTexture name="lizceinture2" x="1" y="1" width="14" height="11" hotspotx="7" hotspoty="5" />
+	<SubTexture name="lizepauled" x="1" y="1" width="20" height="17" hotspotx="10" hotspoty="8" />
+	<SubTexture name="lizepauleg" x="1" y="1" width="14" height="16" hotspotx="7" hotspoty="8" />
+	<SubTexture name="lizepee" x="1" y="1" width="119" height="16" hotspotx="22" hotspoty="8" />
+	<SubTexture name="pied_d" x="489" y="429" width="42" height="11" />
+	<SubTexture name="pied_g" x="693" y="378" width="37" height="10" />
+	<SubTexture name="queue_b" x="990" y="378" width="26" height="30" />
+	<SubTexture name="queue_m" x="581" y="428" width="26" height="13" />
+	<SubTexture name="queue_p_00" x="608" y="428" width="18" height="13" />
+	<SubTexture name="queue_p_01" x="550" y="213" width="30" height="5" />
+	<SubTexture name="queue_p_02" x="122" y="367" width="19" height="10" />
+	<SubTexture name="tete_01" x="967" y="60" width="46" height="46" />
+	<SubTexture name="tete_02" x="814" y="354" width="43" height="35" />
+	<SubTexture name="tibia_d" x="453" y="429" width="35" height="12" />
+	<SubTexture name="tibia_g" x="917" y="426" width="23" height="15" />
+	<SubTexture name="torse" x="122" y="327" width="31" height="39" />
+</TextureAtlas>

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="torche.png" width="140" height="30" pivot_x="0.2" pivot_y="0.571429"/>
+        <file id="1" fx="1" name="flamme_01.png" width="180" height="118" pivot_x="0.0944444" pivot_y="0.560345"/>
+        <file id="2" fx="1" name="flamme_02.png" width="184" height="124" pivot_x="0.070652" pivot_y="0.532787"/>
+        <file id="3" fx="1" name="flamme_03.png" width="183" height="136" pivot_x="0.087432" pivot_y="0.492537"/>
+    </folder>
+    <entity id="0" name="torche">
+        <animation id="0" name="nomove" length="400" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="torche">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="0.311707" y="0.375329" pivot_x="0.188182" pivot_y="0.504109" angle="359.818284" scale_x="1" scale_y="1"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="use" length="1500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="210" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="391">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="3" time="660" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="4" time="900">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="5" time="1117" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                </key>
+                <key id="6" time="1297">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                </key>
+                <key id="7" time="1486" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="7" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="torche">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="-0" y="0.192308" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="flamme_01">
+                <key id="0" curve_type="instant">
+                    <object folder="0" file="1" x="104" angle="0" scale_y="0.91954" a="0.71429"/>
+                </key>
+                <key id="1" time="210" curve_type="instant">
+                    <object folder="0" file="1" x="104" angle="180" scale_x="-0.83303" scale_y="0.83557" a="0.53061"/>
+                </key>
+                <key id="2" time="391" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="0" scale_y="1.15992" a="0.70408"/>
+                </key>
+                <key id="3" time="660" curve_type="instant">
+                    <object folder="0" file="2" x="104" y="0.192308" angle="180" scale_x="-1.16631" scale_y="0.98463" a="0.76531"/>
+                </key>
+                <key id="4" time="900" curve_type="instant">
+                    <object folder="0" file="3" x="104" angle="180" scale_x="-1.218191" a="0.7551"/>
+                </key>
+                <key id="5" time="1117" curve_type="instant">
+                    <object folder="0" file="3" x="104" y="-0" angle="0" scale_x="0.78451" scale_y="0.69223" a="0.81633"/>
+                </key>
+                <key id="6" time="1297" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="180" scale_x="-1" scale_y="0.779538" a="0.70408"/>
+                </key>
+                <key id="7" time="1486" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="180" scale_x="-0.726957" scale_y="0.779538" a="0.73469"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="2" name="attack" length="1500" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="210" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="391">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="3" time="660" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="4" time="900">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="5" time="1117" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                </key>
+                <key id="6" time="1297">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                </key>
+                <key id="7" time="1486" curve_type="instant">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="7" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="torche">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="-0" y="0.192308" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="flamme_01">
+                <key id="0" curve_type="instant">
+                    <object folder="0" file="1" x="104" angle="0" scale_y="0.91954" a="0.71429"/>
+                </key>
+                <key id="1" time="210" curve_type="instant">
+                    <object folder="0" file="1" x="104" angle="180" scale_x="-0.83303" scale_y="0.83557" a="0.53061"/>
+                </key>
+                <key id="2" time="391" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="0" scale_y="1.15992" a="0.70408"/>
+                </key>
+                <key id="3" time="660" curve_type="instant">
+                    <object folder="0" file="2" x="104" y="0.192308" angle="180" scale_x="-1.16631" scale_y="0.98463" a="0.76531"/>
+                </key>
+                <key id="4" time="900" curve_type="instant">
+                    <object folder="0" file="3" x="104" angle="180" scale_x="-1.218191" a="0.7551"/>
+                </key>
+                <key id="5" time="1117" curve_type="instant">
+                    <object folder="0" file="3" x="104" y="-0" angle="0" scale_x="0.78451" scale_y="0.69223" a="0.81633"/>
+                </key>
+                <key id="6" time="1297" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="180" scale_x="-1" scale_y="0.779538" a="0.70408"/>
+                </key>
+                <key id="7" time="1486" curve_type="instant">
+                    <object folder="0" file="2" x="104" angle="180" scale_x="-0.726957" scale_y="0.779538" a="0.73469"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

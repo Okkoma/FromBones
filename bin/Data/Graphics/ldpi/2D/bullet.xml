@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="pistoletballe1" x="70" y="286" width="11" height="10" />
+	<SubTexture name="pistoletmoveballe1" x="909" y="334" width="26" height="10" />
+</TextureAtlas>

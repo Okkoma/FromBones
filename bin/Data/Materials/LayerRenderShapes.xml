@@ -1,0 +1,14 @@
+<material>
+    	<technique name="Techniques/TechRenderShapesLit.xml" quality="1" />
+    	<technique name="Techniques/TechRenderShapes.xml" quality="0" />
+    	<texture unit="0" name="Textures/Grounds/backshape.png" />
+    	<texture unit="1" name="Textures/Grounds/tile_terrains_g.png" />
+    	<texture unit="2" name="Textures/Backgrounds/nuages.png" />
+		<texture unit="3" name="Textures/UI/game_dialog.png" />
+		
+<!--
+    	<parameter name="UOffset" value="1 0 0 0" />
+    	<parameter name="VOffset" value="0 1 0 0" />
+-->
+    	<cull value="none" />
+</material>

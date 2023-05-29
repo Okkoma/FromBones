@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Grounds/tile_terrains.png">
+	<SubTexture name="goutte"	x="976"	y="319"	width="10"	height="4" />
+	<SubTexture name="pluie"	x="784"	y="319"	width="191"	height="5" />
+</TextureAtlas>

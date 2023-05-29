@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="bi_avbras_d_01" x="313" y="550" width="105" height="70" />
+	<SubTexture name="bi_avbras_g_01" x="1" y="212" width="55" height="108" />
+	<SubTexture name="bi_bouche_01" x="453" y="469" width="76" height="80" />
+	<SubTexture name="bi_bouche_02" x="650" y="404" width="76" height="80" />
+	<SubTexture name="bi_bouche_03" x="727" y="481" width="76" height="79" />
+	<SubTexture name="bi_bras_d_01" x="139" y="299" width="72" height="99" />
+	<SubTexture name="bi_bras_g_01" x="588" y="164" width="81" height="116" />
+	<SubTexture name="bi_jambe_d_01" x="57" y="212" width="81" height="108" />
+	<SubTexture name="bi_jambe_g_01" x="901" y="1" width="83" height="119" />
+	<SubTexture name="bi_main_d_01" x="579" y="565" width="93" height="65" />
+	<SubTexture name="bi_main_g_01" x="1" y="495" width="71" height="75" />
+	<SubTexture name="bi_oreille_d_01" x="936" y="809" width="25" height="19" />
+	<SubTexture name="bi_oreille_d_02" x="421" y="802" width="23" height="23" />
+	<SubTexture name="bi_oreille_g_01" x="920" y="704" width="52" height="41" />
+	<SubTexture name="bi_oreille_g_02" x="726" y="683" width="46" height="46" />
+	<SubTexture name="bi_tete_01" x="673" y="162" width="129" height="146" />
+	<SubTexture name="bi_tibia_d_01" x="524" y="382" width="67" height="86" />
+	<SubTexture name="bi_tibia_g_01" x="911" y="344" width="66" height="90" />
+	<SubTexture name="bi_torse01" x="1" y="1" width="149" height="210" />
+	<SubTexture name="bi_yeux_01" x="124" y="399" width="88" height="82" />
+	<SubTexture name="bi_yeux_02" x="609" y="485" width="90" height="79" />
+	<SubTexture name="bi_yeux_03" x="793" y="399" width="93" height="81" />
+</TextureAtlas>

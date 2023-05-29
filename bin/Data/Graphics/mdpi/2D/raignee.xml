@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="araigneecorps1" x="36" y="684" width="41" height="45" />
+	<SubTexture name="araigneecorps2" x="856" y="655" width="63" height="49" />
+	<SubTexture name="araigneecroc" x="931" y="782" width="21" height="25" />
+	<SubTexture name="araigneefil" x="540" y="165" width="35" height="2" />
+	<SubTexture name="araigneepatte11" x="801" y="781" width="55" height="26" />
+	<SubTexture name="araigneepatte12" x="308" y="801" width="35" height="24" />
+	<SubTexture name="araigneepatte13" x="396" y="802" width="24" height="23" />
+	<SubTexture name="araigneepatte21" x="741" y="808" width="63" height="21" />
+	<SubTexture name="araigneepatte22" x="205" y="802" width="50" height="24" />
+	<SubTexture name="araigneetete1" x="856" y="594" width="45" height="52" />
+	<SubTexture name="araigneetete2" x="669" y="689" width="37" height="41" />
+</TextureAtlas>

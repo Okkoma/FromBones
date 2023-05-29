@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="shukavbrasd" x="645" y="830" width="101" height="16" />
+	<SubTexture name="shukavbrasg" x="747" y="830" width="97" height="16" />
+	<SubTexture name="shukbrasd" x="278" y="299" width="22" height="70" />
+	<SubTexture name="shukbrasg" x="980" y="433" width="20" height="67" />
+	<SubTexture name="shukjambed" x="653" y="769" width="61" height="34" />
+	<SubTexture name="shukjambeg" x="308" y="771" width="55" height="29" />
+	<SubTexture name="shukmaind1" x="778" y="657" width="32" height="48" />
+	<SubTexture name="shukmaing1" x="811" y="657" width="31" height="46" />
+	<SubTexture name="shukpiedd" x="256" y="802" width="39" height="23" />
+	<SubTexture name="shukpiedg" x="845" y="830" width="31" height="15" />
+	<SubTexture name="shuktete1" x="803" y="300" width="107" height="98" />
+	<SubTexture name="shuktete2" x="524" y="281" width="105" height="100" />
+	<SubTexture name="shuktete3" x="414" y="281" width="109" height="102" />
+	<SubTexture name="shuktete4" x="302" y="281" width="111" height="105" />
+	<SubTexture name="shuktibiad" x="66" y="630" width="29" height="52" />
+	<SubTexture name="shuktibiag" x="36" y="636" width="24" height="47" />
+	<SubTexture name="shuktorse" x="978" y="344" width="42" height="88" />
+</TextureAtlas>

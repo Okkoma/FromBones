@@ -1,0 +1,8 @@
+<material>
+<!--	<technique name="Techniques/TechEffectsLit.xml" quality="1" /> -->
+	<technique name="Techniques/TechEffects.xml" quality="0" />
+    <texture unit="6" name="Textures/Actors/particules.png" />
+	<parameter name="UOffset" value="1 0 0 0" />
+	<parameter name="VOffset" value="0 1 0 0" />
+	<cull value="none" />
+</material>

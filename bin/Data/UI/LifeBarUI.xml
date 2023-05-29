@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<element type="Window">
+  <attribute name="Name" value="LifeBar" />
+  <attribute name="Is Movable" value="true" />
+  <attribute name="Is Resizable" value="false" />
+  <attribute name="Size" value="208 28" />
+  <attribute name="Image Rect" value="0 0 1 1" /> <!-- transparent window -->
+  <attribute name="Border" value="0 0 0 0" />
+  <attribute name="Resize Border" value="0 0 0 0" />
+  <attribute name="Opacity" value="0.8" />
+  <attribute name="Focus Mode" value="Focusable" />
+  <element type="BorderImage">
+      <attribute name="Size" value="208 28" />
+      <attribute name="Sprite" value="UI/game_equipment.xml@statebar" />
+	  <element type="BorderImage">
+	  	<attribute name="Name" value="HealthBar" />
+	  	<attribute name="Min Size" value="0 20" />
+	  	<attribute name="Max Size" value="200 20" />
+	  	<attribute name="Sprite" value="UI/game_equipment.xml@healthbar" />
+	  	<attribute name="Position" value="4 4" />
+	  </element>
+  </element>
+</element>

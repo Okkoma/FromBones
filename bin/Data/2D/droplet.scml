@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
+    <folder id="0">
+        <file id="0" name="pluie.png" width="191" height="5" pivot_x="0" pivot_y="1"/>
+        <file id="1" name="goutte.png" width="10" height="4" pivot_x="0.16" pivot_y="0.576923"/>
+    </folder>
+    <entity id="0" name="droplet">
+        <animation id="0" name="fall" length="200" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                </key>
+                <key id="1" time="96">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="pluie">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" pivot_x="0.000984" pivot_y="0.486842" angle="90"/>
+                </key>
+                <key id="1" time="96" spin="0">
+                    <object folder="0" file="0" pivot_x="0.000984" pivot_y="0.486842" angle="90" scale_y="0.8"/>
+                </key>
+            </timeline>
+        </animation>
+        <animation id="1" name="hit" length="300" interval="100" looping="false">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="0" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="0" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="0" z_index="4"/>
+                </key>
+                <key id="1" time="98">
+                    <object_ref id="0" timeline="0" key="1" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                    <object_ref id="2" timeline="2" key="1" z_index="2"/>
+                    <object_ref id="3" timeline="3" key="1" z_index="3"/>
+                    <object_ref id="4" timeline="4" key="1" z_index="4"/>
+                </key>
+                <key id="2" time="123"/>
+            </mainline>
+            <timeline id="0" name="pluie">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" pivot_x="0.000984" pivot_y="0.486842" angle="90" scale_y="0.8"/>
+                </key>
+                <key id="1" time="98" spin="0">
+                    <object folder="0" file="0" pivot_x="0.000984" pivot_y="0.486842" angle="90" scale_x="0.2" scale_y="0.8"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="goutte">
+                <key id="0">
+                    <object folder="0" file="1" x="-7.67343" y="1.993731" angle="345.964" scale_x="0.4" scale_y="0.3"/>
+                </key>
+                <key id="1" time="98" spin="-1">
+                    <object folder="0" file="1" x="-15.145304" y="-2.100255" angle="31.608" scale_x="0.7" scale_y="0.7"/>
+                </key>
+            </timeline>
+            <timeline id="2" name="goutte_000">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="5.674986" y="1.355185" angle="18.435" scale_x="-0.4" scale_y="0.3"/>
+                </key>
+                <key id="1" time="98">
+                    <object folder="0" file="1" x="14.823529" y="0.34498" angle="330.172245" scale_x="-0.6" scale_y="0.4"/>
+                </key>
+            </timeline>
+            <timeline id="3" name="goutte_001">
+                <key id="0">
+                    <object folder="0" file="1" x="-6.813073" y="6.350448" angle="315" scale_x="0.9" scale_y="0.3"/>
+                </key>
+                <key id="1" time="98" spin="-1">
+                    <object folder="0" file="1" x="-15.258843" y="10.957904" angle="330.642" scale_x="1.1" scale_y="0.6"/>
+                </key>
+            </timeline>
+            <timeline id="4" name="goutte_002">
+                <key id="0" spin="-1">
+                    <object folder="0" file="1" x="7.151274" y="4.872683" angle="30.964" scale_x="-0.8" scale_y="0.3"/>
+                </key>
+                <key id="1" time="98">
+                    <object folder="0" file="1" x="15.510717" y="9.45502" angle="19.983" scale_x="-1" scale_y="0.7"/>
+                </key>
+            </timeline>
+        </animation>
+    </entity>
+</spriter_data>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="cheminee1" x="1583" y="1" width="276" height="433" />
+</TextureAtlas>

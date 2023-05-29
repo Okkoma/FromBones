@@ -1,0 +1,4 @@
+<technique vs="WaterLine" ps="WaterLine" >
+    <pass name="water" depthtest="always" depthwrite="false" blend="alpha" />
+</technique>
+

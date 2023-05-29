@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="flamme_01" x="819" y="1" width="184" height="150" />
+	<SubTexture name="flamme_02" x="634" y="1" width="184" height="152" />
+	<SubTexture name="flamme_03" x="331" y="1" width="184" height="154" />
+	<SubTexture name="torche" x="1" y="739" width="129" height="27" />
+</TextureAtlas>

@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="effect_morsure_02" x="670" y="329" width="72" height="51" />
+</TextureAtlas>

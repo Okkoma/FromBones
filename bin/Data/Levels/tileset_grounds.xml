@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TileSheet texture="Textures/Grounds/tile_terrains.png" basewidth="128" baseheight="128" >
+    <Terrain name="clay1" neighbors="Connected0" type="Clay" property="Biome" scraps="wallwhite" color="0.314 0.176 0.086 1" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+		<Tiles width="128" height="128" spacing="0" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+		<Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+		</Decals>
+	</Terrain>
+    <Terrain name="rock1" neighbors="Connected0" type="Rock" property="Biome" scraps="wallwhite" color="0.32 0.32 0.24 1" >
+        <Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+        <Tiles width="128" height="128" spacing="0" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+        </Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+    </Terrain>
+    <Terrain name="rock2" neighbors="Connected0" type="Rock2" property="Biome" scraps="wallwhite" color="0.24 0.32 0.32 1" >
+        <Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+        <Tiles width="128" height="128" spacing="0" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+        </Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+    </Terrain>       
+    <Terrain name="sand1" neighbors="Connected0" type="Sand" property="Biome" scraps="wallwhite" color="1 1 1 1" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+        <Tiles width="128" height="128" spacing="0" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+		</Decals>
+	</Terrain>
+    <Terrain name="grass1" neighbors="Connected0" type="Grass" property="Biome" scraps="grass" color="0.3 0.9 0.15 1" >
+		<Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+		<Tiles width="128" height="128" spacing="0" startx="512" starty="512" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="1" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="2" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+        <Decals width="46" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="2" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="2" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="2" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="2" width="1" height="1" flipx="true" connection="RightConnect" />
+		</Decals>
+		<Decals width="144" height="46" startx="640" starty="384" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+	</Terrain>
+    <Terrain name="grass2" neighbors="Connected0" type="Grass2" property="Biome" scraps="grass" color="0.9 0.3 0.15 1" >
+        <Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall|InnerFloor|OuterFloor|Door" />
+        <Tiles width="128" height="128" spacing="0" startx="512" starty="512" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="1" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="2" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="2" width="1" height="2" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="2" connection="AllConnect" />
+        </Tiles>
+        <Decals width="46" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="2" width="1" height="1" connection="LeftConnect" />
+            <Decal col="1" row="2" width="1" height="1" connection="LeftConnect" />
+            <Decal col="0" row="2" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="1" row="2" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="46" startx="640" starty="384" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+    </Terrain>    
+    <Terrain name="silt1" neighbors="Connected0" type="Silt" property="Biome" scraps="wallblack" >
+		<Features name="InnerFloor|OuterFloor|Door" />
+		<Tiles width="128" height="128" startx="0" starty="512" spacing="0" edgeoffset="1" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+		</Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="1" >
+            <Decal col="2" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="3" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="2" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="3" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="1" >
+            <Decal col="0" row="2" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="3" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="2" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="3" width="1" height="1" flipy="true" connection="BottomConnect" />
+		</Decals>
+	</Terrain>
+    <Terrain name="silt2" neighbors="Connected0" type="Silt2" property="Biome" scraps="wallblack" color="0.2 0.5 1 1" >
+        <Features name="InnerFloor|OuterFloor|Door" />
+        <Tiles width="128" height="128" startx="0" starty="512" spacing="0" edgeoffset="1" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="3" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="2" row="2" width="2" height="1" connection="AllConnect" />
+            <Tile col="2" row="3" width="2" height="1" connection="AllConnect" />
+            <Tile col="0" row="2" width="2" height="2" connection="AllConnect" />
+        </Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="1" >
+            <Decal col="2" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="3" row="0" width="1" height="1" connection="LeftConnect" />
+            <Decal col="2" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+            <Decal col="3" row="0" width="1" height="1" flipx="true" connection="RightConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="1" >
+            <Decal col="0" row="2" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="3" width="1" height="1" connection="TopConnect" />
+            <Decal col="0" row="2" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="0" row="3" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+    </Terrain>
+    <Terrain name="pavement1" neighbors="Connected0" type="Pavement" scraps="brick" color="0.4 0.5 0.45 1" >
+        <Features name="RoomFloor|RoomWall|RoomPlateForm|CorridorPlateForm|CorridorWall" />
+        <Tiles width="128" height="128" spacing="0" startx="640" starty="0" edgeoffset="0.5" >
+            <Tile col="0" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="0" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="1" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="2" row="1" width="1" height="1" connection="AllConnect" />
+            <Tile col="0" row="0" width="2" height="1" connection="AllConnect" />
+            <Tile col="1" row="0" width="1" height="2" connection="AllConnect" />
+            <Tile col="1" row="0" width="2" height="2" connection="AllConnect" />
+        </Tiles>
+        <Decals width="32" height="144" startx="512" starty="0" spacing="0" edgeoffset="0.5" >
+            <Decal col="0" row="1" width="1" height="1" connection="RightConnect" />
+            <Decal col="0" row="1" width="1" height="1" flipx="true" connection="LeftConnect" />
+            <Decal col="1" row="1" width="1" height="1" connection="RightConnect" />
+            <Decal col="1" row="1" width="1" height="1" flipx="true" connection="LeftConnect" />
+        </Decals>
+        <Decals width="144" height="32" startx="640" starty="256" spacing="0" edgeoffset="0.5" >
+            <Decal col="1" row="0" width="1" height="1" connection="TopConnect" />
+            <Decal col="1" row="0" width="1" height="1" flipy="true" connection="BottomConnect" />
+            <Decal col="1" row="1" width="1" height="1" connection="TopConnect" />
+            <Decal col="1" row="1" width="1" height="1" flipy="true" connection="BottomConnect" />
+        </Decals>
+    </Terrain>
+    <Terrain name="roofouter" neighbors="Connected0" type="Pavement" scraps="brick" color="1 1 1 1" >
+        <Features name="OuterRoof" />
+        <Tiles width="242" height="242" spacing="0" startx="1024" starty="0" edgeoffset="0.5" hotspotx="0.25" hotspoty="0.75" >
+            <Tile col="0" row="0" width="1" height="1" connection="NoConnect" />
+            <Tile col="0" row="0" width="1" height="1" connection="NoConnect" flipx="true" />            
+        </Tiles>
+    </Terrain>
+    <Terrain name="roofinner" neighbors="Connected0" type="Pavement" scraps="brick" color="1 1 1 1" >
+        <Features name="InnerRoof" />
+        <Tiles width="242" height="242" spacing="0" startx="1024" starty="0" edgeoffset="0.5" hotspotx="0.25" hotspoty="0.75" >
+            <Tile col="1" row="0" width="1" height="1" connection="NoConnect" />
+            <Tile col="1" row="0" width="1" height="1" connection="NoConnect" flipx="true" /> 
+        </Tiles>
+    </Terrain>  
+	<Skin name="dungeon_01" neighbors="Connected0" >
+		<Associate terrain="clay1" feature="RoomFloor" />
+		<Associate terrain="clay1" feature="RoomWall" />
+		<Associate terrain="clay1" feature="RoomPlateForm" />
+		<Associate terrain="clay1" feature="CorridorPlateForm" />
+		<Associate terrain="clay1" feature="CorridorWall" />
+		<Associate terrain="clay1" feature="InnerFloor" />
+		<Associate terrain="clay1" feature="Door" />
+        <Associate terrain="roofouter" feature="OuterRoof" />
+        <Associate terrain="roofinner" feature="InnerRoof" />
+	</Skin>
+    <Skin name="dungeon_02" neighbors="Connected0" >
+		<Associate terrain="rock1" feature="RoomFloor" />
+		<Associate terrain="rock1" feature="RoomWall" />
+		<Associate terrain="rock1" feature="RoomPlateForm" />
+		<Associate terrain="rock1" feature="CorridorPlateForm" />
+		<Associate terrain="rock1" feature="CorridorWall" />
+		<Associate terrain="rock1" feature="InnerFloor" />
+		<Associate terrain="rock1" feature="Door" />
+        <Associate terrain="roofouter" feature="OuterRoof" />
+        <Associate terrain="roofinner" feature="InnerRoof" />
+	</Skin>
+    <Skin name="dungeon_03" neighbors="Connected0" >
+		<Associate terrain="pavement1" feature="RoomFloor" />
+		<Associate terrain="pavement1" feature="RoomWall" />
+		<Associate terrain="pavement1" feature="RoomPlateForm" />
+		<Associate terrain="pavement1" feature="CorridorPlateForm" />
+		<Associate terrain="pavement1" feature="CorridorWall" />
+        <Associate terrain="roofouter" feature="OuterRoof" />
+        <Associate terrain="roofinner" feature="InnerRoof" />
+	</Skin>
+    <Skin name="ground_01" neighbors="Connected0" >
+		<Associate terrain="clay1" feature="OuterFloor" />
+		<Associate terrain="clay1" feature="InnerFloor" />
+		<Associate terrain="clay1" feature="Door" />
+	</Skin>
+    <Skin name="ground_02" neighbors="Connected0" >
+        <Associate terrain="rock1" feature="OuterFloor" />
+        <Associate terrain="rock1" feature="InnerFloor" />
+        <Associate terrain="rock1" feature="Door" />
+    </Skin>    
+	<Skin name="ground_03" neighbors="Connected0" >
+		<Associate terrain="rock2" feature="OuterFloor" />
+		<Associate terrain="rock2" feature="InnerFloor" />
+		<Associate terrain="rock2" feature="Door" />
+	</Skin>
+    <Skin name="ground_04" neighbors="Connected0" >
+        <Associate terrain="sand1" feature="OuterFloor" />
+        <Associate terrain="sand1" feature="InnerFloor" />
+        <Associate terrain="sand1" feature="Door" />
+    </Skin>    
+	<Skin name="ground_05" neighbors="Connected0" >
+		<Associate terrain="grass1" feature="OuterFloor" />
+		<Associate terrain="grass1" feature="InnerFloor" />
+		<Associate terrain="grass1" feature="Door" />
+	</Skin>
+    <Skin name="ground_06" neighbors="Connected0" >
+        <Associate terrain="grass2" feature="OuterFloor" />
+        <Associate terrain="grass2" feature="InnerFloor" />
+        <Associate terrain="grass2" feature="Door" />
+    </Skin>    
+	<Skin name="ground_07" neighbors="Connected0" >
+		<Associate terrain="silt1" feature="OuterFloor" />
+		<Associate terrain="silt1" feature="InnerFloor" />
+		<Associate terrain="silt1" feature="Door" />
+	</Skin>
+    <Skin name="ground_08" neighbors="Connected0" >
+        <Associate terrain="silt2" feature="OuterFloor" />
+        <Associate terrain="silt2" feature="InnerFloor" />
+        <Associate terrain="silt2" feature="Door" />
+    </Skin>    
+</TileSheet>

@@ -1,0 +1,3 @@
+<technique vs="ShaderRenderShapes" ps="ShaderRenderShapes" >
+	<pass name="alpha" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

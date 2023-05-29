@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="bandeauoeil01" x="325" y="408" width="66" height="27" />
+	<SubTexture name="blackcape01" x="173" y="1" width="77" height="118" />
+	<SubTexture name="blackcape02" x="492" y="117" width="121" height="95" />
+	<SubTexture name="blackcape03" x="391" y="1" width="88" height="115" />
+	<SubTexture name="ceinture01" x="128" y="414" width="40" height="20" />
+	<SubTexture name="crochet01" x="764" y="426" width="40" height="16" />
+	<SubTexture name="effet_poison01" x="460" y="398" width="120" height="30" />
+	<SubTexture name="empty" x="1" y="1" width="1" height="1" />
+	<SubTexture name="jambebois01" x="392" y="432" width="26" height="9" />
+	<SubTexture name="maskorbite" x="194" y="414" width="24" height="18" />
+	<SubTexture name="pistoletballe1" x="70" y="286" width="11" height="10" />
+	<SubTexture name="pistoletfeu1" x="154" y="356" width="28" height="21" />
+	<SubTexture name="pistoletfeu2" x="1" y="338" width="45" height="40" />
+	<SubTexture name="pistoletmoveballe1" x="909" y="334" width="26" height="10" />
+	<SubTexture name="plumage01" x="676" y="426" width="35" height="18" />
+	<SubTexture name="plumage02" x="909" y="294" width="30" height="39" />
+	<SubTexture name="plumage03" x="732" y="221" width="32" height="42" />
+	<SubTexture name="skelarmor1" x="1" y="1" width="29" height="20" hotspotx="14" hotspoty="10" />
+	<SubTexture name="skelarmor2" x="1" y="1" width="27" height="17" hotspotx="14" hotspoty="7" />
+	<SubTexture name="skelavbrasd01" x="530" y="388" width="21" height="7" />
+	<SubTexture name="skelavbrasg01" x="186" y="206" width="19" height="8" />
+	<SubTexture name="skelbassin01" x="47" y="357" width="20" height="16" />
+	<SubTexture name="skelbrasd01" x="206" y="206" width="18" height="8" />
+	<SubTexture name="skelbrasg01" x="510" y="388" width="19" height="7" />
+	<SubTexture name="skelcasque" x="1" y="1" width="41" height="38" hotspotx="27" hotspoty="25" />
+	<SubTexture name="skelcrane01" x="909" y="346" width="39" height="40" />
+	<SubTexture name="skelcrane02" x="693" y="339" width="38" height="38" />
+	<SubTexture name="skelcrane03" x="949" y="346" width="40" height="38" />
+	<SubTexture name="skelcranefissure" x="379" y="162" width="10" height="6" />
+	<SubTexture name="skelepauled" x="1" y="1" width="17" height="12" hotspotx="8" hotspoty="6" />
+	<SubTexture name="skelepauleg" x="1" y="1" width="14" height="14" hotspotx="7" hotspoty="7" />
+	<SubTexture name="skelepee" x="1" y="1" width="66" height="20" hotspotx="14" hotspoty="9" />
+	<SubTexture name="skeljambed01" x="1014" y="60" width="7" height="19" />
+	<SubTexture name="skeljambeg01" x="1016" y="117" width="7" height="17" />
+	<SubTexture name="skelmachoire01" x="169" y="414" width="24" height="19" />
+	<SubTexture name="skelmachoire02" x="1002" y="196" width="19" height="18" />
+	<SubTexture name="skelmaind01" x="47" y="338" width="16" height="18" />
+	<SubTexture name="skelmaind02" x="676" y="398" width="14" height="14" />
+	<SubTexture name="skelmaing01" x="1002" y="175" width="16" height="20" />
+	<SubTexture name="skelmaing02" x="893" y="372" width="15" height="15" />
+	<SubTexture name="skeloeiljaune01" x="1017" y="24" width="4" height="4" />
+	<SubTexture name="skeloeiljaune02" x="1017" y="29" width="3" height="4" />
+	<SubTexture name="skeloeilvert01" x="1017" y="34" width="4" height="4" />
+	<SubTexture name="skeloeilvert02" x="1017" y="39" width="3" height="4" />
+	<SubTexture name="skelpiedd01" x="532" y="429" width="18" height="9" />
+	<SubTexture name="skelpiedg01" x="551" y="429" width="16" height="9" />
+	<SubTexture name="skelpistolet" x="1" y="1" width="28" height="39" hotspotx="14" hotspoty="5" />
+	<SubTexture name="skeltibiad01" x="1014" y="80" width="7" height="18" />
+	<SubTexture name="skeltibiag01" x="1014" y="99" width="7" height="17" />
+	<SubTexture name="skeltorse01" x="955" y="385" width="29" height="29" />
+	<SubTexture name="tricorne01" x="1" y="274" width="68" height="63" />
+</TextureAtlas>

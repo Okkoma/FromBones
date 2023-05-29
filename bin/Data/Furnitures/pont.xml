@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="FUR_Pont" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" >
+		<variant name="GOA_LayerAlignement" hash="-1272207671" type="Int" value="-1" />		
+		<variant name="GOA_Plateform" hash="-1895937836" type="Bool" value="true" />
+	</attribute>
+
+	<component type="GOC_PhysicRope" >
+		<attribute name="Model" value="FixedBridge" />
+		<attribute name="Max Length" value="10" />
+		<attribute name="Sprites" value="SpriteSheet2D;2D/plantsstaticnew.xml@planche1;planche2;cordage4" />
+		<attribute name="Softness" value="0.1" />
+	</component>		
+
+	<component type="GOC_Destroyer" />	
+</node>

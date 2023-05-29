@@ -1,0 +1,1 @@
+/media/DATA/Dev/Urho3D/Urhokko/android/launcher-app/proguard-rules.pro

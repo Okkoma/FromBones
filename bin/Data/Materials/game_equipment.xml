@@ -1,0 +1,5 @@
+<material>
+	<technique name="Techniques/Urho2D.xml" quality="0" />
+	<texture unit="diffuse" name="Textures/UI/game_equipment.png" />
+	<cull value="none" />
+</material>

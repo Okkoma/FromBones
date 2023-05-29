@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AnlWorldModel>
+	<ANL version="VM" />
+
+	<Module type="Radial"           name="radial" />
+	<Module type="Substract" 		name="radialshape" 			params="5 radial" />
+	<Module type="ScaleX"		    name="ellipsoid"			params="radialshape 0.3" />
+	<Module type="TranslateY"  		name="groundshape"			params="ellipsoid -3" />
+
+	<Module type="SimpleFBM"        name="lowland_base"         params="GRADIENT QUINTIC 6 1 17892" />
+	<Module type="ScaleDomain"		name="lowland_scale"        params="lowland_base 0.1" />
+	<Module type="ScaleY"		    name="lowland_y_scale"      params="lowland_scale 0" />
+	<Module type="TranslateY"  		name="lowland_offsety"      params="lowland_y_scale -0.5" />
+
+	<Module type="TranslateDomain" 	name="lowland_terrain"      params="groundshape lowland_offsety" />
+
+	<Module type="SimpleRidgedMF"   name="highland_base"        params="GRADIENT QUINTIC 1 4 17892" />
+	<Module type="ScaleDomain"		name="highland_scale"       params="highland_base 0.45" />
+	<Module type="ScaleY"		    name="highland_y_scale"     params="highland_scale 0.1" />
+	<Module type="TranslateY"  		name="highland_offsety"     params="highland_y_scale 0" />
+
+	<Module type="TranslateDomain" 	name="highland_terrain"     params="groundshape highland_offsety" />
+
+	<Module type="SimpleBillow"     name="mountain_base"        params="GRADIENT QUINTIC 4 2 17892" />
+	<Module type="ScaleDomain"		name="mountain_scale"       params="mountain_base 0.8" />
+	<Module type="ScaleY"		    name="mountain_y_scale"     params="mountain_scale 0.1" />
+	<Module type="TranslateY"  		name="mountain_offsety"     params="mountain_y_scale 0.25" />
+
+	<Module type="TranslateDomain"	name="mountain_terrain"     params="groundshape mountain_offsety" />
+
+	<Module type="SimpleFBM"        name="outer_mixer"			params="GRADIENT QUINTIC 3 0.5 17892" />
+	<Module type="Mix"        		name="outer_lowhigh"		params="lowland_terrain highland_terrain outer_mixer" />
+	<Module type="Mix"        		name="outer_mixed"			params="outer_lowhigh mountain_terrain outer_mixer" />
+	<Module type="Substract"		name="outer_inv"			params="1 outer_mixed" />
+	<Module type="CacheArray"  		name="outer"				params="outer_inv" />
+
+	<Module type="Bias"		    	name="outer_attenuate_inv"	params="outer 0.1" />
+	<Module type="Substract"		name="outer_attenuate"		params="1 outer_attenuate_inv" />
+
+	<Module type="SimpleRidgedMF"   name="cave_base"			params="GRADIENT QUINTIC 1 4 17892" />
+	<Module type="ScaleDomain"		name="cave_scale"			params="cave_base 1" />
+	<Module type="SimpleFBM"		name="cave_pertub"			params="GRADIENT QUINTIC 6 2 17892" />
+	<Module type="ScaleDomain"		name="cave_pertub_scale"	params="cave_pertub 0.5" />
+	<Module type="Multiply"		    name="cave_attenuate"		params="outer_attenuate cave_scale" />
+	<Module type="TranslateX"  		name="inner"				params="cave_attenuate cave_pertub_scale" />
+
+	<Module type="Add"				name="terrainmapadd"   	   	params="outer 0.61" />
+	<Module type="Multiply"		    name="terrainmapmult"       params="terrainmapadd 4" />
+	<Module type="Clamp"		    name="terrainmap"         	params="terrainmapmult 0 3" renderable="TerrainMap" />
+
+	<Module type="Step"  			name="inners"         		params="inner 0.9" />
+	<Module type="Step"  			name="outers"         		params="outer 0.5" renderable="GroundMap" screenshot="true" />
+	<Module type="Multiply"		    name="terrain"         		params="outers inners" renderable="CaveMap" />
+</AnlWorldModel>

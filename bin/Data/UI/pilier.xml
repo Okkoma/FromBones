@@ -1,0 +1,9 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="drap_01" x="0" y="759" width="661" height="137"/>
+	<SubTexture name="drap_02" x="0" y="418" width="699" height="339"/>
+	<SubTexture name="drap_03" x="0" y="1491" width="559" height="222"/>
+	<SubTexture name="pierres_bas" x="602" y="898" width="384" height="198"/>
+	<SubTexture name="pierres_haut" x="537" y="1715" width="496" height="231"/>
+	<SubTexture name="pilier" x="0" y="1715" width="535" height="330"/>
+	<SubTexture name="sable" x="0" y="0" width="2018" height="416"/>
+</TextureAtlas>

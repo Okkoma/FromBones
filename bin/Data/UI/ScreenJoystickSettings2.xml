@@ -1,0 +1,216 @@
+<?xml version="1.0"?>
+<element>
+    <attribute name="Name" value="ScreenJoystickSettings" />
+    <attribute name="Size" value="800 600" />
+    <attribute name="Opacity" value="0.8" />
+    <element type="Button">
+        <attribute name="Name" value="Button0" />
+        <attribute name="Position" value="-12 340" />
+        <attribute name="Size" value="96 96" />
+        <attribute name="Horiz Alignment" value="Right" />
+        <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+        <attribute name="Image Rect" value="0 245 83 328" />
+        <attribute name="Hover Image Offset" value="0 0" />
+        <attribute name="Pressed Image Offset" value="0 0" />
+        <element type="Text">
+            <attribute name="Name" value="Label" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Color" value="0 0 0 1" />
+            <attribute name="Text" value="Stuff" />
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="KeyBinding" />
+            <attribute name="Text" value="F7" />
+        </element>
+    </element>
+    <element type="Button">
+        <attribute name="Name" value="Button1" />
+        <attribute name="Position" value="-120 340" />
+        <attribute name="Size" value="96 96" />
+        <attribute name="Horiz Alignment" value="Right" />
+        <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+        <attribute name="Image Rect" value="0 245 83 328" />
+        <attribute name="Hover Image Offset" value="0 0" />
+        <attribute name="Pressed Image Offset" value="0 0" />
+        <element type="Text">
+            <attribute name="Name" value="Label" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Color" value="0 0 0 1" />
+            <attribute name="Text" value="Rain" />
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="KeyBinding" />
+            <attribute name="Text" value="R" />
+        </element>
+    </element>
+    <element type="Button">
+        <attribute name="Name" value="Button2" />
+        <attribute name="Position" value="-228 340" />
+        <attribute name="Size" value="96 96" />
+        <attribute name="Horiz Alignment" value="Right" />
+        <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+        <attribute name="Image Rect" value="0 245 83 328" />
+        <attribute name="Hover Image Offset" value="0 0" />
+        <attribute name="Pressed Image Offset" value="0 0" />
+        <element type="Text">
+            <attribute name="Name" value="Label" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Color" value="0 0 0 1" />
+            <attribute name="Text" value="SaveGame" />
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="KeyBinding" />
+            <attribute name="Text" value="F6" />
+        </element>
+    </element>
+    <element type="Button">
+        <attribute name="Name" value="Button3" />
+        <attribute name="Position" value="-336 340" />
+        <attribute name="Size" value="96 96" />
+        <attribute name="Horiz Alignment" value="Right" />
+        <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+        <attribute name="Image Rect" value="0 245 83 328" />
+        <attribute name="Hover Image Offset" value="0 0" />
+        <attribute name="Pressed Image Offset" value="0 0" />
+        <element type="Text">
+            <attribute name="Name" value="Label" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Color" value="0 0 0 1" />
+            <attribute name="Text" value="DrawDebug" />
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="KeyBinding" />
+            <attribute name="Text" value="G" />
+        </element>
+    </element>
+    <element type="Button">
+        <attribute name="Name" value="Button8" />
+        <attribute name="Position" value="-444 340" />
+        <attribute name="Size" value="96 96" />
+        <attribute name="Horiz Alignment" value="Right" />
+        <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+        <attribute name="Image Rect" value="0 245 83 328" />
+        <attribute name="Hover Image Offset" value="0 0" />
+        <attribute name="Pressed Image Offset" value="0 0" />
+        <element type="Text">
+            <attribute name="Name" value="Label" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Color" value="0 0 0 1" />
+            <attribute name="Text" value="Console" />
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="KeyBinding" />
+            <attribute name="Text" value="F1" />
+        </element>
+    </element>
+        <element type="Button">
+            <attribute name="Name" value="Button4" />
+            <attribute name="Position" value="-12 448" />
+            <attribute name="Size" value="96 96" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+            <attribute name="Image Rect" value="0 245 83 328" />
+            <attribute name="Hover Image Offset" value="0 0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <element type="Text">
+                <attribute name="Name" value="Label" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Color" value="0 0 0 1" />
+                <attribute name="Text" value="TestZone" />
+            </element>
+            <element type="Text">
+                <attribute name="Name" value="KeyBinding" />
+                <attribute name="Text" value="T" />
+            </element>
+        </element>
+        <element type="Button">
+            <attribute name="Name" value="Button5" />
+            <attribute name="Position" value="-120 448" />
+            <attribute name="Size" value="96 96" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+            <attribute name="Image Rect" value="0 245 83 328" />
+            <attribute name="Hover Image Offset" value="0 0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <element type="Text">
+                <attribute name="Name" value="Label" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Color" value="0 0 0 1" />
+                <attribute name="Text" value="NextLevel" />
+            </element>
+            <element type="Text">
+                <attribute name="Name" value="KeyBinding" />
+                <attribute name="Text" value="N" />
+            </element>
+        </element>
+        <element type="Button">
+            <attribute name="Name" value="Button6" />
+            <attribute name="Position" value="-228 448" />
+            <attribute name="Size" value="96 96" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+            <attribute name="Image Rect" value="0 245 83 328" />
+            <attribute name="Hover Image Offset" value="0 0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <element type="Text">
+                <attribute name="Name" value="Label" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Color" value="0 0 0 1" />
+                <attribute name="Text" value="Info" />
+            </element>
+            <element type="Text">
+                <attribute name="Name" value="KeyBinding" />
+                <attribute name="Text" value="I" />
+            </element>
+        </element>
+        <element type="Button">
+            <attribute name="Name" value="Button7" />
+            <attribute name="Position" value="-336 448" />
+            <attribute name="Size" value="96 96" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+            <attribute name="Image Rect" value="0 245 83 328" />
+            <attribute name="Hover Image Offset" value="0 0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <element type="Text">
+                <attribute name="Name" value="Label" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Color" value="0 0 0 1" />
+                <attribute name="Text" value="Material" />
+            </element>
+            <element type="Text">
+                <attribute name="Name" value="KeyBinding" />
+                <attribute name="Text" value="2" />
+            </element>
+        </element>
+        <element type="Button">
+            <attribute name="Name" value="Button9" />
+            <attribute name="Position" value="-444 448" />
+            <attribute name="Size" value="96 96" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Texture" value="Texture2D;Textures/UI/game_ui.png" /> <!-- joystick_thumb" -->
+            <attribute name="Image Rect" value="0 245 83 328" />
+            <attribute name="Hover Image Offset" value="0 0" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <element type="Text">
+                <attribute name="Name" value="Label" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Color" value="0 0 0 1" />
+                <attribute name="Text" value="HUD" />
+            </element>
+            <element type="Text">
+                <attribute name="Name" value="KeyBinding" />
+                <attribute name="Text" value="F2" />
+            </element>
+        </element>
+</element>

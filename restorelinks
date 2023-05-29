@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# checks the platform
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	PLATFORM=linux
+	# check for WSL 
+	WSL=`uname -r | grep Microsoft`
+	if [[ "$WSL" != "" ]]; then
+		PLATFORM=win64
+	fi
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+	PLATFORM=macosx
+elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]]; then
+	PLATFORM=win64
+fi
+
+if [[ "$PLATFORM" == "linux" ]]; then
+	DEVPATH=/media/DATA
+	URHO3D=$DEVPATH/Dev/Urho3D/Urho3D-Vulkan
+	FROMBONES=$DEVPATH/Dev/Projets/FromBones-Vulkan
+	OKKOLOCAL=~/.local/share/OkkoStudio/FromBones
+elif [[ "$PLATFORM" == "win64" ]]; then
+	URHO3D=/mnt/d/DEV/Urho3D/Urho3D-Vulkan
+	FROMBONES=/mnt/d/DEV/Projets/FromBones-Vulkan
+	# OKKOLOCAL=/mnt/c/Users/Christophe/AppData/Roaming/OkkoStudio/FromBones
+fi
+
+echo "..."
+echo "... Restore symbolic links on $PLATFORM"
+echo "..."
+
+ln -srf $URHO3D/cmake
+ln -srf $URHO3D/gradle
+ln -srf $URHO3D/script
+ln -srf $URHO3D/.clang-format
+ln -srf $URHO3D/.clang-tidy
+ln -srf $URHO3D/gradle.properties
+ln -srf $URHO3D/gradlew
+ln -srf $URHO3D/gradlew.bat
+ln -srf $URHO3D/rakefile
+
+mkdir exe
+ln -srf $FROMBONES/bin/CoreData exe
+ln -srf $FROMBONES/bin/Data exe
+
+if [[ "$PLATFORM" == "linux" ]]; then
+	rm -f Local
+	ln -srf $OKKOLOCAL Local
+fi

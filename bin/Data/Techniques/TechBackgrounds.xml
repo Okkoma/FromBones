@@ -1,0 +1,3 @@
+<technique vs="ShaderBackgrounds" ps="ShaderBackgrounds" >
+	<pass name="alpha" depthtest="false" depthwrite="false" blend="alpha" />   
+</technique>

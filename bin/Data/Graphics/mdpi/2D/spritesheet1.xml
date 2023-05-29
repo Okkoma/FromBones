@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="ailed" x="1" y="1" width="123" height="240" />
+	<SubTexture name="aileg" x="125" y="1" width="102" height="224" />
+	<SubTexture name="ancre" x="1" y="242" width="120" height="120" hotspotx="60" hotspoty="110" />
+	<SubTexture name="armure_01" x="425" y="615" width="64" height="50" />
+	<SubTexture name="armure_01_a" x="438" y="156" width="64" height="77" />
+	<SubTexture name="armure_01_b" x="508" y="536" width="65" height="76" />
+	<SubTexture name="armureepauled01" x="675" y="734" width="38" height="27" />
+	<SubTexture name="armureepauleg01" x="569" y="734" width="30" height="30" />
+	<SubTexture name="armureskel01" x="718" y="687" width="64" height="43" />
+	<SubTexture name="armureskel02" x="718" y="731" width="61" height="37" />
+	<SubTexture name="arrosoir" x="819" y="152" width="192" height="137" hotspotx="19" hotspoty="103" />
+	<SubTexture name="avbras_d" x="1004" y="62" width="15" height="29" />
+	<SubTexture name="avbras_g" x="1004" y="92" width="15" height="27" />
+	<SubTexture name="axe01" x="516" y="154" width="273" height="151" hotspotx="56" hotspoty="75" />
+	<SubTexture name="bandeauoeil01" x="440" y="734" width="87" height="35" />
+	<SubTexture name="blackcape01" x="228" y="1" width="102" height="156" />
+	<SubTexture name="blackcape02" x="607" y="306" width="160" height="125" />
+	<SubTexture name="blackcape03" x="516" y="1" width="117" height="152" />
+	<SubTexture name="bluehelmet" x="1" y="363" width="90" height="83" hotspotx="60" hotspoty="55" />
+	<SubTexture name="bombe_01" x="122" y="361" width="110" height="119" />
+	<SubTexture name="bombe_scrap01" x="976" y="702" width="37" height="37" />
+	<SubTexture name="bombe_scrap02" x="890" y="675" width="39" height="41" />
+	<SubTexture name="bombe_scrap03" x="92" y="404" width="21" height="19" />
+	<SubTexture name="bombe_scrap04" x="768" y="306" width="19" height="16" />
+	<SubTexture name="bouche_clair" x="503" y="209" width="8" height="5" />
+	<SubTexture name="bouche_sombre" x="1012" y="205" width="9" height="5" />
+	<SubTexture name="bras_01_d_b" x="315" y="158" width="10" height="14" />
+	<SubTexture name="bras_01_g_b" x="503" y="179" width="9" height="12" />
+	<SubTexture name="bras_d" x="291" y="739" width="32" height="24" />
+	<SubTexture name="bras_g" x="490" y="234" width="18" height="23" />
+	<SubTexture name="brownhelmet" x="1" y="447" width="90" height="83" hotspotx="60" hotspoty="55" />
+	<SubTexture name="casque" x="1" y="1" width="73" height="67" hotspotx="48" hotspoty="44" />
+	<SubTexture name="ceinture01" x="169" y="739" width="54" height="26" />
+	<SubTexture name="ceinture_01" x="347" y="693" width="71" height="39" />
+	<SubTexture name="ceinture_02" x="92" y="363" width="23" height="20" />
+	<SubTexture name="corde" x="438" y="289" width="15" height="15" />
+	<SubTexture name="cordel" x="1004" y="1" width="15" height="30" />
+	<SubTexture name="corps_01_b" x="1004" y="32" width="17" height="29" />
+	<SubTexture name="crochet01" x="637" y="763" width="53" height="22" />
+	<SubTexture name="effet_flame01" x="685" y="626" width="158" height="60" />
+	<SubTexture name="effet_flame02" x="233" y="361" width="143" height="72" />
+	<SubTexture name="effet_flame03" x="347" y="734" width="92" height="39" />
+	<SubTexture name="effet_poison01" x="783" y="721" width="159" height="39" />
+	<SubTexture name="effet_poison02" x="844" y="626" width="108" height="48" />
+	<SubTexture name="effet_poison03" x="438" y="234" width="51" height="54" />
+	<SubTexture name="empty" x="1" y="1" width="1" height="1" />
+	<SubTexture name="epaule_01_d_a" x="783" y="687" width="47" height="31" />
+	<SubTexture name="epaule_01_d_b" x="528" y="734" width="40" height="33" />
+	<SubTexture name="epaule_01_g_a" x="131" y="739" width="37" height="27" />
+	<SubTexture name="epaule_01_g_b" x="256" y="739" width="34" height="24" />
+	<SubTexture name="epaule_d" x="600" y="734" width="36" height="29" />
+	<SubTexture name="epaule_d1" x="1" y="1" width="13" height="9" hotspotx="6" hotspoty="4" />
+	<SubTexture name="epaule_d2" x="1" y="1" width="11" height="9" hotspotx="5" hotspoty="4" />
+	<SubTexture name="epaule_g" x="790" y="154" width="24" height="27" />
+	<SubTexture name="epaule_g1" x="1" y="1" width="11" height="8" hotspotx="5" hotspoty="4" />
+	<SubTexture name="epaule_g2" x="1" y="1" width="10" height="7" hotspotx="5" hotspoty="3" />
+	<SubTexture name="epee-arete" x="112" y="620" width="312" height="72" />
+	<SubTexture name="etincelle_jaune" x="228" y="158" width="67" height="60" />
+	<SubTexture name="etincelle_rouge" x="956" y="525" width="62" height="77" />
+	<SubTexture name="ficelle_grise" x="490" y="258" width="13" height="20" />
+	<SubTexture name="filet" x="425" y="688" width="292" height="45" />
+	<SubTexture name="flamme_01" x="819" y="1" width="184" height="150" />
+	<SubTexture name="flamme_02" x="634" y="1" width="184" height="152" />
+	<SubTexture name="flamme_03" x="331" y="1" width="184" height="154" />
+	<SubTexture name="greenhelmet" x="1" y="531" width="90" height="83" hotspotx="60" hotspoty="55" />
+	<SubTexture name="halo_yeux_01" x="92" y="384" width="21" height="19" />
+	<SubTexture name="hammer01" x="125" y="226" width="312" height="134" hotspotx="56" hotspoty="67" />
+	<SubTexture name="hugesword" x="715" y="525" width="240" height="100" hotspotx="50" hotspoty="48" />
+	<SubTexture name="jambe_01_g_a" x="1012" y="185" width="9" height="10" />
+	<SubTexture name="jambe_01_g_b" x="1012" y="171" width="9" height="13" />
+	<SubTexture name="jambe_d" x="943" y="702" width="32" height="38" />
+	<SubTexture name="jambe_g" x="780" y="761" width="38" height="24" />
+	<SubTexture name="jambebois01" x="256" y="764" width="34" height="12" />
+	<SubTexture name="katana01" x="1" y="693" width="345" height="45" hotspotx="61" hotspoty="22" />
+	<SubTexture name="lame" x="819" y="761" width="100" height="22" />
+	<SubTexture name="largesword" x="474" y="435" width="240" height="100" hotspotx="50" hotspoty="48" />
+	<SubTexture name="lizardhelmet_01" x="574" y="612" width="110" height="75" hotspotx="84" hotspoty="39" />
+	<SubTexture name="lizardhelmet_02" x="574" y="536" width="110" height="75" hotspotx="84" hotspoty="39" />
+	<SubTexture name="lizardhelmet_03" x="1" y="615" width="110" height="75" hotspotx="84" hotspoty="39" />
+	<SubTexture name="lizarmure" x="1" y="1" width="49" height="38" hotspotx="24" hotspoty="19" />
+	<SubTexture name="lizcasque" x="1" y="1" width="66" height="45" hotspotx="50" hotspoty="23" />
+	<SubTexture name="lizceinture1" x="1" y="1" width="54" height="29" hotspotx="37" hotspoty="9" />
+	<SubTexture name="lizceinture2" x="1" y="1" width="18" height="15" hotspotx="9" hotspoty="7" />
+	<SubTexture name="lizepauled" x="1" y="1" width="27" height="22" hotspotx="13" hotspoty="11" />
+	<SubTexture name="lizepauleg" x="1" y="1" width="18" height="21" hotspotx="9" hotspoty="10" />
+	<SubTexture name="lizepee" x="1" y="1" width="159" height="21" hotspotx="29" hotspoty="10" />
+	<SubTexture name="longsword" x="233" y="435" width="240" height="100" hotspotx="50" hotspoty="48" />
+	<SubTexture name="main_01_d_a" x="768" y="323" width="20" height="11" />
+	<SubTexture name="main_01_d_b" x="419" y="212" width="16" height="10" />
+	<SubTexture name="main_01_d_c" x="1005" y="300" width="15" height="8" />
+	<SubTexture name="main_01_g_a" x="470" y="289" width="18" height="11" />
+	<SubTexture name="main_01_g_b" x="1005" y="290" width="16" height="9" />
+	<SubTexture name="main_01_g_c" x="1005" y="309" width="15" height="7" />
+	<SubTexture name="manche_filet" x="425" y="688" width="292" height="45" />
+	<SubTexture name="maskorbite" x="943" y="741" width="32" height="24" />
+	<SubTexture name="meche_bas" x="503" y="192" width="11" height="9" />
+	<SubTexture name="meche_centre" x="315" y="173" width="9" height="4" />
+	<SubTexture name="meche_haut" x="1005" y="317" width="15" height="6" />
+	<SubTexture name="oeil" x="1012" y="196" width="7" height="8" />
+	<SubTexture name="oeil_hitted" x="1" y="1" width="12" height="7" />
+	<SubTexture name="pelle" x="274" y="536" width="233" height="78" hotspotx="47" hotspoty="39" />
+	<SubTexture name="petitarmor" x="1" y="1" width="19" height="22" hotspotx="9" hotspoty="11" />
+	<SubTexture name="petitepee" x="1" y="1" width="68" height="28" hotspotx="14" hotspoty="13" />
+	<SubTexture name="pied_01_g_a" x="768" y="345" width="20" height="9" />
+	<SubTexture name="pied_01_g_b" x="768" y="335" width="20" height="9" />
+	<SubTexture name="pied_d" x="425" y="666" width="56" height="14" />
+	<SubTexture name="pied_g" x="522" y="665" width="49" height="13" />
+	<SubTexture name="pistolet01" x="923" y="290" width="81" height="113" hotspotx="42" hotspoty="13" />
+	<SubTexture name="pistoletballe1" x="454" y="289" width="15" height="14" />
+	<SubTexture name="pistoletfeu1" x="637" y="734" width="37" height="28" />
+	<SubTexture name="pistoletfeu2" x="112" y="565" width="59" height="53" />
+	<SubTexture name="pistoletmoveballe1" x="984" y="404" width="35" height="13" />
+	<SubTexture name="plumage01" x="976" y="740" width="47" height="24" />
+	<SubTexture name="plumage02" x="715" y="432" width="40" height="52" />
+	<SubTexture name="plumage03" x="394" y="156" width="42" height="55" />
+	<SubTexture name="queue_b" x="296" y="179" width="34" height="39" />
+	<SubTexture name="queue_m" x="923" y="404" width="35" height="17" />
+	<SubTexture name="queue_p_00" x="959" y="404" width="24" height="17" />
+	<SubTexture name="queue_p_01" x="522" y="679" width="39" height="6" />
+	<SubTexture name="queue_p_02" x="92" y="424" width="25" height="13" />
+	<SubTexture name="skelarmor1" x="1" y="1" width="38" height="26" hotspotx="19" hotspoty="13" />
+	<SubTexture name="skelarmor2" x="1" y="1" width="36" height="22" hotspotx="18" hotspoty="9" />
+	<SubTexture name="skelavbrasd01" x="685" y="536" width="28" height="10" />
+	<SubTexture name="skelavbrasg01" x="92" y="463" width="26" height="10" />
+	<SubTexture name="skelbassin01" x="790" y="258" width="26" height="21" />
+	<SubTexture name="skelbrasd01" x="92" y="451" width="24" height="11" />
+	<SubTexture name="skelbrasg01" x="685" y="547" width="25" height="9" />
+	<SubTexture name="skelcasque" x="1" y="1" width="54" height="50" hotspotx="36" hotspoty="33" />
+	<SubTexture name="skelcrane01" x="377" y="361" width="51" height="54" />
+	<SubTexture name="skelcrane02" x="508" y="613" width="50" height="51" />
+	<SubTexture name="skelcrane03" x="956" y="603" width="53" height="51" />
+	<SubTexture name="skelcranefissure" x="790" y="280" width="14" height="8" />
+	<SubTexture name="skelepauled" x="1" y="1" width="23" height="16" hotspotx="11" hotspoty="8" />
+	<SubTexture name="skelepauleg" x="1" y="1" width="18" height="18" hotspotx="9" hotspoty="9" />
+	<SubTexture name="skelepee" x="1" y="1" width="88" height="26" hotspotx="18" hotspoty="12" />
+	<SubTexture name="skeljambed01" x="1004" y="120" width="9" height="25" />
+	<SubTexture name="skeljambeg01" x="503" y="156" width="10" height="22" />
+	<SubTexture name="skelmachoire01" x="224" y="739" width="31" height="25" />
+	<SubTexture name="skelmachoire02" x="790" y="234" width="26" height="23" />
+	<SubTexture name="skelmaind01" x="790" y="209" width="21" height="24" />
+	<SubTexture name="skelmaind02" x="296" y="158" width="18" height="19" />
+	<SubTexture name="skelmaing01" x="790" y="182" width="21" height="26" />
+	<SubTexture name="skelmaing02" x="490" y="279" width="19" height="20" />
+	<SubTexture name="skeloeiljaune01" x="812" y="182" width="5" height="6" />
+	<SubTexture name="skeloeiljaune02" x="812" y="189" width="4" height="6" />
+	<SubTexture name="skeloeilvert01" x="812" y="196" width="5" height="6" />
+	<SubTexture name="skeloeilvert02" x="503" y="202" width="4" height="6" />
+	<SubTexture name="skelpiedd01" x="394" y="212" width="24" height="12" />
+	<SubTexture name="skelpiedg01" x="92" y="438" width="21" height="12" />
+	<SubTexture name="skelpistolet" x="1" y="1" width="37" height="52" hotspotx="19" hotspoty="6" />
+	<SubTexture name="skeltibiad01" x="1012" y="146" width="10" height="24" />
+	<SubTexture name="skeltibiag01" x="1014" y="120" width="9" height="22" />
+	<SubTexture name="skeltorse01" x="715" y="485" width="38" height="38" />
+	<SubTexture name="smallsword" x="768" y="424" width="240" height="100" hotspotx="50" hotspoty="48" />
+	<SubTexture name="sourcis" x="805" y="280" width="12" height="7" />
+	<SubTexture name="tete_01" x="331" y="156" width="62" height="62" />
+	<SubTexture name="tete_01_c" x="844" y="675" width="45" height="45" />
+	<SubTexture name="tete_02" x="953" y="655" width="57" height="46" />
+	<SubTexture name="tibia_d" x="377" y="416" width="46" height="16" />
+	<SubTexture name="tibia_g" x="490" y="665" width="31" height="20" />
+	<SubTexture name="toile1" x="438" y="306" width="168" height="128" />
+	<SubTexture name="toile2" x="790" y="290" width="132" height="133" />
+	<SubTexture name="torche" x="1" y="739" width="129" height="27" />
+	<SubTexture name="torse" x="183" y="481" width="42" height="52" />
+	<SubTexture name="tricorne01" x="92" y="481" width="90" height="83" />
+	<SubTexture name="whitehelmet" x="183" y="536" width="90" height="83" hotspotx="60" hotspoty="55" />
+</TextureAtlas>

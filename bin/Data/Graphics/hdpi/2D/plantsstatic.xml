@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/Grounds/plantsstatic.png">
+	<SubTexture name="arbre01"	x="0"	y="448"	width="386"	height="528" frameX="50" frameY="205" frameWidth="386" frameHeight="528"/>
+	<SubTexture name="arbre02"	x="0"	y="0"	width="427"	height="444" frameX="0" frameY="175" frameWidth="427" frameHeight="444"/>
+	<SubTexture name="herbe01"	x="390"	y="448"	width="228"	height="190" frameX="0" frameY="60" frameWidth="228" frameHeight="190"/>
+	<SubTexture name="herbe02"	x="390"	y="642"	width="63"	height="116" frameX="0" frameY="50" frameWidth="63" frameHeight="116"/>
+</TextureAtlas>

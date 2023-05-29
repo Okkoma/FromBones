@@ -1,0 +1,4 @@
+<TextureAtlas imagePath="Textures/UI/mainmenu.png">
+	<SubTexture name="solo_halo" x="602" y="1228" width="213" height="90"/>
+	<SubTexture name="solooff" x="602" y="1320" width="213" height="90"/>
+</TextureAtlas>

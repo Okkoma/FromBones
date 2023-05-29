@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="feu1" x="1946" y="655" width="64" height="96" />
+	<SubTexture name="feudecamp1" x="1765" y="597" width="94" height="50" />
+	<SubTexture name="halo_lum1" x="1111" y="663" width="112" height="112" />
+</TextureAtlas>

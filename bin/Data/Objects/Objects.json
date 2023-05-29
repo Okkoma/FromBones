@@ -1,0 +1,552 @@
+{
+	"Torche":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/torche.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":10,
+		"defaultValue":20,
+		"maxDropQty":1
+	}
+	, "Filet":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/filet.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":10,
+		"defaultValue":20,
+		"maxDropQty":1
+	}
+	, "Pelle":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/pelle.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":10,
+		"defaultValue":20,
+		"maxDropQty":1
+	}
+	, "Arrosoir":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/arrosoir.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":10,
+		"defaultValue":20,
+		"maxDropQty":1
+	}
+	, "Potion":{
+		"category":"Items",
+		"fileName":"Objects/potion.xml",
+		"typeProperty":"GOT_Collectable|GOT_Usable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":20,
+		"defaultValue":20,
+		"maxDropQty":2
+	}
+	, "PotionRegen":{
+		"category":"Items",
+		"fileName":"Objects/potionregen.xml",
+		"typeProperty":"GOT_Collectable|GOT_Usable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":20,
+		"defaultValue":50,
+		"maxDropQty":2
+	}
+	, "AileDark":{
+		"category":"Specials",
+		"fileName":"Objects/ailedark.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":1,
+		"defaultValue":1000,
+		"maxDropQty":1
+	}
+	, "Bullet":{
+		"category":"Objects",
+		"fileName":"Objects/bullet.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":30,
+		"defaultValue":0
+	}
+	, "Lance":{
+		"category":"Objects",
+		"fileName":"Objects/lance.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":30,
+		"defaultValue":0
+	}
+	, "OeufMirubil":{
+		"category":"Objects",
+		"fileName":"Objects/oeufmirubil.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":20,
+		"defaultValue":0
+	}
+	, "Bouledefeu":{
+		"category":"Objects",
+		"fileName":"Objects/bouledefeu.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":30,
+		"defaultValue":0
+	}
+	, "Milkblast":{
+		"category":"Objects",
+		"fileName":"Objects/milksplash.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":30,
+		"defaultValue":0
+	}	
+	, "PoisonViolet":{
+		"category":"Objects",
+		"fileName":"Objects/poisonviolet.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":60,
+		"defaultValue":0
+	}	
+	, "SpiderThread":{
+		"category":"Objects",
+		"fileName":"Objects/spiderthread.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":30,
+		"defaultValue":0
+	}
+	, "EliegorSeed":{
+		"category":"Objects",
+		"fileName":"Objects/eliegorseed.xml",
+		"typeProperty":"GOT_Collectable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":5,
+		"scaleVariation":2,
+		"defaultValue":50,
+		"maxDropQty":1
+	}
+	, "EliegorSeedPlus":{
+		"category":"Objects",
+		"fileName":"Objects/eliegorseedplus.xml",
+		"typeProperty":"GOT_Collectable|GOT_Droppable|GOT_Usable_DropOut",
+		"replicateMode":1,
+		"qtyInPool":5,
+		"scaleVariation":2,
+		"defaultValue":100,
+		"maxDropQty":1
+	}	
+	, "ShortSword":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-shortsword.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool":10,
+		"defaultValue":20,
+		"maxDropQty":1
+	}
+	, "LongSword":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-longsword.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":50,
+		"maxDropQty":1
+	}
+	, "LargeSword":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-largesword.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":75,
+		"maxDropQty":1
+	}
+	, "HugeSword":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-hugesword.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "KatanaSword":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-katanasword.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":150,
+		"maxDropQty":1
+	}
+	, "Hammer01":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-hammer01.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":150,
+		"maxDropQty":1
+	}
+	, "Axe01":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-axe01.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":300,
+		"maxDropQty":1
+	}
+	, "EpeeArete":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-epeearete.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":300,
+		"maxDropQty":1
+	}
+	, "LargeSwordFlame":{
+		"category":"MeleeWeapons",
+		"fileName":"Objects/weapons-largeswordflame.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":300,
+		"maxDropQty":1
+	}
+	, "PirateGun":{
+		"category":"RangedWeapons",
+		"fileName":"Objects/weapons-pirategun.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":300,
+		"maxDropQty":1
+	}
+	, "BrownHelmet":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-brown.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "GreenHelmet":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-green.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":150,
+		"maxDropQty":1
+	}
+	, "WhiteHelmet":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-white.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":250,
+		"maxDropQty":1
+	}
+	, "BlackHelmet":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-black.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":250,
+		"maxDropQty":1
+	}
+	, "LizardHelmet1":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-lizard1.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "LizardHelmet2":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-lizard2.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "LizardHelmet3":{
+		"category":"Helmets",
+		"fileName":"Objects/helmet-lizard3.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "BlindFold1":{
+		"category":"Headbands",
+		"fileName":"Objects/headband-blindfold1.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "Cape1":{
+		"category":"Capes",
+		"fileName":"Objects/cape-cape1.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "Belt1":{
+		"category":"Belts",
+		"fileName":"Objects/belt-belt1.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":100,
+		"maxDropQty":1
+	}
+	, "ArmorPetit":{
+		"category":"Armors",
+		"fileName":"Objects/armorpetit2.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":150,
+		"maxDropQty":1
+	}
+	, "ArmorLizard":{
+		"category":"Armors",
+		"fileName":"Objects/armorlizard.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":250,
+		"maxDropQty":1
+	}
+	, "ArmorSkeleton":{
+		"category":"Armors",
+		"fileName":"Objects/armorskeleton.xml",
+		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
+		"replicateMode":1,
+		"qtyInPool": 5,
+		"defaultValue":150,
+		"maxDropQty":1
+	}
+	, "GOT_Skeleton":{
+		"category":"Monsters",
+		"fileName":"Objects/newskel.xml",
+		"typeProperty":"GOT_Buildable|GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":6,
+		"entityVariation":1,
+		"mappingVariation":1,
+		"defaultValue":25,
+		"typePartName":"Bone",
+		"partNames":"skeltorse01|skelbassin01|skelbrasd01|skelbrasg01|skelcrane01|skelcrane02|skelcrane03|skeljambed01|skeljambeg01|skelmachoire01|skelmachoire02|skelmaind01|skelmaing01|skelpiedd01|skelpiedg01|skeltibiad01|skeltibiag01",
+		"entitySelection":"Simple_01=Default|Warrior_01=Swords|Pirate_01=Guns"
+	}
+	, "Elsarion":{
+		"category":"Monsters",
+		"fileName":"Objects/elsarion.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":6,
+		"defaultValue":25,
+		"typePartName":"ElsarionMeat",
+		"partNames":"els_elsachunk1|els_elsachunk2|els_elsachunk3|els_elsachunk4|els_elsachunk5"
+	}
+	, "GOT_Merchant":{
+		"category":"characters",
+		"fileName":"Objects/merchant.xml",
+		"typeProperty":"GOT_None",
+		"replicateMode":1,
+		"qtyInPool":2,
+		"defaultValue":0
+	}
+	, "GOT_Goblin":{
+		"category":"Monsters",
+		"fileName":"Objects/goblin.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"mappingVariation":1,		
+		"defaultValue":15
+	}
+	, "GOT_ShukTuk":{
+		"category":"Monsters",
+		"fileName":"Objects/shuktuk.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"defaultValue":15
+	}
+	, "GOT_Lizard":{
+		"category":"Monsters",
+		"fileName":"Objects/lizard.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"entityVariation":1,
+		"mappingVariation":1,
+		"defaultValue":200
+	}
+	, "GOT_Bat":{
+		"category":"Monsters",
+		"fileName":"Objects/bat.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"defaultValue":10
+	}
+	, "GOT_Chapanze":{
+		"category":"Monsters",
+		"fileName":"Objects/chapanze.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"defaultValue":50
+	}
+	, "GOT_Raignee":{
+		"category":"Monsters",
+		"fileName":"Objects/raignee.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":4,
+		"defaultValue":10
+	}
+	, "GOT_Bitroll":{
+		"category":"Monsters",
+		"fileName":"Objects/bitroll.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":25,
+		"scaleVariation":4,
+		"defaultValue":100
+	}
+	, "GOT_Vampire":{
+		"category": "Monsters",
+		"fileName": "Objects/vampire.xml",
+		"typeProperty": "GOT_Spawnable",
+		"replicateMode": 1,
+		"qtyInPool": 25,
+		"defaultValue": 500
+	}
+	, "GOT_Sorceress":{
+		"category": "Monsters",
+		"fileName": "Objects/sorceress.xml",
+		"typeProperty": "GOT_Spawnable",
+		"replicateMode": 1,
+		"qtyInPool": 25,
+		"scaleVariation":3,
+		"mappingVariation":1,		
+		"defaultValue": 500
+	}
+	, "GOT_Kigrat":{
+		"category":"Monsters",
+		"fileName":"Objects/kigrat.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":25,
+		"entityVariation":1,
+		"mappingVariation":1,
+		"scaleVariation":3,
+		"defaultValue":250
+	}
+	, "GOT_Karotos":{
+		"category":"Monsters",
+		"fileName":"Objects/karotos.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":50,
+		"scaleVariation":6,
+		"defaultValue":10
+	}
+	, "GOT_RockGolem":{
+		"category":"Monsters",
+		"fileName":"Objects/rockgolem.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":5,
+		"defaultValue":1000
+	}
+	, "EliegorGolem":{
+		"category":"Monsters",
+		"fileName":"Objects/rockgolem-flore.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":2,
+		"defaultValue":2000
+	}
+	, "GOT_RedLord":{
+		"category":"Monsters",
+		"fileName":"Objects/redlord.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":25,
+		"scaleVariation":3,
+		"defaultValue":500
+	}
+	, "GOT_Darkren":{
+		"category":"Monsters",
+		"fileName":"Objects/darkren.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":5,
+		"scaleVariation":3,
+		"defaultValue":1000
+	}
+	, "GOT_Mirubil":{
+		"category":"Monsters",
+		"fileName":"Objects/mirubil.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool":5,
+		"scaleVariation":3,
+		"defaultValue":1000
+	}
+	, "GOT_TreasureChest":{
+		"category":"Containers",
+		"fileName":"Objects/coffre.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool": 10,
+		"defaultValue":0
+	}
+	, "GOT_TreasureChestBoss":{
+		"category":"Containers",
+		"fileName":"Objects/coffreboss.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool": 0,
+		"defaultValue":0
+	}	
+	, "GOT_MonsterSpawner":{
+		"category":"Objects",
+		"fileName":"Objects/monsterspawner.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":1,
+		"qtyInPool": 0,
+		"defaultValue":0
+	}
+}

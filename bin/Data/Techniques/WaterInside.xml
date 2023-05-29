@@ -1,0 +1,3 @@
+<technique vs="WaterInside" ps="WaterInside" >
+	<pass name="water" depthtest="equal" depthwrite="false" blend="alpha" />
+</technique>

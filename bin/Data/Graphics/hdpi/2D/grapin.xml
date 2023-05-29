@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="ancre" x="1438" y="228" width="180" height="180" hotspotx="90" hotspoty="166" />
+</TextureAtlas>

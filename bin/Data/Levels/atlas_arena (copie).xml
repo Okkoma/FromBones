@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TerrainAtlas NghMode="Connected0" >
+<!-- 	<TileSheet name="Levels/tileset_newdirty128debug_0.xml" />
+	<TileSheet name="Levels/tileset_newdirty128debug_1.xml" />
+	<TileSheet name="Levels/tileset_newdirty128debug_2.xml" />
+	<TileSheet name="Levels/tileset_newdirty128debug_3.xml" /> -->
+	<TileSheet name="Levels/tileset_newdirty128_0.xml" />
+	<TileSheet name="Levels/tileset_newdirty128_1.xml" />
+	<TileSheet name="Levels/tileset_newdirty128_2.xml" />
+	<TileSheet name="Levels/tileset_newdirty128_3.xml" />	
+</TerrainAtlas>

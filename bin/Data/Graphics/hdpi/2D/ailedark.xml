@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="ailed" x="1" y="1" width="185" height="360" />
+	<SubTexture name="aileg" x="187" y="1" width="152" height="336" />
+</TextureAtlas>

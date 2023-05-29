@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="spc_bouche1" x="107" y="878" width="20" height="18" />
+	<SubTexture name="spc_bouche1h" x="1606" y="1173" width="29" height="26" />
+	<SubTexture name="spc_bouche1r" x="1884" y="917" width="17" height="14" />
+	<SubTexture name="spc_boulet1" x="160" y="1123" width="69" height="48" />
+	<SubTexture name="spc_bras1" x="1452" y="448" width="14" height="80" />
+	<SubTexture name="spc_chaine1" x="919" y="1196" width="26" height="12" />
+	<SubTexture name="spc_corps1" x="1302" y="358" width="149" height="202" />
+	<SubTexture name="spc_corps2" x="270" y="534" width="145" height="199" />
+	<SubTexture name="spc_corps3" x="1852" y="563" width="164" height="188" />
+	<SubTexture name="spc_doigt1" x="1893" y="1149" width="26" height="30" />
+	<SubTexture name="spc_doigt2" x="1375" y="1143" width="34" height="32" />
+	<SubTexture name="spc_doigt3" x="316" y="1122" width="44" height="44" />
+	<SubTexture name="spc_doigt4" x="183" y="1172" width="51" height="29" />
+	<SubTexture name="spc_manche1" x="1904" y="752" width="80" height="123" />
+	<SubTexture name="spc_manche2" x="1531" y="782" width="79" height="110" />
+	<SubTexture name="spc_manche3" x="430" y="899" width="31" height="74" />
+	<SubTexture name="spc_oeil1" x="617" y="1030" width="31" height="67" />
+	<SubTexture name="spc_oeil1h" x="1751" y="477" width="39" height="75" />
+	<SubTexture name="spc_oeil1r" x="692" y="614" width="27" height="61" />
+	<SubTexture name="spc_oeil2" x="692" y="483" width="13" height="67" />
+	<SubTexture name="spc_oeil2h" x="1089" y="477" width="21" height="75" />
+	<SubTexture name="spc_oeil2r" x="1467" y="448" width="9" height="60" />
+	<SubTexture name="spc_pied1" x="1551" y="1051" width="203" height="74" />
+	<SubTexture name="spc_pied2" x="1220" y="960" width="193" height="104" />
+	<SubTexture name="spc_pied3" x="1188" y="1065" width="221" height="69" />
+	<SubTexture name="spc_pied4" x="1781" y="982" width="153" height="101" />
+</TextureAtlas>

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet3.png">
+	<SubTexture name="els_algueb01" x="638" y="321" width="16" height="58" />
+	<SubTexture name="els_algueb02" x="1005" y="380" width="17" height="55" />
+	<SubTexture name="els_algueb03" x="755" y="407" width="16" height="53" />
+	<SubTexture name="els_algueb04" x="1008" y="1" width="9" height="54" />
+	<SubTexture name="els_alguev01" x="970" y="446" width="23" height="61" />
+	<SubTexture name="els_alguev02" x="776" y="310" width="24" height="89" />
+	<SubTexture name="els_alguev03" x="801" y="310" width="22" height="85" />
+	<SubTexture name="els_alguev04" x="42" y="374" width="20" height="78" />
+	<SubTexture name="els_alguev05" x="137" y="371" width="20" height="85" />
+	<SubTexture name="els_alguev06" x="298" y="371" width="30" height="82" />
+	<SubTexture name="els_barbiche01" x="622" y="617" width="14" height="5" />
+	<SubTexture name="els_barbiche02" x="936" y="584" width="10" height="5" />
+	<SubTexture name="els_barbicheb01" x="548" y="617" width="16" height="6" />
+	<SubTexture name="els_barbicheb02" x="156" y="264" width="12" height="4" />
+	<SubTexture name="els_bouche01" x="902" y="612" width="31" height="14" />
+	<SubTexture name="els_bouche02" x="396" y="596" width="34" height="18" />
+	<SubTexture name="els_corps01" x="887" y="466" width="50" height="53" />
+	<SubTexture name="els_corps02" x="363" y="376" width="53" height="59" />
+	<SubTexture name="els_elsachunk1" x="963" y="508" width="28" height="47" />
+	<SubTexture name="els_elsachunk2" x="1" y="374" width="40" height="82" />
+	<SubTexture name="els_elsachunk3" x="329" y="371" width="33" height="81" />
+	<SubTexture name="els_elsachunk4" x="63" y="374" width="21" height="69" />
+	<SubTexture name="els_elsachunk5" x="62" y="525" width="47" height="42" />
+	<SubTexture name="els_oeil01" x="328" y="540" width="10" height="8" />
+	<SubTexture name="els_oeil02" x="147" y="481" width="7" height="8" />
+	<SubTexture name="els_orbite01" x="63" y="444" width="18" height="11" />
+	<SubTexture name="els_orbite02" x="590" y="572" width="12" height="11" />
+	<SubTexture name="els_pattef01" x="524" y="617" width="23" height="6" />
+	<SubTexture name="els_pattef02" x="426" y="616" width="24" height="10" />
+	<SubTexture name="els_pieds01" x="1" y="571" width="56" height="25" />
+	<SubTexture name="els_pieds02" x="881" y="566" width="54" height="29" />
+	<SubTexture name="els_pieds03" x="1" y="525" width="60" height="45" />
+	<SubTexture name="els_slime1" x="195" y="527" width="54" height="41" />
+	<SubTexture name="els_tenta01" x="991" y="145" width="30" height="128" />
+	<SubTexture name="els_tenta01b" x="909" y="145" width="26" height="141" />
+	<SubTexture name="els_tenta02" x="840" y="156" width="47" height="124" />
+	<SubTexture name="els_tenta03" x="828" y="1" width="80" height="154" />
+	<SubTexture name="els_tenta04" x="687" y="1" width="62" height="170" />
+	<SubTexture name="els_tenta05" x="659" y="1" width="27" height="179" />
+</TextureAtlas>

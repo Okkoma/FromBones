@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="epineuxbranche1" x="995" y="167" width="22" height="48" />
+	<SubTexture name="epineuxbranche2" x="995" y="216" width="18" height="48" />
+	<SubTexture name="epineuxbranche3" x="425" y="258" width="14" height="37" />
+	<SubTexture name="skelrip1" x="1" y="359" width="38" height="24" />
+	<SubTexture name="stelerip1" x="802" y="220" width="91" height="140" />
+	<SubTexture name="steleripborder1" x="280" y="392" width="89" height="24" />
+	<SubTexture name="steleriphalo1" x="712" y="318" width="63" height="66" />
+	<SubTexture name="steleunder1" x="626" y="225" width="115" height="92" />
+	<SubTexture name="steleunderhalo1" x="425" y="335" width="91" height="72" />
+</TextureAtlas>

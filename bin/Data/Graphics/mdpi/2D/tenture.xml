@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="tenture1" x="410" y="1" width="188" height="339" />
+	<SubTexture name="tenture2" x="599" y="1" width="176" height="329" />
+	<SubTexture name="tenture3" x="302" y="1" width="107" height="340" />
+	<SubTexture name="tringle1" x="688" y="700" width="224" height="21" />
+</TextureAtlas>

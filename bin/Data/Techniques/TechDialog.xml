@@ -1,0 +1,3 @@
+<technique>
+	<pass name="dialog" vs="ShaderActors" ps="ShaderActors" depthtest="false" depthwrite="false" blend="alpha" />
+</technique>

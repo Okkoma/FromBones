@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="ours_corpsar" x="1008" y="1" width="341" height="239" />
+	<SubTexture name="ours_corpsav" x="226" y="1" width="250" height="278" />
+	<SubTexture name="ours_griffeavd" x="859" y="396" width="143" height="126" />
+	<SubTexture name="ours_griffeavg" x="477" y="405" width="122" height="124" />
+	<SubTexture name="ours_machoire" x="574" y="648" width="133" height="90" />
+	<SubTexture name="ours_oeil" x="191" y="409" width="27" height="23" />
+	<SubTexture name="ours_oreille1" x="1430" y="863" width="46" height="46" />
+	<SubTexture name="ours_oreille2" x="949" y="863" width="31" height="41" />
+	<SubTexture name="ours_patteard" x="1859" y="1" width="114" height="177" />
+	<SubTexture name="ours_pattearg" x="1772" y="181" width="84" height="167" />
+	<SubTexture name="ours_patteavd" x="1934" y="354" width="97" height="146" />
+	<SubTexture name="ours_patteavd2" x="737" y="1" width="143" height="244" />
+	<SubTexture name="ours_patteavg" x="1350" y="220" width="89" height="168" />
+	<SubTexture name="ours_patteavg2" x="881" y="1" width="126" height="244" />
+	<SubTexture name="ours_queue" x="1903" y="903" width="82" height="33" />
+	<SubTexture name="ours_tete1" x="1544" y="208" width="227" height="173" />
+	<SubTexture name="ours_tete2" x="1008" y="241" width="224" height="166" />
+</TextureAtlas>

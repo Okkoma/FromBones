@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet2.png">
+	<SubTexture name="effect_hypno_01" x="929" y="240" width="74" height="103" />
+	<SubTexture name="effect_hypno_02" x="671" y="309" width="62" height="94" />
+</TextureAtlas>

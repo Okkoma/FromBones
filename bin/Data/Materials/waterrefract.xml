@@ -1,0 +1,5 @@
+<material>
+	<technique name="Techniques/WaterRefract.xml" quality="0" />
+	<texture unit="0" name="viewport" />
+	<cull value="none" />
+</material>

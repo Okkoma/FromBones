@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="Grapin" />
+	<attribute name="Position" value="0 0 0" />
+	<attribute name="Rotation" value="0.7071 0 0 -0.7071" />
+	<attribute name="Scale" value="0.5 0.5 1" />
+	<attribute name="Variables">
+		<variant name="GOA_Ability" hash="11007588" type="String" value="ABI_Grapin" />
+	</attribute>
+	<!-- <component type="AnimatedSprite2D"> -->
+		<!-- <attribute name="Animation Set" value="AnimationSet2D;2D/grapin.scml" /> -->
+	<!-- </component> -->
+	<component type="StaticSprite2D">
+		<attribute name="Sprite" value="SpriteSheet2D;2D/spritesheet1.xml@ancre" />
+	</component>
+	<component type="RigidBody2D">
+		<!-- <attribute name="Body Type" value="Static" /> -->
+		<attribute name="Body Type" value="Dynamic" />
+		<attribute name="Use Fixture Mass" value="false" />
+		<attribute name="Mass" value="1" />
+		<attribute name="Mass Center" value="0.0 0.3" />
+		<attribute name="Fixed Rotation" value="true" />
+		<attribute name="Allow Sleep" value="true" />
+	</component>
+	<component type="CollisionBox2D">
+		<attribute name="Size" value="0.2 0.6" />
+		<attribute name="Density" value="5" />
+		<attribute name="Center" value="0 0.3" />
+		<attribute name="Extra Contact Bits" value="31" /> <!-- Contact Stable -->
+		<attribute name="Friction" value="0.9" />
+	</component>
+	<!-- <component type="GOC_Animator2D" > -->
+		<!-- <attribute name="Template" value="AnimatorTemplate_Collectable" /> -->
+		<!-- <attribute name="State" value="State_Default" /> -->
+	<!-- </component> -->
+	<component type="GOC_SoundEmitter" >
+		<attribute name="Template" value="SoundTemplate_Collectable" />
+	</component>
+	<component type="GOC_Collectable" >
+		<attribute name="Add To Slot" value="type:Grapin | quantity:1" />
+	</component>
+	<component type="GOC_Destroyer" />
+</node>

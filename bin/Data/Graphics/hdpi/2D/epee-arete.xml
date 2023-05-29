@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/spritesheet1.png">
+	<SubTexture name="epee-arete" x="654" y="698" width="468" height="108" />
+	<SubTexture name="effet_poison01" x="1123" y="706" width="239" height="59" />
+	<SubTexture name="effet_poison02" x="1556" y="699" width="162" height="72" />
+	<SubTexture name="effet_poison03" x="1958" y="405" width="76" height="81" />
+</TextureAtlas>

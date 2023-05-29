@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="Bombe" />
+	<attribute name="Position" value="0.0 0.0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="0.75 0.75 1" />
+	<attribute name="Variables">
+		<variant name="GOA_EffectID1" hash="-1925564961" type="Int" value="7" /> <!-- 7=Bomb1 Effect in Preloader -->
+	</attribute>
+	<component type="AnimatedSprite2D">
+		<attribute name="Animation Set" value="AnimationSet2D;2D/bombe.scml" />
+		<attribute name="Animation" value="nomove" />
+	</component>
+	<component type="RigidBody2D">
+		<!-- <attribute name="Body Type" value="Static" /> -->
+		<attribute name="Body Type" value="Dynamic" />
+        <attribute name="Use Fixture Mass" value="false" />
+		<attribute name="Mass" value="0.1" />
+		<attribute name="Mass Center" value="0.0 0.3" />
+		<attribute name="Fixed Rotation" value="true" />
+		<attribute name="Allow Sleep" value="true" />
+	</component>
+	<component type="CollisionCircle2D">
+		<attribute name="Radius" value="0.5" />
+		<attribute name="Center" value="0 0.3" />
+		<attribute name="Extra Contact Bits" value="31" /> <!--Contact Stable -->
+		<attribute name="Density" value="5" />
+		<attribute name="Friction" value="0.9" />
+	</component>
+	<component type="GOC_Animator2D" >
+		<attribute name="Template" value="AnimatorTemplate_Collectable" />
+		<attribute name="State" value="State_Default" />
+	</component>
+	<component type="GOC_SoundEmitter" >
+		<attribute name="Template" value="SoundTemplate_Bomb" />
+	</component>
+	<component type="GOC_Collectable" >
+		<attribute name="Add To Slot" value="type:Bombe | quantity:1" />
+	</component>
+<!-- 	<component type="GOC_ZoneEffect">
+		<attribute name="Is Actived" value="false" />
+		<attribute name="Effect" value="Bombe" />
+		<attribute name="Radius" value="4" />
+	</component> -->
+	<component type="GOC_Destroyer" >
+		<attribute name="Unstuck" value="false" />
+	</component>	
+	<!-- <component type="GOC_BodyExploder2D">
+		<attribute name="Trig Event" value="Go_ItemEndUse" />
+		<attribute name="Shape RatioXY" value="0.6" />
+		<attribute name="Shape Type" value="0" />
+		<attribute name="Parts Life Time" value="2" />
+		<attribute name="Centered Initial Impulse" value="20" />
+	</component>	 -->
+</node>

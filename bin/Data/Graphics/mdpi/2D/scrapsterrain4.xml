@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Actors/collectable1.png">
+	<SubTexture name="scrapbrick1" x="448" y="135" width="41" height="16" />
+	<SubTexture name="scrapbrick2" x="153" y="121" width="23" height="17" />
+	<SubTexture name="scrapbrick3" x="497" y="45" width="14" height="15" />
+	<SubTexture name="scrapbrick4" x="319" y="92" width="32" height="25" />
+	<SubTexture name="scrapbrick5" x="376" y="58" width="30" height="29" />
+</TextureAtlas>

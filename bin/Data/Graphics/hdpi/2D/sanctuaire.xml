@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<TextureAtlas imagePath="Textures/Grounds/furnituresdung01.png">
+	<SubTexture name="gem01" x="436" y="673" width="74" height="83" />
+	<SubTexture name="gem01_halo" x="1229" y="627" width="176" height="146" />
+	<SubTexture name="sanctuaire01" x="1" y="1" width="196" height="557" />
+	<SubTexture name="sanctuaire01_halo" x="1160" y="1" width="73" height="478" />
+</TextureAtlas>

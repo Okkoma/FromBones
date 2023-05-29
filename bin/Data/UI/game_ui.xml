@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TextureAtlas imagePath="Textures/UI/game_ui.png">
+	<SubTexture name="UIBarCadre50"	x="0"	y="0"	width="285"	height="41" frameX="-0" frameY="-0" frameWidth="285" frameHeight="41"/>
+	<SubTexture name="UIBarGreen50"	x="0"	y="225"	width="164"	height="18" frameX="-0" frameY="-0" frameWidth="164" frameHeight="18"/>
+	<SubTexture name="abi_bombe"	x="86"	y="245"	width="80"	height="80" frameX="-0" frameY="-0" frameWidth="80" frameHeight="80"/>
+	<SubTexture name="abi_empty"	x="0"	y="331"	width="80"	height="80" frameX="-0" frameY="-0" frameWidth="80" frameHeight="80"/>
+	<SubTexture name="abi_grapin"	x="0"	y="413"	width="80"	height="80" frameX="-0" frameY="-0" frameWidth="80" frameHeight="80"/>
+	<SubTexture name="abi_shooter"	x="82"	y="413"	width="80"	height="80" frameX="-0" frameY="-0" frameWidth="80" frameHeight="80"/>
+	<SubTexture name="abi_unknown"	x="82"	y="331"	width="80"	height="80" frameX="-0" frameY="-0" frameWidth="80" frameHeight="80"/>
+	<SubTexture name="ico_life"	x="164"	y="327"	width="48"	height="48" frameX="-0" frameY="-0" frameWidth="48" frameHeight="48"/>
+	<SubTexture name="icon_equip_off"	x="164"	y="475"	width="32"	height="32" frameX="-0" frameY="-0" frameWidth="32" frameHeight="32"/>
+	<SubTexture name="icon_equip_on"	x="164"	y="407"	width="32"	height="32" frameX="-0" frameY="-0" frameWidth="32" frameHeight="32"/>
+	<SubTexture name="icon_map_off"	x="200"	y="441"	width="32"	height="32" frameX="-0" frameY="-0" frameWidth="32" frameHeight="32"/>
+	<SubTexture name="icon_map_on"	x="200"	y="407"	width="32"	height="32" frameX="-0" frameY="-0" frameWidth="32" frameHeight="32"/>
+	<SubTexture name="joystick_back"	x="0"	y="43"	width="180"	height="180" frameX="-0" frameY="-0" frameWidth="180" frameHeight="180"/>
+	<SubTexture name="joystick_thumb"	x="0"	y="245"	width="84"	height="84" frameX="-0" frameY="-0" frameWidth="84" frameHeight="84"/>
+	<SubTexture name="or_pepite04"	x="164"	y="377"	width="34"	height="28" frameX="-0" frameY="-0" frameWidth="34" frameHeight="28"/>
+	<SubTexture name="UIWindowFrame"	x="2"	y="492"	width="16"	height="16"/>
+	<SubTexture name="UIDivider"		x="18"	y="495"	width="16"	height="10"/>
+	<SubTexture name="UIPoint"			x="34"	y="495"	width="10"	height="10"/>
+</TextureAtlas>
