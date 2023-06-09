@@ -412,9 +412,8 @@ GameContext::GameContext(Context* context) :
     playerColor_[1] = Color(0.5f, 1.f, 0.9f, 1.f);
     playerColor_[2] = Color(1.f, 0.9f, 0.5f, 1.f);
     playerColor_[3] = Color(0.5f, 0.9f, 1.0f, 1.f);
-
-
 }
+
 GameContext* GameContext::gameContext_ = 0;
 
 GameContext::~GameContext()
@@ -546,6 +545,8 @@ void GameContext::Initialize()
 
     RegisterGameLibrary(context_);
 
+    resourceCache_ = context_->GetSubsystem<ResourceCache>();
+    renderer_ = context_->GetSubsystem<Renderer>();
     input_ = context_->GetSubsystem<Input>();
     time_ = context_->GetSubsystem<Time>();
     fs_ = context_->GetSubsystem<FileSystem>();
@@ -571,7 +572,7 @@ void GameContext::Initialize()
 #ifdef ACTIVE_CREATEMODE
     GOA::RegisterToScene();
 #endif
-    rootScene_->CreateComponent<Octree>(LOCAL);
+    octree_ = rootScene_->CreateComponent<Octree>(LOCAL);
     renderer2d_ = rootScene_->CreateComponent<Renderer2D>(LOCAL);
     renderer2d_->SetInitialVertexBufferSize(30000U);
     physicsWorld_ = rootScene_->CreateComponent<PhysicsWorld2D>(LOCAL);
@@ -606,7 +607,6 @@ void GameContext::Initialize()
         // Create a camera for the render-to-texture scene. Simply leave it at the world origin and let it observe the scene
         Node* rttCameraNode = rttScene_->CreateChild("Camera");
         Camera* camera = rttCameraNode->CreateComponent<Camera>();
-        camera->SetOrthographic(true);
 //        int texturesize = 1024;
 //        camera->SetOrthoSize((float)texturesize * PIXEL_SIZE);
 //        camera->SetFarClip(50.f+1.f);

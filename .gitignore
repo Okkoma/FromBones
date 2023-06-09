@@ -6,6 +6,8 @@
 **/.cache
 **/.gradle
 /bin-tool/Output
+/bin-tool/Input/PNG
 /exe/*.log
+log.txt
 /lib/*/*.so
 /Local

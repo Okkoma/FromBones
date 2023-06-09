@@ -703,7 +703,7 @@ void World2D::Set(bool load)
     if (noBounds_)
         octree->SetSize(BoundingBox(Vector3(-info_->worldGround_.radius_.x_, -info_->worldGround_.radius_.y_, -5.f), Vector3(info_->worldGround_.radius_.x_, info_->worldGround_.radius_.y_, 5.f)), 16);
     else
-        octree->SetSize(BoundingBox(Vector3(worldFloatBounds_.min_.x_/scale.x_, worldFloatBounds_.min_.y_/scale.y_, -5.f), Vector3(worldFloatBounds_.max_.x_/scale.x_, worldFloatBounds_.max_.y_/scale.y_, 5.f)), 16);
+        octree->SetSize(BoundingBox(Vector3(worldFloatBounds_.min_.x_, worldFloatBounds_.min_.y_, -5.f), Vector3(worldFloatBounds_.max_.x_, worldFloatBounds_.max_.y_, 5.f)), 16);
 
     URHO3D_LOGINFOF("World2D() - Set : scale=%s worldMapUpdate_=%u mWidth_=%F mHeight_=%F mTileWidth_=%F mTileHeight_=%F",
                     scale.ToString().CString(), worldMapUpdate_, mWidth_, mHeight_, mTileWidth_, mTileHeight_);

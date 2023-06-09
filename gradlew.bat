@@ -1,1 +1,1 @@
-../../Urho3D/Urho3D-Vulkan/gradlew.bat
+../../Urho3D/Urho3D/gradlew.bat

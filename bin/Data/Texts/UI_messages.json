@@ -297,5 +297,35 @@
 	"make":{
 		"en":"Make",
 		"fr":"Fabriquer"
-	}
+	},
+	"editor_del":{
+		"en":"Del",
+		"fr":"Del"
+	},	
+	"editor_new":{
+		"en":"New",
+		"fr":"New"
+	},
+	"editor_tags":{
+		"en":"Tags",
+		"fr":"Tags"
+	},	
+		
+	"editor_pick":{
+		"en":"Pick",
+		"fr":"Pick"
+	},
+	"editor_open":{
+		"en":"Open",
+		"fr":"Open"
+	},	
+	"editor_edit":{
+		"en":"Edit",
+		"fr":"Edit"
+	},
+	"editor_test":{
+		"en":"Test",
+		"fr":"Test"
+	}	
+	
 }

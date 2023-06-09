@@ -1772,7 +1772,7 @@ void GOC_Animator2D::OnAnimation2D_Light(StringHash eventType, VariantMap& event
 //    if (!light)
 //    {
 ////        URHO3D_LOGINFOF("GOC_Animator2D() - OnAnimation2D_Light : AddLight to Node=%s(%u)", GetNode()->GetName().CString(),GetNode()->GetID());
-//        GameHelpers::AddLight(context_, GetNode(), LIGHT_SPOT, Vector3(2.0f,4.0f,-5.0f), Vector3(0.0f,-0.3f,1.0f), 90.0f, +10.f, 5.0f, true);
+//        GameHelpers::AddLight(GetNode(), LIGHT_SPOT, Vector3(2.0f,4.0f,-5.0f), Vector3(0.0f,-0.3f,1.0f), 90.0f, +10.f, 5.0f, true);
 //    }
 //    else
 //    {

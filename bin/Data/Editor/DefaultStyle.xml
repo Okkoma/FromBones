@@ -323,6 +323,14 @@
         <attribute name="Selection Color" value="0.2 0.225 0.35 1" />
         <attribute name="Hover Color" value="0.3 0.4 0.7 1" />
     </element>
+    <element type="EditorAttributeEdit" style="LineEdit" auto="false" >
+        <element type="Text" internal="true">
+            <attribute name="Color" value="0.9 1 0.9 1" />
+            <attribute name="Selection Color" value="0.3 0.4 0.7 1" />
+            <attribute name="Font" value="Font;Fonts/Anonymous Pro.ttf" />
+            <attribute name="Font Size" value="9" />            
+        </element>        
+    </element>
     <element type="EditorToolBar" style="BorderImage">
         <attribute name="Image Rect" value="48 0 64 16" />
         <attribute name="Border" value="4 4 4 4" />

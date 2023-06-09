@@ -3166,17 +3166,18 @@ void PlayState::OnPostRenderUpdate(StringHash eventType, VariantMap& eventData)
 
         if (GameContext::Get().gameConfig_.debugUI_)
         {
-//            PODVector<UIElement*> element;
-//            UI* ui = GetSubsystem<UI>();
-//            ui->GetRoot()->GetChildren(element, true);
-//            for (unsigned i = 0; i < element.Size(); ++i)
-//                ui->DebugDraw(element[i]);
+            PODVector<UIElement*> element;
+            UI* ui = GetSubsystem<UI>();
+            ui->GetRoot()->GetChildren(element, true);
+            for (unsigned i = 0; i < element.Size(); ++i)
+                if (element[i]->IsVisibleEffective())
+                    ui->DebugDraw(element[i]);
 
-            for (unsigned i=0 ; i < localPlayers_.Size(); ++i)
-            {
-                if (localPlayers_[i]->active)
-                    localPlayers_[i]->DebugDrawUI();
-            }
+//            for (unsigned i=0 ; i < localPlayers_.Size(); ++i)
+//            {
+//                if (localPlayers_[i]->active)
+//                    localPlayers_[i]->DebugDrawUI();
+//            }
         }
 
         /*

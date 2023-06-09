@@ -5,6 +5,12 @@
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},
+	"GOT_Test":{
+		"category":"Characters",
+		"fileName":"Objects/actor-medium.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},	
 	"GOT_Avatar_Livache":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-livache.xml",

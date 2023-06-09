@@ -2,7 +2,8 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="build/Ubuntu22.04-vulkan/static/debug/FromBones.cbp" />
-		<Project filename="../../Urho3D/Urho3D-Vulkan/build/Ubuntu22.04-vulkan/static/debug/Urho3D.cbp" />
+		<Project filename="../../Urho3D/Urho3D/build/Ubuntu22.04-vulkan/static/debug/Urho3D.cbp" />
 		<Project filename="build/tool/FromBones-Tools.cbp" />
+		<Project filename="../../Urho3D/Urho3D/build/Ubuntu22.04/static/debug/Urho3D.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

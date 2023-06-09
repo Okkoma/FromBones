@@ -136,9 +136,9 @@ public:
     static void MoveCameraTo(const Vector2& position, int viewport, float duration);
     static void ZoomCameraTo(float zoom, int viewport, float duration);
     static float GetZoomToFitTo(int numtilesx, int numtilesy, int viewport);
-    static void AddStaticSprite2D(const char *nodename, Context* context, Node* node, const char *texturename, const char *materialname, const Vector3& position, const Vector2& scale, CreateMode mode = REPLICATED);
-    static void AddPlane(const char *nodename, Context* context, Node* node, const char *materialname,const Vector3& pos, const Vector2& scale, CreateMode mode = REPLICATED);
-    static void AddLight(Context* context, Node *node, LightType type, const Vector3& relativePosition=Vector3::ZERO,const Vector3& direction=Vector3::FORWARD, const float& fov=60.0f, const float& range=10.0f,
+    static void AddStaticSprite2D(const char *nodename, Node* node, const char *texturename, const char *materialname, const Vector3& position, const Vector2& scale, CreateMode mode = REPLICATED);
+    static void AddPlane(const char *nodename, Node* node, const char *materialname,const Vector3& pos, const Vector2& scale, CreateMode mode = REPLICATED);
+    static void AddLight(Node *node, LightType type, const Vector3& relativePosition=Vector3::ZERO,const Vector3& direction=Vector3::FORWARD, const float& fov=60.0f, const float& range=10.0f,
                          float brightness=1.0f, bool pervertex=false, bool colorAnimated=false);
     static bool SetLightActivation(Node* node, int viewport=0);
     static bool SetLightActivation(Player* player);

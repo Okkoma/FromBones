@@ -1,1 +1,1 @@
-../../Urho3D/Urho3D-Vulkan/cmake
+../../Urho3D/Urho3D/cmake

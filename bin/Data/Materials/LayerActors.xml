@@ -8,8 +8,9 @@
 	<texture unit="4" name="Textures/Actors/spritesheet4.png" />
 	<texture unit="5" name="Textures/Actors/collectable1.png" />
 	<texture unit="6" name="Textures/Actors/particules.png" />
-	<texture unit="7" name="Textures/Grounds/plantsstaticnew.png" />
-	<texture unit="8" name="Textures/UI/game_equipment.png" />
+	<texture unit="7" name="Textures/Actors/actors.png" />	
+	<texture unit="8" name="Textures/Grounds/plantsstaticnew.png" />
+	<texture unit="9" name="Textures/UI/game_equipment.png" />
 	<parameter name="UOffset" value="1 0 0 0" />
 	<parameter name="VOffset" value="0 1 0 0" />
 	<cull value="none" />

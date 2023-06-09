@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Urho3D/Engine/Engine.h>
 #include <Urho3D/Graphics/Texture2D.h>
 #include <Urho3D/Graphics/Material.h>
 #include <Urho3D/Urho2D/SpriteSheet2D.h>
@@ -18,8 +19,10 @@ class Object;
 class Context;
 class Console;
 class Input;
+class Renderer;
 class Viewport;
 class Scene;
+class Octree;
 class Camera;
 class Light;
 class UIElement;
@@ -35,6 +38,7 @@ class Sound;
 class WorkQueue;
 class UI;
 class FileSystem;
+class ResourceCache;
 }
 
 using namespace Urho3D;
@@ -268,6 +272,9 @@ public :
 
     // Game Systems
     Context* context_;
+    Engine* engine_;
+    ResourceCache* resourceCache_;
+    Renderer* renderer_;
     Input* input_;
     Console* console_;
     UI* ui_ ;
@@ -281,6 +288,7 @@ public :
 
     // Game Scene
     SharedPtr<Scene> rootScene_, rttScene_;
+    Octree* octree_;
     Scene* mainMenuScene_;
     SharedPtr<Node> cameraNode_;
     WeakPtr<Node> preloadGOTNode_;

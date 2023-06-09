@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<element type="Window">
+    <attribute name="Name" value="Scene2DAnimator" />
+    <attribute name="Is Movable" value="true" />
+    <attribute name="Is Resizable" value="true" />
+    <attribute name="Resize Border" value="6 6 6 6" />
+    <attribute name="Layout Mode" value="Vertical" />
+    <attribute name="Layout Spacing" value="4" />
+    <attribute name="Layout Border" value="6 6 6 6" />
+	  <attribute name="Size" value="450 260" />
+    <!-- drag bar -->
+    <element>
+        <attribute name="Name" value="Title Bar" />
+        <attribute name="Min Size" value="184 16" />
+        <attribute name="Max Size" value="2147483647 16" />
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="8" />
+        <element type="Text">
+            <attribute name="Text" value="Scene2D Animator" />
+            <attribute name="Auto Localizable" value="false" />
+        </element>
+        <element type="Button" style="CloseButton">
+            <attribute name="Name" value="CloseButton" />
+        </element>
+    </element>
+    <element type="BorderImage" style="EditorDivider" />
+
+    <element>
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Min Size" value="0 34" />
+        <attribute name="Max Size" value="2000 2000" />
+        <element type="ListView" style="HierarchyListView">
+            <attribute name="Name" value="TimeLineGroups" />
+            <attribute name="Scroll Snap Epsilon" value="1e-006" />
+            <attribute name="Highlight Mode" value="Always" />
+            <attribute name="Multiselect" value="true" />
+            <attribute name="Max Size" value="150 2000" />
+            <element type="ScrollBar" internal="true" style="none">
+                <attribute name="Size" value="150 16" />
+                <element type="Button" internal="true" style="none" />
+                <element type="Slider" internal="true" style="none">
+                    <attribute name="Position" value="16 0" />
+                    <attribute name="Size" value="118 16" />
+                    <element type="BorderImage" internal="true" style="none" />
+                </element>
+                <element type="Button" internal="true" style="none">
+                    <attribute name="Position" value="59 0" />
+                </element>
+            </element>
+            <element type="ScrollBar" internal="true" style="none">
+                <attribute name="Size" value="16 232" />
+                <element type="Button" internal="true" style="none" />
+                <element type="Slider" internal="true" style="none">
+                    <attribute name="Position" value="0 16" />
+                    <attribute name="Size" value="16 200" />
+                    <element type="BorderImage" internal="true" style="none" />
+                </element>
+                <element type="Button" internal="true" style="none">
+                    <attribute name="Position" value="0 100" />
+                </element>
+            </element>
+            <element type="BorderImage" internal="true" style="none">
+                <element type="HierarchyContainer" internal="true" style="HierarchyContainer" >
+                    <attribute name="Name" value="TimeLineContainer" />
+                </element>
+            </element>
+            <element internal="true" style="none" />
+        </element>
+        <element type="TimeLineModifier">
+            <attribute name="Name" value="TimeLineModifier" />
+            <attribute name="Size" value="300 100" />
+        </element>
+    </element>
+</element>

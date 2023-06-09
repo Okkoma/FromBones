@@ -244,6 +244,10 @@ ________________________________________________________________________
 <TODO>
 ------
 
+- 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas.
+=> pb avec StaticSprite2D, Drawable2D ?
+=> difficilement reproductible
+
 - 12/04/2023 : Fantomette ne s'affiche plus sous GL
 => OK : pour les RenderTarget avec ACTIVE_LAYERMATERIALS, il ne faut pas appliquer de CustomMaterial dans GOT::PreLoadObjects donc eviter de mettre node->GetDerivedComponents</StaticSprite2D/>()
 
@@ -339,7 +343,7 @@ ________________________________________________________________________
 ==> il faut recreer la surface de la fenetre lorsque la fenetre est redimensionnée ou bien lorsque pas AcquireFrame
 ===> OK ajout de GraphicsImpl::surfaceDirty_ et modification GraphicsImpl::AcquireFrame() et Graphics::OnWindowResized()
 => sous Android, la version VK est plus lente que la version GL.
-==> voir pour les sub render pass ? et la sync ?
+==> voir pour les sub render pass ? et la sync ? texture ?
 => RAF Viewport
 ==> important pour le jeu en multiplayer local
 
@@ -3911,6 +3915,8 @@ _______________________________________________________________________
 <TODO>
 ------
 
+- 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.
+=> OK modification de ObjectFeatured::SetViewConfiguration
 - 27/05/2023 : les Tronc ou autre furniture Static posent probleme au niveau collision si ils sont en Innerview mais restant visible en frontview :
  le player voudrait pouvoir ci accrocher et le choix est fait que ce ne sera jamais le cas pour éviter que les furnitures innerview dans des murs ne pisent entrer en collision avec les acteurs du frontview
 => modifier le visuel pour mettre en backactorview ces furnitures.
@@ -3926,10 +3932,6 @@ _______________________________________________________________________
 ====> remise en couleur du backrock
 ===> mettre en (LIT) les DrawableScrollers et worldEllipse.
 ==> RAF : permettre le changement de zone, les elements de scrolling doivent pouvoir changer.
-
-- 30/03/2023 : voir pour generer des actors dans le monde avec des tasks/activités (chasseur, batisseur, agriculteur, alchimiste, commercant, voleur, assassin par exemple)
-=> ce qui pourra ensuite faire de bon interacteur pour une generation aleatoire de quete (comme DaggerFall)
-==> pas mal de costumes à faire
 
 - 26/07/2020 : pouvoir planter des graines (vegetation)
 => gestion de la croissance des plantes/arbres/fleurs
@@ -5030,6 +5032,21 @@ _________________________________________________________________________
 <TODO>
 ------
 
+- 30/03/2023 : voir pour generer des actors dans le monde avec des tasks/activités (chasseur, batisseur, agriculteur, alchimiste, commercant, voleur, assassin par exemple)
+=> ce qui pourra ensuite faire de bon interacteur pour une generation aleatoire de quete (comme DaggerFall)
+==> pas mal de costumes à faire
+=> 30/05/2023 : il faudrait un character builder pour vérifier les costumes sur un scml : verifier les fonctions permettant le characterMapping -> GameHelpers::SetEquipmentList, EquipmentList, et GOT::PreLoadObjects
+==> il prendrait le scml et permettrait de charger un costume (character mapping) ainsi que la mise en couleur des differents sprites.
+==> probleme avec les yeux et les bouches : pour un meme sprite soit on cree differentes versions de sprite pour le position sur chaque tete (ca va alourdir les textures) soit on cree un fichier pour chaque tete contenant les positions d'origine pour chaque sprite.
+===> l'ajout de la couleur pour chaque sprite et de l'offset d'origine par rapport au parent peut être réalisé en ajoutant à Urho3D::Spriter::Ref (Color color_; float x_,y_,angle_;)
+===> réaliser des fonctions SaveXML pour chaque data de Urho3D::Spriter pour permettre la sauvegarde d'une entité Spriter.
+====> 02/06/2023 : implementation OK dans Urho3D::AnimationSet2D et Urho3D::Spriter
+===> ajouter des fonctions permettant la modification et le rendu des couleurs et des offsets positions
+====> ok pour les premiers essais avec la couleur (cf PerformTest_SaveAnimationSet()) : la couleur d'un ou plusieurs sprites est liée à l'entité.
+    Si l'on veut la meme entité avec une couleur de peau differente par exemple, il faut dupliquer l'entité et utiliser AnimationSet2D::SetEntityObjectRefAttr.
+====> plutot lier la couleur et l'offset au charactermapping. et ainsi créer des charactermapping pour les differentes couleurs de peau et les differentes positions pour les yeux et bouches en fonction des tetes.
+====> il faudrait créer des nouvelles données dans le charactermapping : replacementColor_, linkageOffset_ (un sprite (tete...) pourra ajouter des liens avec d'autre sprites (oeil,bouche...), ces sprites seront alors offseté de la valeur indiquée)
+
 - 18/12/2020 : Mise en place d'Acteurs dans le World2D.
 => commencer par le Marchand, lui ajouter aussi des missions.
 ==> ajouter aussi aux missions des textes d'introduction / histoires ...
@@ -5123,6 +5140,18 @@ _________________________________________________________________________
 
 <TODO>
 ------
+
+- 07/06/2023 : Enrichissement de l'Editor "Static"
+=> ajout de Animator2D : qui est un panneau d'edition des animationSet2D
+==> permettra de changer la couleur, le fx par sprite ainsi que d'ajouter des offsets de positionnement pour les yeux et la bouche en fonction du visage.
+==> pour le moment ne fonctionne que sous GL, sous VK il faut finir l'implementation avec RenderTarget (specifier dans RenderPath) et RenderSurface car View3D s'appuie sur ce mecanisme.
+===> il serait mieux d'editer directement dans la scene en copiant le node dans un node 'edit' et d'utiliser un panneau View3D juste pour le preview (par exemple dans le panel des animations)
+===> pour l'edition, on utilisera une camera d'edition qui sera centrée sur le node et afficher les differents panneaux
+===> créer le panneau timeline, le panneau animation, le panneau charactermapping.
+===> voire pour reprendre la timeline faite avec SpaceMatch.
+===> créer en priorité un panneau charactermapping pour l'edition des couleurs et la position des yeux et bouche en fonction du visage.
+===> on pourrait également utiliser AnimatedSprite2D::spritesInfos_ Urho3D::Spriter::SpriteInfo pour stocker la couleur : ce qui serait pas mal pour changer les couleurs de l'equipement.
+===> en fait ce que l'on voudrait c'est avoir un skeleton et pouvoir charger des skins dessus comme dans les implementation moderne spine, ue4 ...
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

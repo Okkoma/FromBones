@@ -4,7 +4,7 @@
     <attribute name="Layout Spacing" value="4" />
     <element type="BorderImage" style="EditorDivider" />
     <element type="Text">
-        <attribute name="Name" value="TitleText" />
+        <attribute name="Name" value="TitleText" />      
         <element>
             <attribute name="Name" value="IconsPanel" />
             <attribute name="Layout Mode" value="Horizontal" />
@@ -18,7 +18,6 @@
                 <attribute name="Max Size" value="16 16" />
                 <attribute name="Layout Mode" value="Horizontal" />
                 <element type="BorderImage">
-                    <attribute name="Texture" value="Texture2D;Textures/UI/UI.png" />
                     <attribute name="Image Rect" value="128 32 144 48" />
                 </element>
             </element>

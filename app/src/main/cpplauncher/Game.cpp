@@ -30,6 +30,8 @@
 
 #include <Urho3D/Scene/SceneEvents.h>
 
+#include <Urho3D/Urho2D/AnimationSet2D.h>
+
 #include "DefsGame.h"
 
 #include "GameOptions.h"
@@ -122,7 +124,7 @@ const float DeviceDPIScales_[] =
 };
 
 
-//#define PERFORMTESTS
+#define PERFORMTESTS
 
 #ifdef PERFORMTESTS
 void PerformTest_EllipseW()
@@ -158,7 +160,7 @@ void PerformTest_EllipseW()
     for (i=0; i < numTimedTests; i++)
     {
         position1.x_ -= i * xstep;
-        ellipse.GetPositionOn(0.f, Vector2::ZERO, 1.f, position1, angle1);
+        ellipse.GetPositionOn(0.f, 1.f, position1, angle1);
     }
 
     time1 = timer.GetUSec(false);
@@ -169,7 +171,7 @@ void PerformTest_EllipseW()
     for (i=0; i < numTimedTests; i++)
     {
         position1.x_ -= i * xstep;
-        ellipse.GetPositionOnShape(0.f, Vector2::ZERO, 1.f, position1, angle1);
+        ellipse.GetPositionOnShape(0.f, 1.f, position1, angle1);
     }
 
     time2 = timer.GetUSec(false);
@@ -183,15 +185,15 @@ void PerformTest_EllipseW()
     for (i=0; i <= numYValues; i++)
     {
         position1.x_ = position2.x_ = ellipse.center_.x_ + ellipse.radius_.x_ - i * xstep;
-        ellipse.GetPositionOnShape(0.f, Vector2::ZERO, 1.f, position1, angle1);
-        ellipse.GetPositionOn(0.f, Vector2::ZERO, 1.f, position2, angle2);
+        ellipse.GetPositionOnShape(0.f, 1.f, position1, angle1);
+        ellipse.GetPositionOn(0.f, 1.f, position2, angle2);
         URHO3D_LOGINFOF("  upper ellipse y value : x=%F GetPositionOnShape=%F GetPositionOn=%F delta=%F cos=%F cos2=%F sinf=%F sinf2=%F", position1.x_, position1.y_, position2.y_, position1.y_-position2.y_, angle1.x_, angle2.x_, angle1.y_, angle2.y_);
     }
     for (i=0; i <= numYValues; i++)
     {
         position1.x_ = position2.x_ = ellipse.center_.x_ + ellipse.radius_.x_ - i * xstep;
-        ellipse.GetPositionOnShape(0.f, Vector2::ZERO, -1.f, position1, angle1);
-        ellipse.GetPositionOn(0.f, Vector2::ZERO, -1.f, position2, angle2);
+        ellipse.GetPositionOnShape(0.f, -1.f, position1, angle1);
+        ellipse.GetPositionOn(0.f, -1.f, position2, angle2);
         URHO3D_LOGINFOF("  lower ellipse y value : x=%F GetPositionOnShape=%F GetPositionOn=%F delta=%F cos=%F cos2=%F sinf=%F sinf2=%F", position1.x_, position1.y_, position2.y_, position1.y_-position2.y_, angle1.x_, angle2.x_, angle1.y_, angle2.y_);
     }
 
@@ -210,7 +212,32 @@ void PerformTest_EllipseW_GetIntersections(const EllipseW& ellipse, const Rect& 
         URHO3D_LOGINFOF("  Intersection[%d] = %s ", i, intersections[i].ToString().CString());
 }
 
-void PerformTests()
+void PerformTest_SaveAnimationSet(Context* context)
+{
+    ResourceCache* cache = context->GetSubsystem<ResourceCache>();
+
+    String filenameIn = "Data/2D/actor-medium.scml";
+    String filenameOut = "actor-medium-testsave.scml";
+
+    URHO3D_LOGINFOF("PerformTest_SaveAnimationSet filenameIn=%s filenameOut=%s ...", filenameIn.CString(), filenameOut.CString());
+
+    // Load a AnimationSet
+    AnimationSet2D* animationSet = cache->GetResource<AnimationSet2D>(filenameIn, false);
+
+    URHO3D_LOGINFOF("PerformTest_SaveAnimationSet filenameIn=%s ... Loaded", filenameIn.CString());
+
+    // Modify the skin color
+    animationSet->SetEntityObjectRefAttr("actor", "medsk", "bone_", Color(0.5f,0.5f,1.f,1.f));
+
+    // And save it.
+    bool ok = animationSet->Save(filenameOut);
+
+    URHO3D_LOGINFOF("PerformTest_SaveAnimationSet filenameOut=%s ... Saved", filenameOut.CString());
+
+    URHO3D_LOGINFOF("PerformTest_SaveAnimationSet passed !");
+}
+
+void PerformTests(Context* context)
 {
     PerformTest_EllipseW();
     PerformTest_EllipseW_GetIntersections(EllipseW(Vector2(0, 0), Vector2(2, 1)), Rect(Vector2(-1, -1), Vector2(1, 1)));
@@ -218,7 +245,8 @@ void PerformTests()
     PerformTest_EllipseW_GetIntersections(EllipseW(Vector2(-1, -1), Vector2(2, 1)), Rect(Vector2(-2, -2), Vector2(0, 0)));
     PerformTest_EllipseW_GetIntersections(EllipseW(Vector2(0, 0), Vector2(100, 20)), Rect(Vector2(-60, 10), Vector2(-40, 30)));
 
-    exit(-1);
+    PerformTest_SaveAnimationSet(context);
+//    exit(-1);
 }
 #endif
 
@@ -289,6 +317,8 @@ void CheckGraphicBackEnds(String& str)
 
 void Game::Setup()
 {
+    GameContext::Get().engine_ = engine_;
+
     GameConfig& config = GameContext::Get().gameConfig_;
 
     FileSystem* fs = GetSubsystem<FileSystem>();
@@ -610,7 +640,7 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
 void Game::Start()
 {
 #if defined(PERFORMTESTS)
-    PerformTests();
+    PerformTests(context_);
 #endif
 
     URHO3D_LOGINFO("Game() - ----------------------------------------");
@@ -624,7 +654,6 @@ void Game::Start()
     Graphics* graphics = GetSubsystem<Graphics>();
 
     bool srgb = graphics->GetSRGBSupport();
-
 
     URHO3D_LOGINFOF("Game() - Display Device Name = %s using Graphics in %s(Dpi~%f) sRGB=%s",
                     SDL_GetDisplayName(0), DeviceDPIs_[GameContext::Get().gameConfig_.deviceDPI_],

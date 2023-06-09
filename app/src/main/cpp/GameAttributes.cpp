@@ -690,7 +690,7 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
     {
         if (objectsIt != objects_.End())
         {
-            Vector<String> list;
+            Urho3D::Vector<Urho3D::String> list;
             StringHash refType;
 
             while (objectsIt != objects_.End())
@@ -713,18 +713,32 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
                 // RefType == SpriteSheet2D or Sprite2D
                 refType = StringHash::ZERO;
 
-                URHO3D_LOGINFOF("GOT() - PreLoadObjects : Object %s(%u) Wearable ...", GOT::GetType(got).CString(), got.Value());
+                URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ...", GOT::GetType(got).CString(), got.Value());
 
                 AnimatedSprite2D* animatedSprite = objectsIt->second_->GetComponent<AnimatedSprite2D>();
 
                 if (animatedSprite)
                 {
-                    const HashMap<int, SharedPtr<Sprite2D> >& mapping = animatedSprite->GetAnimationSet()->GetSpriteMapping();
-                    list.Resize(mapping.Size());
-                    unsigned i=0;
-                    for (HashMap<int, SharedPtr<Sprite2D> >::ConstIterator it2=mapping.Begin(); it2!=mapping.End(); ++it2,++i)
-                        list[i] = Sprite2D::SaveToResourceRef(it2->second_).name_;
-                    refType = Sprite2D::SaveToResourceRef(mapping.Begin()->second_).type_;
+                    const unsigned MAX_MAPPINGSIZE = 30;
+
+                    AnimationSet2D* set2d = animatedSprite->GetAnimationSet();
+                    const HashMap<unsigned, SharedPtr<Sprite2D> >& mapping = set2d->GetSpriteMapping();
+                    refType = Sprite2D::SaveToResourceRef(mapping.Front().second_).type_;
+
+                    if (mapping.Size() > MAX_MAPPINGSIZE)
+                        URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ... set2d=%u %s reftype=%s(%u) ... mappingsize=%u error !",
+                                         GOT::GetType(got).CString(), got.Value(), set2d, set2d->GetName().CString(), GameContext::Get().context_->GetTypeName(refType), refType.Value(), mapping.Size());
+
+                    list.Resize(Min(mapping.Size(),MAX_MAPPINGSIZE));
+
+                    unsigned mindex=0;
+                    HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator mt = mapping.Begin();
+                    while (mt != mapping.End() && mindex < MAX_MAPPINGSIZE)
+                    {
+                        list[mindex] = Sprite2D::SaveToResourceRef(mt->second_).name_;
+                        mindex++;
+                        mt++;
+                    }
                 }
                 else
                 {
@@ -738,7 +752,7 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
                     }
                 }
 
-                if (refType != StringHash::ZERO)
+                if (list.Size())
                 {
                     resourceLists_[got] = ResourceRefList(refType, list);
                     URHO3D_LOGINFOF("GOT() - PreLoadObjects : Object %s(%u) Wearable => list = %s", GOT::GetType(got).CString(), got.Value(),

@@ -1894,24 +1894,20 @@ float GameHelpers::GetZoomToFitTo(int numtilesx, int numtilesy, int viewport)
     return /*camera->GetZoom() * */camera->GetOrthoSize() / size;
 }
 
-void GameHelpers::AddPlane(const char *nodename, Context* context, Node* node, const char *materialname,const Vector3& pos, const Vector2& scale, CreateMode mode)
+void GameHelpers::AddPlane(const char *nodename, Node* node, const char *materialname,const Vector3& pos, const Vector2& scale, CreateMode mode)
 {
-    ResourceCache* cache = context->GetSubsystem<ResourceCache>();
-
     Node* planeNode = node->CreateChild(nodename, mode);
 
     planeNode->SetPosition(pos);
     planeNode->Pitch(-90);
     planeNode->SetScale(Vector3(scale.x_, 1.0f, scale.y_));
     StaticModel* planeObject = planeNode->CreateComponent<StaticModel>();
-    planeObject->SetModel(cache->GetResource<Model>("Models/Plane.mdl"));
-    planeObject->SetMaterial(cache->GetResource<Material>(materialname));
+    planeObject->SetModel(GameContext::Get().resourceCache_->GetResource<Model>("Models/Plane.mdl"));
+    planeObject->SetMaterial(GameContext::Get().resourceCache_->GetResource<Material>(materialname));
 }
 
-void GameHelpers::AddStaticSprite2D(const char *nodename, Context* context, Node* node, const char *texturename, const char *materialname, const Vector3& position, const Vector2& scale, CreateMode mode)
+void GameHelpers::AddStaticSprite2D(const char *nodename, Node* node, const char *texturename, const char *materialname, const Vector3& position, const Vector2& scale, CreateMode mode)
 {
-    ResourceCache* cache = context->GetSubsystem<ResourceCache>();
-
     Node* planeNode = node->CreateChild(nodename, mode);
     planeNode->SetPosition(position);
     planeNode->SetScale(Vector3(scale.x_*PIXEL_SIZE, scale.y_*PIXEL_SIZE, 1.f));
@@ -1921,18 +1917,19 @@ void GameHelpers::AddStaticSprite2D(const char *nodename, Context* context, Node
 //    sprite->SetRectangle (const IntRect &rectangle);
 //    sprite->SetHotSpot (const Vector2 &hotSpot);
 //    sprite->SetOffset (const IntVector2 &offset);
-    Sprite2D* sprite = cache->GetResource<Sprite2D>(texturename);
+    Sprite2D* sprite = GameContext::Get().resourceCache_->GetResource<Sprite2D>(texturename);
     StaticSprite2D* staticSprite = planeNode->CreateComponent<StaticSprite2D>();
     staticSprite->SetBlendMode(BLEND_ALPHA);
     staticSprite->SetSprite(sprite);
-    staticSprite->SetCustomMaterial(cache->GetResource<Material>(materialname));
+    if (materialname)
+        staticSprite->SetCustomMaterial(GameContext::Get().resourceCache_->GetResource<Material>(materialname));
 //    staticSprite->SetUseHotSpot(true);
 
 //    staticSprite->SetHotSpot(hotSpot_);
 //    staticSprite->SetLayer2(layer_);
 }
 
-void GameHelpers::AddLight(Context* context, Node *node, LightType type, const Vector3& position, const Vector3& direction, const float& fov, const float& range, float brightness, bool pervertex, bool colorAnimated)
+void GameHelpers::AddLight(Node *node, LightType type, const Vector3& position, const Vector3& direction, const float& fov, const float& range, float brightness, bool pervertex, bool colorAnimated)
 {
     if (!node)
     {
@@ -1959,9 +1956,9 @@ void GameHelpers::AddLight(Context* context, Node *node, LightType type, const V
     if (colorAnimated)
     {
         // Create light animation
-        SharedPtr<ObjectAnimation> lightAnimation(new ObjectAnimation(context));
+        SharedPtr<ObjectAnimation> lightAnimation(new ObjectAnimation(node->GetContext()));
         // Create light color animation
-        SharedPtr<ValueAnimation> colorAnimation(new ValueAnimation(context));
+        SharedPtr<ValueAnimation> colorAnimation(new ValueAnimation(node->GetContext()));
         colorAnimation->SetKeyFrame(0.0f, Color::WHITE);
         colorAnimation->SetKeyFrame(2.0f, Color::YELLOW);
         colorAnimation->SetKeyFrame(4.0f, Color::WHITE);

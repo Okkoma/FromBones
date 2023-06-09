@@ -81,6 +81,7 @@
 
 //#if defined(_DEBUG)
 //    #define ACTIVE_CLIPPING
+//    #define ACTIVE_RENDERSHAPE_CLIPPING
 //#endif
 
 #if defined(RPI)

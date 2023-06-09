@@ -1,1 +1,1 @@
-../../Urho3D/Urho3D-Vulkan/gradlew
+../../Urho3D/Urho3D/gradlew

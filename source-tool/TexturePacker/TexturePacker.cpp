@@ -1105,6 +1105,7 @@ int main(int argc, char** argv)
     bool help  = false;
     bool trim  = false;
     bool debug = false;
+    String file = "all";
 
     while (arguments.Size() > 0)
     {
@@ -1123,6 +1124,7 @@ int main(int argc, char** argv)
             else if (arg == "-trim")   { trim = true; }
             else if (arg == "-h")      { help = true; break; }
             else if (arg == "-debug")  { debug = true; }
+            else if (arg == "-f")      { file = arguments[0]; arguments.Erase(0); }
         }
     }
 
@@ -1142,6 +1144,7 @@ int main(int argc, char** argv)
     String outputscmlfolder    = "2D/";
     String outputtexturefolder = "Textures/Actors/";
 
+    if (file == "all" || file.StartsWith("sheet1"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1226,6 +1229,7 @@ int main(int argc, char** argv)
 
         GenerateFiles(context, info, padding, trim, debug);
     }
+    if (file == "all" || file.StartsWith("sheet2"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1261,6 +1265,7 @@ int main(int argc, char** argv)
 
         GenerateFiles(context, info, padding, trim, debug);
     }
+    if (file == "all" || file.StartsWith("sheet3"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1290,6 +1295,7 @@ int main(int argc, char** argv)
 
         GenerateFiles(context, info, padding, trim, debug);
     }
+    if (file == "all" || file.StartsWith("sheet4"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1308,6 +1314,24 @@ int main(int argc, char** argv)
 
         GenerateFiles(context, info, padding, trim, debug);
     }
+    if (file == "all" || file.StartsWith("actor"))
+    {
+        Info info;
+        info.basepngfolder       = inputbasepngfolder;
+        info.inputentityfolder   = inputentityfolder;
+        info.inputscmlfolder     = inputscmlfolder;
+        info.outputscmlfolder    = outputscmlfolder;
+        info.outputtexturefolder = outputtexturefolder;
+        info.addemptysprites     = true;
+        info.skipfirst           = false;
+
+        info.outputtexturefile   = "actors.png";
+
+        info.entityfiles.Push("actor-medium.xml");
+
+        GenerateFiles(context, info, padding, trim, debug);
+    }
+    if (file == "all" || file.StartsWith("collect"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1415,6 +1439,7 @@ int main(int argc, char** argv)
     outputtexturefolder = "Textures/Grounds/";
 
     // vegetation
+    if (file == "all" || file.StartsWith("plant"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1435,6 +1460,7 @@ int main(int argc, char** argv)
         GenerateFiles(context, info, padding, trim, debug);
     }
     // vegetation static
+    if (file == "all" || file.StartsWith("plant"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1496,6 +1522,7 @@ int main(int argc, char** argv)
         GenerateFiles(context, info, padding, trim, debug);
     }
     // furnitures
+    if (file == "all" || file.StartsWith("furn"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1544,6 +1571,7 @@ int main(int argc, char** argv)
     padding = IntVector2(1,1);
 
     // UI Game Equipment
+    if (file == "all" || file.StartsWith("ui"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
@@ -1742,6 +1770,7 @@ int main(int argc, char** argv)
     inputbasepngfolder  = "PNG/";
     outputscmlfolder    = "UI/";
     outputtexturefolder = "Textures/UI/";
+    if (file == "all" || file.StartsWith("dialog"))
     {
         Info info;
         info.basepngfolder       = inputbasepngfolder;
