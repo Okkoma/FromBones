@@ -579,6 +579,8 @@ void Player::UpdateAvatar(bool forced)
         Drawable2D* drawable = avatar_->GetDerivedComponent<Drawable2D>();
         GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], drawable->GetLayer(), drawable->GetViewMask(), avatar_->GetWorldPosition2D(), 0.f, 1.f, true, 2.f, Color::BLUE, LOCAL);
 
+//        drawable->enableDebugLog_ = true;
+
         avatar_->AddTag("Player");
 
         if (equipment_)

@@ -485,7 +485,7 @@ public :
         URHO3D_LOGINFOF("AnimatorEditor()");
     }
 
-    virtual ~AnimatorEditor() { URHO3D_LOGINFOF("~AnimatorEditor()"); animatorEditor_ = 0; }
+    virtual ~AnimatorEditor();
 
     void Edit(AnimationSet2D* animationSet);
 //    void Edit(AnimationSprite2D* animatedSprite);
@@ -500,6 +500,7 @@ public :
 private :
 
     void HandleResize(StringHash eventType, VariantMap& eventData);
+    void HandleVisible(StringHash eventType, VariantMap& eventData);
 
     SharedPtr<Scene> scene_;
     UIElement* panel_;
@@ -2886,6 +2887,12 @@ void MapEditorLibImpl::Clean()
 //    //  contextual sprites list : spritename filter, tag filter
 //}
 
+AnimatorEditor::~AnimatorEditor()
+{
+    URHO3D_LOGINFOF("~AnimatorEditor()");
+    animatorEditor_ = 0;
+}
+
 void AnimatorEditor::Edit(AnimationSet2D* animationSet)
 {
     URHO3D_LOGINFO("AnimatorEditor() - Edit : animationset2d = " + animationSet->GetName());
@@ -2916,27 +2923,46 @@ void AnimatorEditor::Edit(AnimationSet2D* animationSet)
     if (!editNode)
         editNode = scene_->CreateChild("EditNode", LOCAL);
 
-    editNode->SetPosition2D(Vector2(0.f, -8.f));
-    editNode->SetScale2D(Vector2(8.f, 8.f));
 //    GameHelpers::AddStaticSprite2D("sprite", editNode, "Textures/Actors/particules.png", 0, Vector3::ZERO, Vector2::ONE / PIXEL_SIZE, LOCAL);
     AnimatedSprite2D* animatedSprite = editNode->GetOrCreateComponent<AnimatedSprite2D>();
-//    animatedSprite->SetCustomMaterial(GameContext::Get().layerMaterials_[LAYERACTORS]);
-    animatedSprite->SetAnimationSet(animationSet);
-    animatedSprite->SetSpriterEntity(0);
-    animatedSprite->SetSpriterAnimation(0);
 
-    animatedSprite->ResetCharacterMapping();
-    animatedSprite->ApplyCharacterMap(CMAP_NAKED);
-    animatedSprite->ApplyCharacterMap(CMAP_HEAD1);
-    animatedSprite->ApplyCharacterMap(CMAP_NOHELMET);
-    animatedSprite->ApplyCharacterMap(CMAP_NOARMOR);
-    animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON1);
-    animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON2);
+    // spine test
+    #if (0)
+    {
+        editNode->SetPosition2D(Vector2(0.f, -8.f));
+        editNode->SetScale2D(Vector2(1.5f, 1.5f));
+        animationSet = GameContext::Get().resourceCache_->GetResource<AnimationSet2D>("2D/spine/raptor-pro.json");
+        animatedSprite->enableDebugLog_ = true;
+        animatedSprite->SetAnimationSet(animationSet);
+        animatedSprite->SetEntity("default");
+        animatedSprite->SetAnimation("walk");
+        editNode->SetEnabled(false);
+        editNode->SetEnabled(true);
+    }
+    #else
+    // spriter
+    {
+        editNode->SetPosition2D(Vector2(0.f, -8.f));
+        editNode->SetScale2D(Vector2(1.5f, 1.5f));
+//        animatedSprite->SetCustomMaterial(GameContext::Get().layerMaterials_[LAYERACTORS]);
+        animatedSprite->SetAnimationSet(animationSet);
+        animatedSprite->SetSpriterEntity(0);
+        animatedSprite->SetSpriterAnimation(0);
+        animatedSprite->ResetCharacterMapping();
+        animatedSprite->ApplyCharacterMap(CMAP_NAKED);
+        animatedSprite->ApplyCharacterMap(CMAP_HEAD1);
+        animatedSprite->ApplyCharacterMap(CMAP_NOHELMET);
+        animatedSprite->ApplyCharacterMap(CMAP_NOARMOR);
+        animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON1);
+        animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON2);
+    }
+    #endif
 
     view_->SetView(scene_, scene_->GetChild("Camera")->GetComponent<Camera>(), true);
     view_->GetViewport()->SetRenderPath(GameContext::Get().renderer_->GetViewport(0)->GetRenderPath());
 
     SubscribeToEvent(view_, E_RESIZED, URHO3D_HANDLER(AnimatorEditor, HandleResize));
+    SubscribeToEvent(panel_, E_VISIBLECHANGED, URHO3D_HANDLER(AnimatorEditor, HandleVisible));
 }
 
 void AnimatorEditor::HandleResize(StringHash eventType, VariantMap& eventData)
@@ -2945,4 +2971,14 @@ void AnimatorEditor::HandleResize(StringHash eventType, VariantMap& eventData)
 
     panel_->BringToFront();
     view_->QueueUpdate();
+}
+
+void AnimatorEditor::HandleVisible(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("AnimatorEditor() - HandleVisible : visible=%s", panel_->IsVisible()?"true":"false");
+
+    if (scene_)
+    {
+        scene_->SetUpdateEnabled(panel_->IsVisible());
+    }
 }

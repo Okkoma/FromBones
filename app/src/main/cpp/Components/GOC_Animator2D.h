@@ -35,9 +35,9 @@ enum EventSenderType
 };
 struct AnimInfo
 {
-    AnimInfo() { }
-    AnimInfo(unsigned i, const String& name, float length) : animIndex(i), animName(name), animLength(length) { ; }
-    AnimInfo(const AnimInfo& props) : animIndex(props.animIndex), animName(props.animName), animLength(props.animLength) { ; }
+    AnimInfo() : animIndex(0), animLength(0.f) { }
+    AnimInfo(unsigned i, const String& name, float length) : animIndex(i), animName(name), animLength(length) {  }
+    AnimInfo(const AnimInfo& props) : animIndex(props.animIndex), animName(props.animName), animLength(props.animLength) {  }
 
     unsigned animIndex;
     String animName;

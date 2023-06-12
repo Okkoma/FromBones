@@ -51,6 +51,7 @@ TextMessage::TextMessage(Context* context) :
     fadescale_(1.f)
 {
     SubscribeToEvent(TEXTMESSAGE_CLEAN, URHO3D_HANDLER(TextMessage, OnRemove));
+    SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(TextMessage, OnRemove));
 }
 
 TextMessage::~TextMessage()
@@ -75,11 +76,7 @@ TextMessage::~TextMessage()
 
 void TextMessage::Remove()
 {
-    if (RefCountPtr())
-    {
-        URHO3D_LOGINFOF("TextMessage() - Remove : %u", this);
-        this->~TextMessage();
-    }
+    this->~TextMessage();
 }
 
 void TextMessage::Set(Node* node, const String& message, const char *fontName, int fontSize,

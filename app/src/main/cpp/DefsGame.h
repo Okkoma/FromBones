@@ -52,6 +52,7 @@ struct GOTInfo
 {
     GOTInfo();
 
+    StringHash got_;
     String typename_;
     String filename_;
     StringHash category_;

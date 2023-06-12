@@ -403,6 +403,7 @@ StringHash GOT::Register(const String& typeName, const StringHash& category, con
 
     GOTInfo& info = infos_[hashName];
 
+    info.got_ = hashName;
     info.typename_ = typeName;
     info.filename_ = fileName;
     info.category_ = category;
@@ -580,7 +581,7 @@ void GOT::LoadJSONFile(Context* context, const String& name)
 bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, Node* preloaderGOT, bool useObjectPool)
 {
     static HashMap<StringHash, GOTInfo >::ConstIterator gotinfosIt;
-    static HashMap<StringHash, WeakPtr<Node> >::Iterator objectsIt;
+    static HashMap<StringHash, WeakPtr<Node> >::ConstIterator objectsIt;
     static HashMap<StringHash, BuildableObjectInfo >::Iterator buildablesIt;
 
     URHO3D_LOGINFOF("GOT() - PreLoadObjects : state=%d", state);
@@ -598,8 +599,6 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
             ObjectPool::Reset(preloaderGOT);
 
         gotinfosIt = infos_.Begin();
-        buildablesIt = buildablesInfos_.Begin();
-
         state++;
 
         if (TimeOver(timer, delay))
@@ -690,7 +689,7 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
     {
         if (objectsIt != objects_.End())
         {
-            Urho3D::Vector<Urho3D::String> list;
+            Vector<String> list;
             StringHash refType;
 
             while (objectsIt != objects_.End())
@@ -719,25 +718,32 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
 
                 if (animatedSprite)
                 {
+                    refType = SpriteSheet2D::GetTypeStatic();
+
                     const unsigned MAX_MAPPINGSIZE = 30;
 
                     AnimationSet2D* set2d = animatedSprite->GetAnimationSet();
-                    const HashMap<unsigned, SharedPtr<Sprite2D> >& mapping = set2d->GetSpriteMapping();
-                    refType = Sprite2D::SaveToResourceRef(mapping.Front().second_).type_;
+                    SpriteSheet2D* sheet2d = set2d->GetSpriteSheet();
 
-                    if (mapping.Size() > MAX_MAPPINGSIZE)
-                        URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ... set2d=%u %s reftype=%s(%u) ... mappingsize=%u error !",
-                                         GOT::GetType(got).CString(), got.Value(), set2d, set2d->GetName().CString(), GameContext::Get().context_->GetTypeName(refType), refType.Value(), mapping.Size());
+                    URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ... spritesheet=%s ...", GOT::GetType(got).CString(), got.Value(), sheet2d ? sheet2d->GetName().CString() : "null");
 
-                    list.Resize(Min(mapping.Size(),MAX_MAPPINGSIZE));
+                    if (set2d->GetSpriteMapping().Empty() || set2d->GetSpriteMapping().Size() > MAX_MAPPINGSIZE)
+                        URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ...  %s reftype=%s(%u) mappingsize=%d ... error !",
+                                         GOT::GetType(got).CString(), got.Value(), set2d->GetName().CString(), GameContext::Get().context_->GetTypeName(refType), refType.Value(), set2d->GetSpriteMapping().Size());
 
-                    unsigned mindex=0;
-                    HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator mt = mapping.Begin();
-                    while (mt != mapping.End() && mindex < MAX_MAPPINGSIZE)
+                    if (sheet2d)
                     {
-                        list[mindex] = Sprite2D::SaveToResourceRef(mt->second_).name_;
-                        mindex++;
-                        mt++;
+                        const HashMap<unsigned, SharedPtr<Sprite2D> >& mapping = set2d->GetSpriteMapping();
+                        list.Resize(Min(mapping.Size(), MAX_MAPPINGSIZE));
+
+                        unsigned mindex=0;
+                        HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator mt = mapping.Begin();
+                        while (mt != mapping.End() && mindex < MAX_MAPPINGSIZE)
+                        {
+                            list[mindex] = mt->second_ ? Sprite2D::SaveToResourceRef(mt->second_).name_ : String::EMPTY;
+                            mindex++;
+                            mt++;
+                        }
                     }
                 }
                 else
@@ -766,6 +772,7 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
             }
         }
 
+        buildablesIt = buildablesInfos_.Begin();
         state++;
     }
 
@@ -1095,6 +1102,13 @@ void GOT::DumpAll()
         URHO3D_LOGINFOF("     => infos_[%u] = (hash:%u - typeName:%s category:%s properties:%u fileName:%s)", index, it->first_.Value(),
                         info.typename_.CString(), COT::GetName(GetCategory(it->first_)).CString(), info.properties_, info.filename_.CString());
     }
+}
+
+String GOT::Dump(const GOTInfo& info)
+{
+    String str;
+    str = "got:" + info.typename_ + "(" + String(info.got_.Value()) + ") cot:" + COT::GetName(info.category_) + "(" + String(info.category_.Value()) + ") filename:" + info.filename_;
+    return str;
 }
 
 /// Category Object Types : COT

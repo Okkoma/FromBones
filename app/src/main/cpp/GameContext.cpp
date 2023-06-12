@@ -1399,6 +1399,8 @@ void GameContext::Stop()
     URHO3D_LOGINFO("GameContext() - Stop  ....                            -");
     URHO3D_LOGINFO("GameContext() -----------------------------------------");
 
+    SendEvent(GAME_EXIT);
+
     gameContext_->UnsubscribeFromAllEvents();
 
     // Stop current State (Menu, Play etc...) and delete Manager

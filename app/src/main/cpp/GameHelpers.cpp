@@ -4929,6 +4929,54 @@ void GameHelpers::DumpVariantMap(const VariantMap& varmap)
     URHO3D_LOGINFOF(" %s", str.CString());
 }
 
+template <typename T, typename U>
+String GameHelpers::DumpHashMap(const HashMap<T, U>& map)
+{
+    String result;
+
+    unsigned i=0;
+    for (const auto& pair : map)
+    {
+        String key = String(pair.first_);
+        String value = String(pair.second_);
+        result += "[" + String(i++) + "] = first= " + key + " second=" + value + "\n";
+    }
+
+    return result;
+}
+
+// specialize DumpHashMap for Node
+template <>
+String GameHelpers::DumpHashMap(const HashMap<StringHash, WeakPtr<Node> >& map)
+{
+    String result = "\n";
+
+    unsigned i=0;
+    for (const auto& pair : map)
+    {
+        String key = String(pair.first_.Value());
+        String value = "(ptr=" + ToString(pair.second_.Get()) + ";name=" + pair.second_.Get()->GetName() + ")";
+        result += "[" + String(i++) + "] = key=" + key + " node=" + value + "\n";
+    }
+
+    return result;
+}
+
+// specialize DumpHashMap for GOTInfo
+template <>
+String GameHelpers::DumpHashMap(const HashMap<StringHash, GOTInfo>& map)
+{
+    String result = "\n";
+
+    unsigned i=0;
+    for (const auto& pair : map)
+    {
+        result += "[" + String(i++) + "] = " + GOT::Dump(pair.second_) + "\n";
+    }
+
+    return result;
+}
+
 void GameHelpers::AppendBufferToString(String& string, const char* format, ...)
 {
     static char buffer[256];

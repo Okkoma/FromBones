@@ -6,6 +6,7 @@
 
 #include <Urho3D/Scene/Node.h>
 
+#include "GameEvents.h"
 
 #include "TimerInformer.h"
 
@@ -18,6 +19,7 @@ TimerInformer::TimerInformer(Node* node, float delay, unsigned userdata)
     userData_ = userdata;
 
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(TimerInformer, handleUpdateNode));
+    SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(TimerInformer, handleDestroy));
 }
 
 TimerInformer::~TimerInformer()
@@ -38,6 +40,11 @@ void TimerInformer::handleUpdateNode(StringHash eventType, VariantMap& eventData
 
     if (timer_ > expirationTime_)
         this->~TimerInformer();
+}
+
+void TimerInformer::handleDestroy(StringHash eventType, VariantMap& eventData)
+{
+    this->~TimerInformer();
 }
 
 
@@ -72,6 +79,7 @@ void DelayInformer::Start(Object* object, float delay, const StringHash& eventTy
     eventType_ = eventType;
 
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(DelayInformer, handleUpdate));
+    SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(DelayInformer, handleDestroy));
 }
 
 void DelayInformer::handleUpdate(StringHash eventType, VariantMap& eventData)
@@ -92,6 +100,11 @@ void DelayInformer::handleUpdate(StringHash eventType, VariantMap& eventData)
     }
 }
 
+void DelayInformer::handleDestroy(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("~DelayInformer() - %u", this);
+    this->~DelayInformer();
+}
 
 
 TimerSendEvent::TimerSendEvent(Object* object, float delay, StringHash eventType, const VariantMap& eventData)
@@ -104,6 +117,7 @@ TimerSendEvent::TimerSendEvent(Object* object, float delay, StringHash eventType
     eventData_ = eventData;
 
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(TimerSendEvent, handleUpdate));
+    SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(TimerSendEvent, handleDestroy));
 }
 
 TimerSendEvent::~TimerSendEvent()
@@ -123,3 +137,9 @@ void TimerSendEvent::handleUpdate(StringHash eventType, VariantMap& eventData)
     if (timer_ > expirationTime_)
         this->~TimerSendEvent();
 }
+
+void TimerSendEvent::handleDestroy(StringHash eventType, VariantMap& eventData)
+{
+    this->~TimerSendEvent();
+}
+

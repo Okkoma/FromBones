@@ -16,6 +16,7 @@ void GOE::InitEventTable()
     events_ += Pair<StringHash,String>(StringHash("Game_SoundEnabled"), "Game_SoundEnabled");
     events_ += Pair<StringHash,String>(StringHash("Game_Start"), "Game_Start");
     events_ += Pair<StringHash,String>(StringHash("Game_Stop"), "Game_Stop");
+    events_ += Pair<StringHash,String>(StringHash("Game_Exit"), "Game_Exit");
     events_ += Pair<StringHash,String>(StringHash("Game_Win"), "Game_Win");
     events_ += Pair<StringHash,String>(StringHash("Game_Over"), "Game_Over");
 

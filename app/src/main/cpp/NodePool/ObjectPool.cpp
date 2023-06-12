@@ -364,7 +364,7 @@ bool ObjectPoolCategory::Create(bool replicate, const StringHash& got, Node* nod
                     GOT::GetType(GOT_).CString(), GOT_.Value(), replicatedState_ ? "REPLICATED":"LOCAL", template_->GetID(), nodeCategory_->GetID(),
                     firstNodeID_, firstComponentID_, firstReplicatedNodeID_, firstReplicatedComponentID_, ids[3]);
 
-    GameHelpers::DumpNode(template_, 0, true);
+//    GameHelpers::DumpNode(template_, 0, true);
 
     return true;
 }
@@ -626,9 +626,9 @@ void ObjectPool::Stop()
 
 ObjectPoolCategory* ObjectPool::CreateCategory(const GOTInfo& info, Node* templateNode, unsigned* categoryids)
 {
-    const StringHash& got = info.typename_;
+    const StringHash& got = info.got_;
 
-    if (GOT::GetType(got) == String::EMPTY && !templateNode)
+    if (GOT::GetType(got) == String::EMPTY || !templateNode)
         return 0;
 
     HashMap<StringHash, ObjectPoolCategory >::Iterator it = categories_.Find(got);
@@ -694,12 +694,12 @@ bool ObjectPool::CreateCategories(Scene* scene, const HashMap<StringHash, GOTInf
             if (info.replicatedMode_)
                 numComponents++;
 
-            URHO3D_LOGERRORF("ObjectPool() - CreateCategories : Object=%s(%u) (numNodes=%u numComponents=%u) Reserve LOCAL nodeCategory=%u nodesIds(%u->%u) ComponentsIds(%u->%u) !",
+            URHO3D_LOGINFOF("ObjectPool() - CreateCategories : Object=%s(%u) (numNodes=%u numComponents=%u) Reserve LOCAL nodeCategory=%u nodesIds(%u->%u) ComponentsIds(%u->%u) !",
                             info.typename_.CString(), got.Value(), numNodes, numComponents, lastLocalNodeID_, lastLocalNodeID_ + 1, lastLocalNodeID_ + numObjects * numNodes,
                             lastLocalComponentID_, lastLocalComponentID_ + numObjects * numComponents - 1);
 
             if (info.replicatedMode_)
-                URHO3D_LOGERRORF("ObjectPool() - CreateCategories : Object=%s(%u) Reserve REPLI nodesIds(%u->%u) ComponentsIds(%u->%u) !",
+                URHO3D_LOGINFOF("ObjectPool() - CreateCategories : Object=%s(%u) Reserve REPLI nodesIds(%u->%u) ComponentsIds(%u->%u) !",
                                 info.typename_.CString(), got.Value(), lastReplicatedNodeID_, lastReplicatedNodeID_ + numObjects * numNodes - 1,
                                 lastReplicatedComponentID_, lastReplicatedComponentID_ + numObjects * numComponents - 1);
 
@@ -748,9 +748,11 @@ bool ObjectPool::CreateCategories(Scene* scene, const HashMap<StringHash, GOTInf
         categoryids[2] = firstReplicatedNodeID_;
         categoryids[3] = firstReplicatedComponentID_;
 
+//        URHO3D_LOGERROR(GameHelpers::DumpHashMap(infos));
+//        URHO3D_LOGERROR(GameHelpers::DumpHashMap(templates));
+
         for (HashMap<StringHash, GOTInfo >::ConstIterator it = infos.Begin(); it != infos.End(); ++it)
         {
-            const StringHash& got = it->first_;
             const GOTInfo& info = it->second_;
 
             if (info.pooltype_ != GOT_ObjectPool)
@@ -759,6 +761,10 @@ bool ObjectPool::CreateCategories(Scene* scene, const HashMap<StringHash, GOTInf
             if (!info.poolqty_)
                 continue;
 
+            if (info.filename_.Empty())
+                continue;
+
+            const StringHash& got = it->first_;
             const HashMap<StringHash, WeakPtr<Node> >::ConstIterator itt = templates.Find(got);
             if (itt == templates.End())
                 continue;
@@ -791,6 +797,7 @@ bool ObjectPool::CreateCategories(Scene* scene, const HashMap<StringHash, GOTInf
         }
 
         createstate_++;
+//        URHO3D_LOGERRORF("ObjectPool() - CreateCategories : numCategoryToUpdate=%u !", categoriesToUpdate_.Size());
         return false;
     }
 

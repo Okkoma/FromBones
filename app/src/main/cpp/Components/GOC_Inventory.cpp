@@ -236,6 +236,7 @@ GOC_Inventory::GOC_Inventory(Context* context) :
 GOC_Inventory::~GOC_Inventory()
 {
     UnsubscribeFromAllEvents();
+    ClearCustomTemplate();
 }
 
 void GOC_Inventory::RegisterTemplate(const String& s)

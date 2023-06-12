@@ -260,6 +260,7 @@ struct GOT
     static Node* GetClonedControllable(const StringHash& type, unsigned nodeid, CreateMode mode = LOCAL);
 
     static void DumpAll();
+    static String Dump(const GOTInfo& info);
 
     static const StringHash COLLECTABLE_ALL;
     static const StringHash COLLECTABLEPART;

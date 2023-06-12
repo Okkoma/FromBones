@@ -24,6 +24,7 @@ public :
 
 private :
     void handleUpdateNode(StringHash eventType, VariantMap& eventData);
+    void handleDestroy(StringHash eventType, VariantMap& eventData);
 
     SharedPtr<Node> node_;
 
@@ -45,6 +46,7 @@ public :
 
 private :
     void handleUpdate(StringHash eventType, VariantMap& eventData);
+    void handleDestroy(StringHash eventType, VariantMap& eventData);
 
     WeakPtr<Object> object_;
     bool autodestroy_;
@@ -63,6 +65,7 @@ public :
 
 private :
     void handleUpdate(StringHash eventType, VariantMap& eventData);
+    void handleDestroy(StringHash eventType, VariantMap& eventData);
 
     WeakPtr<Object> object_;
     float timer_;

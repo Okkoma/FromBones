@@ -688,6 +688,7 @@ GOC_Animator2D::GOC_Animator2D(Context* context) :
     orientation(1.f),
     currentTemplate(0),
     currentState(0),
+    currentStateTime(0),
     forceNextState(0),
     customTemplate(false),
     autoSwitchAnimation_(false),
@@ -2948,7 +2949,7 @@ void GOC_Animator2D::SpawnEntity(const VariantMap& param)
     if (!triggerInfo.type_)
     {
 #ifdef LOGDEBUG_ANIMATOR2D
-        URHO3D_LOGWARNINGF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) no GOT !", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGWARNINGF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) no GOT=%u !", node_->GetName().CString(), node_->GetID(), triggerInfo.type_.Value());
 #endif
         spawnAngle_ = 0.f;
         return;

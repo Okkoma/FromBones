@@ -240,6 +240,7 @@ public:
     static void DumpNode(unsigned id, bool withcomponentattr, bool rtt=false);
     static void DumpComponentTemplates();
     static void DumpVariantMap(const VariantMap& varmap);
+    template< typename U, typename T > static String DumpHashMap(const HashMap<U, T>& hashmap);
     template< typename T > static void DumpData(const T* data, int markpattern, int n,  ...);
     static void DumpVertices(const PODVector<Vector2>& vertice);
 
@@ -254,3 +255,5 @@ public:
 #else
 #define GAME_SETGAMELOGENABLE(filter, state) ((void)0)
 #endif
+
+

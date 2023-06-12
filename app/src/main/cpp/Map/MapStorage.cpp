@@ -404,13 +404,13 @@ void MapStorage::InitTable(Context* context)
     // Register Worlds Path
     URHO3D_LOGINFOF("MapStorage() - InitTable ...Register Worlds ...");
 
-    RegisterWorldPath(context, "World_1", IntVector2(0, 0), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml");
-    RegisterWorldPath(context, "World_2", IntVector2(0, 1), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_2.xml");
-    RegisterWorldPath(context, "World_3", IntVector2(0, 2), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_3.xml");
+//    RegisterWorldPath(context, "World_1", IntVector2(0, 0), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml");
+//    RegisterWorldPath(context, "World_2", IntVector2(0, 1), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_2.xml");
+//    RegisterWorldPath(context, "World_3", IntVector2(0, 2), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_3.xml");
     RegisterWorldPath(context, "ArenaZone", IntVector2(0, 3), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_arena.xml");
     RegisterWorldPath(context, "TestZone1", IntVector2(0, 4), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "anlworldVM-ellipsoid-zone1.xml");
     RegisterWorldPath(context, "TestZone2", IntVector2(0, 5), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "anlworldVM-ellipsoid-zone2.xml");
-    RegisterWorldPath(context, "World", IntVector2(0, 6), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "nodefault");
+//    RegisterWorldPath(context, "World", IntVector2(0, 6), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "nodefault");
 
     URHO3D_LOGINFOF("MapStorage() - InitTable ... Tileset Water ...");
 
@@ -824,20 +824,22 @@ unsigned MapStorage::RegisterWorldPath(Context* context, const String& shortPath
             {
                 index = registeredWorldPoint_.Size();
 //                URHO3D_LOGINFOF("MapStorage() - RegisterWorldPath : Register WorldInfo in New WorldPoint index=%d ...", index);
-                registeredWorld2DInfo_.Push(*pinfo);
-                registeredWorldPoint_.Push(worldPoint);
-                registeredWorldName_.Push(shortPathName);
+                if (index >= registeredWorld2DInfo_.Size())
+                    registeredWorld2DInfo_.Resize(index+1);
+                if (index >= registeredWorldPoint_.Size())
+                    registeredWorldPoint_.Resize(index+1);
+                if (index >= registeredWorldName_.Size())
+                    registeredWorldName_.Resize(index+1);
             }
             else
             {
                 index = registeredWorldPoint_.Find(worldPoint) - registeredWorldPoint_.Begin();
-//                URHO3D_LOGINFOF("MapStorage() - RegisterWorldPath : Register WorldInfo in Existing WorldPoint index=%d ...", index);
-                registeredWorld2DInfo_[index] = *pinfo;
-                registeredWorldPoint_[index] = worldPoint;
-                registeredWorldName_[index] = shortPathName;
             }
-
+//                URHO3D_LOGINFOF("MapStorage() - RegisterWorldPath : Register WorldInfo in Existing WorldPoint index=%d ...", index);
+            registeredWorld2DInfo_[index] = *pinfo;
             registeredWorld2DInfo_[index].atlas_->SetWorldInfo(&registeredWorld2DInfo_[index]);
+            registeredWorldPoint_[index] = worldPoint;
+            registeredWorldName_[index] = shortPathName;
         }
 
         URHO3D_LOGINFOF("MapStorage() - RegisterWorldPath %s at %s index=%u info_=%u ... OK !",

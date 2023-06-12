@@ -973,13 +973,13 @@ void Actor::ResetAvatar(const Vector2& newposition)
         Node* templateNode = info_.type_ ? GOT::GetObject(info_.type_) : 0;
         if (templateNode)
         {
+            URHO3D_LOGINFOF("Actor() - ResetAvatar : ... CopyAttributes on nodeId=%u From Template ...", avatar_->GetID());
+
             GameHelpers::CopyAttributes(templateNode, avatar_, false, true);
 
 //            GOC_Controller* controller = avatar_->GetDerivedComponent<GOC_Controller>();
 //            if (controller)
 //                controller->SetEnableObjectControl(false);
-
-            URHO3D_LOGINFOF("Actor() - ResetAvatar : ... CopyAttributes on nodeId=%u From Template ...", avatar_->GetID());
 
             // Prevent apparition of Children like AileDark or SpiderThread (see TODO BEHAVIOR:26/04/2020)
 //            avatar_->RemoveAllChildren();

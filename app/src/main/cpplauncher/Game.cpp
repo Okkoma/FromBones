@@ -124,7 +124,7 @@ const float DeviceDPIScales_[] =
 };
 
 
-#define PERFORMTESTS
+//#define PERFORMTESTS
 
 #ifdef PERFORMTESTS
 void PerformTest_EllipseW()
