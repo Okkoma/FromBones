@@ -3,6 +3,10 @@
         <attribute name="Texture" value="Texture2D;Textures/UI/UI.png" />
         <attribute name="Blend Mode" value="alpha" />
     </element>
+    <element type="BorderImageEmpty" style="BorderImage" auto="false" >
+        <attribute name="Image Rect" value="126 126 127 127" />
+        <attribute name="Blend Mode" value="alpha" />
+    </element>    
     <element type="Button" style="BorderImage">
         <attribute name="Image Rect" value="16 0 32 16" />
         <attribute name="Border" value="4 4 4 4" />

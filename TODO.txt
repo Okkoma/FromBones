@@ -247,6 +247,7 @@ ________________________________________________________________________
 - 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas.
 => pb avec StaticSprite2D, Drawable2D ?
 => difficilement reproductible
+==> OK : Patch dans Drawable2D::GetSourceBatchesToRender(Camera* camera) : si le sourceBatch n'a pas de vertices alors sourceBatchDirty_ = true
 
 - 12/04/2023 : Fantomette ne s'affiche plus sous GL
 => OK : pour les RenderTarget avec ACTIVE_LAYERMATERIALS, il ne faut pas appliquer de CustomMaterial dans GOT::PreLoadObjects donc eviter de mettre node->GetDerivedComponents</StaticSprite2D/>()
@@ -5152,6 +5153,8 @@ _________________________________________________________________________
 ===> créer en priorité un panneau charactermapping pour l'edition des couleurs et la position des yeux et bouche en fonction du visage.
 ===> on pourrait également utiliser AnimatedSprite2D::spritesInfos_ Urho3D::Spriter::SpriteInfo pour stocker la couleur : ce qui serait pas mal pour changer les couleurs de l'equipement.
 ===> en fait ce que l'on voudrait c'est avoir un skeleton et pouvoir charger des skins dessus comme dans les implementation moderne spine, ue4 ...
+====> modification de Urho3D::AnimatedSprite2D avec ajout de colorMapping_
+====>  14/06/2023 : ajout dans l'editor des panneaux characterMapping, ColorMapping et SwapSprites
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3
