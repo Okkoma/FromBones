@@ -95,6 +95,8 @@ public :
 
     void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
 
+    void Dump() const;
+
 private :
     void HandleUpdate(StringHash eventType, VariantMap& eventData);
 

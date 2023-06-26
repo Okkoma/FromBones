@@ -74,7 +74,7 @@ void Droplet::Set(Node* root, AnimationSet2D* animationSet, int viewport, unsign
     animatedSprite_->SetSpriterAnimation(DROPLET_ANIM_DROP, LM_FORCE_LOOPED);
     float color = Max((float)layerIndex/2.f, 0.4f);
     animatedSprite_->SetColor(Color(color, color, color+0.1f, 1.f));
-
+    animatedSprite_->SetOrderInLayer(10000);
     node_->SetEnabled(false);
 }
 
@@ -271,6 +271,8 @@ void GEF_Rain::Start()
     if (started_)
         return;
 
+    URHO3D_LOGINFO("GEF_Rain() - Start !");
+
     if (!dropletsSetted_)
     {
         if (filename_.Empty())
@@ -291,10 +293,10 @@ void GEF_Rain::Start()
 //        URHO3D_LOGINFO("GEF_Rain() - Start : Create Droplets ...");
 
         unsigned i, j, k=0;
-        unsigned numlayers = ViewManager::MAX_PURELAYERS, layerindex;
+        unsigned layerindex;
         for (j=0; j < Droplet::NUM_DROPLET_ROW; ++j)
         {
-            layerindex = j % numlayers;
+            layerindex = j % ViewManager::MAX_PURELAYERS;
 
             for (i=0; i < Droplet::NUM_DROPLET_COL; ++i, ++k)
                 droplets_[k].Set(node_, animationSet, viewport_, i, j, layerindex);
@@ -316,6 +318,8 @@ void GEF_Rain::Stop()
 {
     if (!started_)
         return;
+
+    URHO3D_LOGINFO("GEF_Rain() - Stop !");
 
     started_ = false;
     enabled_ = false;
@@ -462,4 +466,18 @@ void GEF_Rain::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
         if (droplets_[i].node_->IsEnabled() && droplets_[i].animatedSprite_)
             droplets_[i].animatedSprite_->DrawDebugGeometry(debug, depthTest);
     }
+}
+
+void GEF_Rain::Dump() const
+{
+    URHO3D_LOGINFOF("GEF_Rain() - Dump() : ...");
+
+    for (unsigned i = 0; i < Droplet::NUM_DROPLETS; ++i)
+    {
+        const Droplet& droplet = droplets_[i];
+        URHO3D_LOGINFOF("  Droplet[%u] : enabled=%s position=%F %F layerIndex=%d animatedSprite_=%u drawRect=%s ...", i,
+                        droplet.node_ ? (droplet.node_->IsEnabled()?"true":"false") : "NA", droplet.position_.x_, droplet.position_.y_,
+                        droplet.layerIndex_, droplet.animatedSprite_, droplet.animatedSprite_ ? droplet.animatedSprite_->GetDrawRect().ToString().CString(): "NA");
+    }
+
 }

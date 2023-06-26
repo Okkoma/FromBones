@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <element type="Window">
 	<attribute name="Name" value="CharacterMapping" />
-	<attribute name="Position" value="0 0" />
-	<attribute name="Size" value="190 500" />
+	<attribute name="Position" value="31 80" />
+	<attribute name="Size" value="272 480" />
 	<attribute name="Pivot" value="0 0" />
 	<attribute name="Bring To Back" value="false" />
 	<attribute name="Focus Mode" value="Focusable" />
@@ -23,11 +23,109 @@
 			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
-			<attribute name="Text" value="Character Mapping" />
+			<attribute name="Text" value="Mapping Edition" />
 		</element>
 		<element type="Button" style="CloseButton">
 			<attribute name="Name" value="CloseButton" />
 			<attribute name="Pivot" value="0 0" />
+		</element>
+	</element>
+	<element type="BorderImage" style="EditorDivider">
+		<attribute name="Pivot" value="0 0" />
+	</element>
+	<element>
+		<attribute name="Min Size" value="0 16" />
+		<attribute name="Max Size" value="2147483647 16" />
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<attribute name="Layout Spacing" value="4" />
+		<element type="LineEdit">
+			<attribute name="Name" value="SetName" />
+			<attribute name="Pivot" value="0 0" />
+			<element type="Text" internal="true" style="none">
+				<attribute name="Min Anchor" value="0 0.5" />
+				<attribute name="Max Anchor" value="0 0.5" />
+				<attribute name="Pivot" value="0 0.5" />
+				<attribute name="Top Left Color" value="0.9 1 0.9 1" />
+				<attribute name="Top Right Color" value="0.9 1 0.9 1" />
+				<attribute name="Bottom Left Color" value="0.9 1 0.9 1" />
+				<attribute name="Bottom Right Color" value="0.9 1 0.9 1" />
+			</element>
+			<element type="BorderImage" internal="true" style="none">
+				<attribute name="Size" value="4 15" />
+				<attribute name="Min Anchor" value="0 0.5" />
+				<attribute name="Max Anchor" value="0 0.5" />
+				<attribute name="Pivot" value="0 0.5" />
+			</element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="SetSave" />
+			<attribute name="Min Size" value="55 0" />
+			<attribute name="Max Size" value="55 2147483647" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Focus Mode" value="FocusableDefocusable" />
+			<element type="Text">
+				<attribute name="Size" value="32 15" />
+				<attribute name="Min Size" value="32 15" />
+				<attribute name="Max Size" value="32 15" />
+				<attribute name="Min Anchor" value="0.5 0" />
+				<attribute name="Max Anchor" value="0.5 0" />
+				<attribute name="Pivot" value="0.5 0" />
+				<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Text" value="Save" />
+			</element>
+		</element>
+	</element>
+	<element type="BorderImage" style="EditorDivider">
+		<attribute name="Pivot" value="0 0" />
+	</element>
+	<element>
+		<attribute name="Min Size" value="0 16" />
+		<attribute name="Max Size" value="2147483647 16" />
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<attribute name="Layout Spacing" value="4" />
+		<element type="Text">
+			<attribute name="Min Size" value="48 15" />
+			<attribute name="Max Size" value="48 15" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Text" value="Entity" />
+			<attribute name="Auto Localizable" value="true" />
+		</element>
+		<element type="DropDownList">
+			<attribute name="Name" value="EntityList" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Selection" value="-1" />
+			<element internal="true" style="none">
+				<attribute name="Pivot" value="0 0" />
+				<element type="Text" internal="true" style="none">
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+				</element>
+			</element>
+			<element popup="true" type="Window" internal="true" style="none">
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Priority" value="2147483647" />
+				<element type="ListView" internal="true" style="none">
+					<attribute name="Pivot" value="0 0" />
+					<element type="BorderImage" internal="true" style="none">
+						<attribute name="Pivot" value="0 0" />
+						<element internal="true" style="none">
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+				</element>
+			</element>
 		</element>
 	</element>
 	<element type="BorderImage" style="EditorDivider">
@@ -42,7 +140,7 @@
 			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
-			<attribute name="Text" value="Available" />
+			<attribute name="Text" value="Available Maps" />
 			<attribute name="Text Alignment" value="Center" />
 			<attribute name="Auto Localizable" value="true" />
 		</element>
@@ -60,7 +158,7 @@
 				<attribute name="Min Size" value="0 60" />
 				<attribute name="Pivot" value="0 0" />
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="177 16" />
+					<attribute name="Size" value="260 16" />
 					<attribute name="Min Anchor" value="0 1" />
 					<attribute name="Max Anchor" value="0 1" />
 					<attribute name="Pivot" value="0 1" />
@@ -74,19 +172,19 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="16 0" />
-						<attribute name="Size" value="145 16" />
+						<attribute name="Size" value="228 16" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="161 0" />
+						<attribute name="Position" value="244 0" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="16 214" />
+					<attribute name="Size" value="16 139" />
 					<attribute name="Min Anchor" value="1 0" />
 					<attribute name="Max Anchor" value="1 0" />
 					<attribute name="Pivot" value="1 0" />
@@ -100,14 +198,14 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="0 16" />
-						<attribute name="Size" value="16 182" />
+						<attribute name="Size" value="16 107" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="0 198" />
+						<attribute name="Position" value="0 123" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
@@ -119,15 +217,65 @@
 				</element>
 			</element>
 			<element>
-				<attribute name="Name" value="ButtonContainer" />
 				<attribute name="Min Size" value="0 16" />
 				<attribute name="Max Size" value="2147483647 16" />
 				<attribute name="Pivot" value="0 0" />
 				<attribute name="Layout Mode" value="Horizontal" />
-				<attribute name="Layout Spacing" value="4" />
+				<element type="Button">
+					<attribute name="Name" value="EditCMap" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Focus Mode" value="ResetFocus" />
+					<attribute name="Layout Mode" value="Horizontal" />
+					<attribute name="Layout Border" value="1 1 1 1" />
+					<element type="Text">
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Text" value="Edit" />
+						<attribute name="Text Alignment" value="Center" />
+						<attribute name="Auto Localizable" value="true" />
+					</element>
+				</element>
+				<element type="Button">
+					<attribute name="Name" value="NewCMap" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Focus Mode" value="ResetFocus" />
+					<attribute name="Layout Mode" value="Horizontal" />
+					<attribute name="Layout Border" value="1 1 1 1" />
+					<element type="Text">
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Text" value="New" />
+						<attribute name="Text Alignment" value="Center" />
+						<attribute name="Auto Localizable" value="true" />
+					</element>
+				</element>
+				<element type="Button">
+					<attribute name="Name" value="DelCMap" />
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Focus Mode" value="ResetFocus" />
+					<attribute name="Layout Mode" value="Horizontal" />
+					<attribute name="Layout Border" value="1 1 1 1" />
+					<element type="Text">
+						<attribute name="Pivot" value="0 0" />
+						<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+						<attribute name="Text" value="Del" />
+						<attribute name="Text Alignment" value="Center" />
+						<attribute name="Auto Localizable" value="true" />
+					</element>
+				</element>
 				<element type="Button">
 					<attribute name="Name" value="ApplyCMap" />
 					<attribute name="Pivot" value="0 0" />
+					<attribute name="Focus Mode" value="ResetFocus" />
 					<attribute name="Layout Mode" value="Horizontal" />
 					<attribute name="Layout Border" value="1 1 1 1" />
 					<element type="Text">
@@ -160,7 +308,7 @@
 			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Indent Spacing" value="0" />
-			<attribute name="Text" value="Applied" />
+			<attribute name="Text" value="Applied Maps" />
 			<attribute name="Text Alignment" value="Center" />
 			<attribute name="Auto Localizable" value="true" />
 		</element>
@@ -179,7 +327,7 @@
 				<attribute name="Min Size" value="0 60" />
 				<attribute name="Pivot" value="0 0" />
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="177 16" />
+					<attribute name="Size" value="260 16" />
 					<attribute name="Min Anchor" value="0 1" />
 					<attribute name="Max Anchor" value="0 1" />
 					<attribute name="Pivot" value="0 1" />
@@ -194,19 +342,19 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="16 0" />
-						<attribute name="Size" value="145 16" />
+						<attribute name="Size" value="228 16" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="161 0" />
+						<attribute name="Position" value="244 0" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="16 209" />
+					<attribute name="Size" value="16 139" />
 					<attribute name="Min Anchor" value="1 0" />
 					<attribute name="Max Anchor" value="1 0" />
 					<attribute name="Pivot" value="1 0" />
@@ -220,14 +368,14 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="0 16" />
-						<attribute name="Size" value="16 177" />
+						<attribute name="Size" value="16 107" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="0 193" />
+						<attribute name="Position" value="0 123" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>

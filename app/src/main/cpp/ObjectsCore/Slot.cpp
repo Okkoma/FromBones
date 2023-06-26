@@ -130,11 +130,14 @@ void Slot::UpdateUISprite()
     if (!uisprite_)
         uisprite_ = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(GOT::GetType(type_));
 
+    if (!uisprite_)
+        uisprite_ = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(GOT::GetType(type_).ToLower());
     // update sprite_ with uisprite_ for reduce batches
 //    if (uisprite_)
 //        sprite_ = uisprite_;
 //    else
-//        URHO3D_LOGWARNINGF("Slot() - UpdateUISprite : type=%s(%u) no uisprite !!!", GOT::GetType(type_).CString(), type_.Value());
+    if (!uisprite_)
+        URHO3D_LOGERRORF("Slot() - UpdateUISprite : type=%s(%u) no uisprite !!!", GOT::GetType(type_).CString(), type_.Value());
 }
 
 unsigned int Slot::TransferTo(Slot* slot, unsigned int qtyToTransfer, unsigned int freeSpace)

@@ -12,7 +12,7 @@
 		<attribute name="Animation Set" value="AnimationSet2D;2D/filet.scml" />
 		<attribute name="Entity" value="filet" />
 		<attribute name="Animation" value="nomove" />
-		<!-- <attribute name="Sprite" value="SpriteSheet2D;2D/filet.xml@filet" /> -->
+		<!--<attribute name="Sprite" value="SpriteSheet2D;2D/filet.xml@filet" /> -->
 	</component>
 	<component type="RigidBody2D">
 		<attribute name="Body Type" value="Dynamic" />

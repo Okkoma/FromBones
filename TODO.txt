@@ -217,7 +217,6 @@ ________________________________________________________________________
 <NOTE>
 ------
 
-
 - 30/08/2022 : si l'on souhaite ajouter une nouvelle texture dans un LAYERMATERIAL, il faut mettre à jour également le shader fragment avec la bonne quantité de samplers (=> sampler2D samplers[quantité])
  et pour vulkan recompiler les shaders (bake vulkan shaders)
 
@@ -243,6 +242,16 @@ ________________________________________________________________________
 
 <TODO>
 ------
+
+- 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ...
+=> OK : dans Urho3D::AnimatedSprite2D::UpdateSourceBatches() et ..._Custom(), il faut toujours setter vertex.z_ ou vertex.position.z_. (Car vertex.position_ est un Vector3 en GL et un Vector2 en VK) et que l'on utilise une matrix2x3 =>
+    resultat vector2 en VK et un vector3 avec le z_ non attribué (NA)...
+
+- 23/06/2023 : modification de Urho3D::Spriter::SpriterInstance::UpdateTimelineKeys pour reutiliser les TimelineKey au lieu de toujours les effacer/recreer pour les bones et les sprites egalement.
+=> ajout de Urho3D::Spriter::TimelineKey::Copy()
+=> Resolution des problemes avec les KEY_POOLS : il faut allouer pas mal de keys du premier coup (on ne peut pas redimensionner après coup car les pool de key sont de simple Vector<TimelineKey> sans méthodes operator ==(const TimelineKey) pour permettre le resize du Vector ...
+==> pour les allouer pour le moment ca se passe dans Spriter::SpriterData::Register() mais on pourrait faire ça directement dans FromBones. En fait le nombre de Key va dépendre du nombre d'animatedSprite dans les ObjectPool etc...
+==> les KEY_POOLS semblent moins rapide que l'allocation mémoire ... bizarre => faire un profilage.
 
 - 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas.
 => pb avec StaticSprite2D, Drawable2D ?
@@ -5154,7 +5163,11 @@ _________________________________________________________________________
 ===> on pourrait également utiliser AnimatedSprite2D::spritesInfos_ Urho3D::Spriter::SpriteInfo pour stocker la couleur : ce qui serait pas mal pour changer les couleurs de l'equipement.
 ===> en fait ce que l'on voudrait c'est avoir un skeleton et pouvoir charger des skins dessus comme dans les implementation moderne spine, ue4 ...
 ====> modification de Urho3D::AnimatedSprite2D avec ajout de colorMapping_
-====>  14/06/2023 : ajout dans l'editor des panneaux characterMapping, ColorMapping et SwapSprites
+====> 14/06/2023 : ajout dans l'editor des panneaux characterMapping, ColorMapping et SwapSprites
+====> 21/06/2023 OK : sauvegarde du Color Mapping dans le SCML ou dans un SCML addon
+=====> l'ui, ajouter une liste comme pour le character mapping avec un bouton New en plus pour créer des colorMapping ou bien modifier l'ui du characterMaps en Maps qui inclura les Maps de Character et de Color
+====> ajouter une dropdownlist de selection de l'entité à editer, important pour la selection des character et color mapping.
+====> ajouter la liste des animations toujours relatif à l'entité.
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

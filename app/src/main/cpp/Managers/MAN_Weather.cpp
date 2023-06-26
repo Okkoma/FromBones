@@ -858,6 +858,11 @@ void WeatherManager::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
 //    }
 }
 
+void WeatherManager::DumpRain(int viewport) const
+{
+    weatherviewdatas_[viewport].raineffect_->Dump();
+}
+
 void WeatherManager::HandleSceneUpdate(StringHash eventType, VariantMap& eventData)
 {
     Update();

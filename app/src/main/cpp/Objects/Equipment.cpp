@@ -122,7 +122,7 @@ bool AnimationEquipment::Update(AnimatedSprite2D* animatedSprite)
         {
             Spriter::Ref* boneparentref = objectsref[objref->parent_];
             Spriter::BoneTimelineKey* boneparentkey = (Spriter::BoneTimelineKey*) timelines[boneparentref->timeline_]->keys_[boneparentref->key_];
-            bone.info_ = bone.info_.UnmapFromParent(boneparentkey->info_);
+            bone.info_.UnmapFromParent(boneparentkey->info_);
         }
     }
     URHO3D_LOGINFOF("AnimationEquipment() - Update : Extract bone Tree ... OK !");

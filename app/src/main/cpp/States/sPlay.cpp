@@ -2470,41 +2470,54 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
 #ifdef ACTIVE_WEATHEREFFECTS
     if (weather_)
     {
-    // Handle World Time Rate
-    // Decrease rate
-    if (input.GetKeyDown(KEY_F7))
-    {
-        weather_->SetWorldTimeRate(Max(15.f, weather_->GetWorldTimeRate() - 15.f));
-    }
-    // Increase rate
-    if (input.GetKeyDown(KEY_F8))
-    {
-        weather_->SetWorldTimeRate(weather_->GetWorldTimeRate() + 15.f);
-    }
-    // Restore to default rate
-    if (input.GetKeyPress(KEY_F9))
-    {
-        weather_->SetWorldTimeRate();
-    }
-    if (!GameContext::Get().HasConsoleFocus())
-    {
-        // Tip Cloud
-        if (input.GetScancodePress(SCANCODE_T))
+        // Handle World Time Rate
+        // Decrease rate
+        if (input.GetKeyDown(KEY_F7))
         {
-//            if (weather_->GetCloudIntensity())
-//                weather_->SetEffect(0, WeatherCloud, 0);
-//            else
-//                weather_->SetEffect(0, WeatherCloud, 3);
-            weather_->SetEffect(0, WeatherCloud, (weather_->GetCloudIntensity() + 1) % 7);
+            weather_->SetWorldTimeRate(Max(15.f, weather_->GetWorldTimeRate() - 15.f));
         }
-        // Tip Rain
-        if (input.GetScancodePress(SCANCODE_Y))
+        // Increase rate
+        if (input.GetKeyDown(KEY_F8))
         {
-            weather_->SetEffect(0, WeatherRain, (weather_->GetRainIntensity() + 1) % 7);
+            weather_->SetWorldTimeRate(weather_->GetWorldTimeRate() + 15.f);
         }
+        // Restore to default rate
+        if (input.GetKeyPress(KEY_F9))
+        {
+            weather_->SetWorldTimeRate();
+        }
+        if (!GameContext::Get().HasConsoleFocus()
+#ifdef ACTIVE_CREATEMODE
+             && !MapEditor::Get())
+#else
+            )
+#endif
+        {
+            // Tip Cloud
+            if (input.GetScancodePress(SCANCODE_T))
+            {
+    //            if (weather_->GetCloudIntensity())
+    //                weather_->SetEffect(0, WeatherCloud, 0);
+    //            else
+    //                weather_->SetEffect(0, WeatherCloud, 3);
+                weather_->SetEffect(0, WeatherCloud, (weather_->GetCloudIntensity() + 1) % 7);
+            }
+            // Tip Rain
+            if (input.GetScancodePress(SCANCODE_Y))
+            {
+                if (input.GetQualifiers() == QUAL_SHIFT)
+                    weather_->DumpRain();
+                else
+                    weather_->SetEffect(0, WeatherRain, (weather_->GetRainIntensity() + 1) % 7);
+            }
         }
     }
-    if (!GameContext::Get().HasConsoleFocus())
+    if (!GameContext::Get().HasConsoleFocus()
+#ifdef ACTIVE_CREATEMODE
+             && !MapEditor::Get())
+#else
+            )
+#endif
     {
         // Tip DrawableScroller
         if (input.GetScancodePress(SCANCODE_U))
@@ -2585,61 +2598,6 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : SetFocusEnable=%s on activeviewport=%u !", enable ? "true":"false", activeviewport_);
             ViewManager::Get()->SetFocusEnable(enable, activeviewport_);
         }
-        // Tip : Active UI
-        if (input.GetScancodePress(SCANCODE_V))
-        {
-            SetVisibleUI(!gameUIVisible_);
-            URHO3D_LOGINFOF("PlayState() - HandleUpdate : Switch Game UI Visibility to %s !", gameUIVisible_ ? "visible" : "hide");
-        }
-        // Tip : mission win
-        if (input.GetScancodePress(SCANCODE_G))
-        {
-            URHO3D_LOGINFO("PlayState() - HandleUpdate : Tip Mission Win !");
-            localPlayers_[0]->SetMissionWin();
-            if (GameContext::Get().arenaZoneOn_)
-                SetGameWin();
-        }
-        // Tip : Info
-        if (input.GetScancodePress(SCANCODE_I))
-        {
-            if (goManager)
-            {
-                URHO3D_LOGINFOF("PlayState() - HandleUpdate Info : numEnemies(active) = %u(%u) numPlayers(active) = %u(%u) numActors = %u",
-                                goManager->GetNumEnemies(), goManager->GetNumActiveEnemies(),
-                                goManager->GetNumPlayers(), goManager->GetNumActivePlayers(),
-                                Actor::GetNumActors());
-            }
-
-            URHO3D_LOGINFOF("PlayState() - HandleUpdate : PlayerID=%u pos=%s ! wfbounds=%s",
-                            localPlayers_[0]->GetID(),
-                            localPlayers_[0]->GetAvatar()->GetWorldPosition2D().ToString().CString(),
-                            world_->GetWorldFloatBounds().ToString().CString());
-            //localPlayers_[0]->Dump();
-
-//            localPlayers_[0]->GetAvatar()->GetComponent<GOC_Move2D>()->Dump();
-
-            if (localPlayers_.Size() > 1 && localPlayers_[1]->active)
-            {
-                GOC_AIController* aicontrol = static_cast<GOC_AIController*>(localPlayers_[1]->gocController);
-                URHO3D_LOGINFOF("PlayState() - HandleUpdate : PlayerID=%u pos=%s AIStart=%s, Behavior=%s, Mounted=%s!",
-                                localPlayers_[1]->GetID(),
-                                localPlayers_[1]->GetAvatar()->GetWorldPosition2D().ToString().CString(),
-                                aicontrol->IsStarted() ? "true" : "false", aicontrol->GetBehaviorAttr().CString(),
-                                localPlayers_[1]->GetAvatar()->GetVar(GOA::ISMOUNTEDON).GetUInt() ? "true" : "false");
-//                LOGINFOF("Dump localPlayers_[1] body !");
-//                localPlayers_[1]->avatar->GetComponent<RigidBody2D>()->GetBody()->Dump();
-            }
-
-            GOC_Inventory_Template::DumpAll();
-        }
-        // Tip : Dump Pool
-        if (input.GetScancodePress(SCANCODE_O))
-        {
-            //        if (ObjectPool::Get())
-            //            ObjectPool::Get()->DumpCategories();
-            if (world_)
-                world_->World2D::DumpEntitiesInMemory();
-        }
         // Tip : Pause Without Window
         if (input.GetScancodePress(SCANCODE_P))
         {
@@ -2649,23 +2607,83 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                 GameContext::Get().rttScene_->SetUpdateEnabled(rootScene_->IsUpdateEnabled());
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : Key P pressed => Scene Updated = %s", rootScene_->IsUpdateEnabled() ? "enable" : "disable");
         }
-        // Tip player suicide
-        if (input.GetScancodePress(SCANCODE_J))
+#ifdef ACTIVE_CREATEMODE
+        if (!MapEditor::Get())
+#endif
         {
-            URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide on viewport=%d ...", activeviewport_);
-
-            if (localPlayers_[activeviewport_]->GetAvatar())
+            // Tip : Active UI
+            if (input.GetScancodePress(SCANCODE_V))
             {
-                eventData[GOC_Life_Events::GO_ID] = localPlayers_[activeviewport_]->nodeID_;
-                eventData[GOC_Life_Events::GO_KILLER] = 0;
-                eventData[GOC_Life_Events::GO_TYPE] = localPlayers_[activeviewport_]->GetAvatar()->GetVar(GOA::TYPECONTROLLER).GetInt();
-                eventData[GOC_Life_Events::GO_WORLDCONTACTPOINT] = 0;
+                SetVisibleUI(!gameUIVisible_);
+                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Switch Game UI Visibility to %s !", gameUIVisible_ ? "visible" : "hide");
+            }
+            // Tip : mission win
+            if (input.GetScancodePress(SCANCODE_G))
+            {
+                URHO3D_LOGINFO("PlayState() - HandleUpdate : Tip Mission Win !");
+                localPlayers_[0]->SetMissionWin();
+                if (GameContext::Get().arenaZoneOn_)
+                    SetGameWin();
+            }
+            // Tip : Info
+            if (input.GetScancodePress(SCANCODE_I))
+            {
+                if (goManager)
+                {
+                    URHO3D_LOGINFOF("PlayState() - HandleUpdate Info : numEnemies(active) = %u(%u) numPlayers(active) = %u(%u) numActors = %u",
+                                    goManager->GetNumEnemies(), goManager->GetNumActiveEnemies(),
+                                    goManager->GetNumPlayers(), goManager->GetNumActivePlayers(),
+                                    Actor::GetNumActors());
+                }
 
-                localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::ISDEAD, true);
-                localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::LIFE, 0);
-                localPlayers_[activeviewport_]->GetAvatar()->SendEvent(GOC_LIFEDEAD, eventData);
+                URHO3D_LOGINFOF("PlayState() - HandleUpdate : PlayerID=%u pos=%s ! wfbounds=%s",
+                                localPlayers_[0]->GetID(),
+                                localPlayers_[0]->GetAvatar()->GetWorldPosition2D().ToString().CString(),
+                                world_->GetWorldFloatBounds().ToString().CString());
+                //localPlayers_[0]->Dump();
 
-                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide ... numActivePlayers=%u OK !", GOManager::GetNumActivePlayers());
+    //            localPlayers_[0]->GetAvatar()->GetComponent<GOC_Move2D>()->Dump();
+
+                if (localPlayers_.Size() > 1 && localPlayers_[1]->active)
+                {
+                    GOC_AIController* aicontrol = static_cast<GOC_AIController*>(localPlayers_[1]->gocController);
+                    URHO3D_LOGINFOF("PlayState() - HandleUpdate : PlayerID=%u pos=%s AIStart=%s, Behavior=%s, Mounted=%s!",
+                                    localPlayers_[1]->GetID(),
+                                    localPlayers_[1]->GetAvatar()->GetWorldPosition2D().ToString().CString(),
+                                    aicontrol->IsStarted() ? "true" : "false", aicontrol->GetBehaviorAttr().CString(),
+                                    localPlayers_[1]->GetAvatar()->GetVar(GOA::ISMOUNTEDON).GetUInt() ? "true" : "false");
+    //                LOGINFOF("Dump localPlayers_[1] body !");
+    //                localPlayers_[1]->avatar->GetComponent<RigidBody2D>()->GetBody()->Dump();
+                }
+
+                GOC_Inventory_Template::DumpAll();
+            }
+            // Tip : Dump Pool
+            if (input.GetScancodePress(SCANCODE_O))
+            {
+                //        if (ObjectPool::Get())
+                //            ObjectPool::Get()->DumpCategories();
+                if (world_)
+                    world_->World2D::DumpEntitiesInMemory();
+            }
+            // Tip player suicide
+            if (input.GetScancodePress(SCANCODE_J))
+            {
+                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide on viewport=%d ...", activeviewport_);
+
+                if (localPlayers_[activeviewport_]->GetAvatar())
+                {
+                    eventData[GOC_Life_Events::GO_ID] = localPlayers_[activeviewport_]->nodeID_;
+                    eventData[GOC_Life_Events::GO_KILLER] = 0;
+                    eventData[GOC_Life_Events::GO_TYPE] = localPlayers_[activeviewport_]->GetAvatar()->GetVar(GOA::TYPECONTROLLER).GetInt();
+                    eventData[GOC_Life_Events::GO_WORLDCONTACTPOINT] = 0;
+
+                    localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::ISDEAD, true);
+                    localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::LIFE, 0);
+                    localPlayers_[activeviewport_]->GetAvatar()->SendEvent(GOC_LIFEDEAD, eventData);
+
+                    URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide ... numActivePlayers=%u OK !", GOManager::GetNumActivePlayers());
+                }
             }
         }
     }
@@ -2748,7 +2766,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             ObjectTiled::SetMaxDrawView(ObjectTiled::GetMaxDrawView() > 1 ? 1 : 0);
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : Set MaxDrawViews = %d", ObjectTiled::GetMaxDrawView());
         }
-        // Tip TileDrawing TiledObject
+        // Tip : TileDrawing TiledObject
         if (input.GetScancodePress(SCANCODE_KP_MULTIPLY))
         {
             ObjectTiled::SetTilesEnable(!ObjectTiled::GetTilesEnable());
@@ -2760,19 +2778,24 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             ObjectTiled::SetDecalsEnable(!ObjectTiled::GetDecalsEnable());
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : Set DecalDrawing = %s", ObjectTiled::GetDecalsEnable() ? "enable":"disable");
         }
-        // Debug Text3D
-        if (input.GetScancodePress(SCANCODE_K))
+#ifdef ACTIVE_CREATEMODE
+        if (!MapEditor::Get())
+#endif
         {
-            Node* text = localPlayers_[activeviewport_]->GetAvatar()->GetChild("Text3D");
-            if (!text)
+            // Debug Text3D
+            if (input.GetScancodePress(SCANCODE_K))
             {
-                Vector3 position;
-                position.y_ = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<GOC_Animator2D>()->GetAnimated()->GetWorldBoundingBox().Size().y_;
-                position.z_ = 0.1f;
-                TextTest(context_, localPlayers_[activeviewport_]->GetAvatar(), position, "Hello !", "Fonts/Lycanthrope.ttf", 2.f, 1.5f, 50);
+                Node* text = localPlayers_[activeviewport_]->GetAvatar()->GetChild("Text3D");
+                if (!text)
+                {
+                    Vector3 position;
+                    position.y_ = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<GOC_Animator2D>()->GetAnimated()->GetWorldBoundingBox().Size().y_;
+                    position.z_ = 0.1f;
+                    TextTest(context_, localPlayers_[activeviewport_]->GetAvatar(), position, "Hello !", "Fonts/Lycanthrope.ttf", 2.f, 1.5f, 50);
+                }
+                else
+                    text->Remove();
             }
-            else
-                text->Remove();
         }
 #endif
     }

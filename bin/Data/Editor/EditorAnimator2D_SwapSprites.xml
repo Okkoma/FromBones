@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <element type="Window">
 	<attribute name="Name" value="SwapSprite" />
-	<attribute name="Position" value="0 500" />
-	<attribute name="Size" value="520 516" />
+	<attribute name="Position" value="31 559" />
+	<attribute name="Size" value="533 314" />
 	<attribute name="Pivot" value="0 0" />
 	<attribute name="Bring To Back" value="false" />
 	<attribute name="Focus Mode" value="Focusable" />
@@ -22,7 +22,7 @@
 			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
 			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
-			<attribute name="Text" value="Swap Sprites Panel" />
+			<attribute name="Text" value="Sprites Swapping" />
 		</element>
 		<element type="Button" style="CloseButton">
 			<attribute name="Name" value="CloseButton" />
@@ -121,7 +121,7 @@
 				<attribute name="Min Size" value="0 60" />
 				<attribute name="Pivot" value="0 0" />
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="507 16" />
+					<attribute name="Size" value="521 16" />
 					<attribute name="Min Anchor" value="0 1" />
 					<attribute name="Max Anchor" value="0 1" />
 					<attribute name="Pivot" value="0 1" />
@@ -135,19 +135,19 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="16 0" />
-						<attribute name="Size" value="475 16" />
+						<attribute name="Size" value="489 16" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="491 0" />
+						<attribute name="Position" value="505 0" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="16 494" />
+					<attribute name="Size" value="16 253" />
 					<attribute name="Min Anchor" value="1 0" />
 					<attribute name="Max Anchor" value="1 0" />
 					<attribute name="Pivot" value="1 0" />
@@ -161,14 +161,14 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="0 16" />
-						<attribute name="Size" value="16 462" />
+						<attribute name="Size" value="16 221" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="0 478" />
+						<attribute name="Position" value="0 237" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>

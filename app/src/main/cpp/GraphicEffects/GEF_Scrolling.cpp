@@ -1205,9 +1205,9 @@ void DrawableScroller::OnSetEnabled()
     Scene* scene = GetScene();
     if (scene && IsEnabledEffective())
     {
-//        URHO3D_LOGINFOF("DrawableScroller() - this=%u viewport=%d flatmode=%s OnSetEnabled = true nodeToFollow=%s(%u) numdrawableObjects=%u",
-//                        this, viewport_, flatmode_?"true":"false", info.nodeToFollow_ ? info.nodeToFollow_->GetName().CString() :
-//                        "NONE", info.nodeToFollow_ ? info.nodeToFollow_->GetID() : 0, drawables_.Size());
+        URHO3D_LOGINFOF("DrawableScroller() - this=%u viewport=%d flatmode=%s OnSetEnabled = true nodeToFollow=%s(%u) numdrawableObjects=%u",
+                        this, viewport_, flatmode_?"true":"false", info.nodeToFollow_ ? info.nodeToFollow_->GetName().CString() :
+                        "NONE", info.nodeToFollow_ ? info.nodeToFollow_->GetID() : 0, drawables_.Size());
 
         info.camPosition_ = info.lastCamPosition_ = info.nodeToFollow_ ? info.nodeToFollow_->GetWorldPosition2D() : Vector2::ZERO;
 
@@ -1230,7 +1230,7 @@ void DrawableScroller::OnSetEnabled()
     }
     else
     {
-//        URHO3D_LOGINFOF("DrawableScroller() - this=%u viewport=%d OnSetEnabled = false", this, viewport_);
+        URHO3D_LOGINFOF("DrawableScroller() - this=%u viewport=%d OnSetEnabled = false", this, viewport_);
         UnsubscribeFromAllEvents();
     }
 
@@ -1557,7 +1557,11 @@ bool DrawableScroller::SetDrawableObjects()
 
     // Reset the initial camera position for the scroller
     if (!flatmode_)
+    {
+        // 26/06/2023 : add PIXEL_SIZE to prevent "no initial move"
         info.initialPosition_ = info.camPosition_;
+        info.initialPosition_.x_ += PIXEL_SIZE;
+    }
 
     info.lastCamPosition_.x_ -= 0.1f;
 
@@ -1568,7 +1572,7 @@ bool DrawableScroller::SetDrawableObjects()
     const Rect& visibleRect = World2D::GetExtendedVisibleRect(viewport_);
     const Vector2 camInitialOffset = info.camPosition_ - info.initialPosition_;
 
-    if (logtest_)
+//    if (logtest_)
         URHO3D_LOGINFOF("DrawableScroller() - SetDrawableObjects : this=%u viewport=%d currentmap=%s visibleRectMin=%F,%F nodeToFollow=%s(%u) campPos=%F,%F lastPos=%F,%F initpos=%F,%F ...",
                         this, viewport_, map ? map->GetMapPoint().ToString().CString() : "", visibleRect.min_.x_, visibleRect.min_.y_,
                         info.nodeToFollow_ ? info.nodeToFollow_->GetName().CString() : "", info.nodeToFollow_ ? info.nodeToFollow_->GetID() : 0,
@@ -1754,8 +1758,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
     if (visibleRect.max_.y_ < boundcurve_->center_.y_)
         return;
 
-//    if (logtest_)
-//        URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... entry(%F,%F %F,%F) bounds(%F,%F %F,%F) ... scrolly=%F ", this, first.x_, first.y_, last.x_, last.y_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, scrollerposition_.y_);
+    if (logtest_)
+        URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... entry(%F,%F %F,%F) bounds(%F,%F %F,%F) ... scroll=%F %F ", this, first.x_, first.y_, last.x_, last.y_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, scrollerposition_.x_, scrollerposition_.y_);
 
     // Update Positions for existing drawables
     if (scrollerposition_.x_ * scrollerposition_.y_ != 0.f)

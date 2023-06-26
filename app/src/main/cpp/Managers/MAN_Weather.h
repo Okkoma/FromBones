@@ -74,6 +74,8 @@ public :
         return weatherviewdatas_[viewport].cloudintensity_;
     }
 
+    void DumpRain(int viewport=0) const;
+
     void Start();
     void Stop();
 

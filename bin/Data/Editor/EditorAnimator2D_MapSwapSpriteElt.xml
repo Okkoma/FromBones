@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<element style="FileSelectorButton">
+<element>
 	<attribute name="Min Size" value="0 32" />
 	<attribute name="Max Size" value="2147483647 32" />
 	<attribute name="Pivot" value="0 0" />
