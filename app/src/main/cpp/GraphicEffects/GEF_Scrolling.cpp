@@ -1572,7 +1572,7 @@ bool DrawableScroller::SetDrawableObjects()
     const Rect& visibleRect = World2D::GetExtendedVisibleRect(viewport_);
     const Vector2 camInitialOffset = info.camPosition_ - info.initialPosition_;
 
-//    if (logtest_)
+    if (logtest_)
         URHO3D_LOGINFOF("DrawableScroller() - SetDrawableObjects : this=%u viewport=%d currentmap=%s visibleRectMin=%F,%F nodeToFollow=%s(%u) campPos=%F,%F lastPos=%F,%F initpos=%F,%F ...",
                         this, viewport_, map ? map->GetMapPoint().ToString().CString() : "", visibleRect.min_.x_, visibleRect.min_.y_,
                         info.nodeToFollow_ ? info.nodeToFollow_->GetName().CString() : "", info.nodeToFollow_ ? info.nodeToFollow_->GetID() : 0,

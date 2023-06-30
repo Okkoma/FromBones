@@ -79,7 +79,7 @@ struct WorldViewInfo
     Vector<Map*> visibleAreaMaps_;
 };
 
-class World2D : public Component
+class FROMBONES_API World2D : public Component
 {
     URHO3D_OBJECT(World2D, Component);
 

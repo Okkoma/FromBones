@@ -10,4 +10,5 @@
 /exe/*.log
 log.txt
 /lib/*/*.so
+/lib/*/*.so.*
 /Local

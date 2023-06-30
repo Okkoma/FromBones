@@ -4,6 +4,7 @@
 #include <Urho3D/Scene/Node.h>
 #include <Urho3D/Scene/Scene.h>
 
+#include "DefsCore.h"
 #include "DefsGame.h"
 
 using namespace Urho3D;
@@ -208,7 +209,7 @@ struct BuildableObjectInfo
 };
 
 /// Table for GOT (Game Object Types)
-struct GOT
+struct FROMBONES_API GOT
 {
     static StringHash Register(const String& type, const StringHash& category, const String& objectFile,
                                unsigned typeProperty = 0, bool replicateMode=false, int pooltype = 0,int qtyInPool = 0, int scaleVariation=0, bool entityVariation=false,
@@ -285,7 +286,7 @@ private :
 // a COT is a set of GOT
 // a GOT have a unique Category register in GOT::typeCategories_
 // example : a Leather Cuirass (GOT) is an Armor (COT)
-struct COT
+struct FROMBONES_API COT
 {
 public :
     static const StringHash OBJECTS;

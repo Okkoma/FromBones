@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<element type="Window">
+	<attribute name="Name" value="SpriteSelectionList" />
+	<attribute name="Position" value="420 508" />
+	<attribute name="Size" value="320 508" />
+	<attribute name="Pivot" value="0 0" />
+	<attribute name="Bring To Back" value="false" />
+	<attribute name="Focus Mode" value="Focusable" />
+	<attribute name="Layout Mode" value="Vertical" />
+	<attribute name="Layout Border" value="6 6 6 6" />
+	<attribute name="Resize Border" value="6 6 6 6" />
+	<attribute name="Is Movable" value="true" />
+	<attribute name="Is Resizable" value="true" />
+	<element>
+		<attribute name="Min Size" value="0 16" />
+		<attribute name="Max Size" value="2147483647 16" />
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<element type="Text">
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+			<attribute name="Text" value="Sprite Selection" />
+		</element>
+		<element type="Button" style="CloseButton">
+			<attribute name="Name" value="CloseButton" />
+			<attribute name="Pivot" value="0 0" />
+		</element>
+	</element>
+	<element type="BorderImage" style="EditorDivider">
+		<attribute name="Pivot" value="0 0" />
+	</element>
+	<element>
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Vertical" />
+		<attribute name="Layout Spacing" value="4" />
+		<element>
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Layout Mode" value="Vertical" />
+			<attribute name="Indent Spacing" value="32" />
+			<element>
+				<attribute name="Name" value="Container" />
+				<attribute name="Max Size" value="2147483647 0" />
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<attribute name="Indent Spacing" value="32" />
+			</element>
+			<element type="ListView" style="PanelView">
+				<attribute name="Name" value="SpritesList" />
+				<attribute name="Min Size" value="0 60" />
+				<attribute name="Pivot" value="0 0" />
+				<element type="ScrollBar" internal="true" style="none">
+					<attribute name="Size" value="310 16" />
+					<attribute name="Min Anchor" value="0 1" />
+					<attribute name="Max Anchor" value="0 1" />
+					<attribute name="Pivot" value="0 1" />
+					<attribute name="Color" value="0 0 0 0" />
+					<attribute name="Top Left Color" value="0 0 0 0" />
+					<attribute name="Top Right Color" value="0 0 0 0" />
+					<attribute name="Bottom Left Color" value="0 0 0 0" />
+					<attribute name="Bottom Right Color" value="0 0 0 0" />
+					<element type="Button" internal="true" style="none">
+						<attribute name="Pivot" value="0 0" />
+					</element>
+					<element type="Slider" internal="true" style="none">
+						<attribute name="Position" value="16 0" />
+						<attribute name="Size" value="278 16" />
+						<attribute name="Pivot" value="0 0" />
+						<element type="BorderImage" internal="true" style="none">
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+					<element type="Button" internal="true" style="none">
+						<attribute name="Position" value="294 0" />
+						<attribute name="Pivot" value="0 0" />
+					</element>
+				</element>
+				<element type="ScrollBar" internal="true" style="none">
+					<attribute name="Size" value="16 544" />
+					<attribute name="Min Anchor" value="1 0" />
+					<attribute name="Max Anchor" value="1 0" />
+					<attribute name="Pivot" value="1 0" />
+					<attribute name="Color" value="0 0 0 0" />
+					<attribute name="Top Left Color" value="0 0 0 0" />
+					<attribute name="Top Right Color" value="0 0 0 0" />
+					<attribute name="Bottom Left Color" value="0 0 0 0" />
+					<attribute name="Bottom Right Color" value="0 0 0 0" />
+					<element type="Button" internal="true" style="none">
+						<attribute name="Pivot" value="0 0" />
+					</element>
+					<element type="Slider" internal="true" style="none">
+						<attribute name="Position" value="0 16" />
+						<attribute name="Size" value="16 512" />
+						<attribute name="Pivot" value="0 0" />
+						<element type="BorderImage" internal="true" style="none">
+							<attribute name="Pivot" value="0 0" />
+						</element>
+					</element>
+					<element type="Button" internal="true" style="none">
+						<attribute name="Position" value="0 528" />
+						<attribute name="Pivot" value="0 0" />
+					</element>
+				</element>
+				<element type="BorderImage" internal="true" style="none">
+					<attribute name="Pivot" value="0 0" />
+					<element internal="true" style="none">
+						<attribute name="Pivot" value="0 0" />
+					</element>
+				</element>
+			</element>
+		</element>
+	</element>
+</element>

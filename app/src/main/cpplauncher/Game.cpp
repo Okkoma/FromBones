@@ -637,6 +637,19 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
     return fileName;
 }
 
+#include <link.h>
+
+int loadedSOcallback(struct dl_phdr_info *info, size_t size, void *data)
+{
+    URHO3D_LOGINFOF("Game() - %s used", info->dlpi_name);
+    return 0;
+}
+
+void ShowLoadedSo()
+{
+    dl_iterate_phdr(loadedSOcallback, 0);
+}
+
 void Game::Start()
 {
 #if defined(PERFORMTESTS)
@@ -650,6 +663,7 @@ void Game::Start()
 #if defined(ACTIVE_CLIPPING)
     URHO3D_LOGINFO("Game() - clipping = true");
 #endif
+    ShowLoadedSo();
 
     Graphics* graphics = GetSubsystem<Graphics>();
 

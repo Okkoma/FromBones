@@ -5166,8 +5166,11 @@ _________________________________________________________________________
 ====> 14/06/2023 : ajout dans l'editor des panneaux characterMapping, ColorMapping et SwapSprites
 ====> 21/06/2023 OK : sauvegarde du Color Mapping dans le SCML ou dans un SCML addon
 =====> l'ui, ajouter une liste comme pour le character mapping avec un bouton New en plus pour créer des colorMapping ou bien modifier l'ui du characterMaps en Maps qui inclura les Maps de Character et de Color
-====> ajouter une dropdownlist de selection de l'entité à editer, important pour la selection des character et color mapping.
-====> ajouter la liste des animations toujours relatif à l'entité.
+====> ajout d' une dropdownlist de selection de l'entité à editer, important pour la selection des character et color mapping.
+====> SwapSprites Panel s'applique characterMapping édité
+====> ColorMapping Panel permet de créer un mapping de Color.
+====> 29/06/2023 OK : Animation panel permet de jouer les differentes animations
+====> Ajouter/Tester les delta Positions pour le characterMapping
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

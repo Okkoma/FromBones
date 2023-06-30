@@ -42,7 +42,7 @@ SharedPtr<ScriptFile> scriptFile_;
 #else
     #ifdef EDITORMODE2
 // the types of the class factories
-typedef MapEditorLib* CreateMapEditorLibFunc(Scene*);
+typedef MapEditorLib* CreateMapEditorLibFunc(Context*);
 typedef void DestroyMapEditorLibFunc(MapEditorLib*);
 void* editorDynLibraryHandle_ = 0;
 #else
@@ -203,7 +203,7 @@ bool MapEditor::LoadLibrary()
     }
 
     // create an instance of the class
-    mapEditorLib_ = CreateMapEditorLib(GameContext::Get().rootScene_);
+    mapEditorLib_ = CreateMapEditorLib(context_);
 
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : mapEditorLib_=%u", mapEditorLib_);
 

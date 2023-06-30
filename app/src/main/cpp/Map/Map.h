@@ -3,6 +3,7 @@
 #include <Urho3D/Urho2D/RigidBody2D.h>
 #include <Urho3D/Resource/Resource.h>
 
+#include "DefsCore.h"
 #include "DefsGame.h"
 #include "DefsMap.h"
 #include "DefsFluids.h"
@@ -44,7 +45,7 @@ class ViewManager;
 class GOC_Destroyer;
 
 
-class MapBase
+class FROMBONES_API MapBase
 {
     friend class Map;
     friend class ObjectMaped;
@@ -532,7 +533,7 @@ enum
 };
 
 
-class Map : public Object, public MapBase
+class FROMBONES_API Map : public Object, public MapBase
 {
     URHO3D_OBJECT(Map, Object);
 
