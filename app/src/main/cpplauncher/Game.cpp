@@ -829,6 +829,8 @@ void Game::Stop()
 
     engine_->DumpProfiler();
 
+    ShowLoadedSo();
+
     /// GAME EXIT
 
 //#ifdef __ANDROID__

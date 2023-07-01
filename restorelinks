@@ -1,7 +1,9 @@
 #!/bin/bash
 
-#FBDIR=FromBones-Vulkan
-FBDIR=FromBones
+#FBDIR="FromBones-Vulkan"
+#URDIR="Urho3D-Vulkan"
+FBDIR="FromBones"
+URDIR="Urho3D"
 
 # checks the platform
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -19,11 +21,11 @@ fi
 
 if [[ "$PLATFORM" == "linux" ]]; then
 	DEVPATH=/media/DATA
-	URHO3D=$DEVPATH/Dev/Urho3D/Urho3D
+	URHO3D=$DEVPATH/Dev/Urho3D/$URDIR
 	FROMBONES=$DEVPATH/Dev/Projets/$FBDIR
 	OKKOLOCAL=~/.local/share/OkkoStudio/FromBones
 elif [[ "$PLATFORM" == "win64" ]]; then
-	URHO3D=/mnt/d/DEV/Urho3D/Urho3D
+	URHO3D=/mnt/d/DEV/Urho3D/$URDIR
 	FROMBONES=/mnt/d/DEV/Projets/$FBDIR
 	# OKKOLOCAL=/mnt/c/Users/Christophe/AppData/Roaming/OkkoStudio/FromBones
 fi
@@ -42,9 +44,12 @@ ln -srf $URHO3D/gradlew
 ln -srf $URHO3D/gradlew.bat
 ln -srf $URHO3D/rakefile
 
-mkdir exe
-ln -srf $FROMBONES/bin/CoreData exe
-ln -srf $FROMBONES/bin/Data exe
+mkdir -p exe/vk exe/gl
+
+ln -srf $FROMBONES/bin/CoreData exe/gl
+ln -srf $FROMBONES/bin/Data exe/gl
+ln -srf $FROMBONES/bin/CoreData exe/vk
+ln -srf $FROMBONES/bin/Data exe/vk
 
 if [[ "$PLATFORM" == "linux" ]]; then
 	rm -f Local

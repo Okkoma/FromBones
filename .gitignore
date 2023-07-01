@@ -7,8 +7,9 @@
 **/.gradle
 /bin-tool/Output
 /bin-tool/Input/PNG
-/exe/*.log
-log.txt
-/lib/*/*.so
-/lib/*/*.so.*
+/exe/*/*.log
+/exe/*/*-shared
+/exe/*/*.so
+/exe/*/*.so.*
 /Local
+log.txt

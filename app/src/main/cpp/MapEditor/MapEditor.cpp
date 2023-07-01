@@ -173,11 +173,9 @@ bool MapEditor::LoadLibrary()
 #else
     #ifdef EDITORMODE2
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : load Editor Lib ... restorefocus=%u", sMapEditorSavedFocusState_);
-#ifdef URHO3D_VULKAN
-    libName_ = "../lib/vk/libFromBonesEditor.so";
-#else
-    libName_ = "../lib/gl/libFromBonesEditor.so";
-#endif
+
+    libName_ = "./libFromBonesEditor.so";
+
     editorDynLibraryHandle_ = dlopen(libName_.CString(), RTLD_NOW);
     if (!editorDynLibraryHandle_)
     {
@@ -208,7 +206,7 @@ bool MapEditor::LoadLibrary()
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : mapEditorLib_=%u", mapEditorLib_);
 
     return true;
-#else
+    #else
     mapEditorLib_ = new MapEditorLibImpl(context_);
     return true;
     #endif
