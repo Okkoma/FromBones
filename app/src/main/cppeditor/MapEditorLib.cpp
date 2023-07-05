@@ -123,6 +123,13 @@ enum PickMode
     MAX_PICK_MODES
 };
 
+enum GeomEditMode
+{
+    GE_TRANSLATE = 0,
+    GE_SCALE,
+    GE_ROTATE
+};
+
 const char* PickModeStr[] =
 {
     "PICK_GEOMETRIES",
@@ -542,22 +549,20 @@ public :
         return animatorEditor_;
     }
 
-private :
-    void SetCharacterMappingPanel();
-    void SetSpriteSlotColor(UIElement* slot, const Color& color);
-    void SetColorSpritePanel();
-    void SetSpriteMappingPanel();
-    void SetSpriteSelectionList();
-    void SetAnimationPanel();
-
-    UIElement* AddMap(const String& mapname);
-    UIElement* ApplyMap(const String& mapname);
-
-    void UpdateColorSpritePanel();
-    void UpdateSpriteMappingPanel();
     void UpdateMapping(bool updatesprites, bool updatecolors);
+
+    void ResetSelection(bool hover);
+    void Select(const Vector2& worldposition, bool findbottomsprite, bool hover);
+    void MoveSelection(const Vector2& delta, int mode);
+    int GetSelection() const { return lastSelectedTimelineId_; }
+
+private :
+
     void FinishEdit();
 
+    void SetCharacterMappingPanel();
+    UIElement* AddMap(const String& mapname);
+    UIElement* ApplyMap(const String& mapname);
     void HandleResize(StringHash eventType, VariantMap& eventData);
     void HandleVisible(StringHash eventType, VariantMap& eventData);
     void HandleAnimationSetSave(StringHash eventType, VariantMap& eventData);
@@ -573,11 +578,25 @@ private :
     void HandleMoveUpAppliedCMap(StringHash eventType, VariantMap& eventData);
     void HandleMoveDownAppliedCMap(StringHash eventType, VariantMap& eventData);
     void HandleRemoveAppliedCMap(StringHash eventType, VariantMap& eventData);
+
+    void SetColorSpritePanel();
+    void SetSpriteSlotColor(UIElement* slot, const Color& color);
+    void UpdateColorSpritePanel();
     void HandleColorPressed(StringHash eventType, VariantMap& eventData);
-    void HandleSpriteMappingPanelShowSwap(StringHash eventType, VariantMap& eventData);
+
+    void SetSpriteMappingPanel();
+    void SetSpriteSelectionList();
+    UIElement* GetSpriteMappingListItem(unsigned key) const;
+    void UpdateSpriteMappingPanel();
+    void UpdateSpriteMappingListItem(UIElement* item, Spriter::MapInstruction* instruct);
+    void HandleSpriteMappingPanelToggleShow(StringHash eventType, VariantMap& eventData);
     void HandleSpriteMappingPanelSelectMappedSprite(StringHash eventType, VariantMap& eventData);
     void HandleSpriteMappingPanelSelectSwappedSprite(StringHash eventType, VariantMap& eventData);
     void HandleSpriteMappingPanelModifySprite(StringHash eventType, VariantMap& eventData);
+    void HandleSpriteMappingPanelSelectionUnMap(StringHash eventType, VariantMap& eventData);
+    void HandleSpriteMappingPanelSelectionHide(StringHash eventType, VariantMap& eventData);
+
+    void SetAnimationPanel();
     void HandleAnimationSelect(StringHash eventType, VariantMap& eventData);
     void HandleAnimationTooglePlay(StringHash eventType, VariantMap& eventData);
     void HandleAnimationPlay(StringHash eventType, VariantMap& eventData);
@@ -591,6 +610,12 @@ private :
     WeakPtr<Node> cloneNode_;
     unsigned entityid_;
     int editedSlotIndex_;
+
+    int lastSelectedTimelineId_, lastHoverTimelineId_;
+    PODVector<Spriter::Ref*> lastSelectedTimelineRefs_, lastHoverTimelineRefs_;
+    PODVector<Color> lastSelectedTimelineRefsColors_, lastHoverTimelineRefsColors_;
+
+    ListView* spriteMappingList_;
 
     static AnimatorEditor* animatorEditor_;
 };
@@ -665,6 +690,10 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
 
 MapEditorLibImpl::~MapEditorLibImpl()
 {
+    AnimatorEditor::Get()->ResetSelection(true);
+    AnimatorEditor::Get()->ResetSelection(false);
+    AnimatorEditor::Get()->UpdateMapping(true, true);
+
     if (debugTextRootNode_)
         debugTextRootNode_->Remove();
 
@@ -2451,6 +2480,16 @@ void MapEditorLibImpl::Update(float timeStep)
             }
             else
             {
+                if (drawableUnderMouse_ == AnimatorEditor::Get()->GetAnimatedSprite())
+                {
+                    AnimatorEditor::Get()->Select(position.position_, input->GetQualifierDown(QUAL_SHIFT), false);
+                }
+                else
+                {
+                    AnimatorEditor::Get()->ResetSelection(false);
+                    AnimatorEditor::Get()->ResetSelection(true);
+                }
+
                 SelectObject(drawableUnderMouse_);
             }
         }
@@ -2461,12 +2500,20 @@ void MapEditorLibImpl::Update(float timeStep)
         else
         {
             UnSelectObject();
+            AnimatorEditor::Get()->ResetSelection(false);
+            AnimatorEditor::Get()->ResetSelection(true);
         }
     }
     else if (clickMode_ == CLICK_MOVE)
     {
+        // Move Sprite
+        if (AnimatorEditor::Get()->GetSelection() != -1)
+        {
+            int mode = input->GetQualifierDown(QUAL_SHIFT) ? GE_SCALE : (input->GetQualifierDown(QUAL_CTRL) ? GE_ROTATE : GE_TRANSLATE);
+            AnimatorEditor::Get()->MoveSelection(Vector2(input->GetMouseMoveX() * moveStep_, -input->GetMouseMoveY() * moveStep_), mode);
+        }
         // Move Objects
-        if (!editNodes_.Empty())
+        else if (!editNodes_.Empty())
         {
             if (MoveObjects(Vector2(input->GetMouseMoveX() * timeStep * moveStep_, -input->GetMouseMoveY() * timeStep * moveStep_)))
             {
@@ -2487,9 +2534,15 @@ void MapEditorLibImpl::Update(float timeStep)
 
         else if (drawableUnderMouse_ || shapeUnderMouse_)
         {
-            // Draw Picked Object
-            if (drawableUnderMouse_ != AnimatorEditor::Get()->GetAnimatedSprite())
+            if (drawableUnderMouse_ == AnimatorEditor::Get()->GetAnimatedSprite())
             {
+                AnimatorEditor::Get()->Select(position.position_, input->GetQualifierDown(QUAL_SHIFT), true);
+            }
+            else
+            {
+                AnimatorEditor::Get()->ResetSelection(true);
+
+                // Draw Picked Object
                 DebugRenderer* debugRenderer = scene_->GetComponent<DebugRenderer>();
                 if (debugRenderer)
                 {
@@ -2730,9 +2783,12 @@ void MapEditorLibImpl::UpdateSelectShape()
     points_.Clear();
     debugTextRootNode_->SetEnabledRecursive(false);
 
-    if (selectedDrawable_ && selectedDrawable_ != AnimatorEditor::Get()->GetAnimatedSprite())
+    if (selectedDrawable_)
     {
-        AddShapeToRender(selectedDrawable_, Color::GRAY.ToUInt(), Color::YELLOW.ToUInt());
+        if (selectedDrawable_ != AnimatorEditor::Get()->GetAnimatedSprite())
+        {
+            AddShapeToRender(selectedDrawable_, Color::GRAY.ToUInt(), Color::YELLOW.ToUInt());
+        }
     }
 
     if (selectedShape_)
@@ -2749,8 +2805,6 @@ void MapEditorLibImpl::UpdateSelectShape()
         AddShapeToRender(selectedRenderShape_, selectRenderShapeColor_, Color::YELLOW.ToUInt(), true);
     }
 }
-
-
 
 void MapEditorLibImpl::SubscribeToUIEvent()
 {
@@ -3196,14 +3250,16 @@ AnimatorEditor::AnimatorEditor(Context* context)  : Object(context)
 {
     URHO3D_LOGINFOF("AnimatorEditor()");
     mainScene_ = GameContext::Get().rootScene_;
+    lastSelectedTimelineId_ = lastHoverTimelineId_ = -1;
 }
 
 AnimatorEditor::~AnimatorEditor()
 {
     URHO3D_LOGINFOF("~AnimatorEditor()");
-    animatorEditor_ = 0;
 
     FinishEdit();
+
+    animatorEditor_ = 0;
 }
 
 static Vector2 nodeoriginscale_;
@@ -3318,6 +3374,189 @@ void AnimatorEditor::FinishEdit()
     }
 }
 
+static Spriter::SpriteTimelineKey* lastSelectedSpriteKey_ = 0;
+static SpriteDebugInfo lastSelectInfo_, lastHoverInfo_;
+
+void AnimatorEditor::ResetSelection(bool hover)
+{
+    if (!editedAnimatedSprite_)
+        return;
+
+    int& lastTimelineId = !hover ? lastSelectedTimelineId_ : lastHoverTimelineId_;
+    PODVector<Spriter::Ref*>& lastTimelineRefs = !hover ? lastSelectedTimelineRefs_ : lastHoverTimelineRefs_;
+    PODVector<Color>& lastTimelineRefsColors = !hover ? lastSelectedTimelineRefsColors_ : lastHoverTimelineRefsColors_;
+
+    if (lastTimelineRefs.Size())
+    {
+        for (unsigned i=0; i < lastTimelineRefs.Size(); i++)
+            lastTimelineRefs[i]->color_ = lastTimelineRefsColors[i];
+
+        lastTimelineRefs.Clear();
+        lastTimelineRefsColors.Clear();
+        lastTimelineId = -1;
+        GetAnimatedSprite()->GetSpriterInstance()->UpdateTimelineKeys();
+        GetAnimatedSprite()->SetColorDirty();
+    }
+
+    if (!hover)
+        lastSelectedSpriteKey_ = 0;
+}
+
+void AnimatorEditor::Select(const Vector2& worldposition, bool findbottomsprite, bool hover)
+{
+    const Vector2 position = GetAnimatedSprite()->GetNode()->GetWorldTransform2D().Inverse() * worldposition;
+    const float minalpha = 0.9f;
+    SpriteDebugInfo& info = !hover ? lastSelectInfo_ : lastHoverInfo_;
+    if (GetAnimatedSprite()->GetSpriteAt(position, findbottomsprite, minalpha, info))
+    {
+        // add debug drawrect
+        if (hover)
+        {
+            DebugRenderer* debugRenderer = mainScene_->GetComponent<DebugRenderer>();
+            const unsigned uintColor = Color::YELLOW.ToUInt();
+            debugRenderer->AddLine(info.vertices_[0], info.vertices_[1], uintColor, false);
+            debugRenderer->AddLine(info.vertices_[1], info.vertices_[2], uintColor, false);
+            debugRenderer->AddLine(info.vertices_[2], info.vertices_[3], uintColor, false);
+            debugRenderer->AddLine(info.vertices_[3], info.vertices_[0], uintColor, false);
+        }
+
+        int& lastTimelineId = !hover ? lastSelectedTimelineId_ : lastHoverTimelineId_;
+        PODVector<Spriter::Ref*>& lastTimelineRefs = !hover ? lastSelectedTimelineRefs_ : lastHoverTimelineRefs_;
+        PODVector<Color>& lastTimelineRefsColors =  !hover ? lastSelectedTimelineRefsColors_ : lastHoverTimelineRefsColors_;
+
+        // get the Timeline Id
+        Spriter::SpriteTimelineKey* spriteKey = GetAnimatedSprite()->GetSpriteKeys()[info.spriteindex_];
+        if (lastTimelineId != spriteKey->timeline_->id_ && spriteKey->timeline_->objectType_ == Urho3D::Spriter::SPRITE)
+        {
+            ResetSelection(hover);
+            if (!hover && spriteKey->timeline_->id_ == lastHoverTimelineId_)
+                ResetSelection(true);
+
+            if (!hover || spriteKey->timeline_->id_ != lastSelectedTimelineId_)
+            {
+                lastTimelineId = spriteKey->timeline_->id_;
+                if (!hover)
+                    lastSelectedSpriteKey_ = spriteKey;
+                // change the color of the refs to green
+                GetAnimatedSprite()->GetSpriterInstance()->GetAnimation()->GetObjectRefs(lastTimelineId, lastTimelineRefs);
+                for (unsigned i=0; i < lastTimelineRefs.Size(); i++)
+                {
+                    lastTimelineRefsColors.Push(lastTimelineRefs[i]->color_);
+                    lastTimelineRefs[i]->color_ = hover ? Color::GRAY : Color::GREEN;
+                }
+                GetAnimatedSprite()->GetSpriterInstance()->UpdateTimelineKeys();
+                GetAnimatedSprite()->SetColorDirty();
+                URHO3D_LOGINFOF("AnimatorEditor() - Select : hovering=%s index=%u sprite=%s timeline=%d numrefs=%u", hover ? "true":"false", info.spriteindex_, info.sprite_->GetName().CString(), lastTimelineId, lastTimelineRefs.Size());
+            }
+        }
+    }
+    else
+    {
+        ResetSelection(hover);
+    }
+}
+
+void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
+{
+    Spriter::Timeline* timeline = GetAnimatedSprite()->GetSpriterInstance()->GetAnimation()->timelines_[lastSelectedTimelineId_];
+    if (timeline->objectType_ == Urho3D::Spriter::SPRITE)
+    {
+        // get the current edited cmap and retrieve the slot to be edited
+        UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
+        LineEdit* lineEdit = static_cast<LineEdit*>(panel->GetChild("CMapName", true));
+        if (lineEdit->GetText().Empty())
+            return;
+
+        Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(lineEdit->GetText()));
+        if (!spritemap)
+            return;
+
+//        URHO3D_LOGINFOF("AnimatorEditor - MoveSelection : index=%u, sprite=%s(key=%u) ssprite=%s(key=%u) ...", lastSelectInfo_.spriteindex_,
+//                        lastSelectInfo_.sprite_->GetName().CString(), lastSelectInfo_.key_,
+//                        lastSelectInfo_.spriteinfo_->sprite_->GetName().CString(), lastSelectInfo_.spriteinfo_->key_);
+
+        // find the sprite in the charactermap
+        Spriter::MapInstruction* instruct = spritemap->GetInstruction(lastSelectInfo_.key_);
+        if (!instruct)
+            return;
+
+        // set the targetdx, targetdy
+        if (mode == GE_SCALE)
+        {
+            instruct->targetscalex_ += delta.x_ / GetAnimatedSprite()->GetNode()->GetWorldScale2D().x_;
+            instruct->targetscaley_ += delta.y_ / GetAnimatedSprite()->GetNode()->GetWorldScale2D().y_;
+        }
+        else if (mode == GE_ROTATE)
+        {
+            instruct->targetdangle_ += atanf(delta.y_ / (delta.x_ == 0.f ? 1.f : delta.x_));
+        }
+        else
+        {
+            instruct->targetdx_ += delta.x_ / GetAnimatedSprite()->GetNode()->GetWorldScale2D().x_ * 0.1f;
+            instruct->targetdy_ += delta.y_ / GetAnimatedSprite()->GetNode()->GetWorldScale2D().y_ * 0.1f;
+        }
+
+        URHO3D_LOGINFOF("AnimatorEditor - MoveSelection : index=%u sprite=%s dPosition=%F,%F scale=%F,%F angle=%F", lastSelectInfo_.spriteindex_, lastSelectInfo_.sprite_->GetName().CString(),
+                        instruct->targetdx_, instruct->targetdy_, instruct->targetscalex_, instruct->targetscaley_, instruct->targetdangle_);
+
+        UpdateSpriteMappingListItem(GetSpriteMappingListItem(lastSelectInfo_.key_), instruct);
+
+        GetAnimatedSprite()->UpdateAnimation(0.f);
+    }
+}
+
+void AnimatorEditor::UpdateMapping(bool updatesprites, bool updatecolors)
+{
+    if (!editedAnimatedSprite_)
+        return;
+
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS);
+    ListView* appliedMaps = static_cast<ListView*>(panel->GetChild("AppliedMaps", true));
+
+    editedAnimatedSprite_->ResetCharacterMapping(false);
+    for (unsigned i=0; i < appliedMaps->GetNumItems(); i++)
+    {
+        Text* item = static_cast<Text*>(appliedMaps->GetItem(i));
+        if (item->HasTag("Color"))
+        {
+            if (updatecolors)
+            {
+                URHO3D_LOGINFOF("AnimatorEditor() - UpdateMapping : Apply Color Map = %s", item->GetText().CString());
+                editedAnimatedSprite_->ApplyColorMap(item->GetText());
+            }
+        }
+        else if (updatesprites)
+            editedAnimatedSprite_->ApplyCharacterMap(item->GetText());
+    }
+}
+
+UIElement* AnimatorEditor::AddMap(const String& mapname)
+{
+    ListView* availableMaps = static_cast<ListView*>(MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS)->GetChild("AvailableMaps", true));
+    Text* item = new Text(context_);
+    item->SetStyle("FileSelectorListText");
+    item->SetText(mapname);
+    availableMaps->AddItem(item);
+    SubscribeToEvent(item, E_DOUBLECLICK, URHO3D_HANDLER(AnimatorEditor, HandleEditCMap));
+    return item;
+}
+
+UIElement* AnimatorEditor::ApplyMap(const String& mapname)
+{
+    ListView* appliedMaps = static_cast<ListView*>(MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS)->GetChild("AppliedMaps", true));
+
+    Text* item = new Text(context_);
+    item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+    item->SetStyle("FileSelectorListText");
+    item->SetText(mapname);
+    appliedMaps->AddItem(item);
+
+    return item;
+}
+
+
+/// Main Character Mapping Panel
+
 void AnimatorEditor::SetCharacterMappingPanel()
 {
     AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
@@ -3406,379 +3645,19 @@ void AnimatorEditor::SetCharacterMappingPanel()
     SetAnimationPanel();
 }
 
-void AnimatorEditor::SetColorSpritePanel()
+void AnimatorEditor::HandleVisible(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteColorMappingPanel");
+    URHO3D_LOGINFOF("AnimatorEditor() - HandleVisible : visible=%s", panel_->IsVisible()?"true":"false");
 
-    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
+    if (!panel_->IsVisible())
+        FinishEdit();
 
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
+    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_SWSPRITES, false);
+    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_COLORMAPPING, false);
 
-    // Set Color List
-    ListView* colors = static_cast<ListView*>(panel->GetChild("Colors", true));
-    for (unsigned i=0; i < colors->GetNumItems(); i++)
+    if (previewScene_)
     {
-        UIElement* item = colors->GetItem(i);
-        item->GetChild(0)->SetColor(EditorSpriteColors_[i]);
-        SubscribeToEvent(item, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleColorPressed));
-    }
-}
-
-void AnimatorEditor::SetSpriteMappingPanel()
-{
-    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteMappingPanel");
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
-
-    CheckBox* showswap = static_cast<CheckBox*>(panel->GetChild("ShowSwap", true));
-    SubscribeToEvent(showswap, E_TOGGLED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelShowSwap));
-
-    UpdateSpriteMappingPanel();
-}
-
-void AnimatorEditor::SetSpriteSlotColor(UIElement* slot, const Color& color)
-{
-    slot->GetChild("Sprite", true)->GetChild(0)->SetColor(color);
-    BorderImage* slotcolor = static_cast<BorderImage*>(slot->GetChild("SpriteColor", true)->GetChild(0));
-    if (color != Color::WHITE)
-    {
-        slotcolor->SetStyle("none");
-        slotcolor->SetMinSize(24, 24);
-        slotcolor->SetMaxSize(24, 24);
-        slotcolor->SetTexture(0);
-//        slotcolor->SetImageRect(IntRect(0, 0, 256, 128));
-        slotcolor->SetColor(color);
-    }
-    else
-    {
-        slotcolor->SetStyle("BorderImageEmpty");
-    }
-}
-
-void AnimatorEditor::SetSpriteSelectionList()
-{
-    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteSelectionList");
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SSELECTLIST);
-    ListView* spritesList = static_cast<ListView*>(panel->GetChild("SpritesList", true));
-    spritesList->RemoveAllItems();
-
-    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
-    const unsigned numSpritesByRow = 4;
-    const unsigned numSprites = spritemapping.Size() + 2;
-    const unsigned numRows = numSprites / numSpritesByRow;
-    const int numSpritesLastRow = numSprites - numRows * numSpritesByRow;
-    // set sprites row
-    for (unsigned i = 0; i < numRows; i++)
-    {
-        UIElement* row = new UIElement(context_);
-        row->SetLayoutMode(LM_HORIZONTAL);
-        row->SetLayoutSpacing(4);
-        row->SetHorizontalAlignment(HA_CENTER);
-        for (unsigned j = 0; j < numSpritesByRow; j++)
-            row->AddChild(AddListButton(String::EMPTY, 0));
-        spritesList->AddItem(row);
-    }
-    // set sprites last row
-    if (numSpritesLastRow)
-    {
-        UIElement* row = new UIElement(context_);
-        row->SetLayoutMode(LM_HORIZONTAL);
-        row->SetLayoutSpacing(4);
-        row->SetHorizontalAlignment(HA_CENTER);
-        for (unsigned i = 0; i < numSpritesLastRow; i++)
-            row->AddChild(AddListButton(String::EMPTY, 0));
-        spritesList->AddItem(row);
-    }
-    // add remove button
-    {
-        UIElement* button = spritesList->GetItem(0)->GetChild(0);
-        SubscribeToEvent(button, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelModifySprite));
-        button->SetVar(MAPPINGSPRITE_KEY, SPRITEKEY_REMOVE);
-
-        BorderImage* spritebtn = static_cast<Button*>(button->GetChild(0));
-        Text* textbtn = static_cast<Text*>(button->GetChild(1));
-        textbtn->SetFontSize(12);
-        textbtn->SetAlignment(HA_CENTER, VA_CENTER);
-        textbtn->SetColor(Color::RED);
-        textbtn->SetText("Remove");
-    }
-    // add ignore button
-    {
-        UIElement* button = spritesList->GetItem(0)->GetChild(1);
-        SubscribeToEvent(button, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelModifySprite));
-        button->SetVar(MAPPINGSPRITE_KEY, SPRITEKEY_IGNORE);
-
-        BorderImage* spritebtn = static_cast<Button*>(button->GetChild(0));
-        Text* textbtn = static_cast<Text*>(button->GetChild(1));
-        textbtn->SetFontSize(12);
-        textbtn->SetAlignment(HA_CENTER, VA_CENTER);
-        textbtn->SetColor(Color::GRAY);
-        textbtn->SetText("none");
-    }
-    // set Sprites
-    unsigned i = 2;
-    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it, i++)
-    {
-        Sprite2D* sprite = it->second_.Get();
-        int row = i / numSpritesByRow;
-        int isprite = i - row * numSpritesByRow;
-
-        UIElement* button = spritesList->GetItem(row)->GetChild(isprite);
-        SubscribeToEvent(button, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelModifySprite));
-
-        button->SetVar(MAPPINGSPRITE_KEY, it->first_);
-
-        BorderImage* spritebtn = static_cast<Button*>(button->GetChild(0));
-        spritebtn->SetTexture(sprite->GetTexture());
-        spritebtn->SetImageRect(sprite->GetRectangle());
-        Text* textbtn = static_cast<Text*>(button->GetChild(1));
-        textbtn->SetText(sprite->GetName());
-    }
-}
-
-void AnimatorEditor::SetAnimationPanel()
-{
-    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
-
-    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_ANIMS, true);
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS);
-
-    const PODVector<Spriter::Entity*>& entities = animationSet->GetSpriterData()->entities_;
-    const PODVector<Spriter::Animation*>& animations = entities[entityid_]->animations_;
-
-    ListView* availableAnimations = static_cast<ListView*>(panel->GetChild("AvailableAnims", true));
-    availableAnimations->SetMultiselect(false);
-    availableAnimations->RemoveAllItems();
-    for (unsigned i=0; i < animations.Size(); i++)
-    {
-        Text* item = new Text(context_);
-        item->SetStyle("FileSelectorListText");
-        item->SetText(animations[i]->name_);
-        availableAnimations->AddItem(item);
-    }
-
-    UIElement* toggleplaybutton = panel->GetChild("TogglePlay", true);
-    Text* text = static_cast<Text*>(toggleplaybutton->GetChild(0));
-    text->SetText("Play");
-
-    SubscribeToEvent(availableAnimations, E_ITEMSELECTED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationSelect));
-    SubscribeToEvent(toggleplaybutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationTooglePlay));
-}
-
-void AnimatorEditor::HandleAnimationSelect(StringHash eventType, VariantMap& eventData)
-{
-//    URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationSelect");
-
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS);
-    ListView* availableAnimations = static_cast<ListView*>(panel->GetChild("AvailableAnims", true));
-
-    String animation = static_cast<Text*>(availableAnimations->GetSelectedItem())->GetText();
-    static_cast<LineEdit*>(panel->GetChild("SetName", true))->SetText(animation);
-
-    editedAnimatedSprite_->SetAnimation(animation, LM_FORCE_LOOPED);
-    editedAnimatedSprite_->ResetAnimation();
-    editedAnimatedSprite_->ForceUpdateBatches();
-}
-
-void AnimatorEditor::HandleAnimationTooglePlay(StringHash eventType, VariantMap& eventData)
-{
-    Text* text = static_cast<Text*>(static_cast<Button*>(eventData[Pressed::P_ELEMENT].GetPtr())->GetChild(0));
-    if (text->GetText() == "Play")
-    {
-//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationTooglePlay : Play");
-        text->SetText("Stop");
-        SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(AnimatorEditor, HandleAnimationPlay));
-    }
-    else
-    {
-//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationTooglePlay : Pause");
-        text->SetText("Play");
-        UnsubscribeFromEvent(E_POSTUPDATE);
-    }
-}
-
-void AnimatorEditor::HandleAnimationPlay(StringHash eventType, VariantMap& eventData)
-{
-    if (!editedAnimatedSprite_)
-    {
-        UnsubscribeFromEvent(E_POSTUPDATE);
-        return;
-    }
-
-    editedAnimatedSprite_->UpdateAnimation(eventData[PostUpdate::P_TIMESTEP].GetFloat());
-}
-
-void AnimatorEditor::HandleColorPressed(StringHash eventType, VariantMap& eventData)
-{
-    Color color = static_cast<UIElement*>(context_->GetEventSender())->GetChild(0)->GetColor(C_TOPLEFT);
-
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
-    ListView* colorSprites = static_cast<ListView*>(panel->GetChild("SlotSprites", true));
-
-    PODVector<UIElement*> selectedSlots = colorSprites->GetSelectedItems();
-    if (selectedSlots.Size())
-    {
-//        URHO3D_LOGINFOF("AnimatorEditor() - HandleColorPressed color=%s numselecteditems=%u", color.ToString().CString(), selectedSlots.Size());
-        AnimatedSprite2D* animatedSprite = editNode_->GetComponent<AnimatedSprite2D>();
-
-        String colormapname = static_cast<LineEdit*>(panel->GetChild("CMapName", true))->GetText();
-        Spriter::ColorMap* colorMap = animatedSprite->GetColorMap(colormapname);
-
-        if (colorMap)
-        {
-            for (unsigned i=0; i < selectedSlots.Size(); i++)
-            {
-                UIElement* slot = selectedSlots[i];
-                SetSpriteSlotColor(slot, color);
-
-                // Set Color in the colormap (spriter data)
-                colorMap->SetColor(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt(), color);
-
-                // Set Color Instantly in animatedSprite
-                animatedSprite->SetSpriteColor(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt(), color);
-            }
-        }
-    }
-}
-
-void AnimatorEditor::UpdateSpriteMappingPanel()
-{
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
-
-    URHO3D_LOGINFOF("AnimatorEditor() - UpdateSpriteMappingPanel");
-
-    ListView* mappedSwappedSprites = static_cast<ListView*>(panel->GetChild("MappedSwappedSprites", true));
-
-    mappedSwappedSprites->RemoveAllItems();
-    mappedSwappedSprites->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-
-    bool showswap = static_cast<CheckBox*>(panel->GetChild("ShowSwap", true))->IsChecked();
-    UIElement* swapColumn = static_cast<ListView*>(panel->GetChild("SwapColumn", true));
-    swapColumn->SetVisible(showswap);
-
-    LineEdit* lineEdit = static_cast<LineEdit*>(panel->GetChild("CMapName", true));
-    if (lineEdit->GetText().Empty())
-        return;
-
-    Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(lineEdit->GetText()));
-    if (!spritemap)
-    {
-        lineEdit->SetText(String::EMPTY);
-        return;
-    }
-
-    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
-
-    int slotid = 0;
-    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
-//    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetSpriteMapping();
-    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it)
-    {
-        unsigned spritekey = it->first_;
-        int targetfolder, targetfile;
-
-        Text* item = new Text(context_);
-        item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-        item->SetStyle("FileSelectorListText");
-        item->SetMinSize(0, 32);
-        item->SetMaxSize(2147483647, 32);
-        item->SetLayoutMode(LM_HORIZONTAL);
-        item->LoadChildXML(MapEditorLibImpl::GetXmlElement(EDITORELT_ANIMATORMAPSWAPSPRITE), MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-
-        item->SetVar(MAPPINGSPRITE_KEY, spritekey);
-        item->SetVar(UIELEMENT_CHILDINDEX, slotid);
-
-        UIElement* originSpriteElt = item->GetChild("OriginSprite", true);
-        UIElement* mappedSpriteElt = item->GetChild("MappedSprite", true);
-        mappedSpriteElt->SetVar(UIELEMENT_CHILDINDEX, slotid);
-
-        Sprite2D* originSprite = animationSet->GetSpriterFileSprite(spritekey);
-        //Sprite2D* mappedSprite = it->second_;
-        Sprite2D* mappedSprite = spritemap->GetTargetKey(spritekey, targetfolder, targetfile) ? animationSet->GetSpriterFileSprite(targetfolder, targetfile) : 0;
-
-        static_cast<Text*>(originSpriteElt->GetChild(0))->SetText(originSprite->GetName());
-        static_cast<BorderImage*>(mappedSpriteElt->GetChild(0))->SetSprite(mappedSprite);
-        UIElement* mappedbutton = mappedSpriteElt->GetChild(1);
-        static_cast<Text*>(mappedbutton->GetChild(0))->SetText(mappedSprite ? mappedSprite->GetName() : (targetfolder == -1 ? "removed" : "none"));
-        SubscribeToEvent(mappedbutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectMappedSprite));
-
-        UIElement* swappedSpriteElt = item->GetChild("SwappedSprite", true);
-        swappedSpriteElt->SetVisible(showswap);
-        if (showswap)
-        {
-            Sprite2D* swappedSprite = editedAnimatedSprite_->GetSwappedSprite(mappedSprite);
-            static_cast<BorderImage*>(swappedSpriteElt->GetChild(0))->SetSprite(swappedSprite);
-            UIElement* swappedbutton = swappedSpriteElt->GetChild(1);
-            static_cast<Text*>(swappedbutton->GetChild(0))->SetText(swappedSprite ? swappedSprite->GetName(): "none");
-            SubscribeToEvent(swappedbutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectSwappedSprite));
-        }
-
-        mappedSwappedSprites->AddItem(item);
-        slotid++;
-    }
-
-    editedSlotIndex_ = -1;
-}
-
-void AnimatorEditor::UpdateColorSpritePanel()
-{
-    URHO3D_LOGINFOF("AnimatorEditor() - UpdateColorSpritePanel");
-
-    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
-
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
-
-    UIElement* colorpanel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
-    String colormapname = static_cast<LineEdit*>(colorpanel->GetChild("CMapName", true))->GetText();
-    Spriter::ColorMap* colormap = editedAnimatedSprite_->GetColorMap(StringHash(colormapname));
-
-    // Set Sprite List
-    ListView* colorSprites = static_cast<ListView*>(panel->GetChild("SlotSprites", true));
-    colorSprites->RemoveAllItems();
-    colorSprites->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-    colorSprites->SetMultiselect(true);
-    colorSprites->SetHighlightMode(HM_ALWAYS);
-    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = animationSet->GetSpriteMapping();
-    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it)
-    {
-        Text* item = new Text(context_);
-        item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-        item->SetStyle("FileSelectorListText");
-        item->SetMinSize(0, 32);
-        item->SetMaxSize(2147483647, 32);
-        item->SetLayoutMode(LM_HORIZONTAL);
-        item->LoadChildXML(MapEditorLibImpl::GetXmlElement(EDITORELT_ANIMATORSPRITECOLOR), MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-        item->SetVar(MAPPINGSPRITE_KEY, it->first_);
-        UIElement* spriteElt = item->GetChild("Sprite", true);
-        static_cast<BorderImage*>(spriteElt->GetChild(0))->SetSprite(it->second_.Get());
-        static_cast<Text*>(spriteElt->GetChild(1))->SetText(it->second_->GetName());
-        colorSprites->AddItem(item);
-
-        if (colormap)
-            SetSpriteSlotColor(item, colormap->GetColor(it->first_));
-        else
-            SetSpriteSlotColor(item, Color::WHITE);
-    }
-}
-
-void AnimatorEditor::UpdateMapping(bool updatesprites, bool updatecolors)
-{
-    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS);
-    ListView* appliedMaps = static_cast<ListView*>(panel->GetChild("AppliedMaps", true));
-
-    editedAnimatedSprite_->ResetCharacterMapping(false);
-    for (unsigned i=0; i < appliedMaps->GetNumItems(); i++)
-    {
-        Text* item = static_cast<Text*>(appliedMaps->GetItem(i));
-        if (item->HasTag("Color"))
-        {
-            if (updatecolors)
-            {
-                URHO3D_LOGINFOF("AnimatorEditor() - UpdateMapping : Apply Color Map = %s", item->GetText().CString());
-                editedAnimatedSprite_->ApplyColorMap(item->GetText());
-            }
-        }
-        else if (updatesprites)
-            editedAnimatedSprite_->ApplyCharacterMap(item->GetText());
+        previewScene_->SetUpdateEnabled(panel_->IsVisible());
     }
 }
 
@@ -3811,7 +3690,6 @@ void AnimatorEditor::HandleEntitySelected(StringHash eventType, VariantMap& even
 void AnimatorEditor::HandleCMapSelected(StringHash eventType, VariantMap& eventData)
 {
     URHO3D_LOGINFOF("AnimatorEditor() - HandleCMapSelected");
-
 }
 
 void AnimatorEditor::HandleEditCMap(StringHash eventType, VariantMap& eventData)
@@ -3860,31 +3738,6 @@ void AnimatorEditor::HandleEditCMap(StringHash eventType, VariantMap& eventData)
         UpdateSpriteMappingPanel();
     }
 }
-
-UIElement* AnimatorEditor::AddMap(const String& mapname)
-{
-    ListView* availableMaps = static_cast<ListView*>(MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS)->GetChild("AvailableMaps", true));
-    Text* item = new Text(context_);
-    item->SetStyle("FileSelectorListText");
-    item->SetText(mapname);
-    availableMaps->AddItem(item);
-    SubscribeToEvent(item, E_DOUBLECLICK, URHO3D_HANDLER(AnimatorEditor, HandleEditCMap));
-    return item;
-}
-
-UIElement* AnimatorEditor::ApplyMap(const String& mapname)
-{
-    ListView* appliedMaps = static_cast<ListView*>(MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS)->GetChild("AppliedMaps", true));
-
-    Text* item = new Text(context_);
-    item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
-    item->SetStyle("FileSelectorListText");
-    item->SetText(mapname);
-    appliedMaps->AddItem(item);
-
-    return item;
-}
-
 
 void AnimatorEditor::HandleApplyCMap(StringHash eventType, VariantMap& eventData)
 {
@@ -4041,26 +3894,220 @@ void AnimatorEditor::HandleRemoveAppliedCMap(StringHash eventType, VariantMap& e
 }
 
 
-void AnimatorEditor::HandleVisible(StringHash eventType, VariantMap& eventData)
+/// Sprite Mapping Panel / Sprite Selection Panel
+
+void AnimatorEditor::SetSpriteMappingPanel()
 {
-    URHO3D_LOGINFOF("AnimatorEditor() - HandleVisible : visible=%s", panel_->IsVisible()?"true":"false");
+    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteMappingPanel");
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
 
-    if (!panel_->IsVisible())
-        FinishEdit();
+    SubscribeToEvent(panel->GetChild("ShowSwap", true), E_TOGGLED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelToggleShow));
+    SubscribeToEvent(panel->GetChild("ShowOffset", true), E_TOGGLED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelToggleShow));
 
-    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_SWSPRITES, false);
-    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_COLORMAPPING, false);
+    SubscribeToEvent(panel->GetChild("UnMap", true), E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectionUnMap));
+    SubscribeToEvent(panel->GetChild("Hide", true), E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectionHide));
+    UpdateSpriteMappingPanel();
+}
 
-    if (previewScene_)
+UIElement* AnimatorEditor::GetSpriteMappingListItem(unsigned key) const
+{
+    const unsigned numitems = spriteMappingList_->GetNumItems();
+    for (unsigned i = 0; i < numitems; i++)
     {
-        previewScene_->SetUpdateEnabled(panel_->IsVisible());
+        UIElement* item = spriteMappingList_->GetItem(i);
+        if (item->GetVar(MAPPINGSPRITE_KEY).GetUInt() == key)
+            return item;
+    }
+    return 0;
+}
+
+void AnimatorEditor::UpdateSpriteMappingListItem(UIElement* item, Spriter::MapInstruction* instruct)
+{
+    if (!item)
+        return;
+
+    unsigned spritekey = item->GetVar(MAPPINGSPRITE_KEY).GetUInt();
+    Sprite2D* originSprite = editedAnimatedSprite_->GetAnimationSet()->GetSpriterFileSprite(spritekey);
+    Sprite2D* mappedSprite = instruct && instruct->targetFolder_ != -1 ? editedAnimatedSprite_->GetAnimationSet()->GetSpriterFileSprite(instruct->targetFolder_, instruct->targetFile_) : 0;
+    Sprite2D* swappedSprite = mappedSprite ? editedAnimatedSprite_->GetSwappedSprite(mappedSprite) : 0;
+
+//    URHO3D_LOGINFOF("AnimatorEditor() - UpdateSpriteMappingListItem : origin=%s mapped=%s swapped=%s", originSprite->GetName().CString(), mappedSprite ? mappedSprite->GetName().CString() : "NA", swappedSprite ? swappedSprite->GetName().CString() : "NA");
+
+    UIElement* mappedSpriteElt = item->GetChild("MappedSprite", true);
+    if (mappedSprite)
+        static_cast<BorderImage*>(mappedSpriteElt->GetChild(0))->SetSprite(mappedSprite);
+    else
+        static_cast<BorderImage*>(mappedSpriteElt->GetChild(0))->SetTexture(0);
+    static_cast<Text*>(mappedSpriteElt->GetChild(1)->GetChild(0))->SetText(mappedSprite ? mappedSprite->GetName() : (instruct ? "hidden" : "none"));
+
+    UIElement* swappedSpriteElt = item->GetChild("SwappedSprite", true);
+    if (swappedSprite)
+        static_cast<BorderImage*>(swappedSpriteElt->GetChild(0))->SetSprite(swappedSprite);
+    else
+        static_cast<BorderImage*>(swappedSpriteElt->GetChild(0))->SetTexture(0);
+    static_cast<Text*>(swappedSpriteElt->GetChild(1)->GetChild(0))->SetText(swappedSprite ? swappedSprite->GetName(): "none");
+
+    UIElement* offsetElt = item->GetChild("Offset", true);
+    static_cast<Text*>(offsetElt->GetChild(0))->SetText(instruct && instruct->targetFolder_ != -1 ? String().AppendWithFormat("dx:%F dy:%F da:%F", instruct->targetdx_, instruct->targetdy_, instruct->targetdangle_) : String::EMPTY);
+}
+
+void AnimatorEditor::UpdateSpriteMappingPanel()
+{
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
+
+    URHO3D_LOGINFOF("AnimatorEditor() - UpdateSpriteMappingPanel");
+
+    spriteMappingList_ = static_cast<ListView*>(panel->GetChild("MappedSwappedSprites", true));
+    spriteMappingList_->SetMultiselect(true);
+    spriteMappingList_->RemoveAllItems();
+    spriteMappingList_->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+
+    bool showswap = static_cast<CheckBox*>(panel->GetChild("ShowSwap", true))->IsChecked();
+    UIElement* swapColumn = static_cast<ListView*>(panel->GetChild("SwapColumn", true));
+    swapColumn->SetVisible(showswap);
+
+    bool showoffset = static_cast<CheckBox*>(panel->GetChild("ShowOffset", true))->IsChecked();
+    UIElement* offsetColumn = static_cast<ListView*>(panel->GetChild("OffsetColumn", true));
+    offsetColumn->SetVisible(showoffset);
+
+    LineEdit* lineEdit = static_cast<LineEdit*>(panel->GetChild("CMapName", true));
+    if (lineEdit->GetText().Empty())
+        return;
+
+    Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(lineEdit->GetText()));
+    if (!spritemap)
+    {
+        lineEdit->SetText(String::EMPTY);
+        return;
+    }
+
+    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
+
+    int slotid = 0;
+    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
+//    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetSpriteMapping();
+    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it)
+    {
+        unsigned spritekey = it->first_;
+
+        Text* item = new Text(context_);
+        item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+        item->SetStyle("FileSelectorListText");
+        item->SetMinSize(0, 32);
+        item->SetMaxSize(2147483647, 32);
+        item->SetLayoutMode(LM_HORIZONTAL);
+        item->LoadChildXML(MapEditorLibImpl::GetXmlElement(EDITORELT_ANIMATORMAPSWAPSPRITE), MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+
+        item->SetVar(MAPPINGSPRITE_KEY, spritekey);
+        item->SetVar(UIELEMENT_CHILDINDEX, slotid);
+
+        UIElement* originSpriteElt = item->GetChild("OriginSprite", true);
+        UIElement* mappedSpriteElt = item->GetChild("MappedSprite", true);
+        mappedSpriteElt->SetVar(UIELEMENT_CHILDINDEX, slotid);
+
+        Sprite2D* originSprite = animationSet->GetSpriterFileSprite(spritekey);
+        Spriter::MapInstruction* instruct = spritemap->GetInstruction(spritekey);
+        Sprite2D* mappedSprite = instruct ? animationSet->GetSpriterFileSprite(instruct->targetFolder_, instruct->targetFile_) : 0;
+
+        static_cast<Text*>(originSpriteElt->GetChild(0))->SetText(originSprite->GetName());
+        static_cast<BorderImage*>(mappedSpriteElt->GetChild(0))->SetSprite(mappedSprite);
+        UIElement* mappedbutton = mappedSpriteElt->GetChild(1);
+        static_cast<Text*>(mappedbutton->GetChild(0))->SetText(mappedSprite ? mappedSprite->GetName() : (instruct ? "hidden" : "none"));
+        SubscribeToEvent(mappedbutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectMappedSprite));
+
+        UIElement* swappedSpriteElt = item->GetChild("SwappedSprite", true);
+        swappedSpriteElt->SetVisible(showswap);
+        if (showswap)
+        {
+            Sprite2D* swappedSprite = editedAnimatedSprite_->GetSwappedSprite(mappedSprite);
+            static_cast<BorderImage*>(swappedSpriteElt->GetChild(0))->SetSprite(swappedSprite);
+            UIElement* swappedbutton = swappedSpriteElt->GetChild(1);
+            static_cast<Text*>(swappedbutton->GetChild(0))->SetText(swappedSprite ? swappedSprite->GetName(): "none");
+            SubscribeToEvent(swappedbutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelSelectSwappedSprite));
+        }
+
+        UIElement* offsetElt = item->GetChild("Offset", true);
+        offsetElt->SetVisible(showoffset);
+        if (showoffset)
+        {
+            Spriter::MapInstruction* instruct = spritemap->GetInstruction(spritekey);
+            String text;
+            if (instruct)
+                text.AppendWithFormat("dx:%F dy:%F da:%F", instruct->targetdx_, instruct->targetdy_, instruct->targetdangle_);
+
+            Text* textelt = static_cast<Text*>(offsetElt->GetChild(0));
+            textelt->SetFontSize(7);
+            textelt->SetText(text);
+            textelt->SetWordwrap(true);
+            textelt->SetHorizontalAlignment(HA_CENTER);
+        }
+
+        spriteMappingList_->AddItem(item);
+        slotid++;
+    }
+
+    editedSlotIndex_ = -1;
+}
+
+void AnimatorEditor::SetSpriteSelectionList()
+{
+    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteSelectionList");
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SSELECTLIST);
+    ListView* spritesList = static_cast<ListView*>(panel->GetChild("SpritesList", true));
+    spritesList->RemoveAllItems();
+
+    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
+    const unsigned numSpritesByRow = 4;
+    const unsigned numSprites = spritemapping.Size();
+    const unsigned numRows = numSprites / numSpritesByRow;
+    const int numSpritesLastRow = numSprites - numRows * numSpritesByRow;
+    // set sprites row
+    for (unsigned i = 0; i < numRows; i++)
+    {
+        UIElement* row = new UIElement(context_);
+        row->SetLayoutMode(LM_HORIZONTAL);
+        row->SetLayoutSpacing(4);
+        row->SetHorizontalAlignment(HA_CENTER);
+        for (unsigned j = 0; j < numSpritesByRow; j++)
+            row->AddChild(AddListButton(String::EMPTY, 0));
+        spritesList->AddItem(row);
+    }
+    // set sprites last row
+    if (numSpritesLastRow)
+    {
+        UIElement* row = new UIElement(context_);
+        row->SetLayoutMode(LM_HORIZONTAL);
+        row->SetLayoutSpacing(4);
+        row->SetHorizontalAlignment(HA_CENTER);
+        for (unsigned i = 0; i < numSpritesLastRow; i++)
+            row->AddChild(AddListButton(String::EMPTY, 0));
+        spritesList->AddItem(row);
+    }
+    // set Sprites
+    unsigned i = 0;
+    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it, i++)
+    {
+        Sprite2D* sprite = it->second_.Get();
+        int row = i / numSpritesByRow;
+        int isprite = i - row * numSpritesByRow;
+
+        UIElement* button = spritesList->GetItem(row)->GetChild(isprite);
+        SubscribeToEvent(button, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleSpriteMappingPanelModifySprite));
+
+        button->SetVar(MAPPINGSPRITE_KEY, it->first_);
+
+        BorderImage* spritebtn = static_cast<Button*>(button->GetChild(0));
+        spritebtn->SetTexture(sprite->GetTexture());
+        spritebtn->SetImageRect(sprite->GetRectangle());
+        Text* textbtn = static_cast<Text*>(button->GetChild(1));
+        textbtn->SetText(sprite->GetName());
     }
 }
 
-void AnimatorEditor::HandleSpriteMappingPanelShowSwap(StringHash eventType, VariantMap& eventData)
+void AnimatorEditor::HandleSpriteMappingPanelToggleShow(StringHash eventType, VariantMap& eventData)
 {
     bool enable = eventData[Toggled::P_STATE].GetBool();
-    URHO3D_LOGINFOF("AnimatorEditor() - HandleSpriteMappingPanelShowSwap : enable=%s", enable?"true":"false");
+    URHO3D_LOGINFOF("AnimatorEditor() - HandleSpriteMappingPanelToggleShow : enable=%s", enable?"true":"false");
 
     UpdateSpriteMappingPanel();
 }
@@ -4071,9 +4118,8 @@ void AnimatorEditor::HandleSpriteMappingPanelModifySprite(StringHash eventType, 
 
     UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
     Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(static_cast<LineEdit*>(panel->GetChild("CMapName", true))->GetText()));
-    ListView* mappedSwappedSprites = static_cast<ListView*>(panel->GetChild("MappedSwappedSprites", true));
 
-    const unsigned spritekey = mappedSwappedSprites->GetItem(editedSlotIndex_)->GetVar(MAPPINGSPRITE_KEY).GetUInt();
+    const unsigned spritekey = spriteMappingList_->GetItem(editedSlotIndex_)->GetVar(MAPPINGSPRITE_KEY).GetUInt();
     const unsigned targetkey = static_cast<UIElement*>(eventData[Pressed::P_ELEMENT].GetPtr())->GetVar(MAPPINGSPRITE_KEY).GetUInt();
 
     Spriter::MapInstruction* instruction = spritemap->GetInstruction(spritekey);
@@ -4083,7 +4129,6 @@ void AnimatorEditor::HandleSpriteMappingPanelModifySprite(StringHash eventType, 
     {
         instruction = new Spriter::MapInstruction();
         spritemap->maps_.Push(instruction);
-
         instruction->SetOrigin(spritekey);
     }
 
@@ -4093,6 +4138,7 @@ void AnimatorEditor::HandleSpriteMappingPanelModifySprite(StringHash eventType, 
         if (targetkey == SPRITEKEY_IGNORE)
         {
             spritemap->maps_.Remove(instruction);
+            instruction = 0;
         }
         else if (targetkey == SPRITEKEY_REMOVE)
         {
@@ -4104,11 +4150,7 @@ void AnimatorEditor::HandleSpriteMappingPanelModifySprite(StringHash eventType, 
             mappedSprite = editedAnimatedSprite_->GetAnimationSet()->GetSpriterFileSprite(targetkey);
         }
 
-        UIElement* mappedSpriteElt = mappedSwappedSprites->GetItem(editedSlotIndex_)->GetChild("MappedSprite", true);
-        static_cast<BorderImage*>(mappedSpriteElt->GetChild(0))->SetSprite(mappedSprite);
-        UIElement* mappedbutton = mappedSpriteElt->GetChild(1);
-        static_cast<Text*>(mappedbutton->GetChild(0))->SetText(mappedSprite ? mappedSprite->GetName() : (targetkey == SPRITEKEY_REMOVE ? "removed" : "none"));
-
+        UpdateSpriteMappingListItem(spriteMappingList_->GetItem(editedSlotIndex_), instruction);
         UpdateMapping(true, true);
     }
 }
@@ -4128,10 +4170,259 @@ void AnimatorEditor::HandleSpriteMappingPanelSelectSwappedSprite(StringHash even
 
 }
 
+void AnimatorEditor::HandleSpriteMappingPanelSelectionUnMap(StringHash eventType, VariantMap& eventData)
+{
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
+    LineEdit* lineEdit = static_cast<LineEdit*>(panel->GetChild("CMapName", true));
+    if (lineEdit->GetText().Empty())
+        return;
 
+    Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(lineEdit->GetText()));
+    if (!spritemap)
+    {
+        lineEdit->SetText(String::EMPTY);
+        return;
+    }
 
+    ListView* mappedSwappedSprites = static_cast<ListView*>(panel->GetChild("MappedSwappedSprites", true));
+    PODVector<UIElement*> selectedSlots = mappedSwappedSprites->GetSelectedItems();
+    if (selectedSlots.Size())
+    {
+        const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
+        for (unsigned i=0; i < selectedSlots.Size(); i++)
+        {
+            UIElement* slot = selectedSlots[i];
+            Spriter::MapInstruction* instruction = spritemap->GetInstruction(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt());
+            if (instruction)
+                spritemap->maps_.Remove(instruction);
+            UpdateSpriteMappingListItem(slot, 0);
+        }
+
+        UpdateMapping(true, true);
+    }
+}
+
+void AnimatorEditor::HandleSpriteMappingPanelSelectionHide(StringHash eventType, VariantMap& eventData)
+{
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
+    LineEdit* lineEdit = static_cast<LineEdit*>(panel->GetChild("CMapName", true));
+    if (lineEdit->GetText().Empty())
+        return;
+
+    Spriter::CharacterMap* spritemap = editedAnimatedSprite_->GetCharacterMap(StringHash(lineEdit->GetText()));
+    if (!spritemap)
+    {
+        lineEdit->SetText(String::EMPTY);
+        return;
+    }
+
+    ListView* mappedSwappedSprites = static_cast<ListView*>(panel->GetChild("MappedSwappedSprites", true));
+    PODVector<UIElement*> selectedSlots = mappedSwappedSprites->GetSelectedItems();
+    if (selectedSlots.Size())
+    {
+        const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = editedAnimatedSprite_->GetAnimationSet()->GetSpriteMapping();
+        for (unsigned i=0; i < selectedSlots.Size(); i++)
+        {
+            UIElement* slot = selectedSlots[i];
+            Spriter::MapInstruction* instruction = spritemap->GetInstruction(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt(), true);
+            instruction->RemoveTarget();
+            UpdateSpriteMappingListItem(slot, instruction);
+        }
+
+        UpdateMapping(true, true);
+    }
+}
 
 //void AnimatorEditor::HandleSpriteMappingPanelHoveringSprite(StringHash eventType, VariantMap& eventData)
 //{
 //
 //}
+
+
+/// Color Panel
+
+void AnimatorEditor::SetColorSpritePanel()
+{
+    URHO3D_LOGINFOF("AnimatorEditor() - SetSpriteColorMappingPanel");
+
+    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
+
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
+
+    // Set Color List
+    ListView* colors = static_cast<ListView*>(panel->GetChild("Colors", true));
+    for (unsigned i=0; i < colors->GetNumItems(); i++)
+    {
+        UIElement* item = colors->GetItem(i);
+        item->GetChild(0)->SetColor(EditorSpriteColors_[i]);
+        SubscribeToEvent(item, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleColorPressed));
+    }
+}
+
+void AnimatorEditor::UpdateColorSpritePanel()
+{
+    URHO3D_LOGINFOF("AnimatorEditor() - UpdateColorSpritePanel");
+
+    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
+
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
+
+    UIElement* colorpanel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
+    String colormapname = static_cast<LineEdit*>(colorpanel->GetChild("CMapName", true))->GetText();
+    Spriter::ColorMap* colormap = editedAnimatedSprite_->GetColorMap(StringHash(colormapname));
+
+    // Set Sprite List
+    ListView* colorSprites = static_cast<ListView*>(panel->GetChild("SlotSprites", true));
+    colorSprites->RemoveAllItems();
+    colorSprites->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+    colorSprites->SetMultiselect(true);
+    colorSprites->SetHighlightMode(HM_ALWAYS);
+    const HashMap<unsigned, SharedPtr<Sprite2D> >& spritemapping = animationSet->GetSpriteMapping();
+    for (HashMap<unsigned, SharedPtr<Sprite2D> >::ConstIterator it = spritemapping.Begin(); it != spritemapping.End(); ++it)
+    {
+        Text* item = new Text(context_);
+        item->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+        item->SetStyle("FileSelectorListText");
+        item->SetMinSize(0, 32);
+        item->SetMaxSize(2147483647, 32);
+        item->SetLayoutMode(LM_HORIZONTAL);
+        item->LoadChildXML(MapEditorLibImpl::GetXmlElement(EDITORELT_ANIMATORSPRITECOLOR), MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+        item->SetVar(MAPPINGSPRITE_KEY, it->first_);
+        UIElement* spriteElt = item->GetChild("Sprite", true);
+        static_cast<BorderImage*>(spriteElt->GetChild(0))->SetSprite(it->second_.Get());
+        static_cast<Text*>(spriteElt->GetChild(1))->SetText(it->second_->GetName());
+        colorSprites->AddItem(item);
+
+        if (colormap)
+            SetSpriteSlotColor(item, colormap->GetColor(it->first_));
+        else
+            SetSpriteSlotColor(item, Color::WHITE);
+    }
+}
+
+void AnimatorEditor::SetSpriteSlotColor(UIElement* slot, const Color& color)
+{
+    slot->GetChild("Sprite", true)->GetChild(0)->SetColor(color);
+    BorderImage* slotcolor = static_cast<BorderImage*>(slot->GetChild("SpriteColor", true)->GetChild(0));
+    if (color != Color::WHITE)
+    {
+        slotcolor->SetStyle("none");
+        slotcolor->SetMinSize(24, 24);
+        slotcolor->SetMaxSize(24, 24);
+        slotcolor->SetTexture(0);
+//        slotcolor->SetImageRect(IntRect(0, 0, 256, 128));
+        slotcolor->SetColor(color);
+    }
+    else
+    {
+        slotcolor->SetStyle("BorderImageEmpty");
+    }
+}
+
+void AnimatorEditor::HandleColorPressed(StringHash eventType, VariantMap& eventData)
+{
+    Color color = static_cast<UIElement*>(context_->GetEventSender())->GetChild(0)->GetColor(C_TOPLEFT);
+
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_COLORMAPPING);
+    ListView* colorSprites = static_cast<ListView*>(panel->GetChild("SlotSprites", true));
+
+    PODVector<UIElement*> selectedSlots = colorSprites->GetSelectedItems();
+    if (selectedSlots.Size())
+    {
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleColorPressed color=%s numselecteditems=%u", color.ToString().CString(), selectedSlots.Size());
+        AnimatedSprite2D* animatedSprite = editNode_->GetComponent<AnimatedSprite2D>();
+
+        String colormapname = static_cast<LineEdit*>(panel->GetChild("CMapName", true))->GetText();
+        Spriter::ColorMap* colorMap = animatedSprite->GetColorMap(colormapname);
+
+        if (colorMap)
+        {
+            for (unsigned i=0; i < selectedSlots.Size(); i++)
+            {
+                UIElement* slot = selectedSlots[i];
+                SetSpriteSlotColor(slot, color);
+
+                // Set Color in the colormap (spriter data)
+                colorMap->SetColor(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt(), color);
+
+                // Set Color Instantly in animatedSprite
+                animatedSprite->SetSpriteColor(slot->GetVar(MAPPINGSPRITE_KEY).GetUInt(), color);
+            }
+        }
+    }
+}
+
+
+/// Animation Panel
+
+void AnimatorEditor::SetAnimationPanel()
+{
+    AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
+
+    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_ANIMS, true);
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS);
+
+    const PODVector<Spriter::Entity*>& entities = animationSet->GetSpriterData()->entities_;
+    const PODVector<Spriter::Animation*>& animations = entities[entityid_]->animations_;
+
+    ListView* availableAnimations = static_cast<ListView*>(panel->GetChild("AvailableAnims", true));
+    availableAnimations->SetMultiselect(false);
+    availableAnimations->RemoveAllItems();
+    for (unsigned i=0; i < animations.Size(); i++)
+    {
+        Text* item = new Text(context_);
+        item->SetStyle("FileSelectorListText");
+        item->SetText(animations[i]->name_);
+        availableAnimations->AddItem(item);
+    }
+
+    UIElement* toggleplaybutton = panel->GetChild("TogglePlay", true);
+    Text* text = static_cast<Text*>(toggleplaybutton->GetChild(0));
+    text->SetText("Play");
+
+    SubscribeToEvent(availableAnimations, E_ITEMSELECTED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationSelect));
+    SubscribeToEvent(toggleplaybutton, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationTooglePlay));
+}
+
+void AnimatorEditor::HandleAnimationSelect(StringHash eventType, VariantMap& eventData)
+{
+//    URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationSelect");
+
+    UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS);
+    ListView* availableAnimations = static_cast<ListView*>(panel->GetChild("AvailableAnims", true));
+
+    String animation = static_cast<Text*>(availableAnimations->GetSelectedItem())->GetText();
+    static_cast<LineEdit*>(panel->GetChild("SetName", true))->SetText(animation);
+
+    editedAnimatedSprite_->SetAnimation(animation, LM_FORCE_LOOPED);
+    editedAnimatedSprite_->ResetAnimation();
+    editedAnimatedSprite_->ForceUpdateBatches();
+}
+
+void AnimatorEditor::HandleAnimationTooglePlay(StringHash eventType, VariantMap& eventData)
+{
+    Text* text = static_cast<Text*>(static_cast<Button*>(eventData[Pressed::P_ELEMENT].GetPtr())->GetChild(0));
+    if (text->GetText() == "Play")
+    {
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationTooglePlay : Play");
+        text->SetText("Stop");
+        SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(AnimatorEditor, HandleAnimationPlay));
+    }
+    else
+    {
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationTooglePlay : Pause");
+        text->SetText("Play");
+        UnsubscribeFromEvent(E_POSTUPDATE);
+    }
+}
+
+void AnimatorEditor::HandleAnimationPlay(StringHash eventType, VariantMap& eventData)
+{
+    if (!editedAnimatedSprite_)
+    {
+        UnsubscribeFromEvent(E_POSTUPDATE);
+        return;
+    }
+
+    editedAnimatedSprite_->UpdateAnimation(eventData[PostUpdate::P_TIMESTEP].GetFloat());
+}

@@ -190,6 +190,7 @@ public:
     template< typename T > static bool FloodFill(Matrix2D<T>& buffer, Stack<unsigned>& stack, const T& patternToFillFrom, const T& patternToFillTo, const T& fillPattern, const int& xo, const int& yo);
     template< typename T > static bool FloodFillInBorder(const Matrix2D<T>& bufferin, Matrix2D<T>& bufferout, Stack<unsigned>& stack, const T& borderPattern, const T& fillPattern, const int& xo, const int& yo, const IntRect& bordercheck);
     template< typename T > static IntVector2 BorderContains(Matrix2D<T>& buffer, const T& value, IntVector2& point, const IntRect& borderToCheck = IntRect::ZERO, int expand = 0);
+    static bool IntersectSegments(const Vector2& p1, const Vector2& p2, const Vector2& q1, const Vector2& q2, Vector2& intersection);
 
     /// Graphics Helpers
     static bool IsInsidePolygon(const Vector2& point, const PODVector<Vector2>& polygon);

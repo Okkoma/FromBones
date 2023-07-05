@@ -25,8 +25,8 @@
 			<attribute name="Text" value="Sprites Mapping" />
 		</element>
 		<element>
-			<attribute name="Min Size" value="100 0" />
-			<attribute name="Max Size" value="100 2147483647" />
+			<attribute name="Min Size" value="90 0" />
+			<attribute name="Max Size" value="90 2147483647" />
 			<attribute name="Pivot" value="0 0" />
 			<attribute name="Layout Mode" value="Horizontal" />
 			<attribute name="Layout Spacing" value="4" />
@@ -45,7 +45,33 @@
 				<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
 				<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
 				<attribute name="Font Size" value="9" />
-				<attribute name="Text" value="Show Swap" />
+				<attribute name="Text" value="ShowSwap" />
+				<attribute name="Text Alignment" value="Center" />
+				<attribute name="Auto Localizable" value="true" />
+			</element>
+		</element>
+		<element>
+			<attribute name="Min Size" value="90 0" />
+			<attribute name="Max Size" value="90 2147483647" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Layout Mode" value="Horizontal" />
+			<attribute name="Layout Spacing" value="4" />
+			<element type="CheckBox">
+				<attribute name="Name" value="ShowOffset" />
+				<attribute name="Pivot" value="0 0" />
+			</element>
+			<element type="Text">
+				<attribute name="Min Size" value="90 12" />
+				<attribute name="Max Size" value="90 12" />
+				<attribute name="Min Anchor" value="0 0.5" />
+				<attribute name="Max Anchor" value="0 0.5" />
+				<attribute name="Pivot" value="0 0.5" />
+				<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+				<attribute name="Font Size" value="9" />
+				<attribute name="Text" value="ShowOffset" />
 				<attribute name="Text Alignment" value="Center" />
 				<attribute name="Auto Localizable" value="true" />
 			</element>
@@ -97,7 +123,7 @@
 	</element>
 	<element type="BorderImage" style="EditorDivider">
 		<attribute name="Pivot" value="0 0" />
-	</element>	
+	</element>
 	<element style="none">
 		<attribute name="Min Size" value="0 22" />
 		<attribute name="Max Size" value="2147483647 22" />
@@ -149,7 +175,7 @@
 				</element>
 			</element>
 			<element>
-    			<attribute name="Name" value="SwapColumn" />
+				<attribute name="Name" value="SwapColumn" />
 				<attribute name="Min Size" value="0 16" />
 				<attribute name="Max Size" value="2147483647 16" />
 				<attribute name="Pivot" value="0 0" />
@@ -166,8 +192,26 @@
 					<attribute name="Auto Localizable" value="true" />
 				</element>
 			</element>
+			<element>
+				<attribute name="Name" value="OffsetColumn" />
+				<attribute name="Min Size" value="66 16" />
+				<attribute name="Max Size" value="66 16" />
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<attribute name="Layout Spacing" value="4" />
+				<element type="Text">
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Text" value="Offset" />
+					<attribute name="Text Alignment" value="Center" />
+					<attribute name="Auto Localizable" value="true" />
+				</element>
+			</element>
 		</element>
-	</element>	
+	</element>
 	<element>
 		<attribute name="Pivot" value="0 0" />
 		<attribute name="Layout Mode" value="Vertical" />
@@ -188,7 +232,7 @@
 				<attribute name="Min Size" value="0 60" />
 				<attribute name="Pivot" value="0 0" />
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="348 16" />
+					<attribute name="Size" value="408 16" />
 					<attribute name="Min Anchor" value="0 1" />
 					<attribute name="Max Anchor" value="0 1" />
 					<attribute name="Pivot" value="0 1" />
@@ -202,19 +246,19 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="16 0" />
-						<attribute name="Size" value="316 16" />
+						<attribute name="Size" value="376 16" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="332 0" />
+						<attribute name="Position" value="392 0" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
 				<element type="ScrollBar" internal="true" style="none">
-					<attribute name="Size" value="16 202" />
+					<attribute name="Size" value="16 404" />
 					<attribute name="Min Anchor" value="1 0" />
 					<attribute name="Max Anchor" value="1 0" />
 					<attribute name="Pivot" value="1 0" />
@@ -228,14 +272,14 @@
 					</element>
 					<element type="Slider" internal="true" style="none">
 						<attribute name="Position" value="0 16" />
-						<attribute name="Size" value="16 170" />
+						<attribute name="Size" value="16 372" />
 						<attribute name="Pivot" value="0 0" />
 						<element type="BorderImage" internal="true" style="none">
 							<attribute name="Pivot" value="0 0" />
 						</element>
 					</element>
 					<element type="Button" internal="true" style="none">
-						<attribute name="Position" value="0 186" />
+						<attribute name="Position" value="0 388" />
 						<attribute name="Pivot" value="0 0" />
 					</element>
 				</element>
@@ -244,6 +288,60 @@
 					<element internal="true" style="none">
 						<attribute name="Pivot" value="0 0" />
 					</element>
+				</element>
+			</element>
+		</element>
+	</element>
+	<element>
+		<attribute name="Min Size" value="0 16" />
+		<attribute name="Max Size" value="2147483647 16" />
+		<attribute name="Pivot" value="0 0" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<element>
+			<attribute name="Name" value="ButtonContainer" />
+			<attribute name="Min Size" value="0 16" />
+			<attribute name="Max Size" value="2147483647 16" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Layout Mode" value="Horizontal" />
+			<attribute name="Layout Spacing" value="4" />
+			<element type="Button">
+				<attribute name="Name" value="UnMap" />
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<attribute name="Layout Border" value="1 1 1 1" />
+				<element type="Text">
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Text" value="UnMap" />
+					<attribute name="Text Alignment" value="Center" />
+					<attribute name="Auto Localizable" value="true" />
+				</element>
+			</element>
+		</element>
+		<element>
+			<attribute name="Name" value="ButtonContainer" />
+			<attribute name="Min Size" value="0 16" />
+			<attribute name="Max Size" value="2147483647 16" />
+			<attribute name="Pivot" value="0 0" />
+			<attribute name="Layout Mode" value="Horizontal" />
+			<attribute name="Layout Spacing" value="4" />
+			<element type="Button">
+				<attribute name="Name" value="Hide" />
+				<attribute name="Pivot" value="0 0" />
+				<attribute name="Layout Mode" value="Horizontal" />
+				<attribute name="Layout Border" value="1 1 1 1" />
+				<element type="Text">
+					<attribute name="Pivot" value="0 0" />
+					<attribute name="Top Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Top Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Left Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Bottom Right Color" value="0.85 0.85 0.85 1" />
+					<attribute name="Text" value="Hide" />
+					<attribute name="Text Alignment" value="Center" />
+					<attribute name="Auto Localizable" value="true" />
 				</element>
 			</element>
 		</element>

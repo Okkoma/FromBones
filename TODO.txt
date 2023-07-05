@@ -5151,12 +5151,11 @@ _________________________________________________________________________
 <TODO>
 ------
 
-- 07/06/2023 : Enrichissement de l'Editor "Static"
+- 07/06/2023 : Enrichissement de l'Editor : l'editeur en Script ne sera plus mise à jour. Utilisation uniquement du static ou du shared.
 => ajout de Animator2D : qui est un panneau d'edition des animationSet2D
 ==> permettra de changer la couleur, le fx par sprite ainsi que d'ajouter des offsets de positionnement pour les yeux et la bouche en fonction du visage.
 ==> pour le moment ne fonctionne que sous GL, sous VK il faut finir l'implementation avec RenderTarget (specifier dans RenderPath) et RenderSurface car View3D s'appuie sur ce mecanisme.
-===> il serait mieux d'editer directement dans la scene en copiant le node dans un node 'edit' et d'utiliser un panneau View3D juste pour le preview (par exemple dans le panel des animations)
-===> pour l'edition, on utilisera une camera d'edition qui sera centrée sur le node et afficher les differents panneaux
+===> replacer par des panels et une visualisation de l'animatedSprite directement dans la scene courante.
 ===> créer le panneau timeline, le panneau animation, le panneau charactermapping.
 ===> voire pour reprendre la timeline faite avec SpaceMatch.
 ===> créer en priorité un panneau charactermapping pour l'edition des couleurs et la position des yeux et bouche en fonction du visage.
@@ -5171,6 +5170,16 @@ _________________________________________________________________________
 ====> ColorMapping Panel permet de créer un mapping de Color.
 ====> 29/06/2023 OK : Animation panel permet de jouer les differentes animations
 ====> Ajouter/Tester les delta Positions pour le characterMapping
+=====> pour cela dans l'editeur, il faudra pouvoir selectionner et manipuler les sprites.
+=====> 03/07/2023 OK pour la selection : ajout de AnimatorEditor::SelectSprite et AnimatedSprite2D::GetSpriteAt()
+=====> 05/07/2023 OK pour la manipulation : translate, rotate, scale ajout de AnimatorEditor::MoveSelection() et pas mal de modification dans SpriterData et AnimatedSprite2D
+======> fonctionne pour le moment uniquement sur un mapped sprite avec modification du characterMap::MapInstruction::targetdx,dy,dangle,scalex,scaley.
+======> faire un test sur une animation fonctionnelle créer dans actor-medium.
+======> étendre la manipulation aux slot (sprite d'origine) avec modification directement des SpatialTimelineKey.
+=====> ajouter l'edition des pivots
+=====> ajoute les bones, les points et les boxes
+=====> ajoute l'edition des triggers.
+=====> ameliorer la manipulation avec un gizmo ?
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

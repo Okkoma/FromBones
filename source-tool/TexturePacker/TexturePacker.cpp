@@ -466,6 +466,10 @@ bool ExtractSpriteFilenames(Context* context, Info& info, bool trim)
                     packerInfo.hotspot.x_ = file.GetFloat("pivot_x") * packerInfo.size.x_;
                     packerInfo.hotspot.y_ = (1.f-file.GetFloat("pivot_y")) * packerInfo.size.y_;
                 }
+                else
+                {
+                    URHO3D_LOGWARNING("    PNG File " + path + " does not exist.");
+                }
 
                 if (!info.spritesbyscml.Back().Contains(name))
                     info.spritesbyscml.Back().Push(name);

@@ -358,7 +358,7 @@ void GOC_BodyExploder2D::PrepareExplodedNodes(AnimatedSprite2D* animatedSprite)
                 return;
             }
 
-            animatedSprite->GetLocalSpritePositions(i, position, angle, scale);
+            animatedSprite->GetSpriteLocalPositions(i, position, angle, scale);
 
             node->SetTransform2D(position, angle, scale);
             node->AddTag("UsedAsPart");

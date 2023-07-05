@@ -9,6 +9,7 @@
 
 #include <Urho3D/Input/Input.h>
 
+#include <Urho3D/IO/FileSystem.h>
 #include <Urho3D/IO/Log.h>
 
 #include <Urho3D/Scene/SceneEvents.h>
@@ -174,7 +175,7 @@ bool MapEditor::LoadLibrary()
     #ifdef EDITORMODE2
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : load Editor Lib ... restorefocus=%u", sMapEditorSavedFocusState_);
 
-    libName_ = "./libFromBonesEditor.so";
+    libName_ = GameContext::Get().fs_->GetProgramDir() + "libFromBonesEditor.so";
 
     editorDynLibraryHandle_ = dlopen(libName_.CString(), RTLD_NOW);
     if (!editorDynLibraryHandle_)

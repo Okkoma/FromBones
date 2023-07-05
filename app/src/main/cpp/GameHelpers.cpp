@@ -3918,6 +3918,32 @@ template IntVector2 GameHelpers::BorderContains(Matrix2D<FeatureType>& buffer, c
 template IntVector2 GameHelpers::BorderContains(Matrix2D<unsigned>& buffer, const unsigned& value, IntVector2& point, const IntRect& borderToCheck, int expand);
 
 
+bool GameHelpers::IntersectSegments(const Vector2& p1, const Vector2& p2, const Vector2& q1, const Vector2& q2, Vector2& intersection)
+{
+    Vector2 r = p2 - p1;
+    Vector2 s = q2 - q1;
+
+    float denom = r.x_ * s.y_ - r.y_ * s.x_;
+    if (denom == 0.0f)
+    {
+        // Les segments sont parallèles ou colinéaires
+        return false;
+    }
+
+    Vector2 qmp = q1 - p1;
+    float t = (qmp.x_ * s.y_ - qmp.y_ * s.x_) / denom;
+    float u = (qmp.x_ * r.y_ - qmp.y_ * r.x_) / denom;
+
+    if (t >= 0.0f && t <= 1.0f && u >= 0.0f && u <= 1.0f)
+    {
+        intersection = p1 + t * r;
+        return true;
+    }
+
+    return false;
+}
+
+
 /// Graphics Helpers
 
 void GameHelpers::ScaleManhattanContour(float value, PODVector<Vector2>& contour)

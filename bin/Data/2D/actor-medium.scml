@@ -1,224 +1,280 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r11">
-    <folder id="0">
-        <file id="0" name="medskbodchest2.png" width="29" height="39" pivot_x="0.565897" pivot_y="0.32741"/>
-        <file id="1" name="medskhead2.png" width="44" height="39" pivot_x="0.358108" pivot_y="0.170442"/>
-        <file id="2" name="medskbodarmb1.png" width="16" height="21" pivot_x="0.487748" pivot_y="0.859936"/>
-        <file id="3" name="medskbodlegb1.png" width="14" height="28" pivot_x="0.481547" pivot_y="0.856665"/>
-        <file id="4" name="medskbodlegf1.png" width="14" height="28" pivot_x="0.477476" pivot_y="0.858887"/>
-        <file id="5" name="medskbodlongforearmb2.png" width="13" height="24" pivot_x="0" pivot_y="1"/>
-        <file id="6" name="medskbodforearmb1.png" width="13" height="20" pivot_x="0.504555" pivot_y="0.837921"/>
-        <file id="7" name="medskbodforearmf1.png" width="13" height="20" pivot_x="0.494863" pivot_y="0.814337"/>
-        <file id="8" name="medskbodarmf1.png" width="16" height="21" pivot_x="0.51728" pivot_y="0.843592"/>
-        <file id="9" name="medhair2.png" width="47" height="40" pivot_x="0.408992" pivot_y="0.0446272"/>
-        <file id="10" name="meduwear.png" width="21" height="14" pivot_x="0.558393" pivot_y="0.679994"/>
-        <file id="11" name="medcusfootb1.png" width="19" height="11" pivot_x="0.392551" pivot_y="0.766402"/>
-        <file id="12" name="medcusfootf1.png" width="19" height="11" pivot_x="0.397571" pivot_y="0.751221"/>
-        <file id="13" name="medskhead1.png" width="40" height="40" pivot_x="0.378158" pivot_y="0.11782"/>
-        <file id="14" name="medskheadki1.png" width="38" height="33" pivot_x="0.356083" pivot_y="0.110605"/>
-        <file id="15" name="medhair1.png" width="44" height="39" pivot_x="0.422412" pivot_y="0.0485961"/>
-        <file id="16" name="medcuschest2.png" width="29" height="39" pivot_x="0.421984" pivot_y="0.902383"/>
-        <file id="17" name="medcuschest1.png" width="29" height="39" pivot_x="0.431712" pivot_y="0.899951"/>
-        <file id="18" name="medcuschest3.png" width="29" height="39" pivot_x="0.42847" pivot_y="0.899951"/>
-        <file id="19" name="medcuslongchest1.png" width="29" height="51" pivot_x="0.434955" pivot_y="0.92304"/>
-        <file id="20" name="medcuswaist1.png" width="24" height="24" pivot_x="0.525837" pivot_y="0.466381"/>
-        <file id="21" name="medcushead1b.png" width="45" height="34" pivot_x="0" pivot_y="1"/>
-        <file id="22" name="medcushead1a.png" width="41" height="33" pivot_x="0.333162" pivot_y="0.150255"/>
-        <file id="23" name="medcushead2.png" width="38" height="16" pivot_x="0" pivot_y="1"/>
-        <file id="24" name="medcusforearmf2.png" width="12" height="24" pivot_x="0" pivot_y="1"/>
-        <file id="25" name="medcusforearmf1.png" width="13" height="20" pivot_x="0" pivot_y="1"/>
-        <file id="26" name="medcusforearmb1.png" width="13" height="20" pivot_x="0" pivot_y="1"/>
-        <file id="27" name="medcuscapef1.png" width="42" height="53" pivot_x="0" pivot_y="1"/>
-        <file id="28" name="medcuscapeb1.png" width="45" height="53" pivot_x="0" pivot_y="1"/>
-        <file id="29" name="medcusbelt1.png" width="10" height="30" pivot_x="0" pivot_y="1"/>
-        <file id="30" name="medcusarmf2.png" width="16" height="21" pivot_x="0" pivot_y="1"/>
-        <file id="31" name="medcusarmf1.png" width="16" height="21" pivot_x="0" pivot_y="1"/>
-        <file id="32" name="medcusarmb2.png" width="16" height="21" pivot_x="0" pivot_y="1"/>
-        <file id="33" name="medcusarmb1.png" width="16" height="21" pivot_x="0" pivot_y="1"/>
-        <file id="34" name="medskbodlongforearmf2.png" width="13" height="24" pivot_x="0" pivot_y="1"/>
-        <file id="35" name="medskbodchest1.png" width="29" height="39" pivot_x="0" pivot_y="1"/>
-        <file id="36" name="medskear1.png" width="17" height="12" pivot_x="0" pivot_y="1"/>
-        <file id="37" name="medskear2.png" width="15" height="12" pivot_x="0" pivot_y="1"/>
-        <file id="38" name="medskear3.png" width="15" height="19" pivot_x="0" pivot_y="1"/>
-        <file id="39" name="medskear4.png" width="11" height="12" pivot_x="0" pivot_y="1"/>
-        <file id="40" name="medcuslegf1.png" width="14" height="28" pivot_x="0" pivot_y="1"/>
-        <file id="41" name="medeye1.png" width="12" height="11" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="42" name="medeye2.png" width="12" height="10" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="43" name="medeyeki1.png" width="7" height="5" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="44" name="medeyeki2.png" width="7" height="4" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="45" name="medeyeki3.png" width="9" height="5" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="46" name="medeye3.png" width="11" height="6" pivot_x="0.5" pivot_y="0.5"/>
-        <file id="47" name="medskmouthc1.png" width="12" height="7" pivot_x="0.5" pivot_y="0.5"/>
-    </folder>
-    <entity id="0" name="actor">
-        <obj_info name="bone_000" type="bone" w="21.1892" h="10"/>
-        <obj_info name="bone_001" type="bone" w="18.379" h="10"/>
-        <obj_info name="bone_002" type="bone" w="20.468" h="10"/>
-        <obj_info name="bone_003" type="bone" w="6.90255" h="10"/>
-        <obj_info name="bone_004" type="bone" w="20.7077" h="10"/>
-        <obj_info name="bone_005" type="bone" w="6.26055" h="10"/>
-        <obj_info name="bone_006" type="bone" w="13.1649" h="10"/>
-        <obj_info name="bone_007" type="bone" w="13.0373" h="10"/>
-        <obj_info name="bone_008" type="bone" w="13.3974" h="10"/>
-        <obj_info name="bone_009" type="bone" w="14.0103" h="10"/>
-        <character_map id="0" name="Naked">
-            <map folder="0" file="10"/>
-        </character_map>
-        <animation id="0" name="idle" length="1000" interval="100">
-            <mainline>
-                <key id="0">
-                    <bone_ref id="0" timeline="12" key="0"/>
-                    <bone_ref id="1" parent="0" timeline="13" key="0"/>
-                    <bone_ref id="2" parent="0" timeline="14" key="0"/>
-                    <bone_ref id="3" parent="2" timeline="15" key="0"/>
-                    <bone_ref id="4" parent="0" timeline="16" key="0"/>
-                    <bone_ref id="5" parent="4" timeline="17" key="0"/>
-                    <bone_ref id="6" parent="0" timeline="18" key="0"/>
-                    <bone_ref id="7" parent="6" timeline="19" key="0"/>
-                    <bone_ref id="8" parent="0" timeline="20" key="0"/>
-                    <bone_ref id="9" parent="8" timeline="21" key="0"/>
-                    <object_ref id="0" parent="4" timeline="3" key="0" z_index="0"/>
-                    <object_ref id="1" parent="5" timeline="10" key="0" z_index="1"/>
-                    <object_ref id="2" parent="9" timeline="5" key="0" z_index="2"/>
-                    <object_ref id="3" parent="8" timeline="2" key="0" z_index="3"/>
-                    <object_ref id="4" parent="0" timeline="0" key="0" z_index="4"/>
-                    <object_ref id="5" parent="0" timeline="9" key="0" z_index="5"/>
-                    <object_ref id="6" parent="2" timeline="4" key="0" z_index="6"/>
-                    <object_ref id="7" parent="3" timeline="11" key="0" z_index="7"/>
-                    <object_ref id="8" parent="0" timeline="22" key="0" z_index="8"/>
-                    <object_ref id="9" parent="1" timeline="1" key="0" z_index="9"/>
-                    <object_ref id="10" parent="1" timeline="23" key="0" z_index="10"/>
-                    <object_ref id="11" parent="1" timeline="8" key="0" z_index="11"/>
-                    <object_ref id="12" parent="6" timeline="7" key="0" z_index="12"/>
-                    <object_ref id="13" parent="7" timeline="6" key="0" z_index="13"/>
-                    <object_ref id="14" parent="1" timeline="24" key="0" z_index="14"/>
-                </key>
-            </mainline>
-            <timeline id="0" name="medskbodchest2">
-                <key id="0" spin="0">
-                    <object folder="0" file="0" x="0.287167" y="-0.039592" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="1" name="medskhead2">
-                <key id="0" spin="0">
-                    <object folder="0" file="13" x="0.409547" y="0.010665" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="2" name="medskbodarmb1">
-                <key id="0" spin="0">
-                    <object folder="0" file="2" x="0.184924" y="0.082013" angle="90.284331"/>
-                </key>
-            </timeline>
-            <timeline id="3" name="medskbodlegb1">
-                <key id="0" spin="0">
-                    <object folder="0" file="3" x="0.690268" y="0.074399" angle="90.6662"/>
-                </key>
-            </timeline>
-            <timeline id="4" name="medskbodlegf1">
-                <key id="0" spin="0">
-                    <object folder="0" file="4" x="0.490342" y="0.169405" angle="90.898684"/>
-                </key>
-            </timeline>
-            <timeline id="5" name="medskbodforearmb1">
-                <key id="0" spin="0">
-                    <object folder="0" file="6" x="0.287241" y="-0.113462" angle="90.764861"/>
-                </key>
-            </timeline>
-            <timeline id="6" name="medskbodforearmf1">
-                <key id="0" spin="0">
-                    <object folder="0" file="7" x="0.238356" y="0.046974" angle="87.995466"/>
-                </key>
-            </timeline>
-            <timeline id="7" name="medskbodarmf1">
-                <key id="0" spin="0">
-                    <object folder="0" file="8" x="0.274434" y="0.056236" angle="93.387044"/>
-                </key>
-            </timeline>
-            <timeline id="8" name="medhair2">
-                <key id="0" spin="0">
-                    <object folder="0" file="15" x="0.152479" y="-0.209144" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="9" name="meduwear">
-                <key id="0" spin="0">
-                    <object folder="0" file="10" x="0.48531" y="-0.036262" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="10" name="medcusfootb1">
-                <key id="0" spin="0">
-                    <object folder="0" file="11" x="-2.528969" y="-0.175852" angle="90.734521"/>
-                </key>
-            </timeline>
-            <timeline id="11" name="medcusfootf1">
-                <key id="0" spin="0">
-                    <object folder="0" file="12" x="-1.178273" y="0.004051" angle="90.6662"/>
-                </key>
-            </timeline>
-            <timeline id="12" obj="0" name="bone_000" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="2.023142" y="27.75953" angle="90"/>
-                </key>
-            </timeline>
-            <timeline id="13" obj="1" name="bone_001" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="22.391653" y="4.093098"/>
-                </key>
-            </timeline>
-            <timeline id="14" obj="2" name="bone_002" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="-1.291718" y="5.858748" angle="178.496962"/>
-                </key>
-            </timeline>
-            <timeline id="15" obj="3" name="bone_003" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="21.830947" y="0.101646" angle="0.232484"/>
-                </key>
-            </timeline>
-            <timeline id="16" obj="4" name="bone_004" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="0.596985" y="1.469824" angle="179.3338"/>
-                </key>
-            </timeline>
-            <timeline id="17" obj="5" name="bone_005" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="22.551576" y="0.181965" angle="359.931679"/>
-                </key>
-            </timeline>
-            <timeline id="18" obj="6" name="bone_006" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="18.073052" y="8.646666" angle="147.187361"/>
-                </key>
-            </timeline>
-            <timeline id="19" obj="7" name="bone_007" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="15.503456" y="0.993245" angle="51.55243"/>
-                </key>
-            </timeline>
-            <timeline id="20" obj="8" name="bone_008" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="20.148892" y="0.809779" angle="187.263245"/>
-                </key>
-            </timeline>
-            <timeline id="21" obj="9" name="bone_009" object_type="bone">
-                <key id="0" spin="0">
-                    <bone x="15.320916" y="0.148888" angle="28.274433"/>
-                </key>
-            </timeline>
-            <timeline id="22" name="medcuschest3">
-                <key id="0" spin="0">
-                    <object folder="0" file="18" x="22.080968" y="3.928483" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="23" name="medeye1">
-                <key id="0" spin="0">
-                    <object folder="0" file="41" x="16.241451" y="-13.963655" angle="270"/>
-                </key>
-            </timeline>
-            <timeline id="24" name="medskmouthc1">
-                <key id="0" spin="0">
-                    <object folder="0" file="47" x="3.346759" y="-16.061726" angle="270" scale_y="-1"/>
-                </key>
-            </timeline>
-        </animation>
-    </entity>
+<?xml version="1.0"?>
+<spriter_data scml_version="1.0" generator="Urho3DSCML" generator_version="r1">
+	<folder id="0">
+		<file id="0" name="medskbodchest2.png" width="21" height="35" pivot_x="0.565897" pivot_y="0.32741" />
+		<file id="1" name="medskhead2.png" width="44" height="39" pivot_x="0.358108" pivot_y="0.170442" />
+		<file id="2" name="medskbodarmb1.png" width="10" height="19" pivot_x="0.487748" pivot_y="0.859936" />
+		<file id="3" name="medskbodlegb1.png" width="10" height="26" pivot_x="0.481547" pivot_y="0.856665" />
+		<file id="4" name="medskbodlegf1.png" width="11" height="25" pivot_x="0.477476" pivot_y="0.858887" />
+		<file id="5" name="medskbodlongforearmb2.png" width="7" height="21" pivot_x="0" pivot_y="1" />
+		<file id="6" name="medskbodforearmb1.png" width="8" height="19" pivot_x="0.504555" pivot_y="0.837921" />
+		<file id="7" name="medskbodforearmf1.png" width="9" height="19" pivot_x="0.494863" pivot_y="0.814337" />
+		<file id="8" name="medskbodarmf1.png" width="10" height="19" pivot_x="0.51728" pivot_y="0.843592" />
+		<file id="9" name="medhair2.png" width="47" height="33" pivot_x="0.408992" pivot_y="0.0446272" />
+		<file id="10" name="meduwear.png" width="21" height="14" pivot_x="0.558393" pivot_y="0.679994" />
+		<file id="11" name="medcusfootb1.png" width="16" height="9" pivot_x="0.392551" pivot_y="0.766402" />
+		<file id="12" name="medcusfootf1.png" width="16" height="9" pivot_x="0.397571" pivot_y="0.751221" />
+		<file id="13" name="medskhead1.png" width="40" height="39" pivot_x="0.378158" pivot_y="0.11782" />
+		<file id="14" name="medskheadki1.png" width="38" height="33" pivot_x="0.356083" pivot_y="0.110605" />
+		<file id="15" name="medhair1.png" width="44" height="39" pivot_x="0.422412" pivot_y="0.0485961" />
+		<file id="16" name="medcuschest2.png" width="25" height="37" pivot_x="0.421984" pivot_y="0.902383" />
+		<file id="17" name="medcuschest1.png" width="22" height="31" pivot_x="0.431712" pivot_y="0.899951" />
+		<file id="18" name="medcuschest3.png" width="25" height="36" pivot_x="0.42847" pivot_y="0.899951" />
+		<file id="19" name="medcuslongchest1.png" width="25" height="49" pivot_x="0.434955" pivot_y="0.92304" />
+		<file id="20" name="medcuswaist1.png" width="24" height="24" pivot_x="0.525837" pivot_y="0.466381" />
+		<file id="21" name="medcushead1b.png" width="45" height="34" pivot_x="0" pivot_y="1" />
+		<file id="22" name="medcushead1a.png" width="41" height="33" pivot_x="0.333162" pivot_y="0.150255" />
+		<file id="23" name="medcushead2.png" width="38" height="16" pivot_x="0" pivot_y="1" />
+		<file id="24" name="medcusforearmf2.png" width="12" height="24" pivot_x="0" pivot_y="1" />
+		<file id="25" name="medcusforearmf1.png" width="7" height="13" pivot_x="0" pivot_y="1" />
+		<file id="26" name="medcusforearmb1.png" width="7" height="12" pivot_x="0" pivot_y="1" />
+		<file id="27" name="medcuscapef1.png" width="42" height="53" pivot_x="0" pivot_y="1" />
+		<file id="28" name="medcuscapeb1.png" width="45" height="53" pivot_x="0" pivot_y="1" />
+		<file id="29" name="medcusbelt1.png" width="10" height="30" pivot_x="0" pivot_y="1" />
+		<file id="30" name="medcusarmf2.png" width="11" height="9" pivot_x="0" pivot_y="1" />
+		<file id="31" name="medcusarmf1.png" width="10" height="19" pivot_x="0" pivot_y="1" />
+		<file id="32" name="medcusarmb2.png" width="11" height="9" pivot_x="0" pivot_y="1" />
+		<file id="33" name="medcusarmb1.png" width="10" height="19" pivot_x="0" pivot_y="1" />
+		<file id="34" name="medskbodlongforearmf2.png" width="8" height="22" pivot_x="0" pivot_y="1" />
+		<file id="35" name="medskbodchest1.png" width="21" height="35" pivot_x="0" pivot_y="1" />
+		<file id="36" name="medskear1.png" width="17" height="12" pivot_x="0" pivot_y="1" />
+		<file id="37" name="medskear2.png" width="15" height="12" pivot_x="0" pivot_y="1" />
+		<file id="38" name="medskear3.png" width="15" height="19" pivot_x="0" pivot_y="1" />
+		<file id="39" name="medskear4.png" width="11" height="12" pivot_x="0" pivot_y="1" />
+		<file id="40" name="medcuslegf1.png" width="10" height="26" pivot_x="0" pivot_y="1" />
+		<file id="41" name="medeye1.png" width="12" height="11" pivot_x="0.5" pivot_y="0.5" />
+		<file id="42" name="medeye2.png" width="12" height="10" pivot_x="0.5" pivot_y="0.5" />
+		<file id="43" name="medeyeki1.png" width="7" height="5" pivot_x="0.5" pivot_y="0.5" />
+		<file id="44" name="medeyeki2.png" width="7" height="4" pivot_x="0.5" pivot_y="0.5" />
+		<file id="45" name="medeyeki3.png" width="9" height="5" pivot_x="0.5" pivot_y="0.5" />
+		<file id="46" name="medeye3.png" width="11" height="6" pivot_x="0.5" pivot_y="0.5" />
+		<file id="47" name="medskmouthc1.png" width="12" height="7" pivot_x="0.5" pivot_y="0.5" />
+		<file id="48" name="medskheadki2.png" width="38" height="33" pivot_x="0.356083" pivot_y="0.110605" />
+		<file id="49" name="medskmouthcki1.png" width="13" height="14" pivot_x="0.5" pivot_y="0.5" />
+		<file id="50" name="medskmoutho1.png" width="8" height="6" pivot_x="0.5" pivot_y="0.5" />
+		<file id="51" name="medskmouthoki1.png" width="15" height="14" pivot_x="0.5" pivot_y="0.5" />
+		<file id="52" name="medskheadki3.png" width="38" height="33" pivot_x="0.356083" pivot_y="0.110605" />
+	</folder>
+	<entity id="0" name="actor">
+		<obj_info name="bone_000" type="bone" w="21.189199" h="10" />
+		<obj_info name="bone_001" type="bone" w="18.379" h="10" />
+		<obj_info name="bone_002" type="bone" w="20.468" h="10" />
+		<obj_info name="bone_003" type="bone" w="6.90255" h="10" />
+		<obj_info name="bone_004" type="bone" w="20.707701" h="10" />
+		<obj_info name="bone_005" type="bone" w="6.26055" h="10" />
+		<obj_info name="bone_006" type="bone" w="13.1649" h="10" />
+		<obj_info name="bone_007" type="bone" w="13.0373" h="10" />
+		<obj_info name="bone_008" type="bone" w="13.3974" h="10" />
+		<obj_info name="bone_009" type="bone" w="14.0103" h="10" />
+		<character_map id="0" name="Naked">
+			<map folder="0" file="10" target_folder="0" target_file="10" />
+			<map folder="0" file="16" />
+			<map folder="0" file="17" />
+			<map folder="0" file="18" />
+			<map folder="0" file="19" />
+			<map folder="0" file="20" />
+			<map folder="0" file="21" />
+			<map folder="0" file="22" />
+			<map folder="0" file="23" />
+			<map folder="0" file="24" />
+			<map folder="0" file="25" />
+			<map folder="0" file="26" />
+			<map folder="0" file="27" />
+			<map folder="0" file="28" />
+			<map folder="0" file="29" />
+			<map folder="0" file="30" />
+			<map folder="0" file="31" />
+			<map folder="0" file="32" />
+			<map folder="0" file="33" />
+			<map folder="0" file="40" />
+		</character_map>
+		<character_map id="1" name="Head1">
+			<map folder="0" file="13" target_folder="0" target_file="13" />
+		</character_map>
+		<character_map id="2" name="Head2">
+			<map folder="0" file="13" target_folder="0" target_file="1" />
+		</character_map>
+		<character_map id="3" name="Head3">
+			<map folder="0" file="13" target_folder="0" target_file="14" />
+			<map folder="0" file="47" target_folder="0" target_file="49" target_dx="-4.75" target_scaley="-1" />
+			<map folder="0" file="15" />
+			<map folder="0" file="41" target_folder="0" target_file="41" target_dx="-5.25" target_dy="-1" target_scalex="0.75" target_scaley="0.75" />
+		</character_map>
+		<color_map id="0" name="RedSkin">
+			<map folder="0" file="0" color="1 0 0 1" />
+			<map folder="0" file="1" color="1 0 0 1" />
+			<map folder="0" file="2" color="1 0 0 1" />
+			<map folder="0" file="3" color="1 0 0 1" />
+			<map folder="0" file="4" color="1 0 0 1" />
+			<map folder="0" file="5" color="1 0 0 1" />
+			<map folder="0" file="6" color="1 0 0 1" />
+			<map folder="0" file="7" color="1 0 0 1" />
+			<map folder="0" file="8" color="1 0 0 1" />
+			<map folder="0" file="13" color="1 0 0 1" />
+			<map folder="0" file="14" color="1 0 0 1" />
+			<map folder="0" file="34" color="1 0 0 1" />
+			<map folder="0" file="35" color="1 0 0 1" />
+			<map folder="0" file="36" color="1 0 0 1" />
+			<map folder="0" file="37" color="1 0 0 1" />
+			<map folder="0" file="38" color="1 0 0 1" />
+			<map folder="0" file="39" color="1 0 0 1" />
+			<map folder="0" file="47" color="1 0 0 1" />
+		</color_map>
+		<animation id="0" name="idle" length="1000">
+			<mainline>
+				<key id="0">
+					<bone_ref id="0" timeline="12" key="0" />
+					<bone_ref id="1" parent="0" timeline="13" key="0" />
+					<bone_ref id="2" parent="0" timeline="14" key="0" />
+					<bone_ref id="3" parent="2" timeline="15" key="0" />
+					<bone_ref id="4" parent="0" timeline="16" key="0" />
+					<bone_ref id="5" parent="4" timeline="17" key="0" />
+					<bone_ref id="6" parent="0" timeline="18" key="0" />
+					<bone_ref id="7" parent="6" timeline="19" key="0" />
+					<bone_ref id="8" parent="0" timeline="20" key="0" />
+					<bone_ref id="9" parent="8" timeline="21" key="0" />
+					<object_ref id="0" parent="4" timeline="3" key="0" z_index="0" />
+					<object_ref id="1" parent="5" timeline="10" key="0" z_index="1" />
+					<object_ref id="2" parent="9" timeline="5" key="0" z_index="2" />
+					<object_ref id="3" parent="8" timeline="2" key="0" z_index="3" />
+					<object_ref id="4" parent="0" timeline="0" key="0" z_index="4" />
+					<object_ref id="5" parent="0" timeline="9" key="0" z_index="5" />
+					<object_ref id="6" parent="2" timeline="4" key="0" z_index="6" />
+					<object_ref id="7" parent="3" timeline="11" key="0" z_index="7" />
+					<object_ref id="8" parent="0" timeline="22" key="0" z_index="8" />
+					<object_ref id="9" parent="1" timeline="1" key="0" z_index="9" />
+					<object_ref id="10" parent="1" timeline="23" key="0" z_index="10" />
+					<object_ref id="11" parent="1" timeline="8" key="0" z_index="11" />
+					<object_ref id="12" parent="6" timeline="7" key="0" z_index="12" />
+					<object_ref id="13" parent="7" timeline="6" key="0" z_index="13" />
+					<object_ref id="14" parent="1" timeline="24" key="0" z_index="14" />
+				</key>
+			</mainline>
+			<timeline id="0" name="medskbodchest2">
+				<key id="0" spin="0">
+					<object folder="0" file="0" x="0.287167" y="-0.039592" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="1" name="medskhead2">
+				<key id="0" spin="0">
+					<object folder="0" file="13" x="0.409547" y="0.010665" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="2" name="medskbodarmb1">
+				<key id="0" spin="0">
+					<object folder="0" file="2" x="0.184924" y="0.082013" angle="90.284332" />
+				</key>
+			</timeline>
+			<timeline id="3" name="medskbodlegb1">
+				<key id="0" spin="0">
+					<object folder="0" file="3" x="0.690268" y="0.074399" angle="90.666199" />
+				</key>
+			</timeline>
+			<timeline id="4" name="medskbodlegf1">
+				<key id="0" spin="0">
+					<object folder="0" file="4" x="0.490342" y="0.169405" angle="90.898682" />
+				</key>
+			</timeline>
+			<timeline id="5" name="medskbodforearmb1">
+				<key id="0" spin="0">
+					<object folder="0" file="6" x="0.287241" y="-0.113462" angle="90.764862" />
+				</key>
+			</timeline>
+			<timeline id="6" name="medskbodforearmf1">
+				<key id="0" spin="0">
+					<object folder="0" file="7" x="0.238356" y="0.046974" angle="87.995468" />
+				</key>
+			</timeline>
+			<timeline id="7" name="medskbodarmf1">
+				<key id="0" spin="0">
+					<object folder="0" file="8" x="0.274434" y="0.056236" angle="93.387047" />
+				</key>
+			</timeline>
+			<timeline id="8" name="medhair2">
+				<key id="0" spin="0">
+					<object folder="0" file="15" x="0.152479" y="-0.209144" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="9" name="meduwear">
+				<key id="0" spin="0">
+					<object folder="0" file="10" x="0.48531" y="-0.036262" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="10" name="medcusfootb1">
+				<key id="0" spin="0">
+					<object folder="0" file="11" x="-2.528969" y="-0.175852" angle="90.73452" />
+				</key>
+			</timeline>
+			<timeline id="11" name="medcusfootf1">
+				<key id="0" spin="0">
+					<object folder="0" file="12" x="-1.178273" y="0.004051" angle="90.666199" />
+				</key>
+			</timeline>
+			<timeline id="12" name="bone_000" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="2.023142" y="27.759529" angle="90" />
+				</key>
+			</timeline>
+			<timeline id="13" name="bone_001" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="22.391653" y="4.093098" angle="0" />
+				</key>
+			</timeline>
+			<timeline id="14" name="bone_002" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="-1.291718" y="5.858748" angle="178.496964" />
+				</key>
+			</timeline>
+			<timeline id="15" name="bone_003" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="21.830948" y="0.101646" angle="0.232484" />
+				</key>
+			</timeline>
+			<timeline id="16" name="bone_004" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="0.596985" y="1.469824" angle="179.333801" />
+				</key>
+			</timeline>
+			<timeline id="17" name="bone_005" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="22.551577" y="0.181965" angle="359.931671" />
+				</key>
+			</timeline>
+			<timeline id="18" name="bone_006" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="18.073051" y="8.646666" angle="147.187363" />
+				</key>
+			</timeline>
+			<timeline id="19" name="bone_007" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="15.503456" y="0.993245" angle="51.552429" />
+				</key>
+			</timeline>
+			<timeline id="20" name="bone_008" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="20.148891" y="0.809779" angle="187.263245" />
+				</key>
+			</timeline>
+			<timeline id="21" name="bone_009" object_type="bone">
+				<key id="0" spin="0">
+					<bone x="15.320916" y="0.148888" angle="28.274433" />
+				</key>
+			</timeline>
+			<timeline id="22" name="medcuschest3">
+				<key id="0" spin="0">
+					<object folder="0" file="18" x="22.080969" y="3.928483" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="23" name="medeye1">
+				<key id="0" spin="0">
+					<object folder="0" file="41" x="16.241451" y="-13.9636555" angle="270" />
+				</key>
+			</timeline>
+			<timeline id="24" name="medskmouthc1">
+				<key id="0" spin="0">
+					<object folder="0" file="47" x="3.346759" y="-16.0617256" angle="270" scale_y="-1" />
+				</key>
+			</timeline>
+		</animation>
+	</entity>
 </spriter_data>

@@ -720,12 +720,9 @@ bool GOT::PreLoadObjects(int& state, HiresTimer* timer, const long long& delay, 
                 {
                     refType = SpriteSheet2D::GetTypeStatic();
 
-                    const unsigned MAX_MAPPINGSIZE = 30;
-
-                    AnimationSet2D* set2d = animatedSprite->GetAnimationSet();
-
-                    SpriteSheet2D* sheet2d = set2d->GetSpriteSheet();
-
+//                    const unsigned MAX_MAPPINGSIZE = 30;
+//                    AnimationSet2D* set2d = animatedSprite->GetAnimationSet();
+//                    SpriteSheet2D* sheet2d = set2d->GetSpriteSheet();
 //                    URHO3D_LOGERRORF("GOT() - PreLoadObjects : Object %s(%u) Wearable ... spritesheet=%s ...", GOT::GetType(got).CString(), got.Value(), sheet2d ? sheet2d->GetName().CString() : "null");
 //
 //                    if (set2d->GetSpriteMapping().Empty() || set2d->GetSpriteMapping().Size() > MAX_MAPPINGSIZE)
