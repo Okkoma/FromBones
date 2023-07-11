@@ -388,7 +388,7 @@ void GameNetwork::AddGraphicMessage(Context* context, const String& msg, const I
         netMessage->Set(msg, GameContext::Get().txtMsgFont_, 30, 2.f, position, 1.f, true, delaystart);
         netMessage->SetColor(Color::WHITE, Color::WHITE, Color::GRAY, Color::GRAY);
     }
-    else if (colortype == REDYELLOW35)
+    else// if (colortype == REDYELLOW35)
     {
         netMessage->Set(msg, GameContext::Get().txtMsgFont_, 35, 2.f, position, 1.f, true, delaystart);
         netMessage->SetColor(Color::RED, Color::RED, Color::YELLOW, Color::YELLOW);

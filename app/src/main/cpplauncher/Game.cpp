@@ -799,9 +799,9 @@ void Game::Start()
 
 void Game::Stop()
 {
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
-    URHO3D_LOGINFO("Game() - Stop ...                               -");
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - Stop ...                               -");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
 
     UnsubscribeFromAllEvents();
 
@@ -814,9 +814,9 @@ void Game::Stop()
         URHO3D_LOGINFOF(" UI child = %s",(*it)->GetName().CString());
 #endif
 
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
-    URHO3D_LOGINFO("Game() - Stop ...       OK !                     -");
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - Stop ...       OK !                     -");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
 
 #ifdef DUMP_RESOURCES
     engine_->DumpResources(true);

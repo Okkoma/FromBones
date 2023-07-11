@@ -3,6 +3,8 @@
 #include <Urho3D/Core/Object.h>
 #include <Urho3D/UI/UIElement.h>
 
+#include "DefsCore.h"
+
 namespace Urho3D
 {
 class Node;
@@ -39,8 +41,10 @@ enum RemoveState
     POOLRESTORE,
     FASTPOOLRESTORE,
     DISABLE,
+    NOVISIBLE,
     DISABLERECURSIVE,
     ENABLE,
+    VISIBLE,
     ENABLERECURSIVE,
     NOREMOVESTATE,
 };
@@ -52,7 +56,7 @@ enum RemoveObjectType
     UIELEMENT,
 };
 
-class TimerRemover : public Object
+class FROMBONES_API TimerRemover : public Object
 {
     URHO3D_OBJECT(TimerRemover, Object);
 

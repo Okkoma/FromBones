@@ -5173,13 +5173,15 @@ _________________________________________________________________________
 =====> pour cela dans l'editeur, il faudra pouvoir selectionner et manipuler les sprites.
 =====> 03/07/2023 OK pour la selection : ajout de AnimatorEditor::SelectSprite et AnimatedSprite2D::GetSpriteAt()
 =====> 05/07/2023 OK pour la manipulation : translate, rotate, scale ajout de AnimatorEditor::MoveSelection() et pas mal de modification dans SpriterData et AnimatedSprite2D
-======> fonctionne pour le moment uniquement sur un mapped sprite avec modification du characterMap::MapInstruction::targetdx,dy,dangle,scalex,scaley.
-======> faire un test sur une animation fonctionnelle créer dans actor-medium.
-======> étendre la manipulation aux slot (sprite d'origine) avec modification directement des SpatialTimelineKey.
-=====> ajouter l'edition des pivots
-=====> ajoute les bones, les points et les boxes
-=====> ajoute l'edition des triggers.
-=====> ameliorer la manipulation avec un gizmo ?
+======> fonctionne pour un mapped sprite avec modification du characterMap::MapInstruction::targetdx,dy,dangle,scalex,scaley.
+======> 06/07/2023 OK : faire un test sur une animation fonctionnelle créer dans actor-medium.
+======> étendre la manipulation aux slots (sprite d'origine) avec modification directe des SpatialTimelineKey.
+=====> ajouter l'edition des pivots, des bones, des points et des boxes et des triggers associés spécifiques à FromBones ?
+======> 07/07/2023 OK : pivots
+======> 09/07/2023 OK : affichage des bones => RAF voir pour l'antialiasing pour les ligne sous Vulkan (MultiSample).
+======> 11/07/2023 OK : manipulation des bones : sensibles à la rotation lorsque clic à proximité du point "pointe" et au déplacement sur le point "origine"
+=======> RAF : pas encore très claire sur la création ou non de timekey lorsque manipulation. Il semble y avoir des erreurs lorsque un bone est mis en rotation : quelle timekey est MAJ ? normalement la timekey la plus proche.
+======> ajouter un panel pour visualiser les timekeys.
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

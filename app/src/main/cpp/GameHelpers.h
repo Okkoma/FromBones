@@ -147,6 +147,7 @@ public:
     static void SetCollectableProperties(GOC_Collectable* collectable, const StringHash& type, VariantMap* slotData=0);
     static void GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
     static void SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
+    static void PurgeRedundantAppliedCharacterMaps(AnimatedSprite2D* animatedSprite);
     static void SetEntityVariation(AnimatedSprite2D* animatedsprite, int& entityid, const GOTInfo* gotinfo=0, bool forceRandomEntity=false, bool forceRandomMapping=false);
     static void SetRenderedAnimation(AnimatedSprite2D* animatedSprite, const String& cmap, const StringHash& type);
     static String GetMoveStateString(unsigned movestate);
@@ -194,6 +195,7 @@ public:
 
     /// Graphics Helpers
     static bool IsInsidePolygon(const Vector2& point, const PODVector<Vector2>& polygon);
+    static bool IsInsideTriangle(const Vector2& p, const Vector2& a, const Vector2& b, const Vector2& c);
     static void ScaleManhattanContour(float value, PODVector<Vector2>& contour);
     static Vector2 GetManhattanVector(unsigned index, const PODVector<Vector2>& vertices);
     static void OffsetEqualVertices(PODVector<Vector2>& contour, const float epsilon, bool shrink=false);

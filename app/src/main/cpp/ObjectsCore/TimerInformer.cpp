@@ -55,6 +55,7 @@ DelayInformer::DelayInformer(Context* context)
 DelayInformer::DelayInformer(Object* object, float delay, const StringHash& eventType)
     : Object(object->GetContext()), autodestroy_(true)
 {
+    URHO3D_LOGERRORF("DelayInformer() - %u", this);
     Start(object, delay, eventType);
 }
 
@@ -102,7 +103,7 @@ void DelayInformer::handleUpdate(StringHash eventType, VariantMap& eventData)
 
 void DelayInformer::handleDestroy(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("~DelayInformer() - %u", this);
+    URHO3D_LOGERRORF("~DelayInformer() - %u", this);
     this->~DelayInformer();
 }
 

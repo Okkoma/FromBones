@@ -1395,9 +1395,9 @@ void GameContext::ResetLuminosity()
 
 void GameContext::Stop()
 {
-    URHO3D_LOGINFO("GameContext() -----------------------------------------");
-    URHO3D_LOGINFO("GameContext() - Stop  ....                            -");
-    URHO3D_LOGINFO("GameContext() -----------------------------------------");
+    URHO3D_LOGERROR("GameContext() -----------------------------------------");
+    URHO3D_LOGERROR("GameContext() - Stop  ....                            -");
+    URHO3D_LOGERROR("GameContext() -----------------------------------------");
 
     SendEvent(GAME_EXIT);
 
@@ -1462,9 +1462,9 @@ void GameContext::Stop()
 
     UnRegisterGameLibrary(context_);
 
-    URHO3D_LOGINFO("GameContext() -----------------------------------------");
-    URHO3D_LOGINFO("GameContext() - Stop  .... OK !                       -");
-    URHO3D_LOGINFO("GameContext() -----------------------------------------");
+    URHO3D_LOGERROR("GameContext() -----------------------------------------");
+    URHO3D_LOGERROR("GameContext() - Stop  .... OK !                       -");
+    URHO3D_LOGERROR("GameContext() -----------------------------------------");
 }
 
 void GameContext::Exit()

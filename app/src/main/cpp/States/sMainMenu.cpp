@@ -71,12 +71,12 @@ MenuState::MenuState(Context* context) :
     GameState(context, "MainMenu")
 {
     drawDebug_ = 0;
-//    URHO3D_LOGINFO("MainMenu()");
+    URHO3D_LOGERROR("MenuState()");
 }
 
 MenuState::~MenuState()
 {
-    URHO3D_LOGINFO("~MainMenu()");
+    URHO3D_LOGERROR("~MenuState()");
 }
 
 
@@ -92,9 +92,9 @@ void MenuState::Begin()
     if (IsBegun())
         return;
 
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
-    URHO3D_LOGINFO("MainMenu() - Begin ...                               -");
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
+    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
+    URHO3D_LOGERROR("MenuState() - Begin ...                               -");
+    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
 
     GameContext::Get().lastLevelMode_ = LVL_NEW;
     if (!GameContext::Get().numPlayers_)
@@ -148,9 +148,9 @@ void MenuState::Begin()
 
     GameContext::Get().ResetLuminosity();
 
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
-    URHO3D_LOGINFO("MainMenu() - Begin ...  OK !                       -");
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
+    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
+    URHO3D_LOGERROR("MenuState() - Begin ...  OK !                       -");
+    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
 }
 
 void MenuState::End()
@@ -158,9 +158,9 @@ void MenuState::End()
     if (!IsBegun())
         return;
 
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
-    URHO3D_LOGINFO("MainMenu() - End ...                                  -");
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - End ...                                  -");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
 
     if (titlescene_)
         titlescene_->SetName("MainMenu");
@@ -182,15 +182,15 @@ void MenuState::End()
     // Call base class implementation
     GameState::End();
 
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
-    URHO3D_LOGINFO("MainMenu() - End ... OK !                           -");
-    URHO3D_LOGINFO("MainMenu() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - End ... OK !                           -");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
 }
 
 
 void MenuState::CreateScene()
 {
-    URHO3D_LOGINFO("MainMenu() - CreateScene ...");
+    URHO3D_LOGERROR("MenuState() - CreateScene ...");
 
     // Get the scene instantiate by Game
     rootScene_ = GameContext::Get().rootScene_;
@@ -255,7 +255,7 @@ void MenuState::CreateScene()
 
     GameHelpers::CreateMusicNode(rootScene_);
 
-    URHO3D_LOGINFO("MainMenu() - CreateScene ... OK !");
+    URHO3D_LOGERROR("MenuState() - CreateScene ... OK !");
 }
 
 void MenuState::CreateUI()
@@ -264,7 +264,7 @@ void MenuState::CreateUI()
 
     if (!ui_) return;
 
-    URHO3D_LOGINFO("MainMenu() - CreateUI ...");
+    URHO3D_LOGINFO("MenuState() - CreateUI ...");
 
     // Reset Focus, Keep Update restore the focus
     ui_->SetFocusElement(0);
@@ -281,12 +281,12 @@ void MenuState::CreateUI()
     // Load XML file containing MainMenu UI Layout
 //	SharedPtr<UIElement> w = ui_->LoadLayout(GetSubsystem<ResourceCache>()->GetResource<XMLFile>("UI/mainui.xml"));
 
-    URHO3D_LOGINFO("MainMenu() - CreateUI ... OK !");
+    URHO3D_LOGINFO("MenuState() - CreateUI ... OK !");
 }
 
 void MenuState::StartScene()
 {
-    URHO3D_LOGINFO("MainMenu() - StartScene ...");
+    URHO3D_LOGINFO("MenuState() - StartScene ...");
 
     if (!titlescene_)
         CreateScene();
@@ -312,7 +312,7 @@ void MenuState::StartScene()
     // Debug
 //    GameContext::Get().DumpNode(rootScene_);
 
-    URHO3D_LOGINFO("MainMenu() - StartScene ... OK !");
+    URHO3D_LOGINFO("MenuState() - StartScene ... OK !");
 }
 
 
@@ -381,11 +381,11 @@ void MenuState::SetMenuColliderPositions()
         AnimatedSprite2D* startbutton = buttonsolo->GetComponent<AnimatedSprite2D>();
         if (!startbutton->GetWorldBoundingBox().Defined())
         {
-            URHO3D_LOGERRORF("MainMenu() - SetMenuColliderPositions : soloButton wbox=%s !", startbutton->GetWorldBoundingBox().ToString().CString());
+            URHO3D_LOGERRORF("MenuState() - SetMenuColliderPositions : soloButton wbox=%s !", startbutton->GetWorldBoundingBox().ToString().CString());
             startbutton->MarkDirty();
         }
         GameHelpers::OrthoWorldToScreen(startRect_, startbutton->GetWorldBoundingBox());
-        URHO3D_LOGINFOF("MainMenu() - SetMenuColliderPositions : solobutton=%s !", startRect_.ToString().CString());
+        URHO3D_LOGINFOF("MenuState() - SetMenuColliderPositions : solobutton=%s !", startRect_.ToString().CString());
     }
 
     if (buttonarena)
@@ -393,11 +393,11 @@ void MenuState::SetMenuColliderPositions()
         AnimatedSprite2D* arenabutton = buttonarena->GetComponent<AnimatedSprite2D>();
         if (!arenabutton->GetWorldBoundingBox().Defined())
         {
-            URHO3D_LOGERRORF("MainMenu() - SetMenuColliderPositions : arenabutton wbox=%s !", arenabutton->GetWorldBoundingBox().ToString().CString());
+            URHO3D_LOGERRORF("MenuState() - SetMenuColliderPositions : arenabutton wbox=%s !", arenabutton->GetWorldBoundingBox().ToString().CString());
             arenabutton->MarkDirty();
         }
         GameHelpers::OrthoWorldToScreen(arenaRect_, arenabutton->GetWorldBoundingBox());
-        URHO3D_LOGINFOF("MainMenu() - SetMenuColliderPositions : arenabutton=%s !", arenaRect_.ToString().CString());
+        URHO3D_LOGINFOF("MenuState() - SetMenuColliderPositions : arenabutton=%s !", arenaRect_.ToString().CString());
     }
 
     if (buttonworld)
@@ -405,11 +405,11 @@ void MenuState::SetMenuColliderPositions()
         AnimatedSprite2D* worldbutton = buttonworld->GetComponent<AnimatedSprite2D>();
         if (!worldbutton->GetWorldBoundingBox().Defined())
         {
-            URHO3D_LOGERRORF("MainMenu() - SetMenuColliderPositions : worldbutton wbox=%s !", worldbutton->GetWorldBoundingBox().ToString().CString());
+            URHO3D_LOGERRORF("MenuState() - SetMenuColliderPositions : worldbutton wbox=%s !", worldbutton->GetWorldBoundingBox().ToString().CString());
             worldbutton->MarkDirty();
         }
         GameHelpers::OrthoWorldToScreen(worldRect_, worldbutton->GetWorldBoundingBox());
-        URHO3D_LOGINFOF("MainMenu() - SetMenuColliderPositions : worldbutton=%s !", worldRect_.ToString().CString());
+        URHO3D_LOGINFOF("MenuState() - SetMenuColliderPositions : worldbutton=%s !", worldRect_.ToString().CString());
     }
 }
 

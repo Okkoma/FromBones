@@ -3,4 +3,5 @@
     <quality high="0" />
     <dpiscml ratio="1.5" />
 	<srgb enable="true" />
+	<image stored="true" />
 </texture>

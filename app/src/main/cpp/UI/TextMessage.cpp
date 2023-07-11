@@ -50,13 +50,14 @@ TextMessage::TextMessage(Context* context) :
     expireEvent_(StringHash::ZERO),
     fadescale_(1.f)
 {
+    URHO3D_LOGERRORF("TextMessage() - %u", this);
     SubscribeToEvent(TEXTMESSAGE_CLEAN, URHO3D_HANDLER(TextMessage, OnRemove));
     SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(TextMessage, OnRemove));
 }
 
 TextMessage::~TextMessage()
 {
-    URHO3D_LOGINFOF("~TextMessage() - %u", this);
+    URHO3D_LOGERRORF("~TextMessage() - %u", this);
 
     UnsubscribeFromAllEvents();
 

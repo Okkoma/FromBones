@@ -2412,6 +2412,31 @@ void GameHelpers::SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentLi
     URHO3D_LOGINFOF("GameHelpers() - SetEquipmentList : node=%s(%u) ... OK !", animatedSprite->GetNode()->GetName().CString(), animatedSprite->GetNode()->GetID());
 }
 
+void GameHelpers::PurgeRedundantAppliedCharacterMaps(AnimatedSprite2D* animatedSprite)
+{
+    if (!animatedSprite)
+        return;
+
+    VariantVector appliedmaps = animatedSprite->GetAppliedCharacterMapsAttr();
+
+    // keep just one occurrence of a value
+    PODVector<StringHash> values;
+    while (appliedmaps.Size())
+    {
+        StringHash value(appliedmaps.Back().GetUInt());
+        if (!values.Contains(value))
+            values.Push(value);
+        appliedmaps.Pop();
+    }
+    while (values.Size())
+    {
+        appliedmaps.Push(Variant(values.Back()));
+        values.Pop();
+    }
+
+    animatedSprite->SetAppliedCharacterMapsAttr(appliedmaps);
+}
+
 void GameHelpers::SetEntityVariation(AnimatedSprite2D* animatedsprite, int& entityid, const GOTInfo* gotinfo, bool forceRandomEntity, bool forceRandomMapping)
 {
     if (!animatedsprite)
@@ -3418,6 +3443,39 @@ bool GameHelpers::IsInsidePolygon(const Vector2& point, const PODVector<Vector2>
     return c%2 != 0;
 }
 
+bool GameHelpers::IsInsideTriangle(const Vector2& p, const Vector2& a, const Vector2& b, const Vector2& c)
+{
+/*
+    Cette fonction prend en paramètre quatre objets Point : le point à tester p, et les trois sommets du triangle a, b, et c.
+    Elle utilise le test du barycentre pour déterminer si le point se trouve à l'intérieur du triangle.
+    Le test du barycentre consiste à exprimer le point comme une combinaison linéaire des sommets du triangle.
+    Si les coefficients de barycentrique u et v sont tous deux positifs et leur somme est inférieure à 1, alors le point se trouve à l'intérieur du triangle.
+*/
+
+    // Calculer les coordonnées des vecteurs reliant les sommets du triangle
+    float v0x = c.x_ - a.x_;
+    float v0y = c.y_ - a.y_;
+    float v1x = b.x_ - a.x_;
+    float v1y = b.y_ - a.y_;
+    float v2x = p.x_ - a.x_;
+    float v2y = p.y_ - a.y_;
+
+    // Calculer les produits scalaires
+    float dot00 = v0x * v0x + v0y * v0y;
+    float dot01 = v0x * v1x + v0y * v1y;
+    float dot02 = v0x * v2x + v0y * v2y;
+    float dot11 = v1x * v1x + v1y * v1y;
+    float dot12 = v1x * v2x + v1y * v2y;
+
+    // Calculer les coefficients de barycentrique
+    float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+    float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    // Vérifier si le point est à l'intérieur du triangle
+    return (u >= 0.0f) && (v >= 0.0f) && (u + v < 1.0f);
+}
+
 void GameHelpers::ClampSizeTo(IntVector2& size, int dimension)
 {
     float ratioSize = float(size.y_) / float(size.x_);
@@ -3942,7 +4000,6 @@ bool GameHelpers::IntersectSegments(const Vector2& p1, const Vector2& p2, const 
 
     return false;
 }
-
 
 /// Graphics Helpers
 

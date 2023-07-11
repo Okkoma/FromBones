@@ -262,9 +262,17 @@ void TimerRemover::Stop(VariantMap& eventData)
                 uielt->SetEnabled(true);
                 uielt->SetVisible(true);
             }
+            else if (removeState_ == VISIBLE)
+            {
+                uielt->SetVisible(true);
+            }
             else if (removeState_ == DISABLE)
             {
                 uielt->SetEnabled(false);
+                uielt->SetVisible(false);
+            }
+            else if (removeState_ == NOVISIBLE)
+            {
                 uielt->SetVisible(false);
             }
         }

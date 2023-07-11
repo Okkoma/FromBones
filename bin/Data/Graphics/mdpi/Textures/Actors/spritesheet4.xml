@@ -2,4 +2,5 @@
     <mipmap enable="false" />
     <quality high="0" />
 	<srgb enable="true" />
+	<image stored="true" />	
 </texture>
