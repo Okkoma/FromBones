@@ -474,7 +474,7 @@
                 <key id="2" time="2138" spin="-1">
                     <bone x="18.472402" y="0.03665" angle="0.886098"/>
                 </key>
-                <key id="3" time="3546">
+                <key id="3" time="3546" spin="1">
                     <bone x="18.472402" y="0.03665" angle="356.981835"/>
                 </key>
             </timeline>

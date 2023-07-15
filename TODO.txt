@@ -5180,8 +5180,17 @@ _________________________________________________________________________
 ======> 07/07/2023 OK : pivots
 ======> 09/07/2023 OK : affichage des bones => RAF voir pour l'antialiasing pour les ligne sous Vulkan (MultiSample).
 ======> 11/07/2023 OK : manipulation des bones : sensibles à la rotation lorsque clic à proximité du point "pointe" et au déplacement sur le point "origine"
-=======> RAF : pas encore très claire sur la création ou non de timekey lorsque manipulation. Il semble y avoir des erreurs lorsque un bone est mis en rotation : quelle timekey est MAJ ? normalement la timekey la plus proche.
+=======> pas encore très claire sur la création ou non de timekey lorsque manipulation. Il semble y avoir des erreurs lorsque un bone est mis en rotation : quelle timekey est MAJ ? normalement la timekey la plus proche.
+========> le probleme etait lié aux spin et à l'interpolation lineaire de l'angle.
+=========> lors de la manipulation de l'angle dans l'editeur régler à spin=1 par défaut et faire une dropdownlist pour pouvoir modifier le spin si nécessaire.
+=========> Lorsque spin=0 il n'y a pas d'interpolation ce qui peut generer des sacades cf Urho3D::Spriter::SpatialInfo::Interpolate() et Urho3D::Spriter::AngleLinear()
+=========> ce comportement peut etre necessaire pour swapper d'angle sans utiliser de curve instant.
 ======> ajouter un panel pour visualiser les timekeys.
+=======> 12/07/2023 OK : pour le moment, juste dans l'animation panel avec une partie information sur la timeline selectionnée avec edition possible du spin.
+=======> 13/07/2023 OK : ajout de la modification (add/remove) des timekeys.
+=======> RAF ajout/suppression de timeline (bone et sprite)
+======> il faut ajouter une box de message pour voir le mode d'edition (timeline editing, charactermap offseting)
+======> ajouter un bouton pour aligné le sprite selectionné avec l'origine du bone.
 
 - 17/09/2018 : creation de MapEditor
 => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3

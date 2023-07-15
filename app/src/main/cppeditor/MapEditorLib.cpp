@@ -132,6 +132,13 @@ enum GeomEditMode
     GE_ROTATE
 };
 
+enum ResetSelectionMode
+{
+    RESETALLSELECT = 0,
+    RESETHOVERSELECT,
+    RESETCLICKSELECT
+};
+
 const char* PickModeStr[] =
 {
     "PICK_GEOMETRIES",
@@ -261,6 +268,7 @@ const String TAGSEDIT("TagsEdit");
 const String ICON("Icon");
 const String UNKNOWN("Unknown");
 
+const StringHash KEYTIME("KeyTime");
 const StringHash MAPPINGSPRITE_KEY("SpriteKey");
 const StringHash SWAPPINGSPRITE_PTR("SwappingSprite");
 const StringHash UIELEMENT_CHILDINDEX("UIElementChildIndex");
@@ -300,9 +308,9 @@ Color modifiedTextColor(1.0f, 1.f, 0.0f);
 Color nonEditableTextColor(0.7f, 0.7f, 0.7f);
 Color nonEditableBitSelectorColor(0.5f, 0.5f, 0.5f);
 Color editableBitSelectorColor(1.0f, 1.0f, 1.0f);
-const unsigned BoneColor_Selected = Color(0.f, 1.f, 1.f, 1.f).ToUInt();
+const unsigned BoneColor_Selected = Color(0.f, 1.f, 1.f, 0.4f).ToUInt();
 const unsigned BoneColorBorder_Selected = Color(1.f, 1.f, 0.f, 1.f).ToUInt();
-const unsigned BoneColor = Color(0.5f, 0.5f, 0.5f, 1.f).ToUInt();
+const unsigned BoneColor = Color(0.5f, 0.5f, 0.5f, 0.4f).ToUInt();
 const unsigned BoneColorBorder = Color(1.f, 0.f, 1.f, 1.f).ToUInt();
 
 unsigned inspectorNodeContainerIndex_;
@@ -574,7 +582,7 @@ public :
         selected_ = enable;
     }
 
-    void Update(Node* node, Spriter::BoneTimelineKey* key)
+    void Update(Node* node, Spriter::BoneTimelineKey* key, bool force=false)
     {
         if (node_->GetParent() != node)
         {
@@ -586,12 +594,15 @@ public :
         node_->SetRotation2D(animatedSprite_->GetFlipX() != animatedSprite_->GetFlipY() ? 180.f-key->info_.angle_ : key->info_.angle_);
         node_->SetScale2D(key->info_.scaleX_, key->info_.scaleY_);
 
-        if (timelineHash_ != key->timeline_->hashname_)
+        if (timelineHash_ != key->timeline_->hashname_ || force)
         {
             timelineHash_ = key->timeline_->hashname_;
             const Spriter::ObjInfo& objinfo = animatedSprite_->GetSpriterInstance()->GetEntity()->objInfos_[timelineHash_];
             length_ = Clamp(objinfo.width_ * PIXEL_SIZE, 0.05f, 2.f);
             width_  = Clamp(objinfo.height_ * PIXEL_SIZE * 0.5f, 0.0025f, 0.5f);
+            // reduce width to keep good proportion with the length
+            if (width_ > 0.125f * length_);
+                width_ = 0.125f * length_;
         }
     }
 
@@ -670,9 +681,10 @@ public :
 
     void UpdateMapping(bool updatesprites, bool updatecolors);
 
-    void ResetSelection(bool hover);
+    void Update(const Vector2& worldposition);
+    void ResetSelection(int mode);
     void Select(const Vector2& worldposition, bool findbottomsprite, bool hover);
-    void MoveSelection(const Vector2& delta, int mode);
+    void MoveSelection(const Vector2& worldposition, const Vector2& delta, int mode);
     bool HasSelection() const { return lastSelectedTimelineId_ != -1 || lastSelectedBoneIndex_ != -1; }
 
 private :
@@ -700,10 +712,22 @@ private :
     void HandleRemoveAppliedCMap(StringHash eventType, VariantMap& eventData);
 
     void SetAnimationPanel();
+    void SetTimeKeys();
     void PlayAnimation(bool enable=true);
-    void UpdateBonesGizmos();
+    Spriter::Timeline* AddTimeline(Spriter::SpriterObjectType type, float time);
+    Spriter::MainlineKey* AddMainlineKey(unsigned newmainkeyid, float time);
+    void AddSpriterObject(Spriter::SpriterObjectType type, const Vector2& worldposition, bool finish);
+    void UpdateRefs(float time, unsigned timelineid, int parentid);
+    void UpdateBonesGizmos(bool force=false);
+    void UpdateTimeKeys();
+    void UpdateTimeKeysIcons();
+    void UpdateTimelineInfos();
+    void AdjustSpinAt(Spriter::Timeline* timeline, unsigned key);
+    void HandleAnimationKeyValueChanged(StringHash eventType, VariantMap& eventData);
+    void HandleAnimationModifyTimeKey(StringHash eventType, VariantMap& eventData);
+    void HandleTimeKeyContainerResized(StringHash eventType, VariantMap& eventData);
     void HandleAnimationSelect(StringHash eventType, VariantMap& eventData);
-    void HandleAnimationToggleShow(StringHash eventType, VariantMap& eventData);
+    void HandleAnimationToggleShowBones(StringHash eventType, VariantMap& eventData);
     void HandleAnimationToggleTime(StringHash eventType, VariantMap& eventData);
     void HandleAnimationChangeTime(StringHash eventType, VariantMap& eventData);
     void HandleAnimationPlay(StringHash eventType, VariantMap& eventData);
@@ -825,8 +849,8 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
 
 MapEditorLibImpl::~MapEditorLibImpl()
 {
-    AnimatorEditor::Get()->ResetSelection(true);
-    AnimatorEditor::Get()->ResetSelection(false);
+    AnimatorEditor::Get()->ResetSelection(RESETALLSELECT);
+
     AnimatorEditor::Get()->UpdateMapping(true, true);
 
     if (debugTextRootNode_)
@@ -984,7 +1008,7 @@ void CreateToolBarIcon(UIElement* element, int size, int styleicons=UISTYLE_TOOL
     element->AddChild(icon);
 }
 
-void CreateToolTip(UIElement* element, const String& title, const IntVector2& offset)
+void CreateToolTip(UIElement* element, const String& title, const IntVector2& offset, bool l10)
 {
     ToolTip* toolTip = new ToolTip(GameContext::Get().context_);
     toolTip->SetName(title + "ToolTip");
@@ -1000,12 +1024,12 @@ void CreateToolTip(UIElement* element, const String& title, const IntVector2& of
     Text* toolTipText = new Text(GameContext::Get().context_);
     toolTipText->SetName("Text");
     toolTipText->SetStyle("ToolTipText");
-    toolTipText->SetAutoLocalizable(true);
+    toolTipText->SetAutoLocalizable(l10);
     toolTipText->SetText(title);
     textHolder->AddChild(toolTipText);
 }
 
-Button* CreateToolBarButton(const String& title, int size, int styleicons=UISTYLE_TOOLBARICONS)
+Button* CreateToolBarButton(const String& title, int size, int styleicons=UISTYLE_TOOLBARICONS, bool l10=true)
 {
     Button* button = new Button(GameContext::Get().context_);
     button->SetName(title);
@@ -1017,12 +1041,12 @@ Button* CreateToolBarButton(const String& title, int size, int styleicons=UISTYL
     button->SetFocusMode(FM_NOTFOCUSABLE);
 
     CreateToolBarIcon(button, size, styleicons);
-    CreateToolTip(button, title, IntVector2(button->GetWidth()/2, -20));
+    CreateToolTip(button, title, IntVector2(button->GetWidth()/2, -20), l10);
 
     return button;
 }
 
-CheckBox* CreateToolBarToggle(const String& title, int size, int styleicons=UISTYLE_TOOLBARICONS)
+CheckBox* CreateToolBarToggle(const String& title, int size, int styleicons=UISTYLE_TOOLBARICONS, bool l10=true)
 {
     CheckBox* toggle = new CheckBox(GameContext::Get().context_);
     toggle->SetName(title);
@@ -1030,7 +1054,7 @@ CheckBox* CreateToolBarToggle(const String& title, int size, int styleicons=UIST
     toggle->SetStyle("ToolBarToggle");
 
     CreateToolBarIcon(toggle, size, styleicons);
-    CreateToolTip(toggle, title, IntVector2(toggle->GetWidth()/2, -20));
+    CreateToolTip(toggle, title, IntVector2(toggle->GetWidth()/2, -20), l10);
 
     return toggle;
 }
@@ -1203,7 +1227,6 @@ void MapEditorLibImpl::SetMonsterPopList()
         }
         spritesList->AddItem(row);
     }
-
     // subscribe To Event
     for (unsigned i=0; i < buttons.Size(); i++)
     {
@@ -2646,14 +2669,9 @@ void MapEditorLibImpl::Update(float timeStep)
             else
             {
                 if (drawableUnderMouse_ == AnimatorEditor::Get()->GetAnimatedSprite())
-                {
-                    AnimatorEditor::Get()->Select(position.position_, input->GetQualifierDown(QUAL_SHIFT), false);
-                }
+                    AnimatorEditor::Get()->Update(position.position_);
                 else
-                {
-                    AnimatorEditor::Get()->ResetSelection(false);
-                    AnimatorEditor::Get()->ResetSelection(true);
-                }
+                    AnimatorEditor::Get()->ResetSelection(RESETALLSELECT);
 
                 SelectObject(drawableUnderMouse_);
             }
@@ -2665,8 +2683,7 @@ void MapEditorLibImpl::Update(float timeStep)
         else
         {
             UnSelectObject();
-            AnimatorEditor::Get()->ResetSelection(false);
-            AnimatorEditor::Get()->ResetSelection(true);
+            AnimatorEditor::Get()->ResetSelection(RESETALLSELECT);
         }
     }
     else if (clickMode_ == CLICK_MOVE)
@@ -2675,7 +2692,7 @@ void MapEditorLibImpl::Update(float timeStep)
         if (AnimatorEditor::Get()->HasSelection())
         {
             int mode = input->GetQualifierDown(QUAL_SHIFT) ? GE_SCALE : (input->GetQualifierDown(QUAL_CTRL) ? GE_ROTATE : GE_TRANSLATE);
-            AnimatorEditor::Get()->MoveSelection(Vector2(input->GetMouseMoveX() * moveStep_, -input->GetMouseMoveY() * moveStep_), mode);
+            AnimatorEditor::Get()->MoveSelection(position.position_, Vector2(input->GetMouseMoveX() * moveStep_, -input->GetMouseMoveY() * moveStep_), mode);
         }
         // Move Objects
         else if (!editNodes_.Empty())
@@ -2701,11 +2718,11 @@ void MapEditorLibImpl::Update(float timeStep)
         {
             if (drawableUnderMouse_ && drawableUnderMouse_ == AnimatorEditor::Get()->GetAnimatedSprite())
             {
-                AnimatorEditor::Get()->Select(position.position_, input->GetQualifierDown(QUAL_SHIFT), true);
+                AnimatorEditor::Get()->Update(position.position_);
             }
             else
             {
-                AnimatorEditor::Get()->ResetSelection(true);
+                AnimatorEditor::Get()->ResetSelection(RESETHOVERSELECT);
 
                 // Draw Picked Object
                 DebugRenderer* debugRenderer = scene_->GetComponent<DebugRenderer>();
@@ -3606,8 +3623,8 @@ void AnimatorEditor::FinishEdit()
     {
         URHO3D_LOGINFOF("AnimatorEditor() - FinishEdit : node=%s(%u) ... ", editNode_->GetName().CString(), editNode_->GetID());
 
-        ResetSelection(false);
-        ResetSelection(true);
+        ResetSelection(RESETALLSELECT);
+
         lastSelectedBoneIndex_ = -1;
 
         editNode_->SetScale2D(nodeoriginscale_);
@@ -3618,35 +3635,67 @@ void AnimatorEditor::FinishEdit()
 
 static SpriteDebugInfo lastSelectInfo_, lastHoverInfo_;
 
-void AnimatorEditor::ResetSelection(bool hover)
+void AnimatorEditor::ResetSelection(int mode)
 {
     if (!editedAnimatedSprite_)
         return;
 
-    int& lastTimelineId = !hover ? lastSelectedTimelineId_ : lastHoverTimelineId_;
-    PODVector<Spriter::Ref*>& lastTimelineRefs = !hover ? lastSelectedTimelineRefs_ : lastHoverTimelineRefs_;
-    PODVector<Color>& lastTimelineRefsColors = !hover ? lastSelectedTimelineRefsColors_ : lastHoverTimelineRefsColors_;
+    bool cleared = false;
 
-    if (lastTimelineRefs.Size())
+    if (lastHoverTimelineRefs_.Size() && (mode == RESETALLSELECT || mode == RESETHOVERSELECT))
     {
-        for (unsigned i=0; i < lastTimelineRefs.Size(); i++)
-            lastTimelineRefs[i]->color_ = lastTimelineRefsColors[i];
+        for (unsigned i=0; i < lastHoverTimelineRefs_.Size(); i++)
+            lastHoverTimelineRefs_[i]->color_ = lastHoverTimelineRefsColors_[i];
 
-        lastTimelineRefs.Clear();
-        lastTimelineRefsColors.Clear();
-        lastTimelineId = -1;
+        lastHoverTimelineRefs_.Clear();
+        lastHoverTimelineRefsColors_.Clear();
+        lastHoverTimelineId_ = -1;
+        cleared = true;
+    }
+    if (lastSelectedTimelineRefs_.Size() && (mode == RESETALLSELECT || mode == RESETCLICKSELECT))
+    {
+        for (unsigned i=0; i < lastSelectedTimelineRefs_.Size(); i++)
+            lastSelectedTimelineRefs_[i]->color_ = lastSelectedTimelineRefsColors_[i];
 
-        if (editedAnimatedSprite_->GetSpriterInstance()->GetCurrentMainKeyId() != -1)
-        {
-            editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
-            editedAnimatedSprite_->SetColorDirty();
-        }
+        lastSelectedTimelineRefs_.Clear();
+        lastSelectedTimelineRefsColors_.Clear();
+        lastSelectedTimelineId_ = -1;
+        cleared = true;
+    }
+
+    if (cleared && editedAnimatedSprite_->GetSpriterInstance()->GetCurrentMainKey())
+    {
+        editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
+        editedAnimatedSprite_->SetColorDirty();
+    }
+}
+
+static int addingSpriterObjectTimelineId_ = -1;
+static int addingSpriterObjectTimelineParentId_ = -1;
+static Vector2 addingSpriterObjectTimelinePosition_;
+
+void AnimatorEditor::Update(const Vector2& worldposition)
+{
+    if (GameContext::Get().input_->GetMouseButtonDown(MOUSEB_LEFT))
+    {
+        if (GameContext::Get().input_->GetQualifierDown(QUAL_ALT))
+            AddSpriterObject(Spriter::BONE, worldposition, false);
+        else
+            Select(worldposition, GameContext::Get().input_->GetQualifierDown(QUAL_SHIFT), false);
+    }
+    else
+    {
+        if (addingSpriterObjectTimelineId_ != -1)
+            AddSpriterObject(Spriter::BONE, worldposition, true);
+        else
+            Select(worldposition, GameContext::Get().input_->GetQualifierDown(QUAL_SHIFT), true);
     }
 }
 
 void AnimatorEditor::Select(const Vector2& worldposition, bool findbottomsprite, bool hover)
 {
     // search a bone to select at worldposition
+    if (!hover)
     {
         const unsigned numbones = editedAnimatedSprite_->GetSpriterInstance()->GetNumBoneKeys();
         for (unsigned iSelectedBone=0; iSelectedBone < numbones; iSelectedBone++)
@@ -3656,11 +3705,16 @@ void AnimatorEditor::Select(const Vector2& worldposition, bool findbottomsprite,
             if (triangleid != -1)
             {
                 bonesGizmos_[iSelectedBone]->SetSelected(true);
-
                 if (lastSelectedBoneIndex_ != -1 && iSelectedBone != lastSelectedBoneIndex_)
                     bonesGizmos_[lastSelectedBoneIndex_]->SetSelected(false);
+
                 lastSelectedBoneIndex_ = iSelectedBone;
+//                URHO3D_LOGINFOF("AnimatorEditor() - Select : hovering=%s boneindex=%d ", hover ? "true":"false", lastSelectedBoneIndex_);
+
                 lastSelectBoneMoveMode_ = triangleid == 1 ? GE_ROTATE : GE_TRANSLATE;
+
+                UpdateTimeKeysIcons();
+                UpdateTimelineInfos();
                 // found one
                 return;
             }
@@ -3675,64 +3729,95 @@ void AnimatorEditor::Select(const Vector2& worldposition, bool findbottomsprite,
     }
 
     // search a sprite to select
-    const Vector2 position = editedAnimatedSprite_->GetNode()->GetWorldTransform2D().Inverse() * worldposition;
-
-    const float minalpha = 0.9f;
-    SpriteDebugInfo& info = !hover ? lastSelectInfo_ : lastHoverInfo_;
-    if (editedAnimatedSprite_->GetSpriteAt(position, findbottomsprite, minalpha, info))
     {
-        // add debug drawrect
-        if (hover)
+        const Vector2 position = editedAnimatedSprite_->GetNode()->GetWorldTransform2D().Inverse() * worldposition;
+
+        const float minalpha = 0.9f;
+        SpriteDebugInfo& info = !hover ? lastSelectInfo_ : lastHoverInfo_;
+        if (editedAnimatedSprite_->GetSpriteAt(position, findbottomsprite, minalpha, info))
         {
-            DebugRenderer* debugRenderer = mainScene_->GetComponent<DebugRenderer>();
-            const unsigned uintColor = Color::YELLOW.ToUInt();
-            debugRenderer->AddLine(info.vertices_[0], info.vertices_[1], uintColor, false);
-            debugRenderer->AddLine(info.vertices_[1], info.vertices_[2], uintColor, false);
-            debugRenderer->AddLine(info.vertices_[2], info.vertices_[3], uintColor, false);
-            debugRenderer->AddLine(info.vertices_[3], info.vertices_[0], uintColor, false);
-        }
-
-        int& lastTimelineId = !hover ? lastSelectedTimelineId_ : lastHoverTimelineId_;
-        PODVector<Spriter::Ref*>& lastTimelineRefs = !hover ? lastSelectedTimelineRefs_ : lastHoverTimelineRefs_;
-        PODVector<Color>& lastTimelineRefsColors =  !hover ? lastSelectedTimelineRefsColors_ : lastHoverTimelineRefsColors_;
-
-        // get the Timeline Id
-        Spriter::SpriteTimelineKey* spriteKey = editedAnimatedSprite_->GetSpriteKeys()[info.spriteindex_];
-        if (lastTimelineId != spriteKey->timeline_->id_ && spriteKey->timeline_->objectType_ == Urho3D::Spriter::SPRITE)
-        {
-            ResetSelection(hover);
-            if (!hover && spriteKey->timeline_->id_ == lastHoverTimelineId_)
-                ResetSelection(true);
-
-            if (!hover || spriteKey->timeline_->id_ != lastSelectedTimelineId_)
+            // add debug drawrect
+            if (hover)
             {
-                lastTimelineId = spriteKey->timeline_->id_;
+                DebugRenderer* debugRenderer = mainScene_->GetComponent<DebugRenderer>();
+                const unsigned uintColor = Color::YELLOW.ToUInt();
+                debugRenderer->AddLine(info.vertices_[0], info.vertices_[1], uintColor, false);
+                debugRenderer->AddLine(info.vertices_[1], info.vertices_[2], uintColor, false);
+                debugRenderer->AddLine(info.vertices_[2], info.vertices_[3], uintColor, false);
+                debugRenderer->AddLine(info.vertices_[3], info.vertices_[0], uintColor, false);
+            }
 
-                // change the color of the refs to green
-                editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->GetObjectRefs(lastTimelineId, lastTimelineRefs);
-                for (unsigned i=0; i < lastTimelineRefs.Size(); i++)
+            int& lastTimelineId = !hover ? lastSelectedTimelineId_ : lastHoverTimelineId_;
+            PODVector<Spriter::Ref*>& lastTimelineRefs = !hover ? lastSelectedTimelineRefs_ : lastHoverTimelineRefs_;
+            PODVector<Color>& lastTimelineRefsColors =  !hover ? lastSelectedTimelineRefsColors_ : lastHoverTimelineRefsColors_;
+
+            // get the Timeline Id
+            Spriter::SpriteTimelineKey* spriteKey = editedAnimatedSprite_->GetSpriteKeys()[info.spriteindex_];
+            if (lastTimelineId != spriteKey->timeline_->id_ && spriteKey->timeline_->objectType_ == Urho3D::Spriter::SPRITE)
+            {
+                ResetSelection(hover ? RESETHOVERSELECT : RESETCLICKSELECT);
+                if (spriteKey->timeline_->id_ == lastHoverTimelineId_)
+                    ResetSelection(RESETHOVERSELECT);
+
+                if (!hover || spriteKey->timeline_->id_ != lastSelectedTimelineId_)
                 {
-                    lastTimelineRefsColors.Push(lastTimelineRefs[i]->color_);
-                    lastTimelineRefs[i]->color_ = hover ? Color::GRAY : Color::GREEN;
+                    lastTimelineId = spriteKey->timeline_->id_;
+
+                    // change the color of the refs to green
+                    lastTimelineRefs.Clear();
+                    editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->GetObjectRefs(lastTimelineId, lastTimelineRefs);
+                    for (unsigned i=0; i < lastTimelineRefs.Size(); i++)
+                    {
+                        lastTimelineRefsColors.Push(lastTimelineRefs[i]->color_);
+                        lastTimelineRefs[i]->color_ = hover ? Color::GRAY : Color::GREEN;
+                    }
+                    editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
+                    editedAnimatedSprite_->SetColorDirty();
+                    URHO3D_LOGINFOF("AnimatorEditor() - Select : hovering=%s index=%u sprite=%s timeline=%d numrefs=%u", hover ? "true":"false", info.spriteindex_, info.sprite_->GetName().CString(), lastTimelineId, lastTimelineRefs.Size());
                 }
-                editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
-                editedAnimatedSprite_->SetColorDirty();
-                URHO3D_LOGINFOF("AnimatorEditor() - Select : hovering=%s index=%u sprite=%s timeline=%d numrefs=%u", hover ? "true":"false", info.spriteindex_, info.sprite_->GetName().CString(), lastTimelineId, lastTimelineRefs.Size());
             }
         }
+        else
+        {
+            ResetSelection(hover ? RESETHOVERSELECT : RESETCLICKSELECT);
+        }
     }
-    else
-    {
-        ResetSelection(hover);
-    }
+
+    UpdateTimeKeysIcons();
+    UpdateTimelineInfos();
 }
 
-void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
+void AnimatorEditor::AdjustSpinAt(Spriter::Timeline* timeline, unsigned key)
+{
+    // force the spin to 1 : if the behavior is not the required by the user, he can change the spin manually later.
+    if (timeline->keys_.Size() == 1)
+    {
+        timeline->keys_.Front()->info_.spin = 1;
+        return;
+    }
+
+    // when establishing the spin value, we try to have the smallest delta angle (< 180.f)
+    Spriter::SpatialTimelineKey* tKey = timeline->keys_[key];
+    Spriter::SpatialTimelineKey* nextKey = timeline->keys_[key+1 < timeline->keys_.Size() ? key+1 : 0];
+
+    float angle = tKey->info_.angle_;
+    float nextAngle = nextKey->info_.angle_;
+    if (nextAngle > angle)
+        tKey->info_.spin = (nextAngle - angle < 180.f) ? 1 : -1;
+    else if (nextAngle < angle)
+        tKey->info_.spin = (angle - nextAngle < 180.f) ? -1 : 1;
+}
+
+void AnimatorEditor::MoveSelection(const Vector2& worldposition, const Vector2& delta, int mode)
 {
     if (lastSelectedBoneIndex_ != -1)
     {
         int selectedBoneTimelineId = editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_;
         Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[selectedBoneTimelineId];
+
+        // Update the move mode
+        if (GameContext::Get().input_->GetMouseButtonPress(MOUSEB_RIGHT))
+            lastSelectBoneMoveMode_ = bonesGizmos_[lastSelectedBoneIndex_]->IsInside(worldposition) == 0 ? GE_TRANSLATE : GE_ROTATE;
 
         // Get the current TimelineKey
         float time = editedAnimatedSprite_->GetCurrentAnimationTime();
@@ -3745,6 +3830,28 @@ void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
                 ;
             }
 
+            // Flip delta in accordance with animatedsprite
+            Vector2 ldelta = delta;
+            if (editedAnimatedSprite_->GetFlipX())
+                ldelta.x_ = -ldelta.x_;
+            if (editedAnimatedSprite_->GetFlipY())
+                ldelta.y_ = -ldelta.y_;
+
+            // Scale the delta
+            ldelta *= editedAnimatedSprite_->GetNode()->GetWorldScale2D();
+
+            // Get the parent"s transform for the timeline
+            Spriter::SpatialInfo sinfo;
+            editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->UnMapToRoot(tKey, time, false, sinfo);
+            if (sinfo.angle_ >= 360.f)
+                sinfo.angle_ -= 360.f;
+            else if (sinfo.angle_ < 0.f)
+                sinfo.angle_ += 360.f;
+            Matrix2x3 transform(Vector2::ZERO, -sinfo.angle_, Vector2(sinfo.scaleX_, sinfo.scaleY_));
+
+            // The Delta is now in the parent referential
+            ldelta = transform * ldelta;
+
             Spriter::SpatialInfo& spatialinfo = tKey->info_;
 
             if (mode == GE_SCALE)
@@ -3753,34 +3860,24 @@ void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
             }
             else if (lastSelectBoneMoveMode_ == GE_ROTATE)
             {
-                spatialinfo.angle_ += delta.y_;
+                // set new angle
+                spatialinfo.angle_ += Sign(Abs(delta.y_) > Abs(delta.x_) ? delta.y_ : delta.x_) * ldelta.Length();
 
-                if (delta.y_ > 0.f && spatialinfo.angle_ >= 360.f)
+                // adjust angle
+                if (spatialinfo.angle_ >= 360.f)
                     spatialinfo.angle_ -= 360.f;
                 else if (spatialinfo.angle_ < 0.f)
                     spatialinfo.angle_ += 360.f;
 
-                URHO3D_LOGINFOF("AnimatorEditor() - MoveSelection : boneindex=%d timelineid=%d rotate delta=%F newangle=%F", lastSelectedBoneIndex_, selectedBoneTimelineId, delta.y_, spatialinfo.angle_);
+                // adjust the spins
+                AdjustSpinAt(timeline, tKey->id_);
+                AdjustSpinAt(timeline, tKey->id_ > 0 ? tKey->id_-1 : timeline->keys_.Size()-1);
             }
             else
             {
-                Spriter::SpatialInfo sinfo;
-                editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->UnMapToRoot(tKey, time, false, sinfo);
-                Vector2 ldelta = delta;
-                if (editedAnimatedSprite_->GetFlipX())
-                    ldelta.x_ = -ldelta.x_;
-                if (editedAnimatedSprite_->GetFlipY())
-                    ldelta.y_ = -ldelta.y_;
-                if (sinfo.angle_ > 360.f)
-                    sinfo.angle_ -= 360.f;
-                Matrix2x3 transform(Vector2::ZERO, -sinfo.angle_, Vector2(sinfo.scaleX_/editedAnimatedSprite_->GetNode()->GetWorldScale2D().x_, sinfo.scaleY_/editedAnimatedSprite_->GetNode()->GetWorldScale2D().y_));
-                ldelta = transform * ldelta;
+                // set new position
                 spatialinfo.x_ += ldelta.x_ * 0.5f;
                 spatialinfo.y_ += ldelta.y_ * 0.5f;
-
-                if (Abs(delta.x_) > 0.4f)
-                    URHO3D_LOGINFOF("AnimatorEditor() - MoveSelection : boneindex=%d timelineid=%d translate delta=%f %f angle=%f ldelta=%f %f ",
-                                lastSelectedBoneIndex_, selectedBoneTimelineId, delta.x_, delta.y_, sinfo.angle_, ldelta.x_, ldelta.y_);
             }
 
             if (!isPlaying_)
@@ -3789,6 +3886,7 @@ void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
                 editedAnimatedSprite_->GetSpriterInstance()->ResetCurrentTime();
                 editedAnimatedSprite_->UpdateAnimation(time);
 
+                UpdateTimelineInfos();
                 UpdateBonesGizmos();
             }
         }
@@ -3835,7 +3933,10 @@ void AnimatorEditor::MoveSelection(const Vector2& delta, int mode)
             UpdateSpriteMappingListItem(GetSpriteMappingListItem(Spriter::GetKey(tKey->folderId_, tKey->fileId_)), instruct);
 
             if (!isPlaying_)
+            {
+                UpdateTimelineInfos();
                 editedAnimatedSprite_->UpdateAnimation(0.f);
+            }
         }
     }
 }
@@ -3864,7 +3965,6 @@ void AnimatorEditor::UpdateMapping(bool updatesprites, bool updatecolors)
             editedAnimatedSprite_->ApplyCharacterMap(item->GetText());
     }
 }
-
 
 
 /// Main Character Mapping Panel
@@ -4047,8 +4147,7 @@ void AnimatorEditor::HandleResize(StringHash eventType, VariantMap& eventData)
 
 void AnimatorEditor::HandleAnimationSetSave(StringHash eventType, VariantMap& eventData)
 {
-    ResetSelection(false);
-    ResetSelection(true);
+    ResetSelection(RESETALLSELECT);
 
     AnimationSet2D* animationSet = editedAnimatedSprite_->GetAnimationSet();
     UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS);
@@ -4267,7 +4366,7 @@ void AnimatorEditor::SetAnimationPanel()
     MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_ANIMS, true);
     UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS);
 
-    SubscribeToEvent(panel->GetChild("ShowBones", true), E_TOGGLED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationToggleShow));
+    SubscribeToEvent(panel->GetChild("ShowBones", true), E_TOGGLED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationToggleShowBones));
 
     const PODVector<Spriter::Entity*>& entities = animationSet->GetSpriterData()->entities_;
     const PODVector<Spriter::Animation*>& animations = entities[entityid_]->animations_;
@@ -4292,12 +4391,12 @@ void AnimatorEditor::SetAnimationPanel()
     UIElement* buttons = panel->GetChild("Buttons", true);
     if (!buttons->GetNumChildren())
     {
-        UIElement* playbutton = CreateToolBarButton("AnimPlay", 30, UISTYLE_ICONS);
+        UIElement* playbutton = CreateToolBarButton("AnimPlay", 30, UISTYLE_ICONS, false);
         static_cast<Text*>(static_cast<ToolTip*>(playbutton->GetChild("AnimPlayToolTip", true))->GetChild(0)->GetChild(0))->SetText("Play");
 
-        buttons->AddChild(CreateToolBarButton("AnimPrevKey", 30, UISTYLE_ICONS));
+        buttons->AddChild(CreateToolBarButton("AnimPrevKey", 30, UISTYLE_ICONS, false));
         buttons->AddChild(playbutton);
-        buttons->AddChild(CreateToolBarButton("AnimNextKey", 30, UISTYLE_ICONS));
+        buttons->AddChild(CreateToolBarButton("AnimNextKey", 30, UISTYLE_ICONS, false));
         buttons->UpdateLayout();
 
         SubscribeToEvent(availableAnimations, E_ITEMSELECTED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationSelect));
@@ -4306,6 +4405,10 @@ void AnimatorEditor::SetAnimationPanel()
         SubscribeToEvent(buttons->GetChild("AnimNextKey", true), E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationToggleTime));
     }
 
+    // Subscribe To Resize for TimeKeys repositionning
+    UIElement* timeKeysContainer = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimeKeys", true);
+    SubscribeToEvent(timeKeysContainer, E_RESIZED, URHO3D_HANDLER(AnimatorEditor, HandleTimeKeyContainerResized));
+
     // Set AnimationTime slider
     timeSlider_ = static_cast<Slider*>(panel->GetChild("AnimationTime", true));
     timeSlider_->SetRepeatRate(10.f);
@@ -4313,6 +4416,12 @@ void AnimatorEditor::SetAnimationPanel()
     timeSlider_->SetValue(editedAnimatedSprite_->GetCurrentAnimationTime() * 1000.f);
     SubscribeToEvent(timeSlider_, E_SLIDERPAGED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationChangeTime));
     SubscribeToEvent(timeSlider_, E_SLIDERCHANGED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationChangeTime));
+    SubscribeToEvent(timeSlider_, E_DOUBLECLICK, URHO3D_HANDLER(AnimatorEditor, HandleAnimationModifyTimeKey));
+
+    // Set Timeline Infos
+    UIElement* timelineUi = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimelineContainer", true)->GetChild(0);
+    // spin dropdownlist
+    SubscribeToEvent(timelineUi->GetChild(6)->GetChild(1), E_ITEMSELECTED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationKeyValueChanged));
 
     // Hide All bonesGizmos
     for (unsigned i=0; i < bonesGizmos_.Size(); i++)
@@ -4320,6 +4429,9 @@ void AnimatorEditor::SetAnimationPanel()
 
     bonesVisible_ = static_cast<CheckBox*>(panel->GetChild("ShowBones", true))->IsChecked();
 
+    SetTimeKeys();
+
+    UpdateTimelineInfos();
     UpdateBonesGizmos();
 }
 
@@ -4351,7 +4463,408 @@ void AnimatorEditor::PlayAnimation(bool enable)
     }
 }
 
-void AnimatorEditor::UpdateBonesGizmos()
+Spriter::Timeline* AnimatorEditor::AddTimeline(Spriter::SpriterObjectType type, float time)
+{
+    // TODO Check if the name exist already
+    String name = "BoneTest1";
+
+    // add timeline to animation
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+    Spriter::Timeline* timeline = new Spriter::Timeline();
+    timeline->id_         = animation->timelines_.Size();
+    timeline->name_       = name;
+    timeline->hashname_   = StringHash(name);
+    timeline->objectType_ = type;
+    animation->timelines_.Push(timeline);
+
+    Spriter::SpatialTimelineKey* spatialtimekey = 0;
+
+    // add a first timekey at time
+    if (type == Spriter::BONE)
+    {
+        // Set Time Key
+        Spriter::BoneTimelineKey* timekey = new Spriter::BoneTimelineKey();
+
+        // Set Object Info
+        StringHash timelinehash(name);
+        Spriter::ObjInfo& objinfo = editedAnimatedSprite_->GetSpriterInstance()->GetEntity()->objInfos_[timelinehash];
+        objinfo.name_   = name;
+        objinfo.type_   = type;
+        objinfo.width_  = 16;
+        objinfo.height_ = 4;
+
+        spatialtimekey = timekey;
+    }
+    else if (type == Spriter::SPRITE)
+    {
+        // Set Time Key
+        Spriter::SpriteTimelineKey* timekey = new Spriter::SpriteTimelineKey();
+//        timekey->useDefaultPivot_ = ;
+//        timekey->pivotX_          = ;
+//        timekey->pivotY_          = ;
+//        timekey->folderId_        = ;
+//        timekey->fileId_          = ;
+//        timekey->fx_              = ;
+
+        spatialtimekey = timekey;
+    }
+    else if (type == Spriter::POINT)
+    {
+        // Set Time Key
+        Spriter::PointTimelineKey* timekey = new Spriter::PointTimelineKey();
+
+        spatialtimekey = timekey;
+    }
+    else if (type == Spriter::BOX)
+    {
+        // Set Time Key
+        Spriter::BoxTimelineKey* timekey = new Spriter::BoxTimelineKey();
+//        timekey->useDefaultPivot_ = ;
+//        timekey->pivotX_          = ;
+//        timekey->pivotY_          = ;
+//        timekey->width_           = ;
+//        timekey->height_          = ;
+
+        // Set Object Info
+        StringHash timelinehash(name);
+        Spriter::ObjInfo& objinfo = editedAnimatedSprite_->GetSpriterInstance()->GetEntity()->objInfos_[timelinehash];
+        objinfo.name_   = name;
+        objinfo.type_   = type;
+        objinfo.width_  = 16;
+        objinfo.height_ = 16;
+        objinfo.pivotX_ = 0.f;
+        objinfo.pivotY_ = 0.f;
+
+        spatialtimekey = timekey;
+    }
+
+    if (spatialtimekey)
+    {
+        spatialtimekey->id_        = timeline->keys_.Size();
+        spatialtimekey->time_      = time;
+        spatialtimekey->curveType_ = Spriter::LINEAR;
+        spatialtimekey->c1_        = 0.f;
+        spatialtimekey->c2_        = 0.f;
+        spatialtimekey->c3_        = 0.f;
+        spatialtimekey->c4_        = 0.f;
+        spatialtimekey->timeline_   = timeline;
+        spatialtimekey->info_.x_      = 0.f;
+        spatialtimekey->info_.y_      = 0.f;
+        spatialtimekey->info_.angle_  = 0.f;
+        spatialtimekey->info_.scaleX_ = 1;
+        spatialtimekey->info_.scaleY_ = 1;
+        spatialtimekey->info_.spin    = 1;
+
+        timeline->keys_.Push(spatialtimekey);
+    }
+
+    return timeline;
+}
+
+Spriter::MainlineKey* AnimatorEditor::AddMainlineKey(unsigned newmainkeyid, float time)
+{
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+
+    Spriter::MainlineKey* mainkey = animation->mainlineKeys_[newmainkeyid-1];
+    Spriter::MainlineKey* newmainkey = new Spriter::MainlineKey();
+    animation->mainlineKeys_.Insert(newmainkeyid, newmainkey);
+    newmainkey->time_ = time;
+    newmainkey->curveType_ = Spriter::LINEAR;
+    newmainkey->c1_ = 0.f;
+    newmainkey->c2_ = 0.f;
+    newmainkey->c3_ = 0.f;
+    newmainkey->c4_ = 0.f;
+    // recreate all the refs because the refs are uniques for each timekey
+    for (unsigned i=0; i < mainkey->boneRefs_.Size(); i++)
+    {
+        Spriter::Ref* ref = new Spriter::Ref();
+        mainkey->boneRefs_[i]->Copy(*ref);
+        newmainkey->boneRefs_.Push(ref);
+    }
+    for (unsigned i=0; i < mainkey->objectRefs_.Size(); i++)
+    {
+        Spriter::Ref* ref = new Spriter::Ref();
+        mainkey->objectRefs_[i]->Copy(*ref);
+        newmainkey->objectRefs_.Push(ref);
+    }
+
+    // update mainline keys id
+    for (unsigned i=newmainkeyid; i < animation->mainlineKeys_.Size(); i++)
+        animation->mainlineKeys_[i]->id_ = i;
+
+    return newmainkey;
+}
+
+void AnimatorEditor::UpdateRefs(float time, unsigned timelineid, int timelineparentid)
+{
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+    Spriter::MainlineKey* mainkey = animation->GetMainlineKey(time);
+    if (!mainkey)
+    {
+        URHO3D_LOGERRORF("AnimatorEditor() - AddSpriterObject : ... no mainkey for time=%F !", time);
+        return;
+    }
+
+    unsigned mainkeyid = mainkey->id_;
+
+    if (mainkey->time_ != time)
+    {
+        // add mainkey at time
+        mainkey = AddMainlineKey(mainkeyid, time);
+        mainkeyid = mainkey->id_;
+    }
+
+    Spriter::Timeline* timeline = animation->timelines_[timelineid];
+    if (timeline->objectType_ == Spriter::BONE)
+    {
+        URHO3D_LOGINFOF("AnimatorEditor() - UpdateRefs : ... update time=%F timelineid=%u timelineparentid=%u ", time, timelineid, timelineparentid);
+
+        // update the ref to the timeline in each mainlinekey
+        for (unsigned i=mainkeyid; i < animation->mainlineKeys_.Size(); i++)
+        {
+            mainkey = animation->mainlineKeys_[i];
+
+            // check if the ref for the timeline exists already in the mainlinekey
+            Spriter::Ref* ref = mainkey->GetBoneRef(timelineid);
+
+            // add new ref
+            if (!ref)
+            {
+                ref = new Spriter::Ref();
+                mainkey->boneRefs_.Back()->Copy(*ref);
+                ref->id_ = mainkey->boneRefs_.Size();
+                ref->timeline_ = timelineid;
+                ref->key_ = 0;
+                mainkey->boneRefs_.Push(ref);
+                URHO3D_LOGINFOF("AnimatorEditor() - UpdateRefs : ... update time=%F timelineid=%u timelineparentid=%u ... Add Ref ... ", mainkey->time_, timelineid, timelineparentid);
+            }
+
+            // find the parent bonerefid
+            ref->parent_ = timelineparentid != -1 ? mainkey->GetBoneRef(timelineparentid)->id_ : -1;
+
+            URHO3D_LOGINFOF("AnimatorEditor() - UpdateRefs : ... update time=%F timelineid=%u timelineparentid=%u ... Add Ref ... set Parent=%u ", mainkey->time_, timelineid, timelineparentid, ref->parent_);
+        }
+    }
+    else
+    {
+        for (unsigned i=mainkeyid; i < animation->mainlineKeys_.Size(); i++)
+        {
+            mainkey = animation->mainlineKeys_[i];
+
+            // TODO ; z_index
+//            unsigned z_index;
+//            mainkey->objectRefs_.Insert(z_index, ref);
+//            for (unsigned z = z_index; z < mainkey->objectRefs_.Size(); z++)
+//            {
+//                mainkey->objectRefs_[z]->id_ = z;
+//                mainkey->objectRefs_[z]->zIndex_ = z;
+//            }
+        }
+    }
+
+    editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
+}
+
+void AnimatorEditor::AddSpriterObject(Spriter::SpriterObjectType type, const Vector2& worldposition, bool finish)
+{
+    if (!finish)
+    {
+        if (addingSpriterObjectTimelineId_ == -1)
+        {
+            URHO3D_LOGINFOF("AnimatorEditor() - AddSpriterObject : ... start");
+
+            // start position
+            addingSpriterObjectTimelinePosition_ = worldposition;
+            // add new timeline
+            addingSpriterObjectTimelineId_ = AddTimeline(type, editedAnimatedSprite_->GetSpriterInstance()->GetCurrentTime())->id_;
+
+            addingSpriterObjectTimelineParentId_ = -1;
+            // get the timelineid for the selected bone
+            if (lastSelectedBoneIndex_ != -1)
+            {
+                addingSpriterObjectTimelineParentId_ = editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_;
+            }
+            // if no bone selected but sprite selected, get the id of the parent (the bone that holds the sprite) for the selected sprite
+            else if (lastSelectedTimelineId_ != -1)
+            {
+                Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+                Spriter::MainlineKey* mainkey = animation->GetMainlineKey(editedAnimatedSprite_->GetSpriterInstance()->GetCurrentTime());
+                Spriter::Ref* ref = mainkey->GetObjectRef(lastSelectedTimelineId_);
+                if (ref->parent_ != -1)
+                    addingSpriterObjectTimelineParentId_ = mainkey->boneRefs_[ref->parent_]->timeline_;
+            }
+
+            // Update the mainlinekeys Refs with no parent for
+            UpdateRefs(editedAnimatedSprite_->GetSpriterInstance()->GetCurrentTime(), addingSpriterObjectTimelineId_, -1);
+
+            // Set Bone Position
+            {
+                Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[addingSpriterObjectTimelineId_];
+                Spriter::SpatialTimelineKey* bonekey = timeline->keys_.Back();
+                bonekey->info_.x_ = worldposition.x_;
+                bonekey->info_.y_ = worldposition.y_;
+            }
+        }
+//        URHO3D_LOGINFOF("AnimatorEditor() - AddSpriterObject : ... ");
+
+        // TODO : extend the bone : modif Spriter::ObjInfo, update bonegizmo
+        Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[addingSpriterObjectTimelineId_];
+
+        // Set Bone Angle
+//        {
+//            Spriter::SpatialTimelineKey* bonekey = timeline->keys_.Back();
+//            bonekey->info_.angle_ = ;
+//        }
+        // Set Bone Length
+        {
+            Spriter::ObjInfo& objinfo = editedAnimatedSprite_->GetSpriterInstance()->GetEntity()->objInfos_[timeline->hashname_];
+            objinfo.width_  = 16 + (addingSpriterObjectTimelinePosition_ - worldposition).Length() / PIXEL_SIZE;
+        }
+        UpdateBonesGizmos(true);
+    }
+    else if (finish && addingSpriterObjectTimelineId_ != -1)
+    {
+        URHO3D_LOGINFOF("AnimatorEditor() - AddSpriterObject : ... finish : selectedTimelineId=%d !", addingSpriterObjectTimelineParentId_);
+
+        // Update the mainlinekeys Refs
+        UpdateRefs(editedAnimatedSprite_->GetSpriterInstance()->GetCurrentTime(), addingSpriterObjectTimelineId_, addingSpriterObjectTimelineParentId_);
+        addingSpriterObjectTimelineId_ = addingSpriterObjectTimelineParentId_ = -1;
+    }
+}
+
+void AnimatorEditor::SetTimeKeys()
+{
+    const int sliderKnobWidth = 10;
+    const int keysize = 16;
+    const float pivotx = (float)(keysize-sliderKnobWidth)/keysize * 0.5f;
+
+    UIElement* timeKeysContainer = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimeKeys", true);
+    timeKeysContainer->SetSize(timeSlider_->GetWidth()-sliderKnobWidth, 16);
+    timeKeysContainer->RemoveAllChildren();
+
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+    const float animationtime = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->length_;
+    for (PODVector<Spriter::MainlineKey*>::ConstIterator it = animation->mainlineKeys_.Begin(); it != animation->mainlineKeys_.End(); ++it)
+    {
+        Button* keyui = new Button(GameContext::Get().context_);
+        keyui->SetName("AnimTimeKey");
+        keyui->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_ICONS));
+        keyui->SetFixedSize(keysize, keysize);
+        keyui->SetPivot(pivotx, -pivotx);
+        keyui->SetBlendMode(BLEND_ALPHA);
+        keyui->SetHoverOffset(0, 1);
+        keyui->SetVar(UIELEMENT_CHILDINDEX, (int)(it-animation->mainlineKeys_.Begin()));
+        keyui->SetVar(KEYTIME, (*it)->time_);
+        timeKeysContainer->AddChild(keyui);
+
+        int x = floor((*it)->time_ / animationtime * ((float)(timeSlider_->GetWidth()-sliderKnobWidth)));
+        keyui->SetPosition(IntVector2(x, 0));
+
+        SubscribeToEvent(keyui, E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationToggleTime));
+        SubscribeToEvent(keyui, E_DOUBLECLICK, URHO3D_HANDLER(AnimatorEditor, HandleAnimationModifyTimeKey));
+    }
+
+    UpdateTimeKeysIcons();
+}
+
+void AnimatorEditor::UpdateTimeKeys()
+{
+    UIElement* timeKeysContainer = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimeKeys", true);
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+    if (animation->mainlineKeys_.Size() != timeKeysContainer->GetNumChildren())
+    {
+        SetTimeKeys();
+        return;
+    }
+
+    const int sliderKnobWidth = 10;
+    timeKeysContainer->SetSize(timeSlider_->GetWidth()-sliderKnobWidth, 16);
+    const float animationtime = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->length_;
+    for (unsigned i=0; i < animation->mainlineKeys_.Size(); i++)
+    {
+        UIElement* keyui = timeKeysContainer->GetChild(i);
+        int x = floor(animation->mainlineKeys_[i]->time_ / animationtime * ((float)(timeSlider_->GetWidth()-sliderKnobWidth)));
+        keyui->SetPosition(x, 0);
+    }
+}
+
+void AnimatorEditor::UpdateTimeKeysIcons()
+{
+    UIElement* timeKeysContainer = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimeKeys", true);
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+
+    const int timelineid = lastSelectedBoneIndex_ != -1 ? editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_ : lastSelectedTimelineId_;
+    if (timelineid != -1)
+    {
+        // use timeline
+        // find if a timekey is owned by the timeline
+        Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[timelineid];
+        for (unsigned i=0; i < animation->mainlineKeys_.Size(); i++)
+        {
+            bool owned = timeline->GetTimeKey(animation->mainlineKeys_[i]->time_)->time_ == animation->mainlineKeys_[i]->time_;
+            timeKeysContainer->GetChild(i)->SetStyle(owned ? "AnimTimeKeyOwn" : "AnimTimeKey");
+        }
+    }
+    else
+    {
+        // reset to mainline icon
+        for (unsigned i=0; i < animation->mainlineKeys_.Size(); i++)
+            timeKeysContainer->GetChild(i)->SetStyle("AnimTimeKey");
+    }
+}
+
+void AnimatorEditor::UpdateTimelineInfos()
+{
+    UIElement* timelineInfoContainer = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_ANIMS)->GetChild("TimelineContainer", true)->GetChild(0);
+
+    // Selected Bone Timeline
+    if (lastSelectedBoneIndex_ != -1)
+    {
+        int selectedBoneTimelineId = editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_;
+        Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[selectedBoneTimelineId];
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(0))->SetText(String("bone   :"));
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(timeline->name_);
+        Spriter::BoneTimelineKey* tKey = static_cast<Spriter::BoneTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
+        static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(tKey->id_) + String(" - time : ") + String(tKey->time_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[tKey->curveType_]));
+        static_cast<Text*>(timelineInfoContainer->GetChild(3)->GetChild(1))->SetText(String(tKey->info_.x_) + " " + String(tKey->info_.y_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(4)->GetChild(1))->SetText(String(tKey->info_.angle_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(5)->GetChild(1))->SetText(String(tKey->info_.scaleX_) + " " + String(tKey->info_.scaleY_));
+        static_cast<DropDownList*>(timelineInfoContainer->GetChild(6)->GetChild(1))->SetSelection(tKey->info_.spin > 0 ? 0 : (tKey->info_.spin == 0 ? 1 : 2));
+
+        for (unsigned i=3; i < 7; i++)
+            timelineInfoContainer->GetChild(i)->SetVisible(true);
+    }
+    // Selected Sprite Timeline
+    else if (lastSelectedTimelineId_ != -1)
+    {
+        Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[lastSelectedTimelineId_];
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(0))->SetText(String("sprite :"));
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(timeline->name_);
+        Spriter::SpriteTimelineKey* tKey = static_cast<Spriter::SpriteTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
+        static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(tKey->id_) + String(" - time : ") + String(tKey->time_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[tKey->curveType_]));
+        static_cast<Text*>(timelineInfoContainer->GetChild(3)->GetChild(1))->SetText(String(tKey->info_.x_) + " " + String(tKey->info_.y_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(4)->GetChild(1))->SetText(String(tKey->info_.angle_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(5)->GetChild(1))->SetText(String(tKey->info_.scaleX_) + " " + String(tKey->info_.scaleY_));
+        static_cast<DropDownList*>(timelineInfoContainer->GetChild(6)->GetChild(1))->SetSelection(tKey->info_.spin > 0 ? 0 : (tKey->info_.spin == 0 ? 1 : 2));
+        for (unsigned i=3; i < 7; i++)
+            timelineInfoContainer->GetChild(i)->SetVisible(true);
+    }
+    // MainLine
+    else
+    {
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(0))->SetText("mainline");
+        static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(String::EMPTY);
+        Spriter::MainlineKey* mainkey = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->GetMainlineKey(editedAnimatedSprite_->GetCurrentAnimationTime());
+        static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(mainkey->id_) + String(" - time : ") + String(mainkey->time_));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[mainkey->curveType_]));
+        for (unsigned i=3; i < 7; i++)
+            timelineInfoContainer->GetChild(i)->SetVisible(false);
+    }
+}
+
+void AnimatorEditor::UpdateBonesGizmos(bool force)
 {
     const unsigned numbones = editedAnimatedSprite_->GetSpriterInstance()->GetNumBoneKeys();
     const PODVector<Spriter::BoneTimelineKey* >& bonekeys = editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys();
@@ -4361,23 +4874,203 @@ void AnimatorEditor::UpdateBonesGizmos()
     if (numbones > bonesGizmos_.Size())
     {
         for (unsigned i=bonesGizmos_.Size(); i < numbones; i++)
-        {
             bonesGizmos_.Push(SharedPtr<BoneGizmo>(new BoneGizmo(context_)));
-        }
     }
     for (unsigned i=0; i < numbones; i++)
     {
         BoneGizmo* bone = bonesGizmos_[i].Get();
-        bone->Update(editedAnimatedSprite_->GetNode(), bonekeys[i]);
+        bone->Update(editedAnimatedSprite_->GetNode(), bonekeys[i], force);
         bone->SetVisible(bonesVisible_);
     }
     if (bonesGizmos_.Size() > numbones)
     {
         for (unsigned i=numbones; i < bonesGizmos_.Size(); i++)
-        {
             bonesGizmos_[i]->SetVisible(false);
+    }
+}
+
+void AnimatorEditor::HandleAnimationKeyValueChanged(StringHash eventType, VariantMap& eventData)
+{
+    DropDownList* list = static_cast<DropDownList*>(eventData[ItemSelected::P_ELEMENT].GetPtr());
+    if (list)
+    {
+        int selection = eventData[ItemSelected::P_SELECTION].GetInt();
+        int spinvalue = selection == 0 ? 1 : (selection == 1 ? 0 : -1);
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationKeyValueChanged : selectionindex=%d spinvalue=%d", selection, spinvalue);
+        if (lastSelectedBoneIndex_ != -1)
+        {
+            int selectedBoneTimelineId = editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_;
+            Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[selectedBoneTimelineId];
+
+            // Get the current TimelineKey
+            Spriter::BoneTimelineKey* tKey = static_cast<Spriter::BoneTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
+            if (tKey)
+                tKey->info_.spin = spinvalue;
+        }
+        else if (lastSelectedTimelineId_ != -1)
+        {
+            Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[lastSelectedTimelineId_];
+            // Get the current TimelineKey
+            Spriter::SpriteTimelineKey* tKey = static_cast<Spriter::SpriteTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
+            if (tKey)
+                tKey->info_.spin = spinvalue;
         }
     }
+}
+
+void AnimatorEditor::HandleAnimationModifyTimeKey(StringHash eventType, VariantMap& eventData)
+{
+    UIElement* uielt = static_cast<UIElement*>(eventData[ItemSelected::P_ELEMENT].GetPtr());
+
+    const Spriter::SpriterObjectType type = lastSelectedBoneIndex_ != -1 ? Spriter::BONE : Spriter::SPRITE;
+    const int timelineid = type == Spriter::BONE ? editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_ : lastSelectedTimelineId_;
+    if (timelineid == -1)
+        return;
+
+    const bool remove = GameContext::Get().input_->GetQualifierDown(QUAL_CTRL);
+    const int keyinc = remove ? -1 : 1;
+
+    // get time from the slider or from the pressed timekeyui
+    float time = (!remove && uielt == timeSlider_) ? timeSlider_->GetValue() / 1000.f : uielt->GetVar(KEYTIME).GetFloat();
+
+    Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
+    Spriter::Timeline* timeline = animation->timelines_[timelineid];
+    Spriter::MainlineKey* mainkey = animation->GetMainlineKey(time);
+    unsigned mainkeyid = mainkey->id_;
+
+    Spriter::SpatialTimelineKey* timelinekey = timeline->GetTimeKey(time);
+    const unsigned timelinekeyid = timelinekey->id_;
+
+    if (!remove)
+    {
+        if (timelinekey->time_ == time)
+        {
+            URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationModifyTimeKey : time = %f key already exist !", time);
+            return;
+        }
+
+        // insert timelinekey
+
+        // duplicate the timelinekey
+        Spriter::SpatialTimelineKey* newTimelineKey;
+        if (type == Spriter::BONE)
+            newTimelineKey = new Spriter::BoneTimelineKey();
+        else
+            newTimelineKey = new Spriter::SpriteTimelineKey();
+        timelinekey->Copy(newTimelineKey);
+        newTimelineKey->time_ = time;
+        newTimelineKey->timeline_ = timeline;
+        // interpolate and insert
+        const unsigned newtimelinekeyid = timelinekeyid + 1;
+        Spriter::SpatialTimelineKey* nextTimelineKey = timeline->keys_[newtimelinekeyid < timeline->keys_.Size() ? newtimelinekeyid : 0];
+        newTimelineKey->Interpolate(*nextTimelineKey, timelinekey->GetFactor(timelinekey->time_, nextTimelineKey->time_, animation->length_, time));
+        timeline->keys_.Insert(newtimelinekeyid, newTimelineKey);
+        // update timeline keys id
+        for (unsigned i = 0; i < timeline->keys_.Size(); i++)
+            timeline->keys_[i]->id_ = i;
+
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationModifyTimeKey : time=%f insert a key id=%u (new=%u t=%F, prev=%u t=%F, next=%u t=%F) ...",
+//                         time, newtimelinekeyid, newTimelineKey->id_, newTimelineKey->time_, timelinekey->id_, timelinekey->time_, nextTimelineKey->id_, nextTimelineKey->time_);
+
+        // update mainline
+        if (mainkey->time_ != time)
+        {
+            Spriter::MainlineKey* newmainkey = AddMainlineKey(mainkeyid+1, time);
+            mainkeyid = newmainkey->id_;
+
+            // replace the timelinekey by the new
+            Spriter::Ref* ref = newmainkey->GetRef(timelineid);
+            if (ref)
+                ref->key_ = newtimelinekeyid;
+            else
+                URHO3D_LOGERRORF("AnimatorEditor() - HandleAnimationModifyTimeKey : time = %f timelineid=%d insert a mainkey id=%u no ref !!! ", time, timelineid, mainkeyid);
+
+//            URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationModifyTimeKey : time = %f timelineid=%d insert a mainkey id=%u ... ", time, timelineid, mainkeyid);
+            // skip this mainkey already modified in the next code part
+            mainkeyid++;
+        }
+//        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationModifyTimeKey : time=%f timelineid=%d insert a key id=%u (new=%u t=%F, prev=%u t=%F, next=%u t=%F) !!!",
+//                         time, timelineid, newtimelinekeyid, newTimelineKey->id_, newTimelineKey->time_, timelinekey->id_, timelinekey->time_, nextTimelineKey->id_, nextTimelineKey->time_);
+    }
+    else
+    {
+        if (timelinekeyid >= timeline->keys_.Size())
+        {
+            URHO3D_LOGERRORF("AnimatorEditor() - HandleAnimationModifyTimeKey : time = %f timelineid=%d nokey id=%u !!! ", time, timelineid, timelinekeyid);
+            return;
+        }
+        else if (timelinekeyid == 0)
+        {
+            URHO3D_LOGERRORF("AnimatorEditor() - HandleAnimationModifyTimeKey : time = %f timelineid=%d can't remove firstkey !!! ", time, timelineid);
+            return;
+        }
+
+        URHO3D_LOGINFOF("AnimatorEditor() - HandleAnimationModifyTimeKey : time=%f timelineid=%d remove a key ...", time);
+
+        // remove the timekey in the timeline
+        timeline->keys_.Erase(timelinekeyid);
+        delete timelinekey;
+
+        // update timeline keys id
+        for (unsigned i = timelinekeyid; i < timeline->keys_.Size(); i++)
+            timeline->keys_[i]->id_ = i;
+
+        // update the prevtimelinekey spin
+        AdjustSpinAt(timeline, timelinekeyid > 0 ? timelinekeyid-1 : timeline->keys_.Size()-1);
+    }
+
+    // update the timekeys id for this timeline in the mainline refs
+    {
+        PODVector<Spriter::Ref*> refs;
+        if (type == Spriter::BONE)
+            animation->GetBoneRefs(timelineid, refs, mainkeyid);
+        else
+            animation->GetObjectRefs(timelineid, refs, mainkeyid);
+        for (unsigned i=0; i < refs.Size(); i++)
+        {
+            Spriter::Ref* ref = refs[i];
+            if (ref->key_ >= timelinekeyid)
+                ref->key_ += keyinc;
+        }
+    }
+
+    if (remove)
+    {
+        // check if the mainkey is need
+        // if all timelinekey in the refs have differents times than the keytime, remove the mainkey
+        bool mainkeyneeded = false;
+        const PODVector<Spriter::Ref*>& refs = type == Spriter::BONE ? mainkey->boneRefs_ : mainkey->objectRefs_;
+        for (unsigned i=0; i < refs.Size(); i++)
+        {
+            Spriter::Ref* ref = refs[i];
+            if (animation->timelines_[ref->timeline_]->keys_[ref->key_]->time_ == time)
+            {
+                mainkeyneeded = true;
+                break;
+            }
+        }
+        if (!mainkeyneeded)
+        {
+            // remove the mainkey
+            animation->mainlineKeys_.Erase(mainkeyid);
+            delete mainkey;
+
+            // update mainline keys id
+            for (unsigned i=mainkeyid; i < animation->mainlineKeys_.Size(); i++)
+                animation->mainlineKeys_[i]->id_ = i;
+        }
+    }
+
+    // update the timekeys uielements
+    // TODO : just insert new uielement is better !
+    SetTimeKeys();
+
+    timeSlider_->SetValue(time * 1000.f);
+}
+
+void AnimatorEditor::HandleTimeKeyContainerResized(StringHash eventType, VariantMap& eventData)
+{
+    UpdateTimeKeys();
 }
 
 void AnimatorEditor::HandleAnimationSelect(StringHash eventType, VariantMap& eventData)
@@ -4394,6 +5087,8 @@ void AnimatorEditor::HandleAnimationSelect(StringHash eventType, VariantMap& eve
     editedAnimatedSprite_->ResetAnimation();
     editedAnimatedSprite_->ForceUpdateBatches();
 
+    SetTimeKeys();
+
     timeSlider_->SetRange(editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->length_ * 1000.f);
     timeSlider_->SetValue(editedAnimatedSprite_->GetCurrentAnimationTime() * 1000.f);
 
@@ -4401,7 +5096,7 @@ void AnimatorEditor::HandleAnimationSelect(StringHash eventType, VariantMap& eve
         UpdateBonesGizmos();
 }
 
-void AnimatorEditor::HandleAnimationToggleShow(StringHash eventType, VariantMap& eventData)
+void AnimatorEditor::HandleAnimationToggleShowBones(StringHash eventType, VariantMap& eventData)
 {
     bonesVisible_ = eventData[Toggled::P_STATE].GetBool();
 
@@ -4421,16 +5116,61 @@ void AnimatorEditor::HandleAnimationToggleTime(StringHash eventType, VariantMap&
         PlayAnimation(false);
 
         Spriter::Animation* animation = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation();
-        const int numMainKeys = animation->mainlineKeys_.Size();
 
-        int mainKeyId = editedAnimatedSprite_->GetSpriterInstance()->GetCurrentMainKeyId();
-        if (button->GetName() == "AnimPrevKey")
-            mainKeyId--;
-        else if (button->GetName() == "AnimNextKey")
-            mainKeyId++;
-        mainKeyId = Clamp(mainKeyId, 0, numMainKeys-1);
+        if (lastSelectedBoneIndex_ != -1 || lastSelectedTimelineId_ != -1)
+        {
+            const unsigned timelineId = lastSelectedBoneIndex_ != -1 ? editedAnimatedSprite_->GetSpriterInstance()->GetBoneKeys()[lastSelectedBoneIndex_]->timeline_->id_ : lastSelectedTimelineId_;
+            Spriter::Timeline* timeline = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->timelines_[timelineId];
+            const int numTimeKeys = timeline->keys_.Size();
+            int keyid = 0;
+            if (button->GetName() == "AnimPrevKey")
+            {
+                keyid = timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime())->id_ - 1;
+                if (keyid < 0)
+                    keyid = numTimeKeys-1;
+            }
+            else if (button->GetName() == "AnimNextKey")
+            {
+                keyid = timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime())->id_ + 1;
+                if (keyid > numTimeKeys-1)
+                    keyid = 0;
+            }
+            else
+            {
+                // get the time of the mainlinekey and get the timelinekey for this time
+                float time = animation->mainlineKeys_[button->GetVar(UIELEMENT_CHILDINDEX).GetInt()]->time_;
+                keyid = timeline->GetTimeKey(time)->id_;
+            }
 
-        timeSlider_->SetValue(animation->mainlineKeys_[mainKeyId]->time_* 1000.f);
+            keyid = Clamp(keyid, 0, numTimeKeys-1);
+            timeSlider_->SetValue(timeline->keys_[keyid]->time_* 1000.f);
+        }
+        else
+        {
+            const int numMainKeys = animation->mainlineKeys_.Size();
+
+            int mainKeyId = editedAnimatedSprite_->GetSpriterInstance()->GetCurrentMainKey()->id_;
+            if (button->GetName() == "AnimPrevKey")
+            {
+                mainKeyId--;
+                if (mainKeyId < 0)
+                    mainKeyId = numMainKeys-1;
+            }
+            else if (button->GetName() == "AnimNextKey")
+            {
+                mainKeyId++;
+                if (mainKeyId > numMainKeys-1)
+                    mainKeyId = 0;
+            }
+            else if (button->GetName() == "AnimTimeKey")
+            {
+                mainKeyId = button->GetVar(UIELEMENT_CHILDINDEX).GetInt();
+            }
+
+            mainKeyId = Clamp(mainKeyId, 0, numMainKeys-1);
+
+            timeSlider_->SetValue(animation->mainlineKeys_[mainKeyId]->time_* 1000.f);
+        }
     }
 }
 
@@ -4464,6 +5204,7 @@ void AnimatorEditor::HandleAnimationChangeTime(StringHash eventType, VariantMap&
             editedAnimatedSprite_->GetSpriterInstance()->ResetCurrentTime();
             editedAnimatedSprite_->UpdateAnimation(time);
             UpdateBonesGizmos();
+            UpdateTimelineInfos();
         }
     }
 }
