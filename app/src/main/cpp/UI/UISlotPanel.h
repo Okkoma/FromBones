@@ -24,45 +24,41 @@ public :
 
     static void RegisterObject(Context* context);
 
-    bool Set(const String& name, const String& layout, const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign, float alpha);
+    bool Set(int id, const String& name, const String& layout, const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign, float alpha, UIElement* parent=0);
 
     virtual void Start(Object* user, Object* feeder=0);
     virtual void Reset();
     virtual void Stop();
+    virtual void GainFocus();
+    virtual void LoseFocus();
 
     void SetPosition(int x, int y, HorizontalAlignment hAlign, VerticalAlignment vAlign);
     void SetPosition(const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign);
     void SetVisible(bool state, bool saveposition=false);
-    bool IsVisible();
 
     void ToggleVisible();
 
-    virtual void OnSetVisible();
-    virtual void OnResize() { }
-
-    void OnSwitchVisible(StringHash eventType, VariantMap& eventData);
-
-    Object* GetUser()
-    {
-        return user_;
-    }
-    UIElement* GetElement()
-    {
-        return panel_;
-    }
-    const String& GetName() const
-    {
-        return panel_->GetName();
-    }
+    bool IsVisible() const;
+    virtual bool CanFocus() const;
+    int GetPanelId() const { return id_; }
+    Object* GetUser() const { return user_; }
+    UIElement* GetElement() const { return panel_; }
+    const String& GetName() const { return panel_->GetName(); }
+    int GetKeyFromEvent(int controlid, StringHash eventType, VariantMap& eventData) const;
 
     void DebugDraw();
 
     virtual void Update() {}
 
-    static void RegisterPanel(UIPanel* panel);
-    static void ClearRegisteredPanels();
-    static UIPanel* GetPanel(const String& name);
+    virtual void OnSetVisible();
+    virtual void OnResize() { }
+    void OnSwitchVisible(StringHash eventType, VariantMap& eventData);
 
+    static UIPanel* GetPanel(const String& name);
+    static void RegisterPanel(UIPanel* panel);
+    static void RemovePanel(UIPanel* panel);    
+    static void ClearRegisteredPanels();
+    static void SetAllowSceneInteraction(bool enable) { allowSceneInteraction_ = enable; }
     static SharedPtr<UIElement> draggedElement_;
     static bool onKeyDrag_;
 
@@ -72,13 +68,15 @@ protected :
     virtual void OnDrag(StringHash eventType, VariantMap& eventData);
     virtual void OnRelease() { }
 
+    int id_;
     String name_;
     Object* feeder_;
     Object* user_;
 
     WeakPtr<UIElement> panel_;
     IntVector2 lastPosition_;
-
+    
+    static bool allowSceneInteraction_;
     static HashMap<String, SharedPtr<UIPanel> > panels_;
 };
 
@@ -95,7 +93,7 @@ public :
     virtual void Start(Object* user, Object* feeder=0);
     virtual void Reset();
 
-    void SetInventorySection(const String& section);
+    void SetInventorySection(const String& section, const String& sectionend=String::EMPTY);
 
     Equipment* GetEquipment() const
     {
@@ -104,11 +102,6 @@ public :
     GOC_Inventory* GetInventory() const
     {
         return inventory_;
-    }
-
-    const String& GetInventorySection() const
-    {
-        return inventorySection_;
     }
     unsigned GetStartSlotIndex() const
     {
@@ -147,9 +140,9 @@ protected :
     void EndKeyDrag();
     void UpdateSlotSelector();
 
-    void OnKeyDown(StringHash eventType, VariantMap& eventData);
+    void OnKey(StringHash eventType, VariantMap& eventData);
 
-    UIElement* slotZone_;
+    UIElement *slotZone_, *selectHalo_; 
     int slotSize_, miniSlotSize_;
 
     WeakPtr<Node> holderNode_;
@@ -157,9 +150,8 @@ protected :
     GOC_Inventory* inventory_;
     GOC_Inventory* dragFromInventory_;
 
-    String inventorySection_;
-    unsigned startSlotIndex_;
-    unsigned endSlotIndex_;
+    String inventorySectionStart_, inventorySectionEnd_;
+    unsigned startSlotIndex_, endSlotIndex1_, endSlotIndex2_;
     unsigned slotselector_;
     unsigned numSlots_;
 

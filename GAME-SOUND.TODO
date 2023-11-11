@@ -1,0 +1,20 @@
+Todos:
+
+    ☐ 06/06/2018 : les sons sont long à poper (décalage entre l'action et le son d'1/2sec environ) (exemple le feet)
+        => vérifier la cascade de code
+
+    ☐ 24/04/2018 : changement dynamique des musiques d'ambiance en fonction de la zone (cave,dungeon,exterieurs) et du climat (weather ...), 
+        des actions (combat, marchand, exploration)
+
+
+Archive:
+
+    ✔ 23/08/2018 : Correction crash Object::Sounds
+        => Clear les Sound Templates avec les SharedPtr(Sound> avant de quitter
+
+    ✔ 18/04/2018 : modification de GOC_SoundEmitter pour enregistrer les sounds
+        => utiliser les Waves et non plus les OGG (qui utilisent trop de ressources)
+        ==> reactivation des sons des monstres
+
+
+

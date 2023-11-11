@@ -87,6 +87,7 @@ const char* ShapeTypeStr[] =
 
 #define MAPCOLLIDER_PHYSIC_DEFAULTDEBUGLEVEL 0
 #define MAPCOLLIDER_RENDER_DEFAULTDEBUGLEVEL 0
+#define MAPCOLLIDER_PHYSIC_TRACEDEBUGLEVEL 3
 
 //#define DUMPMAP_DEBUG
 //#define DUMPMAP_DEBUG_RENDER
@@ -106,7 +107,8 @@ MapColliderGenerator* MapColliderGenerator::generator_ = 0;
 MapColliderGenerator::MapColliderGenerator(World2DInfo* info) :
     forcedShapeType_(info->forcedShapeType_),
     shapeType_(info->shapeType_),
-    delayUpdateUsec_(World2DInfo::delayUpdateUsec_)
+    delayUpdateUsec_(World2DInfo::delayUpdateUsec_),
+    debugTraceOn_(false)
 {
     URHO3D_LOGINFOF("MapColliderGenerator()");
 
@@ -143,6 +145,12 @@ void MapColliderGenerator::SetParameters(bool findholes, bool shrink, int debugp
 
     debuglevelphysic_ = debugphysic == -1 ? MAPCOLLIDER_PHYSIC_DEFAULTDEBUGLEVEL : debugphysic;
     debuglevelrender_ = debugrender == -1 ? MAPCOLLIDER_RENDER_DEFAULTDEBUGLEVEL : debugrender;
+
+    if (debugTraceOn_)
+    {
+        debuglevelphysic_ = MAPCOLLIDER_PHYSIC_TRACEDEBUGLEVEL;
+        debugTraceOn_ = false;
+    }
 
     holesfounded_ = false;
 }
@@ -264,76 +272,100 @@ bool MapColliderGenerator::GeneratePhysicCollider(MapBase* map, HiresTimer* time
             return false;
     }
 
-    if (mcount3 == 2)
+    if (mcount3 > 1 && mcount3 < 5)
     {
         if (collider.params_->shapetype_ == SHT_ALL)
         {
-            if (!GenerateBlockInfos(collider, timer, BlockBoxID))
-                return false;
+            if (mcount3 == 2)
+            {
+                if (!GenerateBlockInfos(collider, timer, BlockBoxID))
+                    return false;
+
+                mcount3++;
+
+                if (TimeOverMaximized(timer))
+                    return false;
+            }
+            if (mcount3 == 3)
+            {
+                if (!GenerateContours(&collider, timer, BlockChainID))
+                    return false;
+
+
+                mcount3++;
+
+                if (TimeOverMaximized(timer))
+                    return false;
+            }
+            if (mcount3 == 4)
+            {
+                if (!GenerateBlockInfos(collider, timer, BlockChainID))
+                    return false;
+
+                mcount3 = 5;
+
+                if (TimeOverMaximized(timer))
+                    return false;
+            }
         }
         else if (collider.params_->shapetype_ == SHT_BOX)
         {
-            if (!GenerateBlockInfos(collider, timer, BlockBoxID))
+            if (mcount3 == 2)
+            {
+                if (!GenerateBlockInfos(collider, timer, BlockBoxID))
+                    return false;
+            }
+
+            mcount3 = 5;
+
+            if (TimeOverMaximized(timer))
                 return false;
         }
         else if (collider.params_->shapetype_ == SHT_CHAIN)
         {
-            if (!GenerateContours(&collider, timer, BlockChainID))
-                return false;
+            if (mcount3 == 2)
+            {
+                if (!GenerateContours(&collider, timer, BlockChainID))
+                    return false;
+
+                mcount3++;
+
+                if (TimeOverMaximized(timer))
+                    return false;
+            }
+            if (mcount3 == 3)
+            {
+                if (!GenerateBlockInfos(collider, timer, BlockChainID))
+                    return false;
+
+                mcount3 = 5;
+
+                if (TimeOverMaximized(timer))
+                    return false;
+            }
         }
-
-        mcount3++;
-
-        if (TimeOverMaximized(timer))
-            return false;
-    }
-
-    if (mcount3 == 3)
-    {
-        if (collider.params_->shapetype_ == SHT_ALL)
+        else
         {
-            if (!GenerateContours(&collider, timer, BlockChainID))
+            mcount3 = 5;
+
+            if (TimeOverMaximized(timer))
                 return false;
         }
-        else if (collider.params_->shapetype_ == SHT_CHAIN)
-        {
-            if (!GenerateBlockInfos(collider, timer, BlockChainID))
-                return false;
-        }
-
-        mcount3++;
-
-        if (TimeOverMaximized(timer))
-            return false;
-    }
-
-    if (mcount3 == 4)
-    {
-        if (collider.params_->shapetype_ == SHT_ALL)
-        {
-            if (!GenerateBlockInfos(collider, timer, BlockChainID))
-                return false;
-        }
-
-        mcount3++;
-
-        if (TimeOverMaximized(timer))
-            return false;
     }
 
     if (mcount3 == 5)
     {
-#if defined(DUMPMAP_DEBUG)
-        if (debuglevel_)
-        {
-            if (collider.contourIds_.Size())
-            {
-                GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, true);
-                GameHelpers::DumpData(&collider.contourIds_[0], 1, 2, width_, height_);
-                GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, false);
-            }
-        }
-#endif
+//#if defined(DUMPMAP_DEBUG)
+//        if (debuglevel_)
+//        {
+//            if (collider.contourIds_.Size())
+//            {
+//                GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, true);
+//                GameHelpers::DumpData(&collider.contourIds_[0], 1, 2, width_, height_);
+//                GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, false);
+//            }
+//        }
+//#endif
         mcount3 = 0;
         map_ = 0;
     }
@@ -530,8 +562,8 @@ bool MapColliderGenerator::GenerateWorkMatrix(MapCollider* collider, HiresTimer*
         int& mcount5 = collider->map_->GetMapCounter(MAP_FUNC5);
         int forcedBlockedTileID = collider->params_->shapetype_ != SHT_ALL ? collider->params_->shapetype_ : blockMapBlockedTileID;
 
-//        URHO3D_LOGERRORF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
-//                           ColliderModeStr[mode], mcount5, height_, timer ? (int)(timer->GetUSec(false) / 1000) : -1, (int)(World2DInfo::delayUpdateUsec_/1000));
+        URHO3D_LOGERRORF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
+                           ColliderModeStr[mode], mcount5, height_, timer ? (int)(timer->GetUSec(false) / 1000) : -1, (int)(World2DInfo::delayUpdateUsec_/1000));
 
         if (mode == FrontMode)
         {
@@ -1243,7 +1275,7 @@ void MapColliderGenerator::TraceContours_MooreNeighbor(Matrix2D<unsigned>& refma
     sInfoVertex_.Reserve(VectorCapacity);
     PODVector<InfoVertex>* pinfo = infoVertices ? &sInfoVertex_ : 0;
 
-#if defined(DUMPMAP_DEBUG) && defined(DUMPMAP_INTERNAL1_DEBUG) || defined(DUMPMAP_INTERNAL2_DEBUG)
+#if defined(DUMPMAP_DEBUG) && (defined(DUMPMAP_INTERNAL1_DEBUG) || defined(DUMPMAP_INTERNAL2_DEBUG))
     Matrix2D<unsigned> mapblockview(blockMapWidth_, blockMapHeight_);
     mapblockview.SetBufferValue(0);
 #endif // DUMPMAP_DEBUG
@@ -1252,20 +1284,26 @@ void MapColliderGenerator::TraceContours_MooreNeighbor(Matrix2D<unsigned>& refma
 
 //    URHO3D_LOGINFOF("MapColliderGenerator() : TraceContours_MooreNeighbor ... startPoint=%u startBackTrackPoint=%u ...", startPoint, startBackTrackPoint);
 #ifdef DEBUGLOGSTR
-    sDebuglog_ = (sCollider_->GetType() == RENDERCOLLIDERTYPE && sCollider_->params_->mode_ == BackRenderMode);
+//    sDebuglog_ = (sCollider_->GetType() == RENDERCOLLIDERTYPE && sCollider_->params_->mode_ == BackRenderMode);
+//    sDebuglog_ = (sCollider_->GetType() == PHYSICCOLLIDERTYPE && sCollider_->params_->mode_ == BackMode);
+    sDebuglog_ = false;
 #endif
 
     contourBorder_.Clear();
 
     while (!(startPoint == 0 && startBackTrackPoint == 0))
     {
+    #ifdef DEBUGLOGSTR
+        const unsigned contourmark = 65+currentMark-START_PATTERNMARK;
+        /// Temp debug
+        sDebuglog_ = (sCollider_->GetType() == PHYSICCOLLIDERTYPE && sCollider_->params_->mode_ == BackMode && contourmark >= 103 && contourmark <= 106);
+
+//        if (sDebuglog_)
+            URHO3D_LOGINFOF("MapColliderGenerator() : TraceContours_MooreNeighbor ... start new contour mark=%u(%c) at tileindex=%u ...", contourmark, contourmark, GetTileIndex(startPoint));
+    #endif
+
         sInfoVertex_.Clear();
         contour_.Clear();
-
-#ifdef DEBUGLOGSTR
-        if (sDebuglog_)
-            URHO3D_LOGINFOF("MapColliderGenerator() : TraceContours_MooreNeighbor ... start new contour at tileindex=%u ...", GetTileIndex(startPoint));
-#endif
 
 #if defined(DUMPMAP_DEBUG) && defined(DUMPMAP_INTERNAL2_DEBUG)
         bool addpoints = false;
@@ -1303,7 +1341,7 @@ void MapColliderGenerator::TraceContours_MooreNeighbor(Matrix2D<unsigned>& refma
                 if (sDebuglog_)
                     sdebugTag_.AppendWithFormat("F(bP=%u,smr=%d,mr=%d)!", GetTileIndex(boundaryPoint), startMooreIndex, mooreIndex);
 #endif
-                AddPointsToSegments(contour_, pinfo, boundaryPoint, startMooreIndex, GetNextMooreIndex(mooreIndex), refmap[boundaryPoint]);
+                AddPointsToSegments(contour_, pinfo, boundaryPoint, startMooreIndex, /*GetNextMooreIndex(*/mooreIndex/*)*/, refmap[boundaryPoint]);
 
                 // change to the new boundary point
                 boundaryPoint = currentPoint;
@@ -1375,7 +1413,7 @@ void MapColliderGenerator::TraceContours_MooreNeighbor(Matrix2D<unsigned>& refma
             stop = (boundaryPoint == startPoint) && (backTrackPoint == startBackTrackPoint);
 
 #if defined(DUMPMAP_DEBUG) && defined(DUMPMAP_INTERNAL2_DEBUG)
-            if (debuglevel_ >= 3)
+            if (debuglevel_ >= 3 && sDebuglog_)
             {
                 if (addpoints)
                 {
@@ -1400,6 +1438,7 @@ void MapColliderGenerator::TraceContours_MooreNeighbor(Matrix2D<unsigned>& refma
         if (sDebuglog_)
             sdebugTag_.AppendWithFormat("F(bP=%u,smr=%d,mr=%d)! Stop Contour!", GetTileIndex(boundaryPoint), startMooreIndex, mooreIndex);
 #endif
+
         AddPointsToSegments(contour_, pinfo, boundaryPoint, startMooreIndex, mooreIndex, refmap[boundaryPoint]);
 
         CloseContour(contour_, pinfo);
@@ -1531,7 +1570,7 @@ void MapColliderGenerator::AddPointsToSegments(PODVector<Vector2>& segments, POD
             {
 #ifdef DEBUGLOGSTR
                 if (sDebuglog_)
-                    debuglogstr.AppendWithFormat("moore[%d]:skip ", neighbor);
+                    debuglogstr.AppendWithFormat("moore[%d]:skip1(%F,%F) ", neighbor, newPoint.x_, newPoint.y_);
 #endif
                 continue;
             }
@@ -1544,7 +1583,7 @@ void MapColliderGenerator::AddPointsToSegments(PODVector<Vector2>& segments, POD
                 {
 #ifdef DEBUGLOGSTR
                     if (sDebuglog_)
-                        debuglogstr.AppendWithFormat("moore[%d]:skip ", neighbor);
+                        debuglogstr.AppendWithFormat("moore[%d]:skip2(%F,%F) ", neighbor, newPoint.x_, newPoint.y_);
 #endif
                     continue;
                 }
@@ -1589,9 +1628,17 @@ void MapColliderGenerator::AddPointsToSegments(PODVector<Vector2>& segments, POD
             }
         }
     }
+
 #ifdef DEBUGLOGSTR
-    if (sDebuglog_ && !debuglogstr.Empty())
-        URHO3D_LOGINFOF("MapColliderGenerator() - AddPoints tileindex=%u tag=%s moore=(%d to %d) blockid=%u blockshape=%u : %s", GetTileIndex(boundaryTile), sdebugTag_.CString(), fromNeighbor, toNeighbor, blockID, blockShapeType, debuglogstr.CString());
+    if (sDebuglog_)
+    {
+        if (!debuglogstr.Empty())
+            URHO3D_LOGINFOF("MapColliderGenerator() - AddPoints tileindex=%u tag=%s moore=(%d to %d) blockid=%u blockshape=%u : %s", GetTileIndex(boundaryTile), sdebugTag_.CString(), fromNeighbor, toNeighbor, blockID, blockShapeType, debuglogstr.CString());
+        else
+            URHO3D_LOGINFOF("MapColliderGenerator() - AddPoints tileindex=%u tag=%s moore=(%d to %d) blockid=%u blockshape=%u : Empty !",
+                            GetTileIndex(boundaryTile), sdebugTag_.CString(), fromNeighbor, toNeighbor, blockID, blockShapeType);
+
+    }
 #endif
 }
 

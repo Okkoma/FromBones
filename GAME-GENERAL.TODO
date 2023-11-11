@@ -1,0 +1,160 @@
+Todos:
+
+    ☐ 21/02/2023 : partitionnement de l'implementation pour editor shared
+        + une libraire FromBonesLib (source dans app/main/cpp)
+        + un Launcher Game (source dans app/main/cpplauncher) 
+        * GameStatics devient GameContext.
+        * ajout de DefsCore.h ajoutant FROMBONES_API pour l'export librairie des classes.
+        * pour le moment que certaines classe sont taggés FROMBONES_API.
+        * l'installation des libraries se fait ./lib/vk ou gl et utilisation de LD_LIBRARY_PATH dans script de lancement : voir pour l'installation via cmake.
+        ☐ chargement lib shared sous windows (pour le moment uniquement pour linux)
+
+    ☐ 11/11/2022 : compilation pour Android (sous Ubuntu 22.04)
+        ✔ correctif pour Vulkan empechant la compilation. VkImage, VkImageView en 32bits ne sont pas l'équivalent de void* donc erreur => remplacement dans GPUObject par les bons type Vk.
+        ☐ le build.gradle.kts projet n'est pas encore optimal
+            il faut modifier manuellement l'extendFor de configurations.debugImplementation et de configurations.releaseImplementation en fonction de l'api graphique souhaitée (soit en Gl soit en Vk).
+
+    ☐ 14/01/2022 : sur Android, des modifications sont à faire pour obtenir les versions de gles et permettre de pointer vers le bon rep Shader. (cf Game::Start())
+        patch rapide pour le moment        
+        ✘ si besoin mettre engine-config.xml à la base de l'apk
+            ne fonctionne pas !
+        ✔ ne pas prendre en compte le sensor gyroscope dans le menu
+            OK : desactivation E_JOYSTICKAXISMOVE & E_JOYSTICKHATMOVE
+        ✔ en world, la texture des rendercolliders est mal appliquée (pourquoi en world et pas en arena ?)
+            pb de shader ? ne pas utiliser la texture (qui est une textureatlas) mais seulement un alpha noir => c ok, il s'agit du pb classique en gles avec les textureatlas malgré des resultats encourageant (fonctionne en arena ...)
+            OK : des pbs de scintillement : il s'agit d'un pb au niveau shader PS du encore à la suppression de l'interpolation. Inversion de l'ordre dans le shader => c à priori ok.
+        ✔ les furnitures enclume, tenture, pieges ne sont pas sur le bon tile (pb anchor ?), les furnitures vegetaux en interieur sont pivotés, le fil d'araignée est incliné à 45° et n'a plus de rotation dynamique.
+            les 3 problemes se produisent en HDPI, cf. Texture::dpiRatio_
+            OK : utiliser ce ratio en interne dans Sprite2D::GetDrawRectangle() uniquement.
+            voir pour aussi modifier Sprite2D::GetRectangle ?
+            ✔ sur FromBones BuildChainV2 (new build) - le pb persiste pour les furnitures (ne sont pas sur le bon tile) toujours en hdpi et aussi en mdpi.
+                comparaison entre linux et android de Map::SetFurnitures() (adb logcat -v time Urho3D:E *:S)
+                android...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Porte(107529393) ... entityid=255(entry=255)     ... position=64.01 80.65 (tindex=113 tposition=129 129) ...
+                linux  ...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Porte(107529393) ... entityid=0(entry=4294967295)... position=62.72 79.36 (tindex=113 tposition=-127 -127) .
+                ✔ Verifier EntityData, MapData::AddEntityData(), MapData::UpdateEntityNode()
+                    OK : probleme avec les char. il faut bien utiliser "signed char" ou "unsigned char" mais jamais simplement "char" car selon la plateforme, le resultat peut-etre signé ou non. Cela doit etre du au changement de compilateur (ninja).
+        ✔ artisanat, n'affiche plus les outils comme il faut.
+            correctif dans UIC_CraftPanel::UpdateSlot. pour utiliser Slot::uisprite_.
+            Attention Slot::sprite_ peut ne pas correspondre à l'entité. S'il s'agit d'un AnimatedSprite sans attribut "Sprite" alors c'est le premier sprite de la spritesheet qui sera pris par défaut.
+            Dans le cas de l'enclume ou de la marmite, la spritesheet était furnituresdung01.png et le premier sprite de cette spritesheet est l'encadrement d'armoire ... 
+                Slot::Set() -> GameHelpers::GetSpriteForType()
+        ✔ sur android remettre l'icone du jeu.
+        ✔ Crash à cause des missions normalement corrigé
+        ☐ modifier l'UIC_StatusPanel pour que l'utilisation tactile des fleches permette toujours de voir le défilement des avatars.
+        ✔ rendre plus jolie l'exterieur, les dungeons, les sols ont besoin d'effets de lumière.
+            OK : activation RenderColliders pour le frontview cf NUMDUNGEONRENDERCOLLIDERS... et RenderCollider::CreateRenderShape
+        ✔ sur mobile c'est trop petit : changer le zoom de la camera dans MainMenu et PlayState.
+            OK : ajout rapide d'un zoom de 1.5f dans ViewManager::ResizeViewports() + MenuState::HandleScreenResized() + PlayState::HandleScreenResized
+        ✔ toujours des pbs avec le grapin : grapin spawné, changement d'avatar sans cette abilité, rechangement d'avatar avec cette abilité, détachement du grpin, le physique n'est pas enlevé ou bien un autre physique est mis ...
+            etre sur que le grapin spawné ne s'accrocha si il est en cours de destruction
+            (cas spawn, clic pour nouveau spawn, le premier spawn est pas encore accroché à un mur, lorsque la demande d'un nouveau spawn arrivé puis il s'accroche alors qu'nn nouveau grapin est spawné ... le premier grapin ne pourra alors plus etre decroché)
+                Ajout GOC_PhysicsGrapin::isReleasing_ et Correctif dans ABI_Grapin::Use()
+        ✔ lors du changement d'avatar, ne pas activer la dernière abilité disponible. Plutot laisser active l'abilité du precedent avatar si elle existe pour le nouvel avatar. Autrement n'activez que la premiere ability native.
+            cf. ajout Equipment::SaveActiveAbility() et Equipment::SetActiveAbility(), Modification GOC_Abilities::AddAbility() et UIC_AbilityPanel::OnAbilityUpdated() => UIC_AbilityPanel::lastAbilityHash_ ne sert plus.
+        ✔ les potions de soins doivent faire recuperer aussi les vies sans avoir à changer d'avatar.
+            Modification faite dans GOC_Life::ApplyAmountEnergy() => utilisation de GOC_Life::ApplyAttributes()
+            RAF : voir si ok en reseau.
+        ✔ rendre independant deviceDPI_ pour l'UI (l'UI peut etre en hdpi alors que le reste en mdpi => mobile)
+            Deplacement des data UI dans Data/UI/Graphics en fonction du dpi
+            Ajout de GameStatus::gameConfig_.uiDeviceDPI_ et modification de Game::Setup().
+            OK : il faut egalement encore agrandir le screenjoystick
+            il y a aussi GameStatus::uiScale_ pour le dimensionnement des uiElement.
+                cf GameStatus::ResetScreen()
+        ☐ les stats d'equipement doivent encore poser pb. Equipment::Dump(), Player::Dump() command "dumpplayer"
+            ca à l'air d'etre bon : il faut plutot revoir les stats des equipments (armes et armures).
+        ☐ mettre en option le charactermapping pour les mobs skeleton et lizard : peut-etre que cela surcharge trop le cpu sur les configurations basses.
+        ☐ generer moins de static furnitures en configuration basse. pour verifier les drawables visibles (rendu) uniquement : utiliser la commande "render".
+        ☐ le setvisible d'une map lorsque le player entre dedans fait parfois defaut (encore).
+        ☐ des mobs coincé dans les murs (encore)
+        ☐ apres chargement d'une partie sauvegardée à partir du mainmenu, les entities Ai ne bougent pas: verifier si aimanager est démarré
+        ☐ erreur de changement d'arme entre lizard et skel (difficile à reproduire)
+        ☐ pb avec le framelimiter : ca sacade beaucoup. verifier l'engine. Sous Rpi ou Android le framelimiter est actif par defaut.
+
+    ☐ 17/03/2021 : revoir le GamePlay
+        Arcade : premier mod à créer mode Solo sur la base pour chaque level => porte monstres tresor.
+            début du niveau : affichage de la mission
+            fin du niveau : ajout des récompenses : un trésor, ou un pnj apparait à la fin du niveau pour donner une récompense.
+        Battle : affronter et vaincre tous les personnages incarnés par joueurs en ligne ou BOT
+            commencer par le mode hors ligne (BOT) creer Plusieurs Actors avec AI performante
+        Wander : vagabonder dans le monde
+        26/03/2021 : modification de PlayState, GOManager => ajout PlayState::CheckGameLogic(), les bot seront des GO_AI, les marchands seront des GO_AI_None.
+            ajout de GOB_PlayerCPU à modifier
+
+    ☐ REFACTORING 1.6 : Nouvelle structure Source (dossiers) mise en place à consolider
+        repenser le découpage par dossiers (unité fonctionnelle)
+        fusionner les Defs par unités fonctionnelles (à définir)
+        voir pour créer une interface générique pour les tables de hashage (attributes, events etc ...)
+        - systeme map à regagner en cohérence :
+            intégration du viewmanager
+            redécoupage objectile + séparation Data/Code + Simplification du storage des BatchInfos avec un HashMap et des clés (ViewZ/View/Material) pour l'accés aux tables des chunks TILE(id=0) DECAL(id=1)
+                ++ 80%
+            créer terrainmap par map
+            trop de faux gestionnaire sous forme de composant Map (master component), StaticTiledObject2D (component)
+        - créer une interface commune pour les Pools (trop de classe pool différente : pools de node, pool de map ...)
+        - créer une interface commune pour les managers (AI, GO, World)
+
+
+Archive:
+    ✔ 11/11/2023 : integration des TODO liste dans vscode (extension Todo+) @done(23-11-11 14:16)
+        modification/split TODO.txt dans GAME-<category>.TODO
+
+    ✔ 09/11/2023 : Creation CMakePresets.json qui permet de gestion des build (meme chose que mon script Bake homemade)
+        permet l'utilisation dans VSCode sans probleme.
+        creer tous les presets necessaire. Pour le moment Linux Debug et Release BackEnd GL seulement.
+        
+    ✔ 30/10/2018 : le preloading des ressources doit commencer pendant le splashState, afficher un icone de chargement
+        rendre asynchrone ce preloading
+            OK le 04/11/2018
+            Tester sur RPI, et Android
+        05/06/2020 : sous RPI4 en KMSDRM, le chargement est en boucle infini sur l'Objet Wearable Armure_Petit => Patch dans GOT::PreLoadObjects() remplacement de la boucle for par while
+
+
+    ✔ 10/12/2020 : creer le chargement et la sauvegarde d'une partie en World.
+        sauvegarde du world + sauvegarde des players déjà fait + position des players dans le world.
+            intégrer dans OptionState "Charger Partie" et "Sauvegarder Partie"
+            suppression dans PlayState::CreateScene()->GameHelpers::LoadSceneXML() du chargement de la scene sauvegardée (plus necessaire, de plus certains attributs comme "Map - Add ImageLayer" ne sont pas sauvegardés et sont indispensables)
+            l faut dissocier la sauvegarde continue des maps et entities du world, de la sauvegarde demandé par le joueur.
+            purger systematiquement les fichiers Maps et Entities avant lancement d'une partie de ...Local/Levels/Worldxx,
+                si le mode "Charger Partie" est utilisé alors copier les fichiers de ...Local/Save/Levels/Worldxx dans ...Local/Levels/Worldxx
+        OK le 17/12/2020
+
+    ✔ 17/12/2020 : probleme sous Android : de nouveau des NaN positions d'après les logs ... corruption mémoire ?
+        retester avec la version datant du 11/12/2020 avant le passage sous Win10 (14/12/2020)
+        aucun pb avec la version du 11/12
+        OK : il s'agissait de 2 modifications dans Urho3D/MathDefs.h functions "Round" sans inline alors que le inline est nécessaire.
+
+    ✔ 03/12/2020 : recompilation et deploiement pour android-23 avec Android Studio 3.4 OK
+        correctif d'un crash dans AnimationEquipment::Update() remplacement de la boucle do while ... par un while simple. pb surement avec la post incrementation.
+
+    ✔ 12/05/2020 : Lors du basculement de fenetre (GainFocus/LostFocus), la fenetre du jeu fait freezé 1à2sec le WindowManager Ubuntu si l'option VSYNC est ON, mais pb de sacade dans FromBones si VSYNC est OFF.
+        soit voire dans Urho3D et SDL, comment s'implemente le Vsync et de trouver la cause de ce freeze
+        soit voire dans FromBones, trouver la cause de la saccade lorsque VSYNC est OFF.
+            avec VSYNC OFF et sans FrameLimiter, il n'y a plus de saccade.
+            en mode windows : utiliser VSYNC OFF et FrameLimiter=vsync avec vsync=frequence vertical du moniteur, (60Hz sur un moniteur60Hz il n'y a pas de saccade)
+            en mode fullscreen : utiliser VSYNC ON
+
+    ✔ 05/06/2018 : Crash après mort au moment du respawn
+        pas de crash dans la version précédente du 23/04/2018
+        essai frombones du 23/04/2018 avec Urho3D du 05/06/2018 => aucun pb
+        il s'agit d'un pb dans frombones et non pas dans urho3D => analyser les écarts dans FromBones entre la derniere version ne crashant pas et la suivante
+            version du 30/05/2018 crash
+            version du 04/05/2018 ok
+                semble etre un pb dans le code du GOC_Animator2D : chercher le code causant pb
+                bug dans le directionalAnimations du à controller_ qui est un ptr uniquement sur GOC_Controller,
+                cause : lors du destroy avatar, les components sont modifies notamment ceux qui sont removable (ils sont supprimés) impliquant dans GameHelpers::CopyAttributes() un changement dans les composants
+                    utilisation de WeakPtr, crash corrigé !
+        13/09/2018 : encore un Crash
+            il s'agit du GOC_Destroyer::Destroy() à utiliser pour les avatars avec une tempo minimum de 0.1f, autrement crash du à l'effacement du node portant GOC_Destroyer et donc de lui-meme
+
+    ✔ le codage avec les code touches ne permet pas d'être portable sur différents types de clavier (azerty, qwerty etc...)
+        OK (04/08/2017) : utilisation des scncodes pour les parties critiques
+        02/01/2020 : changement dans GOC_ControllerPlayer::UpdateLocalControls() des touches par des scancodes en prenant bien en compte le layout americain : le player 1 a les controles WSAD (qwerty)
+        changement egalement de la cartographie pour les touches camera et debug dans PlayState::HandleUpdate() et PlayState::HandleCamera() : les deplacement camera sont au niveau du pavé num.
+        RAF : changer les touches du screenjoystick et debug en mode touchenabled
+
+    ✔ Déploiement Android 17/12/2017
+        correctif mineur sur les sources.
+        utilisation de la toolchain de Urho1.7 intégré à la 1.5 (pour SpaceMatch)
+        intégration des modifications utilisées dans SpaceMatch concernant Game, sPlay et sMainMenu (touch, GameHelpers::OrthoWorldToScreen)
+        ATTENTION : dans Game::Start() le PreloadRessources() doit être fait avant le ResetScreen() autrement problème d'affichage (Renderer2D) pour les ObjectPool Nodes.
+

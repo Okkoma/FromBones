@@ -1,0 +1,146 @@
+Todos:
+
+    ☐ 07/06/2023 : Enrichissement de l'Editor : l'editeur en Script ne sera plus mise à jour. Utilisation uniquement du static ou du shared.
+        => ajout de Animator2D : qui est un panneau d'edition des animationSet2D
+        ==> permettra de changer la couleur, le fx par sprite ainsi que d'ajouter des offsets de positionnement pour les yeux et la bouche en fonction du visage.
+        ==> pour le moment ne fonctionne que sous GL, sous VK il faut finir l'implementation avec RenderTarget (specifier dans RenderPath) et RenderSurface car View3D s'appuie sur ce mecanisme.
+        ===> replacer par des panels et une visualisation de l'animatedSprite directement dans la scene courante.
+        ===> créer le panneau timeline, le panneau animation, le panneau charactermapping.
+        ===> voire pour reprendre la timeline faite avec SpaceMatch.
+        ===> créer en priorité un panneau charactermapping pour l'edition des couleurs et la position des yeux et bouche en fonction du visage.
+        ===> on pourrait également utiliser AnimatedSprite2D::spritesInfos_ Urho3D::Spriter::SpriteInfo pour stocker la couleur : ce qui serait pas mal pour changer les couleurs de l'equipement.
+        ===> en fait ce que l'on voudrait c'est avoir un skeleton et pouvoir charger des skins dessus comme dans les implementation moderne spine, ue4 ...
+        ====> modification de Urho3D::AnimatedSprite2D avec ajout de colorMapping_
+        ====> 14/06/2023 : ajout dans l'editor des panneaux characterMapping, ColorMapping et SwapSprites
+        ====> 21/06/2023 OK : sauvegarde du Color Mapping dans le SCML ou dans un SCML addon
+        =====> l'ui, ajouter une liste comme pour le character mapping avec un bouton New en plus pour créer des colorMapping ou bien modifier l'ui du characterMaps en Maps qui inclura les Maps de Character et de Color
+        ====> ajout d' une dropdownlist de selection de l'entité à editer, important pour la selection des character et color mapping.
+        ====> SwapSprites Panel s'applique characterMapping édité
+        ====> ColorMapping Panel permet de créer un mapping de Color.
+        ====> 29/06/2023 OK : Animation panel permet de jouer les differentes animations
+        ====> Ajouter/Tester les delta Positions pour le characterMapping
+        =====> pour cela dans l'editeur, il faudra pouvoir selectionner et manipuler les sprites.
+        =====> 03/07/2023 OK pour la selection : ajout de AnimatorEditor::SelectSprite et AnimatedSprite2D::GetSpriteAt()
+        =====> 05/07/2023 OK pour la manipulation : translate, rotate, scale ajout de AnimatorEditor::MoveSelection() et pas mal de modification dans SpriterData et AnimatedSprite2D
+        ======> fonctionne pour un mapped sprite avec modification du characterMap::MapInstruction::targetdx,dy,dangle,scalex,scaley.
+        ======> 06/07/2023 OK : faire un test sur une animation fonctionnelle créer dans actor-medium.
+        ======> étendre la manipulation aux slots (sprite d'origine) avec modification directe des SpatialTimelineKey.
+        =====> ajouter l'edition des pivots, des bones, des points et des boxes et des triggers associés spécifiques à FromBones ?
+        ======> 07/07/2023 OK : pivots
+        ======> 09/07/2023 OK : affichage des bones => RAF voir pour l'antialiasing pour les ligne sous Vulkan (MultiSample).
+        ======> 11/07/2023 OK : manipulation des bones : sensibles à la rotation lorsque clic à proximité du point "pointe" et au déplacement sur le point "origine"
+        =======> pas encore très claire sur la création ou non de timekey lorsque manipulation. Il semble y avoir des erreurs lorsque un bone est mis en rotation : quelle timekey est MAJ ? normalement la timekey la plus proche.
+        ========> le probleme etait lié aux spin et à l'interpolation lineaire de l'angle.
+        =========> lors de la manipulation de l'angle dans l'editeur régler à spin=1 par défaut et faire une dropdownlist pour pouvoir modifier le spin si nécessaire.
+        =========> Lorsque spin=0 il n'y a pas d'interpolation ce qui peut generer des sacades cf Urho3D::Spriter::SpatialInfo::Interpolate() et Urho3D::Spriter::AngleLinear()
+        =========> ce comportement peut etre necessaire pour swapper d'angle sans utiliser de curve instant.
+        ======> ajouter un panel pour visualiser les timekeys.
+        =======> 12/07/2023 OK : pour le moment, juste dans l'animation panel avec une partie information sur la timeline selectionnée avec edition possible du spin.
+        =======> 13/07/2023 OK : ajout de la modification (add/remove) des timekeys.
+        =======> RAF ajout/suppression de timeline (bone et sprite)
+        ======> il faut ajouter une box de message pour voir le mode d'edition (timeline editing, charactermap offseting)
+        ======> ajouter un bouton pour aligné le sprite selectionné avec l'origine du bone.
+
+    ☐ 17/09/2018 : creation de MapEditor
+        => OK : possibilité de forcer le CreateMode des le mainmenu en appuyant sur F3
+        ==> voir pour le retour en mode normal dans PlayState : utiliser un event pour recharger PlayState ?
+
+        après settile, l'update des colliders est à corriger : 16/12/2017 car ne pointe pas vers les bons collisionshapes si split chains
+            => 23/12/2017 : OK changement de methode (modification de tous les vertices ... profiler serait bien)
+            ==> lors de la suppression de colliders, le Grapin ne se détache pas, de meme pour MV_CLIMB,
+            ====> 27/12/2017 : OK ajout de l'event MAPTILEREMOVED envoyé par Map. GOC_Collide2D et GOC_PhysicsGrapin souscrivent à cet event.
+
+    ☐ Serialization des tiles modifiées
+        -> revoir le format de map
+        -> voir minetest pour l'aspect réseau
+        -> faire la gestion asynchrone du MapStorage::UnloadMap comme le MapStorage::Initialize
+            => rendre le plus fluide possible
+        -> revoir la strategie de chargement/dechargement des maps
+            => faut-il precharger en mémoire tous les TileModifiers ou bien charger au fur et à mesure ?
+
+    ☐ auto modification des tiles impactés par un changement d'un tile de couche superieure ou inferieure
+        -> établir les régles des tiles impactés
+        => 17/07/2020 : l'ajout de tile doit selectionner le tile vide sur le layer le plus profond non masqué (non obturé par une tile superieure) en commencant par le layer du viewz specifié
+        ==> la permutation de tile ne sera utilisable que sur le layer du viewz
+        ===> Modification de GameHelpers::AddTile() et Map::SetTile()
+        => 17/07/2020 : la suppression de tile doit selectionner le tile plein sur le layer le moins profond non masqué (non obturé par une tile superieure) en commencant par le layer du viewz specifié
+        ===> Modification de GameHelpers::RemoveTile() et Map::SetTile()
+        => 21/07/2020 : dans MapCreator::GenerateDungeonMap les lignes suivantes impactent les views BACKVIEW et OUTERVIEW 
+                map->featuredMap_->AddFeatureFilter(COPYTILEMODIFIER, InnerView_ViewId, BackView_ViewId, MapFeatureType::InnerSpace, MapFeatureType::RoomWall);
+                map->featuredMap_->AddFeatureFilter(COPYTILEMODIFIER, InnerView_ViewId, OuterView_ViewId, MapFeatureType::InnerSpace, MapFeatureType::RoomWall);
+                map->featuredMap_->AddFeatureFilter(COPYTILEMODIFIER, InnerView_ViewId, OuterView_ViewId, MapFeatureType::RoomWall, MapFeatureType::RoomWall);
+            vu les FeatureFilter definis dans MapCreator (Copy de Innerview vers Outerview et BackView), il faut desactiver les COPYTILEMODIFIER
+            dans ObjectFeatured::ApplyFeatureFilter(unsigned) pour realiser les AddTile et RemoveTile définis ci-dessus.
+        ==> Pour le AddTile en Map DUNGEONINNERTYPE, toujours creer les tiles en INNERVIEW et laisser faire les filtres
+            (decommenter les filtres COPYTILEMODIFIER precedemment commentés dans ObjectFeatured::ApplyFeatureFilter(unsigned))
+        ==> de meme pour le RemoveTile
+        ==> la creation en BACKGROUND ne s'effectue pas si le COPYTILEMODIFIER du FRONTVIEW vers le BACKGROUND n'est pas désactivé dans MapCreator::GenerateWorldGroundMap et MapCreator::GenerateSimpleGroundMap
+        ==> 28/07/2020 : etablissement des regles suivantes 
+        // en frontview
+        // => pouvoir creer des tiles de background et des tiles de frontview
+        // => pouvoir detruire des tiles de background et des tiles de frontview
+        // => pouvoir detruire des tiles de outerview qui detruit automatiquement l'innerview et le backview
+        // => ajouter une option, pour ne jamais creer de tiles de background
+        // en innerview
+        // => pouvoir creer des tiles d'innerview qui ajoute automatiquement des tiles en backview et outerview
+        // => pouvoir creer des tiles de background
+        // => pouvoir detruire des tiles d'innerview solid qui seront remplacés par InnerSpace
+        // => pouvoir detruire des tiles de background si pas de tiles en frontview
+
+    ☐ Créer l'UI
+        => selection du layer (zview : frontview,outerview,innerview, background ...)
+        => creation d'un selecteur de case (simple, par box, ou multiple (box + simple + simple + box ...))
+        => modification des cases du selecteur (panneau feature, terrain, skin ...)
+        => creation du panel pour la selection d'objets à ajouter : entity, furniture, actor
+        => 23/12/2020 : hack de l'editeur de Urho3D. Integration dans FromBones
+        ==> Modification des Spawns dans Map::SetEntities_Add() => Spawn dans node Entities Local ou Replicated si Network.
+        ==> 23/12/2020 OK : finalisation de l'intégration en PlayState : Appui sur F3 => Toggle Editor.
+        ==> les GOA doivent etre enregistrées dans Urho3D pour pouvoir être editable dans l'Inspector
+        ===> OK : Enregistrement via GOA::RegisterToScene() -> Scene::RegisterVar().
+        ==> les entities instanciées d'ObjectPool doivent être des prefabs (non modifiables sauf pour les positions).
+        ==> ajouter listview pour selectionner le got à spawner selon la category selectionnée.
+        ===> 03/01/2021 : lors de la selection de la category afficher la listview
+
+        ==> normalement le Save World suffit pour prendre en compte les changements.
+        ===> 03/01/2021 : pb lors de la sauvegarde pour la position des furnitures
+        ====> cf MapData::UpdateObjectInfos() et Map::GetMapTilePosition()
+        ====> 09/01/2021 : les methodes developpées pour le moment sont 
+        =====> MapData::UpdateMapFurniture() et MapData::UpdateObjectInfos() utilisées lors de la sauvegarde d'une map pour synchroniser les MapFurniture : entre autre, le positionnement (via tileindex_, randomoffset_, tileoffsetx_, tileoffsety_) est mis à jour.
+        ======> voir pour reduire la taille en byte de ces 4 datas car autant utiliser un Vector2 autrement. (Vector2 = 2 floats = 2*4 = 8 bytes) tileindex_=uint=4bytes, randomoffset_=int=4bytes, tileoffsetx_=int=4bytes, tileoffsety_=int=4bytes
+        =====> Map::SetStaticMapFurnitureAt() utilisée lors du SpawnFurniture et de Map::UpdateMapFurniture() se concentre sur le positionnement à partir d'une worldposition sur la plus proche side d'un block solide uniquement.
+        ======> pour la Tenture, il faut pouvoir associer un tile de backview ou de background. voir pour definir une propriété d'ancrage
+            => remplacer tileoffsetx_ et tileoffsety_ par tileanchor_ qui peut prendre les valeurs de 0 à 4 (4 etant le centre de la tile, les autres les sides) et tiletype_ qui definit si la tile doit etre solide ou non
+            ==> voir pour fusionner MapFurniture et WorldEntityInfo en gardant les infos essentielles
+            ===> WorldEntityInfo ne sert que pour transferer les datas de Map::Populate() vers Map::SetEntities_Add()
+            ===> MapFurniture est utilisé pour communiquer les datas des generator vers Map::AddFurnitures() et Map::SetFurnitures() et l'ajout ponctuel de nouvelle furniture via Map::AddFurniture() et World2D::AddStaticFurniture()
+            ===> ces 2 structures sont membres de MapData et sont à substituer par EntityData occupant 8bytes.
+        ====> 17/01/2021 : Ok EntityData remplace WorldEntityInfo et MapFurniture. Map::AnchorEntityOnTileAt() remplace Map::SetStaticMapFurnitureAt.
+        =====> Rappel : MapData ne sert qu'à la serialization. Ce n'est pas un gestionnaire d'entités.
+        =====> crash : surement pb de corruption mémoire. Logguer EntityData
+        ======> la structure MapData::entityInfos_ ne va pas pointé vers les bon EntityData* si ajout/suppression d'une EntityData dans MapData::furnitures_ et MapData::entities_ ce qui peut occassionner une corruption de memoire
+        =======> ne jamais supprimer des entityData mais remplir par un EntityData::gotindex_=0 (similaire à la façon de procéder dans la version avec MapFurniture) ?
+        ========> 18/01/2021 - OK : le pb venait de l'ajout dans GOC_Destroyer::UpdatePositions() de MapData::RemoveEntityData() et MapData::AddEntityData() necessaire pour le changement de Map. Correctif appliqué avec ajout de moveEntityData_.
+        =========> encore un crash (corruption mémoire) : non identifié
+        ==========> crash lors du SaveWorld F6. Quelques correctifs dans MapData::AddEntityData (ajout des freeEntityDatas : entitydatas desattribué via RemoveEntityData qui peuvent être reattribués via AddEntityData)
+        ===========> lors du SaveWorld, le MapData::PurgeEntityDatas() va être lancer ce qui est destructif pour MapData::entityInfos_.
+        ============> voir MapData::PurgeEntityDatas() pour reconstituer MapData::entityInfos_
+        ===========> en activant uniquement les furnitures, il n'y a pas de crash => la cause provient des entities.
+        ============> Pour le moment, les EntityDatas ne servent à rien à updater pour les entités etant donné qu'il y a deja les entitiesAttributes de serializer => desactivation des EntityDatas pour les Entities seulement, dans MapWorld, GOC_Destroyer et Map.
+
+        =====> a VERIFIER dans MapCreator suite à l'introduction d'EntityData, si les MapDatas dejà en mémoire sont bien utilisées pour alimenter directement Map::SetFurnitures plutot que d'avoir à les regenerer avec MapGenerator.
+        ======> OK c'est dejà fait cf MapCreator::GenerateEntities() avec le map->GetMapData()->SetSection(MAPDATASECTION_FURNITURE);
+
+        ===> 03/01/2021 : pb si deplacement d'un GOT_Portal, celui-ci semble inactif apres.
+        ====> Semble etre resolu depuis le remplacement par EntityData
+
+    ☐ faire l'update des colliders après Map::SetTile
+
+Archive:
+
+    ✔ Créer les fonctions de bases pour la modification de tiles et la mise à jour des batches
+        -> void Map::SetTile(FeatureType, int x, int y, int zview)
+            => 15/11/2017 : OK pour Connected4 et Connected0
+            => 12/11/2017 : dans le cas ou l'on supprime le dernier tile d'un batch, celui-ci est toujours apparent
+                => Corrige ObjectTiled::UpdateTiledBatches(), ajout de ClearBatchVertices
+
+

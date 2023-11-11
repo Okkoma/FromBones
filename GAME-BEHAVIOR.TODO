@@ -1,0 +1,1275 @@
+Todos:
+
+    ☐ 06/11/2023 : pb avec la vache pour tirer en continue avec le joystick
+
+    ☐ 07/10/2023 : creer nouveaux objets de jeu et behaviors necessaires
+        -> "graine" : fait pousser une plante
+        -> "poudre de pluie" : declenche la pluie
+        -> "une potion d'eau" : change le pouvoir de feu de la sorciere en pouvoir d'eau, et rend plus puissant les entités de type "eau"
+
+    ☐ 11/04/2023 : ajout de la teleportation à partir de la worldMap en appuyant sur le bouton souris milieu.
+        => Correctif apporté au GEF_Scrolling et DrawableScroller pour le recentrage sur la position de repop.
+        => Correctif d'une boucle infinie dans MapStorage::UpdateMapsInMemory() et World2D::UpdateInstant()
+        ☐ ajouter l'abilité Teleportation. Lorsque l'ability est activée, le curseur sur la WorldMap changera : par clic sur un point de cette map.
+            ===> OK : ajout du curseur "cursorTP" et utilisation du Qual CTRL pour activation
+            ===> creer l'ability Teleportation
+        ☐ pour la teleportation "instant", il faut aussi chargée les cartes dans la zone de visibilité au repop => cf GOC_Portal.
+
+    ☐ 06/04/2023 : pouvoir planter les eliegor seed
+        => passer par le CRAFTPANEL, ajout de la recette EliegorSeed + Potion, lorsque l'on jette l'EliegorSeed modifié alors elle doit se planter.
+        ==> OK : ajouter une entité EliegorSeedPlus, modification de GOC_Collectable (ajout attribut wallcollide), modification des EventActions de GOC_Animator2D et ajout SpawnFurniture
+        ==> pouvoir specifier le model à utiliser pour ltree => ajouter des attributs supplementaires pour les furnitures à planter via SpawnFurniture.
+        ==> ajouter un symbol UI special pour le slot EliegorSeedPlus (un peu comme les épées avec effet) => ajout GOA::EFFECTID1 dans EliegorSeedPlus.xml et modification de UIC_CraftPanel::HandleMake pour permettre l'ajout d'effet au slot.
+        ===> RAF : le plus ce serait de façon générale de pouvoir fabriquer de nouveaux types d'entités.
+        => RAF : possibilité à l'eliegor seed de se planter toute seule, générant une nouvelle plante soit aggressive ou non.
+
+    ☐ 06/04/2023 : ajouter le pouvoir "possession" à fantomette => il pourra controler un squelette en prenant forme d'ectoplasme dans le corps.
+        => il faut que le pouvoir soit temporaire.
+        ==> lorque le pouvoir est trop utilisé, de mauvais esprits pourraient venir avaler fantomette, le rendant inutilisable pendant un certain temps ?
+
+    ☐ 31/03/2023 : la barre de vie du boss peut etre genante lorsque l'avatar est en dessous.
+
+    ☐ 30/03/2023 : pouvoir interagir avec des monstres si l'avatar est d'une espece compatible ou bien à une faculté spéciale.
+        => la transformation d'une espece vers une autre devra repondre à un schema : il ne sera possible de se transformer que dans certaines conditions (un peu comme une recette pour le craft)
+
+    ☐ 18/01/2023 : encore des pb avec GOC_Portal ? dans certains portails, le transfer de la Camera n'est pas instantané : la camera se déplace d'une map vers une autre.
+        => perte du focus ? verifier ViewManager::SetFocusEnable()
+        ==> 19/01/2023 : quelques correctifs ainsi que dans MapStorage et MapWorld
+        -> 21/03/2023 : Portal encore à corriger ; teleportement aborté avec défilement de l'écran et retour au premier portail sans possibilité de réativation de celui-ci
+
+    ☐ 22/03/2023 : quand on a popper un boss et que l'on sort et rerentre dans la zone, il faut que la zone soit de nouveau active
+        => OK : correctif dans BossZone::OnFinished()
+
+    ☐ 07/03/2023 : ajout de livache
+        => RAF : le power1 doit pouvoir arroser en continue tant que la touche est pressée : il faudrait deux animations power1 et power1continue qui prend le relai sur la seconde
+        ==> voir pour l'interruption en cas de hurt.
+        ==> modification de GOC_Animator2D::Dispatch, ajout de l'event GOC_CONTROLACTION2HOLD et essai avec nouveau Template AnimatorTemplate_PoweredWalkAttackerContinue
+        ===> il faut créer un nouvel effet pour le lait et le dissocié de livache : comme pour bouledefeu explosion sur mur.
+        ====> seulement il faut que ce soit un jet : il s'etire jusqu'à la distance maxi ou jusqu'à un mur et dans ce cas créé un splash.
+        =====> 26/08/2023 : Creation d'un nouveau composant SequencedSprite2D dérivé de StaticSprite2D
+        ======> etirable en suivant un node avec l'attribut "Follow Owner" et retricissement avec l'attribut "Shrink"
+        ======> RAF : integration à finir dans GOC_Animator2D pour permettre l'utilisation d'un SequencedSprite2D sans avoir besoin d'un AnimatedSprite2D
+        =======> GOC_Animator2D::CheckAnimatedSprites() devient GOC_Animator2D::PlugDrawables() et n'est plus la cause d'une non-initialisation du composant.
+        =======> modifications des GOC_Animator2D Actions, probleme de passage des parametres ?
+        ========> OK 30/08/2023 : dans GOC_Animator2D::ApplyCurrentStateEventActions, le parametre principale à utiliser s'il existe sera action.param et non celui passer en parametre de fonction. ce qui
+            evite l'utilisation des parametres d'Anim_Event transmis par AnimatedSprite2D quand l'action à dejà des parametres tel que ActionTo_Disappear ou bien Action_SpawnParticule (qui utilise directement EventTriggerInfo)
+
+    ☐ 22/02/2023 : lorsqu'un boss est tué hors zone, il faut mettre fin à la zone effect (EffectAction) autrement des que l'on rentre dans la zone le boss reapparait.
+        => une fois le boss tué, il n'y a pas le declenchement de BossZone::HandleBossDead, car dans BossZone::HandleUpdate() la sortie de la zone provoque un MarkFinished qui annule la souscription aux events, voir delete BossZone
+        ==> OK : replacement de BossZone::HandleBossDead par static BossZone::RemoveBoss() qui est desormais utiliser dans GOC_Life quand le boss meurt.
+
+    ☐ 29/01/2023 : en mode arena, si dans zone de boss et appui sur G pour gagner, la barre de boss reapparait dans le level suivant.
+        => OK : mettre GOC_Life::SetLifeBar(false) dans GOC_Life::OnSetEnabled().
+        => 22/01/2023 : meme probleme en world, si l'on quitte le playstate : cette fois-ci la barre s'affiche dans le mainmenu.
+        ==> OK : ajout de GOC_Life::SetLifeBar(false) dans ~GOC_Life, le boss devait etre creer hors NodePool !
+
+    ☐ 28/01/2023 : quelque rare cas d'erreur de mapping avec le skel avec l'epee flame et le pistolet.
+        => difficile à reproduire. l'epee s'affiche mais n'est pas lié à la main et le pistolet ne s'affiche pas.
+
+    ☐ 24/01/2023 : le unstuck peut detruire des entités directement visible devant le joueur. Il est tres bizarre de voir un monstre ne plus etre la l'instant d'apres ...
+        => Il faut dans ce cas faire mourir le monstre plutot que de le destruire apres le stuck. Il faut bien differencier le Spawn de l'Update des positions : dans le premier cas => destroy, dans le second => dead.
+
+    ☐ 20/01/2023 : en world, le decrochage des ponts ne fonctionne pas toujours.
+        => Cela arrive car GOC_PhysicRope s'appuit sur des CollisionShape2D qui peuvent etre modifiées ou detruites
+        ==> OK : Modification de GOC_PhysicRope pour ne plus utiliser les CollisionShape2D pour le SubscribeToEvent(MAPTILEREMOVED) : a la place utiliser le tileindex et le mappoint
+
+    ☐ 18/01/2023 : Encore des problemes de Stuck dans les murs au pop (vu avec Bitroll, Mirubil, Lizard, Darkren)
+        => OK : modification de Map::SetEntities_Add() pour eviter le adjustposition si spawn dans wall, de la meme façon que dans Map::AddEntity().
+
+    ☐ 15/01/2023 : ne plus permettre d'action du joueur des que l'avatar est mort : evite le probleme de changement d'avatar au moment de la mort et de son repop...
+        => OK : modification de Player::ChangeAvatar
+
+    ☐ 26/11/2022 : pb avec la potion : elle ne peut etre utilisée lorsque l'avatar est trop proche d'un mur.
+        => UISlotPanel::UseSlotItem
+        ==> 15/01/2023 - OK : ajout de GOC_Destroyer::allowWallSpawning_ et modification de Map::AddEntity()
+
+    ☐ 24/05/2022 : verifier les Lifes des mob avant et apres sauvegarde. Il semble qu'apres rechargement, les mobs meurent plus vite.
+        => 13/01/2023 : probleme au niveau des attributs GOC_Life : test fait => non
+        ==> probleme au niveau de l'equipement : test fait => non
+        ==> ajout d'une tempo dans EffectsManager::SetEffectsOn via l'invulnerabilité : en effet les coups donnés provoqué trop de contacts et donc de dps dans un meme coup porté.
+        ==> ajout de commands "life" "equipment" pour verifier en cours de jeu les status.
+
+    ☐ 29/12/2022 : eviter que les grosses entités (tel que rockgolem, redlord, mirubil) dépassent des murs.
+        => ajouter des shapes qui ne reagissent qu'aux murs. Faire attention à GOC_Destroyer::UpdateFilterBits() : utiliser CM_DEADINSIDEENTITY et CM_DEADOUTSIDEENTITY.
+        ==> OK pour RockGolem
+        ===> non suffisant pour Mirubil lors des attaques on voit depasser la trompe ou les bras sans parler des effets magiques et puis il parait desormais trop loin des murs
+        ===> il ne doit plus effectuer une attaque si un mur est trop proche.
+        ====> modification de GOB_FollowAttack::Update.
+
+    ☐ 18/12/2020 : ajouter des ponts en corde, passerelles, plateformes mouvantes.
+        => 29/12/2022 : ajout escalier
+        ==> les escaliers doivent etre orienter utilement pour pouvoir atteindre des plateformes ou des passages.
+        ===> plusieurs configurations doivent etre possible : escalier simple, escalier double directe, escaliers multiples avec plateformes intermediaires ... escaliers en colimasson
+        ==> il faudrait biensur avoir une routine permettant de monter les escaliers plutot que de sauter de marche en marche.
+        ===> OK : simplement ajout de CONTACT_STAIRS et modification GOC_Collide2D::AddWallContact2D.
+        ====> ajout d'animations UpStairs et DownStairs pour les entités marchantes ?
+        => 05/01/2023 : ajout de pont (passerelle) utilisant GOC_PhysicRope
+        ==> le positionnement est à revoir cf MapGeneratorDungeon::GenerateFurnitures et MapGeneratorDungeon::GetPositionFor()
+        ===> le pont est positionné sur le bas de la tile vide (entrée dans chambre). Il faudrait le positionner sur la tile du dessous aligné en bas pour que le pont soit decrochable si l'on casse la tile.
+        ====> 09/01/2023 : OK.
+        ==> la longueur de la passerelle doit etre definie en s'appuyant sur la map : compter le nombre de tiles vides jusqu'au prochain mur selon la direction indiquée.
+        ===> 09/01/2023 : OK, modification de AttachOnWalls()
+        => 09/01/2023 : Trouver une solution pour activer/desactiver les ponts. GOC_PhysicRope::OnSetEnabled() doit bien desactiver sans recreer. Les contraintes semblent s'effondrer.
+        ==> 10/01/2023 : solution pour l'effondrement des contraintes => mise à jour des positions des node et des jointAnchor => GOC_PhysicRope::UpdateLinkPositions()
+        ===> faire la meme chose pour les modeles RM_ThrowableRope (le grapin s'effondre egalement si SetEnabled) et RM_FixedRope.
+        => verifier que tout se passe bien avec SaveWorld
+        ==> correctif pour les Lustres dont la chaine n'apparait plus apres un ObjectPool::FreePoolNode
+        ===> 12/01/2023 : PhysicRope::CleanDependences ne peut etre appelé par ObjectPool car PhysicRope est dans un enfant du node FUR_Lustre.
+        ====> déplacement de PhysicRope dans le node FUR_Lustre et modification dans le composant PhysicRope.
+        =====> modification de Urho3D::Variant pour les StringHash : il est desormais possible d'utiliser les StringHash dans les attributs à partir de String (cf Lustre.xml : <attribute name="AttachedNode" value="Lustre" />)
+        ======> il n'y aura pas de reverse StringHash vers String par contre : ce qui va etre plus lourd pour lire un fichier XML sauvegardé mais plus rapide pour l'execution que de passer par des String dans les composants.
+        => rajouter des frottements dans la corde du lustre pour que le mouvement s'arrete à un moment.
+        => 12/01/2023 : En detruisant au niveau des tiles d'accroche, le pont est soit détruit directement (comportement normal pour les furnitures, mais non voulu pour les ponts), soit ne s'ecroule pas du tout.
+        ==> Il faut que dans tout les cas le pont s'écroule.
+        ===> le fait de detruire les tiles d'accroche c'est d'utiliser GameHelpers::SetTile -> World2D::DestroyFurnituresAt() -> World2D::DestroyEntity()
+        ====> voir pour modifier World2D::DestroyFurnituresAt() : pour le moment skipper la destruction et laisser le pont s'écrouler.
+        =====> reste certains ponts à identifier qui ne s'ecroule pas => drawdebug à faire pour afficher les tileindex d'accroche des ponts
+        ======> il s'agit de pont dont l'accroche est sur une plateforme (collisionBox)
+        =======> cf World2D::GetCollisionShapesAt qui ne doit pas renvoyer les collisionBoxes : ajout des plateforms
+        ========> OK : modification de MapBase::UpdatePlateformBoxes pour envoi de l'event MAPTILEREMOVED
+        => 12/01/2023 : pbs apparus sur les cheminees qui apparaissent en partie dans le sol. alignement changer ?
+        ==> il s'agit d'une cheminee située dans une salle ovale ... le sol est situé entre les coordy=47 et 48
+        [Thu Jan 12 18:22:05 2023] ERROR: MapGeneratorDungeon() - GenerateFurnitures : room (type=Refectory rect=40 42 51 49) : try to put a FUR_Cheminee objectRange=3 2 at startcoord=41 48 endcoord.y=48 ...
+        [Thu Jan 12 18:22:05 2023] INFO: -> place a FUR_Cheminee in room=40 42 51 49 at start=41 48 coord=45 48 tileindex=3117 !
+        ===> il s'agit donc d'une approximation de l'ovale generé par GameHelpers::GetPixelShape().
+        ====> OK : ajout d'un patch dans MapGeneratorDungeon::GetPositionFor().
+        => 12/01/2023 : certains escaliers se trouvent derriere des elements tel que les tentures ou des portails : on peut du coup y monter mais il devrait etre en avant plan par rapport aux autres elements.
+        ==> les escaliers se trouve pour certains en BACKINNERBIOME (50) il faudrait alors que les tentures et les portails y soient aussi
+        ===> suppression des escalier en BiomeCave. le probleme perdure avec Tronc1 et Tronc2 qui sont des elements Biome mais plateforme. les biome plateforme et les dungeon plateforme ne doivent jamais se masquer
+        ====> actuellement, un Tronc peut se retrouver sous une tenture (qui est aussi une plateforme) ou bien sous un portal (qui n'est pas une plateforme)
+        =====> ce ne doit pas etre le cas : si un collider plateforme se trouve sous un drawable, il faut alors desactiver la plateforme. Mais si il est partiellement recouvert que faire ? il faudrait pouvoir modifier la longueur de la plateforme à la partie qui est visible.
+        ======> le probleme n'est pas simple à régler : en paliatif, les tentures doivent toujours etre en arriere plan; les plateformes doivent etre sur un LAYERPLATEFORM et plus en BACKINNERBIOME
+        ======> identifier les procedures qui mettent à jour les layers des drawables et le physic pour les plateformes
+        =======> cf GameHelpers::SetDrawableLayerView
+        =======> cf GOC_Destroyer::SetViewZ
+        =======> cf MapBase::AnchorEntityOnTileAt
+        ======> à modifier MapGenerator::GenerateBiomeFurnitures() : si la furniture template a une plateforme alors modifier le layerZ en VIEWZ + LAYER_PLATEFORMS.
+        =======> OK
+        ======> ensuite ca passe par MapBase::SetFurnitures() qui prend le layerZ de chaque EntityData pour le transmettre en tant que viewZ à ObjectPool.
+        =======> Il faudra ensuite modifier chaque attribut "GOA_LayerAlignement" dans les furnitures XML pour trier chaque furniture.
+        =======> RAF : dans l'ordre ascendant de layer : Tenture(-2), Cheminee(-1), Armoire(-1), Stele(-1), Table(-1), Tronc(0), Pont(0), Escalier(0), Marmite(1), Enclume(1), Lustre(1)
+
+    ☐ 30/12/2022 : GOC_PhysicsGrapin renommmer GOC_PhysicRope
+
+    ☐ 25/11/2022 : ajout de Spectii et Podomorphe
+        => RAF : pouvoirs et animation dead.
+        ==> voir pour que Spectii utilise un PhysicGrapin.
+
+    ☐ 26/11/2022 : prevoir des zones avec Boss : routine de fermeture de zone + AI Boss
+        ==> voir dans Generator Dungeon pour identifier les zones de boss
+        ===> choisir un boss correspondant à la zone/region.
+        ===> identifier les zones de boss sur minimap et worldmap.
+        ====> possibilité d'avoir un actor qui propose un defis avec choix du boss à affronter ?
+        ===> fermer les acces.
+        ===> commencer par un simple rockgolem flore pour tester les zones boss. il sera en Behavior Attack.
+        ===> puis faire un boss "uber" rockgolem destructible : castle type avec decoration rockgolem + routine d'ajout de blocktile et pieges en interieur
+        ===> à la fin de l'affrontement, ajouter le coffre recompense et ajouter le levier pour rouvrir les acces ?
+        ===> les acces pourront toujours etre franchir si l'on detruit les blocktiles.
+        ====> mais si franchissement de la zone boss definie alors fin du defi.
+        => Ou mettre les datas pour les zones de boss. Dans Map ? Dans World2D ?
+        ==> Ces Datas peuvent etre créées pendant le MapBase::PopulateEntities() et doivent pouvoir etre serializés
+        ===> Creer une nouvelle structure BossZoneInfo à serializer dans MapData
+        ===> il faudra aussi lié le Node Boss avec cette info avec un attribut, tenter GOA:BOSSZONEID qui sera un IntVector3 x=mapx,y=mapy,z=zoneid)
+        ====> Attention : le MapData::AddEntityData() n'est plus utilisé pour les Entities (seulement pour les Furnitures cf commentaire 18/01/2021 categorie Editor)
+        =====> donc le node boss ne sera sauvé que par les nodeattributes ce qui devrait etre suffisant si le nodeattribute GOA::BOSSZONEID est bien spécifié.
+        =====> si le Boss meurt hors de sa zone et que la map de cette zone n'est pas chargée alors le BossZoneInfo ne pourra etre modifié donc pas de récompense etc... et il faudra de nouveau affronter ce boss.
+        =====> Cela laisse la possibilité de le tuer hors zone et si la map est chargée BossZoneInfo sera sauvegardé et la récompense pourra etre récupérée. Bien pour les joueurs malins qui ont tendu un piege au boss par exemple.
+        ==> Dans Player::OnPostUpdate(), on checkera si le Player entre ou sort d'une zone de Boss. Ce qui déclenchera pour l'entrée une cinematique Camera et fermeture de Zone.
+        ===> pour certains boss, la sortie de zone signifiera la disparition du boss et l'echec du défi.
+        ==> 01/12/2022 : Premiers Resultats satisfaisants. Creation de la class EffectAction et class fille BossZone ou se situe la logique pour l'apparition du boss et la recompense quand il est mort.
+        ===> OK : pop de Super coffre
+        ===> OK : afficher les zones Effect en debug world
+        ===> RAF : choix du boss, critere de selection en fonction de la zone et du niveau des joueurs ?
+        ====> pour le moment, creer un random entre 4 boss (eliegorgolem / redlord / mirubil / darkren)
+        ===> fermeture de la zone
+        ====> ajout dans une liste, les blocs à ajouter pour les spawner progressivement.
+        =====> essai avec l'ajout de GameHelpers::SetTiles et MapBase::SetTiles.
+        ======> tente de regenerer les MapColliders un minimum de fois : a lieu de le faire tile par tile.
+        =======> l'update des PhysicColliders ne se lance pas ? si on relance en specifiant un tileindex, cela fonctionne ... trouver la solution pb avec sLastContourId_ qu'il faut sauvegarder
+        ======> changement de methode : au lieu de mettre à jour les MapColliders et de creer une zone fermée donc un hole mais qui n'est pas detecté comme un hole (pb à corriger), on va creer des Tiles independantes.
+        =======> on pourra ainsi ajouter des Blocks dynamiques si on le souhaite.
+        ========> creation de MapBase::SetTileEntity().
+        ====> lorsque l'on meurt et que l'on retourne au boss et qu'on le tue, les murs ne sont pas detruits.
+        =====> OK, ne pas stocker de Vector<unsigned/> blocksToAdd_ ou blocksToRemove_ dans BossZone mais les recalculer lorsque nécessaire.
+        =====> lorsque les boss apparaissent dans des room non rectangulaire, les murs pour fermer la zone ne sont pas adapter : il faut adapter MapBase::FindTileIndexesOnShape pour les autres PixelShape.
+        ======> OK le 17/12/2022.
+        ===> ajout d'une jauge de vie du boss
+        ====> OK le 26/12/2022 : ajout de GOC_Life::SetLifeBar() : 2 mode possible UI ou Node (follow)
+        => le dezoom initial avant fermeture de zone doit bien mettre à jour l'affichage. voir World2D et ObjectTiled World2D::cameraRect_
+        ==> OK le 27/12/2022 : ajout de la directive ACTIVE_WORLD2D_DYNAMICZOOM
+        => RAF : effet destruction des murs de background.
+        ==>  voir pour changer le fond rock : il faut ajouter des DrawableScroller de fond qui soient interessant (fond noir avec cristal, cave avec stalactite ...)
+        => 16/01/2023 : lors du repop de l'avatar, si repop en zone de boss il faut reactiver la zone.
+        ==> OK : il faut reset Player::zone_ à la mort de l'avatar => ajout zone_.z_ = -1 à Player::Start()
+        => RAF : 23/01/2023 : lors de l'entrée dans la zone les joueurs ne doivent pas se trouver sur les blocks de fermeture.
+        ==> attendre que les avatars soient tous hors de ces blocks avant de déclencher la fermeture.
+
+    ☐ 22/11/2022 : correctif dans Actor::ResetAvatar()
+        => on s'assure du set des positions initial.
+        ==> mais ne fait pas d'unstuck, à voir si valable : GOC_Destroyer le fait dejà mais il peut arriver que le unstuck n'y arrive pas et dans ce cas destruction du node.
+        => resoud peut-etre le crash du 05/11/2022... A verifier .
+
+    ☐ 05/11/2022 : Il y a eu un crash dans Player::UpdateAvatar() => dernier log en release :
+        [Sat Nov  5 18:41:55 2022] INFO: Player() - OnFire3 : change avatar ... index=7 numavailableavatars=24
+        [Sat Nov  5 18:41:55 2022] ERROR: Player() - UpdateAvatar : avatarIndex_=7 => change to avatar type=GOT_Avatar_Skeleton(3050507584) ... ensuite crash
+
+    ☐ Modifier le vol pour que le player puisse diriger son vol via les touches déplacements, la touche saut sera utilisee pour donner une impulsion supplémentaire (04/08/2017)
+        => 06/03/2022 reprise : ...
+
+    ☐ 22/05/2021 : la couronne de pic d'EliegorGolem entre en collision avec les plateform. EliegorGolem est porté par la plateforme ...
+        cf les collisionCircle2D qui doivent être déclaré en ContactTopOnly.
+
+    ☐ 24/05/2022 : pouvoir avec Buros casser les Furnitures (Pieges, table) et Infliger de plus gros degats sur RockGolem.
+
+    ☐ 11/10/2021 : Permettre de collecter les monstres
+        => rendre dynamique GOT::controllables_
+
+    ☐ 06/10/2021 : lors de la mort d'un avatar en multi-joueur
+        => soit permettre le respawn à coté d'un avatar vivant
+        => soit mettre une tombe sur laquelle le fantome est lié.
+        ==> Un avatar vivant peut venir recuperer le fantome et le squelette du mort et l'emmener dans un sanctuaire pour lui permettre de reprendre corps.
+        ==> faire une stele RIP, faire un icone squelette, voir pour une animation de fantome (faire des essais de transparence cutoff sous spriter)
+        ==> Stele ok
+        ==> 17/11/2021 : fantome cutoff alpha ok (à nécessiter une refonte graphique et notamment l'ajout des RenderTargets dans AnimatedSprite2D).
+        ===> ajout de Urho3D::Drawable2D()::SetLayerModifier() pour permettre l'affichage de la stele comme une furniture + devant les tiles de sol.
+        ===> ajout de GOTypeProperties::GOT_Flippable : la stele ne sera pas flippable (a cause du texte rip)
+        ===> modification GOC_Animator2D pour pouvoir gerer plusieurs AnimatedSprite pour le changement de states de la stele.
+        ====> GOC_Animator2D teste toujours uniquement le changement de state à partir du premier animatedSprite. les AnimInfo sont celles du premier AnimatedSprite. Il faut bien prevoir et ordonner les autres animations des autres animatedSprites via Spriter
+        ==> ajouté le fantome, le lier à la stele.
+        ===> voir pour l'interaction avec le fantome pour le lier à l'avatar qui clic dessus ? voire pour la recuperation du skel dans l'inventaire.
+        ===> ne plus dropper l'inventaire à la mort de l'avatar mais le conserver.
+
+    ☐ 04/10/2021 : il y a un pb lors du changement d'epee avec effet (flamesword vers epeearete par ex) : l'epee n'est pas changée visuellement.
+        => cf GOC_Inventory::LocalEquipSlotOn()
+        ==> OK ajout de animatedSprite->RemoveRenderedAnimation(slotname) pour retirer l'animation avant de la remplacer.
+        ===> RAF : voir a modifier AnimatedSprite2D.
+
+    ☐ 31/05/2021 : Ajout de Petite et DarkPetite
+        => Ajout de GOC_Animator2D::eventActions_ et de l'attribut "Add Event Actions" permettant d'effectuer une action si un event se produit.
+        ==> utilisation pour le ChangeEntity de Petite en DarkPetite si la nuit tombe
+
+    ☐ 21/05/2021 : GOC_Move2D::GoDownPlateform() sur RockGolem ne fonctionne pas
+        => dans Urho3D::AnimatedSprite2D::UpdateTriggers(), reutilisation de CollisionBox2D::UpdateBox qui ne recree pas les fixtures et evite la destruction sauvage de contact comme tel est le cas avec CollisionBox2D::SetBox
+        ==> les differentes modifications dans le code de GOC_Move2D et GOC_Collide2D semblent permettre desormais l'utilisation de cette fonction.
+        ===> TO TEST
+
+    ☐ 25/04/2021 : ajout de mirubil, oeufmirubil
+        => voir pour la taille
+        => ajout de AnimatorTemplate_PoweredWalkAttacker
+        ==> OK utilisation du power2 (spawn oeuf) si double-clic
+        ==> voir pour l'utilisation des powers par l'AI
+        ===> OK utiliser aussi les STATE_POWER1 et STATE_POWER2.
+        ====> pour le moment tous les powers sont ranged
+        ====> RAF : intégrer dans Ability, un attribut range_ donnant les distances (min,max) d'utilisation d'une ability.
+        =====> utiliser cet attribut dans GOB_FollowAttack. Changer d'une abilité en fonction de la distance avec la target
+
+    ☐ 08/12/2020 : apres la mort de l'avatar et drop de l'inventaire, il faut verifier que les stats d'equipement soient bien resetées et les effets y compris
+        => faire le test avec une arme à effet (flamme).
+
+    ☐ 08/12/2020 : il arrive que les entities entrent en fall alors qu'ils sont en contact normalement avec le sol => peut-etre des collectables sur le sol ?
+        => le probleme se produit en poussant un collectable.
+        ==> activer le debug de GOC_Collide2D et GOC_Move2D
+        ===> OK : pb corrigé dans GOC_Collide2D::HandleBeginContact partie "Entity Collider" => RAF : verifier la normal de contact.
+        => pour les collectables : modification de GOC_Collide2D::HandleBeginContact pour permettre le contact Ground pour tout shape taggé CONTACT_ISSTABLE
+        ==> RAF : il faut aussi modifier toutes les shapes qui sont CONTACT_TOP pour eviter la possibilité que ces shapes entrent en contact (sur leurs faces de dessous) avec des autres shapes qui sont sur le sol ce qui mettrait l'entité en animation FALL
+
+    ☐ 07/04/2018 : modifier les controles, pour qu'ils puissent être fait avec le joystick intégralement
+        => pouvoir avoir acces aux differents panels UI, Status, Bag, Equipment ...
+        ==> appuyer sur button "Menu" pour mettre le focus sur l'UI Status Panel.
+        ===> 26/11/2020 : ajout la gestion de la selection des buttons Bag, Equipment, Minimap, Craft via keyboard et joystick => UIC_StatusPanel::OnKeyDown
+        ===> 02/12/2020 : focus sur panel via la touche ACTION_STATUS puis ajout du selecteur de slot (SelectHalo_) + UISlotPanel::OnKeyDown pour simuler le drag'n'drop de slot
+        ====> attention avec la souris le drag'n'drop utilise UISlotPanel::HandleSlotDragBegin et UISlotPanel::HandleSlotDragEnd toujours sur le panel de départ => pour le clavier il faut bien sauvegarder l'element draggé
+             et pas seulement dans dragElement_ car celui-ci peut etre reseté par Urho3D lors du changement de focus => beginDragElementByKey_
+        =====> InventoryPanel, EquipmentPanel OK
+        ====> le focus sur le status panel avec le highlight automatique sur l'icone bag ne doit etre fait que si le controller est clavier.
+        =====> Prendre en compte les touches de la manette et utiliser les ACTION_UP, ACTION_DOWN, ACTION_LEFT, ACTION_RIGHT avec une touche/bouton QUALIFIER pour se déplacer dans les panels.
+        ======> voir pour CraftPanel, AbilityPanel et ShopPanel.
+
+        => pouvoir interagir avec les entities (avoir acces au clic sur entities)
+        ==> appuyer sur button "Action" pour actionner l'entity actionnable la plus proche dans le perimetre de proximité.
+        => voir pour identifier les joystick ids et leur attribution aux players
+        ==> cf Game::SetupControllers() et Player::UpdateComponents()
+        ===> 20/11/2020 : premiers correctifs : ajout de GameStatus::joystickIds_ pour garder uniquement les GameControllers qui ne sont pas des sensors (skip les playstations4 sensors)
+        ==> pouvoir changer de control à la volée, hotplug (en passant par les options)
+        ===> 20/11/2020 : OK Ajout de Player::Updatecontrollers() et utilisation dans OptionState::HandleControlP1Changed() ...
+            ajout de Game::HandleJoystickChange() et GameStatus::InitJoysticks() et GameStatus::ValidateJoysticks() et GameStatus::buttonsMap_ pour le mapping des boutons de manettes
+        ====> lors de la connection d'un gamecontroller, il y a un gros lag de 2-3sec => cela provient du processus amont dans SDL ou Urho3D
+        ===> 24/11/2020 : ajout de l'UI de configuration des touches du claviers et des manettes.
+        ====> à tester avec les joysticks
+        ====> RAF : sauvegarde de la configuration dans GameStatus::PlayerState
+        ===> RAF : modifier OptionState pour ne voir apparaitre uniquement que les Controls (clavier, manette etc...) disponibles (connectés).
+
+    ☐ 16/07/2020 : pour le deplacement en mode tactile voir SDL_TouchFingerEvent si le toucher est sur la partie gauche de l'ecran (cf E_TOUCHBEGIN, E_TOUCHMOVE, E_TOUCHEND) pour remplacer le ScreenJoystick
+        => utilisation de Urho3D::TouchState dans GOC_PlayerController::UpdateLocalControl_Touch()
+        => activation du screenjoystick si necessaire dans engine_config.xml avec screenjoystick_=true
+
+    ☐ 03/07/2020 : attention sur les controles des joueurs => si appuie sur FIRE (avec ou sans release) et déplacement ou saut, l'avatar attaque de nouveau
+        => comportement non souhaitable si la touche Attack n'est plus appuyé.
+        ==> toujours problématique avec elsarion lors du JUMP
+        ===> OK : Elsarion n'avait pas d'animation FALL ou JUMP donc à la fin de l'attaque pas de changement d'Animation et il reste en attack
+        ====> avec RockGolem qui utilise des switchables animations, le fait de rajouter une animation FALL (un simple clone de WALK) fait recommencer en debut la marche alors qu'il etait sur l'autre pied.
+            cela cree une rupture dans le mouvement. Pour eviter ces 2 pb (attaque et rupture de mouvement lors du fall), creation de AnimationTemplate_Golem qui declare permet d'utilise le WALK comme FALL.
+            Attention à ne pas modifier AnimationTemplate_Attacker avec cette ruse car impacte sur beaucoup d'autre entité tel que le loup qui aurait alors un WALK en fall en plus de son FALL (à cause de l'attribut switchables animations).
+            RAF : Pour palier à ça il faudrait modifier l'attribut switchable animation pour permettre une restriction parametrable des switchables à certains states seulement (tel que les attaques).
+
+    ☐ 01/07/2020 : ajout de la sorciere
+        => explosion de la boule de feu sur les murs
+        ==> la boule rebondit parfois sur des rebords de fenetre voir sur des marmites et n'explose pas ?
+        ==> OK : la collision circle était trop grande et le trigger TA trop petit
+        ==> reprise de GOC_BodyFaller2D qui ne sert plus à rien
+        ===> le rendre plus generaliste pour permettre la modification des propriétés du rigidbody lors de certains evenements enregistrables
+        ====> à renommer en GOC_BodyModifier
+        ====> comme bullet, la bdf utilise GOC_Detector => pas mal d'incomprehension avec les attributs de ce composant => voir pour les renommer correctement
+        ====> voir pour rajouter un composant pour les Projectiles à la place de GOC_BodyModifier et GOC_Detector ? (cf SpaceMatch BlastLogic) notamment on voudrait des boules de feu qui detecte une cible proche et fonce dessus
+        => RAF : voir pour rajouter un GOC_ZoneEffect pour bruler les entités environnantes ?
+        => RAF : ajouter le tir multi-directionnel à la sorciere (comme pour le pistolet et skeleton)
+        => RAF : concentration du tir pour augmenter la puissance
+        => RAF : changer de sort
+        => RAF : ajouter l'utilisation de la mana : reduction à chaque utilisation de sort et regeneration lente (prevoir des potions de mana et regen mana)
+        => OK : eviter de tirer lorsque le spawn va atterir dans un mur
+
+    ☐ 17/02/2020 : ajouter la magie
+        => specialisations de base : feu, lumiere, eau, tenebre, vent, mutation,
+        => baguettes spécialisées : avoir une baguette pour lancer des sorts plus puissant lorsque la specialisation de base et celle de la baguette sont identiques
+
+    ☐ 17/02/2020 : ajouter le craft
+        => commencer avec une recette de potion simple : 1 elsarionmeat + 1 poudre d'os
+        ==> struct Recipe aura une liste d'ingrédient à satisfaire + 1 liste d'outil à disposer
+        ==> creer une UI pour le craft : drop des items et des outils dans l'UI ?
+        ===> 17/06/2020 : en cours de codage dans UIC_CraftPanel avec correctif dans UISlotPanel
+        ====> trouver le moyen de dropper sur le bon focusindex à partir d'un autre panel (le focusindex fonctionne dans un meme panel mais autrement renvoit toujours 0)
+        ====> erreur corrigée dans UISlotPanel::HandleSlotDragEnd() - il suffisait d'ajouter pour le "To Craft", focusIndex = toInventory->GetSlotIndex(focusElement->GetName())
+        ====> Creation de CraftRecipes et mise en place dans UIC_CraftPanel
+        =====> Test OK avec 2 recettes simples (Potion et PotionRegen)
+        =====> OK : ajout la barre de progression de craft dans le button Make
+        =====> RAF : creer/ajouter l'icone Craft dans le PlayerStatus
+        =====> RAF : ajouter les tools. ils peuvent être dans l'inventaire pour les versions portables (kit d'alchimie, pierre à aiguisser, nécessaire de couture) ou bien dans la scene pour les versions intransportables (forge, chaudron).
+        ======> pouvoir detecter
+
+    ☐ 20/04/2020 : GOC_StaticRope
+        => decrochage du fil lors d'un nouveau fall ou bien si coupé par une autre entité (coup d'épée par exemple)
+
+    ☐ 07/04/2020 : les particules de feu de Darkren ne disparaissent pas toujours lorsque l'on change de personnage.
+        => 21/04/2020 : de meme pour le fil de l'araignee
+        ==> le probleme se situe dans Actor::ResetAvatar => GameHelpers::CopyAttributes()
+        ====> correctif dans GameHelpers::CopyAttributes() lors du removeUnusedComponents (suppression du test sur le nombre de components src/dest)
+        ====> tester si reapparition du pb
+
+    ☐ 20/02/2020 : pouvoir ajouter aux objets des slots egalement
+        => ex le pistolet pour changer le type de balle (balle feu, balle poison etc...)
+        => ex les epees pour ajouter un effet feu, glace ...
+        ==> modification de Slot pour ajouter un effetid
+        ==> modifier GameHelpers::SetCollectableProperties, GOC_Collectable::DropSlotFrom
+
+    ☐ 02/03/2020 : pour un meilleur affichage et la standardisation des effets sur les armes (poison, flame), il vaudrait mieux utiliser des RenderAnimations.
+        => une entité qui utilise une arme qui a un effet feu, devra activer le RenderAnimation de l'arme
+        ==> creer une arme exemple SCML avec un POINT IN_Effect.
+        ==> 03/03/2020 OK : modification de GOC_Inventory::EquipSlotOn, et de Urho3D::AnimatedSprite2D pour l'update des renderAnimations en cascade
+        ===> RAF : probleme avec l'equipement de l'effet Urho3D::AnimatedSprite2D::AddRenderedAnimation() ne peut etre realisé la premiere fois car Urho3D::AnimatedSprite2D::UpdateSpriterAnimation() n'a pas encore été réalisé
+        ====> 03/03/2020 OK :correctif dans Urho3D::AnimatedSprite2D::AddRenderedAnimation().
+
+    ☐ 02/03/2020 : Modification de Urho3D::PhysicWorld2D
+        => renvoi d'un simple index pour consultation du ContactInfo au lieu de redispatcher via un EventData toutes les datas du ContactInfo
+        ==> il suffit de recuperer le ContactInfo
+        ===> pour un BeginContact => "const ContactInfo& cinfo = GameStatus::physicsWorld_->GetBeginContactInfo(eventData[P_CONTACTINFO].GetUInt());"
+        ===> pour un EndContact => "const ContactInfo& cinfo = GameStatus::physicsWorld_->GetEndContactInfo(eventData[P_CONTACTINFO].GetUInt());"
+        ====> OK : modification des composants utilisant les Events E_PHYSICSBEGINCONTACT2D et E_PHYSICSENDCONTACT2D : GOC_Collide2D, GOC_ZoneEffect, GOC_DropZone, GOC_Detector, GOC_Portal, GOC_Inventory, GOC_Collectable, GOC_PhysicsGrapin
+        =====> RAF : Tester chaque composant modifié
+
+    ☐ 07/05/2018 : modifier Radius Trig_Attack et les degats suivant l'arme utilisée
+        => Introduire un modificateur pour Trig_Attack ?
+        ==> récupération de la collisionshape et modification de la taille en fonction de l'object utilisé
+        => "Trig_Attack" remplacé par "TA"
+
+    ☐ 26/02/2020 : l'ajout ou le changement des ailes posent probleme si mis en special2 : les ailes ne sont pas enlever lorsque le slot est déchargé car celui-ci n'est pas intégré à lizard.scml
+        => solution temporaire dans GOC_Inventory::EquipSlotOn() : considérer le special2 comme un special1
+        ==> RAF : creer un slot CAPE dans l'inventaire => les ailes ne seront plus un SPECIAL mais une CAPE.
+        ===> ajouter à l'object ailedark.xml l'ability ABI_Fly
+
+    ☐ 14/02/2020 : Pb avec GOC_ZoneEffect, parfois l'effet continue toujours apres le nombre de ticks effectué.
+        => modification du container HashMap<>unsigned, EffectCount</> affectednodes => devient Vector<>EffectInstance</> instances_ EffectInstance = EffectCount + WeakPtr<>Node</>
+            ce qui evite d'avoir à rechercher dans Scene les nodes.
+            de plus correctif dans GOC_ZoneEffect::HandleScenePostUpdate(), lors du removenode, bien mettre à jour l'iterator pour pointer sur l'element suivant.
+        ==> faire le tri dans les entités auxquelles peuvent s'appliquer les effets (les lames ne devraient pas subir l'effet par exemple)
+        ===> OK : ajout de GameHelpers::IsNodeImmuneToEffect()
+        ====> RAF : à completer/modifier pour les avatars et les got
+        => 27/09/2022 : OK correctif dans GOC_ZoneEffect et EffectsManager : les effets potionRegen et Flame de Darkren fonctionnent correctement : il n'y a desormais plus de persistence au dela du nombre de tick.
+
+    ☐ 17/02/2020 : ajouter les differents slots d'equipment restants : les speciaux (ailes, amulettes, anneaux, cape, etc...), les pieds (les bottes), les mains (les gants)
+        => AnimatedSprite2D avec une RenderAnimation pour les ailes : permettre le changement d'animation pour les renderanimations
+        ==> le changement d'animation sur les renderanimation sont piloter par l'animatedsprite pere via AnimatedSprite2D::SetSpriterAnimation() qui applique le meme nom d'animation aux fils
+        ===> RAF : les noms d'animation ne seront pas toujours identiques à l'animation du pere : ex hurt != hitted ... de plus il y a les animations multiples notamment pour attaquer attack1, attack2
+        ====> voir pour utiliser les index d'animation : avec un noyau d'animation de base tel que idle, move1, move2, attack, hurt placer toujours dans cet ordre placer les autres animations ensuite. ce qui implique de modifier tous les SCML
+        ====> les objets equipés en slot tel que les ailes ou bien la torche auront egalement ce noyau
+        ====> autre solution : gerer le changement d'animation des renderanimation dans GOC_Animator2D
+        ===> RAF : voir pour la torche et le changement d'animation eteinte et allumée, sur petit la torche est eteinte puis s'allume des que l'on attaque, voir quel comportement choisir.
+
+    ☐ 18/09/2019 : faire les Joysticks Bindings pour tout gamecontroller
+        -> pour le moment uniquement PS4. cf GOC_ControllerPlayer::UpdateLocalControls()
+
+    ☐ 31/05/2018 : Ajouter le State Accroupi => prévoir de modifier le physic Body (desactiver le collider corps mais pas le collider pied)
+        => utiliser GOC_Collide2D::SetCollidersEnable
+
+    ☐ 10/05/2018 : les followers ne changent pas tous de viewZ
+
+    ☐ 24/04/2018 : les Bones ne provenant pas d'un skeleton tué ne fonctionnent pas dans le sanctuaire et sont surdimensionnés
+        => le slot du collectable n'a pas setté le partfromtype ni le scale
+        ==> ok pour le partfromtype dans Slot::SetSlotAttr
+
+    ☐ 19/10/2017 : Interdire le spawn d'entity dans les murs
+        => modification de Ability::UseAtPoint(), GOC_Animator2D::SpawnEntity() -> ok pour les lames, les bombes
+        => encore des pbs ex:bomb lorsque le player est collé sur le plafond, génére des bombes dans les murs
+        ==> faire de meme avec GOC_Collectable/Player
+
+    ☐ Mettre à jour l'ensemble des Objets Dynamic pour tenir compte du centre de Masse (nécessaire dans l'UpdatePosition de GOC_Destroyer) (10102017)
+        -> éviter de mettre le centre de masse en bordure de tile (entrainant une erreur de tile position)
+        -> si la position du node est en bordure, prendre soin de bien déclarer le centre de masse comme le centre du collider
+
+    ☐ Ajouter/Modifier ability pour traverser les murs dans les 3 axes (et pas uniquement suivant z) (04/08/2017)
+
+    ☐ si le personnage mounted le + haut a un moveState >= MV_WALKANDFLY alors le controlleur herite de ce comportement.
+
+
+
+Archive:
+    
+    ✔ 06/11/2023 : le button JUMP pour les joystick n'est pas toujours bien mapper malgré ce qui est afficher. il faut simplement cliquer sur l'ecran pour debloquer. Pkoi ?
+        => le pb c'est que UI::HandleJoystick provoque JoystickState::Reset().
+        ==> il y a focus sur l'ui : suppression du focus initial
+        ===> il y aura encore le meme probleme des que focus sur un autre uielement.
+        ===> pour le deplacement dans l'ui avec le joystick, il est necessaire de garder JoystickState::Reset()
+        ====> il faudrait un bouton pour activer/desactiver le focus sur l'ui
+        ====> ajout dans Urho3D::UI de SetHandleJoystickEnable qui permet de desactiver la gestion des joysticks par l'UI lorsque l'on utilise UIPanel et ses derivés.
+
+    ✔ 06/11/2023 : en mode 2 joueurs multiview=false, le changement d'Avatar ne définit pas correctement la ViewZ du joueur2
+        -> correctif dans Actor::ResetAvatar(), ajout de Actor::SetStaticViewZ
+        -> SetStaticViewZ devinet SetViewZ et viewZ_ en local
+
+    ✔ 31/03/2023 : en GameMod "KillAllMonster", il faut que les monstres "inoffensif/pacifique" ne soit pas à tuer.
+        => Ok : EliegorSeed est mis en GO_AI_None(0x08) via les attributs.
+
+    ✔ 20/12/2022 : probleme pour effectuer GOC_Move2D::GoDownPlateform() avec les monstres, la liste de contacts est beaucoup plus important qu'avec l'avatar d'un player.
+        => ajout d'un filtre pour INNERVIEW et FRONTVIEW mais insuffisant car en INNERVIEW (70) beaucoup de contacts sont egalement detectés qui ne sont pas des plateformes ce qui ne permet pas le GoDownPlateform.
+        ==> pourquoi y a t-il tous ces contacts en Release pour les monstres ?
+        => Changer l'algo qui pour le moment compte les contacts et active le GO DOWN si ce sont des contacts avec des shapes (Plateform) dont le viewZ est inferieur à celui de l'entity qui souhaite aller en bas.
+        ==> OK 24/12/2022 : si il y a au moins un contact avec une shape Plateform alors aller en bas => desactiver aussi tous les autres contacts quel qu'il soit.
+        ==> 14/01/2023 : il faut interdire de descendre d'une plateforme si l'entité a au moins un contact avec le ground.
+        ✔ OK 14/01/2023 : ajout condition dans GOC_Move2D::GoDownPlateform()
+        ✔ 17/01/2023 : verifier avec RockGolem avec des plateformes car ca a l'air de poser encore des pbs.
+            11/11/2023 : cela ne marche pas avec RockGolem. 2 collisionBoxes sont créées pour le BodyCollider- 1 seule est nécessaire.
+            -> la premiere par la déclaration du GameObject rockgolem.xml avec SetExtraContactBits(3 = Top Contact Only & Stable) 
+            -> la seconde via AnimatedSprite2D::UpdateTriggers qui ne spécifie pas d'extraContact
+            ✔ 11/01/2023 : ajout du node BodyCollider de façon explicite dans le GameObject
+                + Patch rapide dans AnimatedSprite2D::UpdateTriggers (ajout SetExtraContactBits(3)) dans le pire des cas
+
+    ✔ 30/01/2023 : corriger le drop des collectables de l'inventaire pour etre sur qu'ils ne rentre pas en collision avec l'avatar
+        => modifier GOC_Collectable::DropSlotFrom et GameHelpers::GetDropPoint
+        ==> OK 13/02/2023 : utiliser GOC_Destroyer::GetWorldShapesRect()
+
+    ✔ 30/01/2023 : les potions verte apparaissent avec la mauvaise entité potion rose
+        => cf GameHelpers::SetEntityVariation()
+        ==> OK : ne pas setter l'entité si pas d'entityVariation (ce qui est le cas pour Potion)    
+    ✔ 20/01/2023 : la lance a été modifiée (recentrage du collider) pour eviter le spawn dans les murs vers la gauche (il manque en effet lors du flipping, le flipping du physic de la lance ... à voir)
+        => mais le spawn ne fonctionne pas correctement avec les certains kigrat en world
+        ==> il s'agit du scale de l'entité qui est trop petite par rapport à la lance : la lance entre en contact avec le body de l'entité et se met en stick.
+        ===> la lance ne doit pas devenir stick s'il s'agit du lanceur.
+        ====> OK 23/01/2023 : modification de GOC_Detector::BecomeStickOn().
+
+    ✔ 11/12/2022 : correctif pour l'ability cassage de mur : Buros ne casse pas les mur en face mais ceux en oblique ...
+        => OK : Player::OnFire2() utilise la position du node et pas le masscenter, modification de ABI_WallBreaker::Use qui utilisait lui la position du centre de masse.
+
+    ✔ 05/11/2022 : Raignee n'a plus de fil.
+        => du à la modification de GOC_EntityAdder pour les bougies dynamiques : avec l'ancien code les spiderthread fonctionnent.
+        ==> cf GOC_EntityAdder::UpdateAttributes()
+        ===> spiderthread est consideré comme static (pas de RigidBody) -> node ajouter au root_ défini.
+        ====> OK : ajout d'un node->SetPosition2D() et c'est OK.
+
+    ✔ 05/11/2022 : Corriger le shot avec pistolet de skeleton qui se déclenche en sîmple attaque avec épée.
+        => se déclenche également avec lizard sans tirer lorsque le pistolet est equipé ... utilise ABI_AnimShooter des que le pistolet est équipé.
+        ==> Log 
+        [Sun Nov  6 11:11:59 2022] INFO: Player() - UseWeaponAbilityAt : position=13.7044 16.6322 ... weapon1ability=0
+        [Sun Nov  6 11:11:59 2022] INFO: Player() - UseWeaponAbilityAt : position=13.7044 16.6322 ... weapon2ability=1506844804
+        [Sun Nov  6 11:11:59 2022] INFO: Ability() - UseAtPoint (static) ability=ABI_AnimShooter holder=Player_1(16777270) pos=13.70,16.63 ...
+        [Sun Nov  6 11:11:59 2022] INFO: ABI_AnimShooter() - Use : wpoint=13.7043867111206,16.6321830749512 ... OK !
+        [Sun Nov  6 11:11:59 2022] INFO: Ability() - UseAtPoint (static) ability=ABI_AnimShooter holder=Player_1(16777270) pos=13.70,16.63 ... OK !
+        ===> probleme suite à l'ajout de la pelle qui utilise le WallBreaker, l'ability porté par l'équipement n'ayant pas besoin d'etre activé et déclenché des que contact avec un mur.
+        ====> le probleme c'est que les autres abilités qui sont porté par un équipement tel que le pistolet et ABI_AnimShooter vont aussi etre utilisées via Player::UseWeaponAbilityAt().
+        ====> il faut rajouté un event d'activation à la procédure Player::UseWeaponAbilityAt().
+        =====> OK : ajout de l'abi souhaitée.
+
+    ✔ 19/09/2022 : les animations type "feu" doivent etre changé si sous l'eau : cendre, fumerolles...
+        => correctif pour les entités "Feu" : elles ne s'eteignaient pas automatiquement lorsque dans l'eau => ajout de GameHelpers::SetFireLights() dans GOC_Destroyer::UpdateAreaStates()
+        ==> chaque entité "avec du feu" devra etre taggé avec GOA::FIRE et pas seulement le node avec le component Light ... voir si cela ne gene pas avec les effects.
+        ==> les entités static avec GOC_Animator2D et GOA::FIRE doivent aussi pouvoir s'éteindre si dans l'eau (bougie seule, feu de camp seul)
+        ===> mettre un handle dans GOC_Animator2D activé si GOA::FIRE et pas de GOC_Destroyer et si pas ajouter grace à GOC_EntityAdder.
+        ===> pb avec FUR_Bougie : elle est une fourniture avec physic STATIC donc ne peut pas entrer en contact avec Le physic FLUID qui est aussi un STATIC.
+        ====> mise en dynamic de FUR_Bougie, pb car son ViewZ=0 et ne dispose pas de GOC_Destroyer lui permettant de le changer (PhysicsWorld2D::BeginContact() a besoin du viewZ)
+        ====> ajout de GOC_Animator2D::OnTouchFluid et GO_COLLIDEFLUID envoyé par WaterLayer.
+        ====> désormais les GOC_Animator2D vont maintenir GOA::INFLUID
+        =====> WaterLayer::HandleBeginFluidContact() envoit GO_COLLIDEFLUID vers GOC_Animator2D seulement si l'entity est dans le fluid => Permet uniquement d'eteindre les feux (mais pas de les rallumer en automatique).
+        =====> il faut faire de meme pour feudecamp (mettre en dynamic) et cheminee allumée qui l'ajoute (attention cheminée allumée est static)
+        ==> introduire un nouveau state behaviorState qui pourra prendre differentes valeurs (WETTED, FURY, FROZEN, CARBONIZED, ...)
+        ==> et utiliser le characterMapping
+        ===> il faudra modifier encore GOC_Animator2D::CheckFireLight() concernant les STATE_LIGHTED & STATE_UNLIGHTED, il faut egalement desormais considerer le CharacterMapping CMAP_FIRE et CMAP_NOFIRE
+        ====> faire un essai avec la sorciere et Darkren =====> premier essai ok.
+        =====> WaterLayer::HandleBeginFluidContact() n'envoit GO_COLLIDEFLUID que pour les Shape Trigger (typiquement les pointlight tel que feudecamp, bougie)
+        ======> GOC_Destroyer::UpdateAreaStates() enverra GO_COLLIDEFLUID pour les entity disposant d'un GOC_Destroyer. Il est important pour l'etat initial dans GOC_Destroyer de supprimer la var GOA::INFLUID afin
+            que lors du premier updatepositions la methode UpdateAreaStates soit forcée de lancer l'event GO_COLLIDEFLUID permettant d'initialiser le bon etat GOA::INFLUID.
+        =======> il faudrait ajouter une animation de transition entre les etats sec et mouillé.
+        => RAF : swordflame et bouledefeu appliquer le CharacterMapping CMAP_FIRE ou CMAP_NOFIRE lors du spawn et pour l'equipement
+        ==> bouledefeu ajout du CharacterMapping et ajout de GOA::FIRE en vars dans l'object bouledefeu.xml, modification de l'attribut "World Position Update" du GOC_Destroyer => passe à true (pour avoir acces au changement d'area de GOC_Destroyer::UpdateAreaStates())
+        ==> la flamme de LargeSwordFlame est un effet obtenu à partir d'une RenderAnimation inclus dans l'animatedsprite (node child avec animatedsprite) (cf GOC_Inventory::LocalEquipSlotOn)
+        ===> 29/09/2022 : ajout du CharacterMapping a effects_flame.scml et ajout de l'update du characterMapping pour les RenderAnimations dans GOC_Animator2D::CheckFireLight().
+
+    ✔ 19/09/2022 : sous l'eau pouvoir descendre des plateformes.
+        => 29/09/2022 OK : ajout de GOC_Move2D::GoDownPlateform() dans GOC_Move2D::ControlUpdate_Liquid()
+
+    ✔ 28/09/2022 : sous l'eau remplacer les particules dust par des bulles d'air
+        => cf GOC_Animator2D::OnTouchGround
+        ==> ajout des particule bulledair, utilisation du layer WaterInside.xml
+        ===> utilisation de depthwrite=true pour le waterrefract pour permettre le masquage des bulle si sortie de l'eau
+        ===> les particules doivent etre en zf equivalent au layer waterrefract avec depthtest=equal
+        ====> modification de Urho3D::ParticleEmitter2D::UpdateSourceBatches() pour pouvoir utiliser un zf different de 0.f
+        ====> OK
+
+    ✔ 27/09/2022 : la boule de feu au centre de darkren ne disparait pas toujours lorsque darkren passe dans l'eau.
+        => OK : correctif dans GOC_ZoneEffect et patch Urho3D::ParticleEmitter2D
+
+    ✔ 27/09/2022 : il ne faut pas que dans les cascades les entités reste en suspension
+        => OK : modification dans GOC_Destroyer::UpdateAreaStates()
+
+    ✔ Pouvoir nager plus vite avec Elsarion
+        => Ajouter Template comme GOC_Life
+        ==> OK 17/09/2022 : ajout de GOC_Move2D_Template et creation FastSwim
+
+    ✔ Integrer correctement le WaterLayer dans les Behaviors de toutes les entités avec physic dynamic :
+        => il faut ajouter l'attribut de flottabilité GOC_Move2D::buoyancy_.
+        ==> si l'entité peut flotter et est dans un fluid alors lui appliquer la gravité WATER et ajouter une force vers le haut en fonction de buoyancy_
+        ===> c'est déja fait dans GOC_Move2D mais les parts et les objets n'ont pas ce composant.
+        ====> soit ajouter ce composant, soit ajouter à un composant generique utilisé par toutes les entités dynamique : GOC_Destroyer ?
+        ====> ajout dans GOC_Destroyer de l'attribut buoyancy. Deplacement de GOC_Move2D::UpdateAreaStates vers GOC_Destroyer::UpdateAreaStates()
+        =====> ajouter l'attribut Buoyancy dans les Composants GOC_Destroyer des entités flottantes.
+        =====> 19/09/2022 : essai ok avec Table et Petit
+
+    ✔ le climb et le swim de chapanze ne sont pas bien affiché en fonction des etats movestate
+        => 12/09/2022 : OK priorité au climb par rapprt au swim dans GOC_Animator2D::Update().
+
+    ✔ Modifier la nage pour que le player puisse aller vers le bas (04/08/2017)
+        => 12/09/2022 : OK modification de GOC_Move2D::Update_Swim() et GOC_Move2D::ControlUpdate_Liquid() et GOC_Move2D::UpdateAreaStates()
+        ==> 16/09/2022 : ajout de l'event EVENT_CHANGEAREA qui permet de faire un FindNextState sans passer par l'eventTable.
+        ===> utiliser dans GOC_Move2D::UpdateAreaStates() pour realiser un FindNextState en sortie de Fluid
+        ===> ajout de EVENT_CHANGEAREA dans GOC_Animator2D::Start() pour etre de base pour tout animator
+        ===> 16/09/2022 : parfois la sorciere ne disparait pas à sa mort !
+        ===> le probleme vient de l'introduction de EVENT_CHANGEAREA qui va bypasser le state DEAD
+        ====> test si l'entité est DEAD avant de poster l'event.
+
+    ✔ Ajouter les animations Swim pour l'ensemble des entités pouvant nager
+        => revoir GOC_Move2D::UpdateAreaStates() pour la nage : pb pour l'acces à la surface : detection de la surface alors qu'en pleine immersion
+        ==> OK : le liquidHeight n'etait pas rescalé sur le tileheight.
+        ==> RAF : le centre de masse de l'avatar (GOC_Destroyer::GetWorldPosition()) n'est pas forcement placer de facon à ce que la tete sorte de l'eau uniquement : il faudrait ajuster par avatar.
+
+    ✔ 23/05/2022 : le filet sur Lizard est trop grand. Les Weapons sur Chapanze sont enormes.
+        => pour le filet, le manche n'etait pas pris en compte car il ne porte pas le nom de l'objet "filet"
+        ==> OK : renomme manche en filet, reprise du scml, modification de TexturePacker pour ajouter duplicatesprite et alias sur le filet
+        => 24/05/2022 OK : pour chapanze, ajout de attribut "MappingScaleRatio" dans l'AnimatedSprite2D
+
+    ✔ 18/05/2022 : sous mobile, le clic sur le screenjoystick Power1 va declencher un double tir : voir Player::HandleClic()
+        => 24/05/2022 OK : pb de uiscale réglé dans Player::HandleClic()
+
+    ✔ 23/05/2022 : buros detruit les murs sans s'arreter.
+        => Modification de la logique d'activation pour ABI_WallBreaker::Use().
+        => suite aux modifications dans GOC_Collide2D::HandleBeginContact() avec l'ajout de "Trigger Solid" pour les armes de Contact,
+            Buros a par défaut ce "TA" solide dû à Player::UpdateTriggerAttacks(). Ce qui pose probleme pour la logique de collision avec les Murs.
+        ==> 23/05/2022 OK : Remplacement du nom du Trigger Attack de Buros dans le scml par TAT ald TA
+
+    ✔ 23/05/2022 : les weaponabilities restent actives en changeant vers un avatar non equipable.
+        => 23/05/2022 OK : correctif dans Equipment::UpdateAttributes
+
+    ✔ 23/05/2022 : crash en changeant de filet vers épée flame après changement d'avatar.
+        => il faut qu'au changement d'equipment la liste GOC_Animator2D::animatedSprites soit mise à jour.
+        ==> 23/05/2022 OK : Modification GOC_Inventory::LocalEquipSlotOn() et GOC_Inventory::NetEquipSlotOn() : ajout GOC_Animator2D::CheckAnimatedSprite()
+
+    ✔ 19/05/2022 : ajouter l'ability "creuser" avec la Pelle.
+        => lorsque le trigattack de la pelle touche un mur, utiliser l'ability WallBreaker
+        ==> 21/05/2022 : Ajout de Player::UseWeaponAbilityAt() utiliser dans GOC_Collide2D::HandleBeginContact.
+
+    ✔ 18/05/2022 : probleme avec l'equipement lors de la collecte d'une armure ou d'un casque. Le slot est bien rempli mais pas le slot UI et pas d'update du character.
+        => OK : dans UIC_EquipmentPanel::OnSlotUpdate le contenu avait été désactivé. Pourquoi ? un correctif ? => pour le moment, reactivation.
+
+    ✔ 05/10/2021 : ne pas appliquer d'invulnerabilité lors de la perte de vie occasionné par les EffectInstance.
+        => remplacer checkinvulnerability par applyinvulnerability comme argument dans EffectsManager::AddEffectOn() EffectsManager::ApplyEffectOn() et GOC_Life::ReceiveEffectFrom()
+        ==> dans GOC_Life::ReceiveEffectFrom() n'appliquer l'invulnerability que si argument applyinvulnerability=true.
+        ===> Ok patch de EffectsManager::Update => dans ApplyEffectOn passer false en argument applyinvulnerability.
+
+    ✔ 04/10/2021 : il manque les effets de feu appliqué par l'epee enflammée (les ticks)
+        => voir les modifications apportées dans GOC_Life et EffectsManager
+        ==> il s'agit de l'invulnerability dans GOC_Life::ReceiveEffectFrom() qui bloque l'application des effets suivants.
+        ===> OK : ajout de l'attribut checkvulnerability dans les methodes impliquées.
+
+    ✔ 19/05/2021 : sur le sol, les entités entrent parfois en fall
+        => OK : correctif dans GOC_Move2D::OnWallContactEnd : ajout de la condition sur la velocity min pour fall.
+
+    ✔ 15/05/2021 : ajout d'ours
+        => OK 18/05/2021 : correctif dans GOC_Move2D et GOC_Collide2D pour le saut sur mur et dans GOC_Animator2D pour le physic flip X
+
+    ✔ 12/05/2021 : ajout de kigrat et lance
+        => voir pour unifier le tir directionel du pistolet et les lames ou bomb
+        ==> utilisation du tir directionel via ABI_AnimShooter::Use()
+        ===> Ajout de GOC_Animator2D::SetSpawnAngle() et modification de GOC_Animator2D::ApplyDirectionalAnimations() pour utiliser les bonnes animations directionnelles en fonction de spawnAngle_.
+        ====> OK pour Kigrat et Skeleton
+
+    ✔ 28/04/2021 : probleme avec le CLIMBFIRSTBOX : si Petit saute sur un mur qui n'a pas de liaison directe avec un sol en maintenant la direction vers le mur, le personnage reste suspendu au dessus du passage sous le mur.
+        => dans Petit, la collisioncircle de sol doit etre legerement plus grosse que le collisionbox de tete ce qui evite d'avoir un contact Ground generer enrte le dessus du mur et le bas du collisionbox de tete.
+        ==> corriger la collisioncircle les autres entités disposant du CLIMBFIRSTBOX (lizard, buros)
+        ===> ne fonctionne pas avec lizard (le collisionbox est beaucoup plus grand)
+        ====> OK le 29/04/2021 : modification de la logique dans GOC_Move2D::Update_Walk()
+
+    ✔ 28/04/2021 : GOC_Move2D ajout de l'animation Fly_down dans les scml des entités volantes pour permettre le changement d'animation vers fly_down si chute (~TOUCHGROUND)
+        => OK : ok pour le vampire, redlord, junkelspil
+
+    ✔ 11/03/2021 : Encore des cas avec le marchand ou il n'y a pas possibilité de clicker sur les 3points (...)
+        => OK 06/04/2021 : nouveau correctif dans DialogueFrame::ToggleFrame()
+        ==> tjrs un pb : il faut verifier que le physique est bien actif => dump
+        ===> le physique est bien actif (rigidbody et collisionshape de Interactive_NextLine)
+        ====> vérifier que la methode pour générer le clic est bonne (verifier le subscribe)
+        =====> cf DialogueFrame::HandleInput
+        ======> le probleme arrive uniquement en fullscreen
+        =======> impossible de prendre la position de la souris en fullscreen surement du au WrapMode
+        ========> OK 08/04/2021 : utilisation de la position du curseur.
+
+    ✔ 12/03/2021 : au chargement d'une sauvegarde, les bones spawnés ne peuvent être cassés : le ScrapsEmitter est-il bien créé ? activé ?
+        => ScrapsEmitter a besoin d'un trigEvent pour se déclencher mais il est par default à zero => l'initialiser à GO_RECEIVEEFFECT par défaut.
+        ==> OK : voir pour faire mieux par la suite en retravaillant les attributs pour que l'attribut "Trig Event" ne soit plus une String mais directement un StringHash ?
+
+    ✔ 11/03/2021 : changement de direction des entities au départ du GOC_Portal
+        => GOC_Controller::Stop() utilise GOC_Controller::ResetDirection
+        => OK : dans GOC_Controller::ResetDirection remplacer l'event GO_CHANGEDIRECTION par GO_UPDATEDIRECTION
+
+    ✔ 18/12/2020 : il arrive que GOC_Portal bloque encore dans la generation de map.
+        => 03/03/2021 : après de multiples teleportations entre 2 GOC_Portals, les maps ne semblent pas être sauvegarder dans leur état (les entities ne sont pas serializer)
+        ==> voir MapStorage::UnloadMapAt et Map::OnUpdateMapData()
+        ===> OK : correctif dans Map::OnUpdateMapData => GetMapData()->SetSection(MAPDATASECTION_ENTITYATTR()
+        ==> Apres SaveWorld, la destination du GOC_Portal est resetée : les Attributes n'ont pas été sauvegardé car Portal est une furniture.
+        ===> cf Map::OnUpdateMapData()
+        ===> il faut pouvoir marquer les furnitures à sauvegarder avec entityattr => utiliser le GOTypeProperties::GOT_Usable_DropOn renommer desormais GOTypeProperties::GOT_Usable.
+        ====> OK 05/03/2021 : correctif dans GOC_Portal, MapStorage, MapWorld, MapCreator.
+
+    ✔ 18/12/2020 : ajouter des pieges.
+        => 26/02/2021 : ajout des sprites dans plantsstaticnew.png
+        ==> voir pour implanter les pieges dans des zones interessantes en fonction de la nature de la chambre si donjon ou du denivellé si exterieur ou cave
+        ==> premier ajouts faits.
+
+    ✔ 08/12/2020 : lorsqu'une entité est coincé dans un mur, faire un unstuck : tester les tiles environnantes en partant par celle du dessus
+        => ajout de GOC_Destroyer::Unstuck() qui test sur les tiles cardinales uniquement.
+        ==> Attention à utiliser que dans GOC_Destroyer::UpdatePositions() pour le moment car utiliser GOC_Destroyer::currentCell_ et ne teste pas si en bordure de map.
+        ===> RAF : cas en bordure de map.
+        ==> les bats semblent poser probleme
+        ===> 17/12/2020 : il s'agit du centre de masse qui n'etait pas specifier dans bat.xml => à corriger sur l'ensemble des entities
+
+    ✔ 10/12/2020 : pb avec le Climb, que ce soit pour l'araignée ou pour chapanze.
+        => pb de direction apres fin de contact
+        ==> OK 15/12/2020 : modification de GOC_Move2D::ControlUpdate_Ground et GOC_Animator2D::UpdateDirection() : ajout de GOC_Move2D::lastDirectionX_
+        => lorsque le chapanze est dans un coin superieur ouvert, le top collider (box) de l'entité en contact uniquement avec le wall border, en se déplacant vers le haut, l'entité va partir en diagonale
+        ==> cela est du au begincontact entre le ground collider (circle) de l'entité avec le wall border qui établit un contact Roof (car abs(normal.y) > abs(normal.x))
+        ==> solution 1 : empeche ce type de contact en modifiant les dimensions du ground collider et du top collider pour que ce dernier recouvre le premier
+        ==> solution 2 : changer les propriétés du ground collider pour qu'il ne puisse avoir de contact de type Roof.
+        ==> OK solution 3 : eviter la transformation du type de contact dans GOC_Collide2D::AddWallContact2D.
+
+    ✔ 15/12/2020 : pb lorsque un climber est en contact Roof, puis changement d'avatar et chute au sol et rechangement d'avatar pour Raignée : celle-ci est flippé en Y.
+        => ce pb n'apparait plus lorsque LOAD_METHOD est utilisé dans Actor::ResetAvatar
+        ==> le pb provient de GOC_Move2D::UpdateAttributes() qui ne resetait correctement pas les flags de wall contacts.
+        ===> OK le 17/12/2020 : ajout de GOC_Collide2D::GetNumRoofContacts() ... et modification de GOC_Move2D::UpdateAttributes().
+
+    ✔ 15/12/2020 : pb pour les colliders shapes Ground et Top des entités : leur dimension n'est pas bien redéfinie après changement et rechangement d'avatars.
+        => pb avec le define CLONE_METHOD dans Actor::ResetAvatar, surement GameHelpers::CopyAttributes(), pas de pb avec le define LOAD_METHOD (cependant LOAD_METHOD n'est pas tres bon : il va reprendre de nouveaux numeros de composants...)
+        ==> le dump des attributes ne montrent pas de changement de valeur
+        ===> pb avec CollisionShape2D::cachedWorldScale_
+        ====> OK : modification de CollisionShape2D::OnSetEnabled()
+        ==> RAF : avec le LOAD_METHOD apres changement d'avatar, l'entity ne peut plus aller sur des plateformes
+        ===> voir les Setters/Getters de CollisionShape::SetExtraContactBits() ?
+
+    ✔ 09/12/2020 : pb avec les lames : elles n'apparaissent pas tout le temps => pb de layer lors du spawn.
+        => cf GO_Pools, ABI_Shooter, GOC_Destroyer
+        ==> en clic sur un Trigger d'une porte ou d'une entity, le Spawn ne peut etre fait. cf Player::HandleClic()
+        ===> OK : modification de Player::HandleClic() => déplacement en amont du code gerant l'Ability
+
+    ✔ 08/12/2020 : si contact sur les cotés entre player et entities, il arrive souvent que le player voulant descendre d'une plateform ne puisse pas le faire
+        => cf GOC_Move2D::ControlUpdate_Ground() => cf GOC_Move2D::CheckGoDownWall()
+        ==> OK : modification de GOC_Move2D::CheckGoDownWall() pour skipper les contact qui ne sont pas avec des walls ni des plateforms
+
+    ✔ 30/10/2020 : pb avec les entity walker, parfois l'animation FALL ne se met pas en place
+        => cela provient d'un wallcontact sur une entity (ex: marché sur la tete de rockgolem)
+        ==> verifier GOC_Collide2D::HandleEndContact(), GOC_Collide2D::HandleBreakContact()
+        ===> il n'y a pas d'appel à GOC_Collide2D::HandleEndContact() => cf Urho3D::PhysicsWorld2D::EndContact()
+        ====> aucun endcontact envoyé par Urho3D::PhysicsWorld2D
+        =====> le Pb est dans la modification des fixtures qui doivent etre recreer à chaque modification des shapes => il y a perte dans Box2D du contact qui est surement detruit sans alerte de sa destruction
+        ======> Essai de modification dans AnimatedSprite2D::UpdateTriggers() en remplacant CollisionBox2D::SetBox() par une nouvelle fonction CollisionBox2D::UpdateBox() qui modifie directement la shape sans recreer la fixture.
+        =======> l'alerte est bien lancée et le box2D envoit bien le endcontact
+        =======> cela ne va pas avec l'implementation dans FromBones qui ne temporise pas entre les begin et end contacts et a pour resultat de mettre l'entité dans un état de flipping d'animation entre de touchground et fall.
+        ========> la solution est de faire avec la version AnimatedSprite2D::UpdateTriggers() non modifier cad avec CollisionBox2D::SetBox() et de modifier GOC_Move2D::Update_Walk() pour que l'etat FALL
+            se declenche des le seuil de velocité minimale de Fall atteinte et ce meme si le movestate est MV_TOUCHGROUND est actif.
+        ========> 01/11/2020 OK : tester sur l'ensemble des avatars : Pour le moment ok entre petit et rockgolem.
+
+    ✔ 30/10/2020 : pb de Climb avec Chapanze dans les angles de tile : il est bloqué surement par l'interaction des colliders, mais étant en Gravité 0, on peut le déplacer mais il part en biais et se retrouve à ne plus toucher la paroi dans le vide.
+        => cf GOC_Collide2D::RemoveWallContact2D() et GOC_Move2D::HandleWallContactEnd()
+        ==> OK le 31/10/2020 : pb de normal dans GOC_Collide2D::AddWallContact2D()
+            et de passage de walltype par event entre GOC_Collide2D::RemoveWallContact2D() et GOC_Move2D::HandleWallContactEnd() => passage sans event via GOC_Move2D::OnWallContactBegin() et GOC_Move2D::OnWallContactEnd()
+        ===> a tester la fluidité sur RPI ... sans event cela risque de flooder
+
+    ✔ 15/06/2020 : Le GOC_Move2D Fly en avancant sur du plat ou bien en tombant ne change pas d'animation
+        => OK : Correctif de la logique dans GOC_Animator2D::Update & GOC_Animator2D::FindNextState pour privilegier EVENT_FLYUP (le fly par defaut et en cas de JUMP; EVENT_FLYDOWN utiliser lors de la chute)
+
+    ✔ 13/06/2020 : corriger le drop des elsarion parts. on doit egalement pouvoir les detruire comme les os
+        => ajout de ElsarionMeat dans GOT::InitDefaultTables() à l'instar de Bone
+        ==> OK ajout des Scraps
+
+    ✔ 07/06/2020 : Crash en changeant d'avatar d'un Character vers Darkren.
+        => Drakren a GOC_ZoneEffect en plus
+        => Aucun Crash en changeant vers un autre Character puis ensuite vers Darkren
+        ==> ByPass temporaire dans Urho3D::Node::SetEnabled()
+        ==> RAF : Analyser Player::UpdateAvatar() et GameHelpers::CopyAttributes() et trouver une solution acceptable.
+        ===> Le Crash se produit après GOC_ZoneEffect::OnSetEnabled() qui ne pose aucun pb à priori
+        ===> Le Component suivant dans Node::components_ est GOC_Inventory
+        ====> dans Urho3D::Node::SetEnabled() : Remplacement de la boucle avec iterateurs par une boucle simple avec un check de la taille maxi du Vector components_ (limitée à 50)
+        =====> OK : plus d'erreur.
+
+    ✔ 25/05/2020 : plantage lorsque 2 joueurs (human,CPU) ou (human,human) lorsque l'on essaie de monter l'un joueur sur l'autre
+        => beaucoup de modification effectuer dans Player
+        ==> ajout de Player::MountOn, Player::Unmount(), modification de Player::OnEntitySelection()
+        ===> Attention : les Players controllés par CPU utilise le Behavior GOB_MOUNTON à prendre en compte dans Player::UpdateAvatar()
+        ====> OK le 31/05/2020
+        ===> Probleme avec 3 joueurs, encore une disparition puis crash
+        ====> voir pour les conditions dans Player::OnEntitySelection() et Player::HandleClic()
+        =====> OK le 01/06/2020 : correctif dans Player::OnEntitySelection() empechant de monter sur une entity qui est montée sur le player
+            cela evite le cas ou 2 entités sont montées sur le player et que celui-ci veuille monter sur l'une d'elles, ce qui aboutit à la disparition de la seconde entité montée
+        =====> Autre probleme corrigé : les ConstraintWeld2D à enlever doivent bien etre celles lié le node au parent
+
+    ✔ 14/05/2020 : avec les ailes Darkren sur le Lizard, probleme d'affichage lorsqu'il meurt, pas d'animation pour les ailes qui restent en place alors que le lizard est au sol.
+        => il faut modifier les SCML du lizard et des ailes
+        ==> OK : probleme corrigé dans AnimatedSprite2D::UpdateSourceBatchesSpriter_RenderAnimations => il faut passer par renderEnabled_ pour activer/desactiver le rendu.
+
+    ✔ 14/05/2020 : corriger le MOVE2D_FLY : si l'on reste appuyer sur le JUMP et que l'on appuie successivement sur LEFT-RIGHT-LEFT-RIGHT, l'entity monte super vite
+        => mettre un max de velocity à ne pas dépasser => GOC_Move2D::velMaxFlying
+        ==> OK : modification de GOC_Move2D::Update_Fly() et GOC_Move2D::ControlUpdate_Air()
+
+    ✔ 03/05/2020 : encore des crashes avec les GOC_Spawner (cf Urho3D::ParticleEmitter2D) en WorldZone lors de l'utilisation de Map::SetEntities_Load()
+        => Mettre les MonsterSpawner en categorie Object ald Monsters
+        => faire des tests en TestZone2 avec seulement MonsterSpawner en type autorisé.
+        ==> Pb avec l'attribute BlendMode de ParticuleEmitter2D (enumvalues ?) qui se desinitialiser en 0 ou valeur tres grande.
+        ===> 05/05/2020 : OK Patch appliqué à ParticleEmitter2D::UpdateMaterial() pour le moment
+
+    ✔ 05/05/2020 : Les effects (Feu/Poison) sont appliquées sur des entités n'appartenant pas à la meme view.
+        => Lors d'un contact, il faut checker si sur la meme View comme dans GOC_Detector.
+        ==> cf GOC_Collide2D::HandleBeginContact() et GOC_ZoneEffect::HandleContact()
+        ===> OK : Correctif dans GOC_ZoneEffect
+
+    ✔ 03/05/2020 : Crash sur RPI
+        => Correctif de GOC_Collectable
+        => Correctif de GameHelpers::SetCollectableProperties()
+        => Correctif de Urho3D::ParticleEmitter2D
+        => Modification ObjectPool::CreateChildIn() permettant le spawn de CollectablePart (Bone)
+        ==> OK
+
+    ✔ 29/04/2020 : lors du Spawn d'une Raignee, elle peut etre mal flippé en Y.
+        => OK : Ajout de GOC_Move2D::CleanDependences() et reset de GOC_Move2D::moveStates_
+
+    ✔ 27/04/2020 : modifier/reactiver le GOC_Spawner et tester dans le mode ARENA.
+        => Utiliser World2D::SpawnEntity() ald GameHelpers::SpawnGOtoNode()
+        ==> OK
+
+    ✔ 26/04/2020 : apres avoir pris le GOC_Portal, le player (skeleton) a le fil d'araignee et les ailes de Darkren d'activés.
+        => GOC_Portal Teleporte avec le TimerRemover ENABLENODE DISABLE qui utilise simplement Node::SetEnabled()
+        ==> Ajout dans GameHelpers::CopyAttributes() de dest->RemoveAllChildren()
+        ===> Pb avec ObjectPool utilisant aussi GameHelpers::CopyAttributes
+        ====> OK : déplacement de dest->RemoveAllChildren() dans Actor et GOC_Controller
+
+    ✔ 25/04/2020 : GOT_Raignee => les physic Colliders lorsque en Climb Left|Right ne sont pas centrés/AnimatedSprite ce qui posent des problemes au niveau des passages etroits notamment.
+        => OK : voir GOC_Animator2D::wallFlipping_ float devient Vector2 pour ajouter le recentrage vertical.
+
+    ✔ 19/04/2020 : regler les problemes de direction des animations suite aux ajouts du 11/04/2020
+        => GOC_Animator2D et GOC_Move2D utilisent ObjectControlLocal::direction_ (float) pour la direction X
+        => GOC_Move2D utilise aussi le moveState MV_DIRECTION pour communiquer s'il s'agit d'un mur à gauche ou à droite du Climber.
+        ==> lorsque le climber avec wallFlipping_ s'accroche sur un mur, il faut setter la direction en fonction de la velocity Y (si vely positif => direction == LEFT == UP)
+        ===> OK : il reste un probleme dans les coins droits (en haut et bas)
+        ====> OK 20/04/2020 : modification de la logique dans GOC_Animator2D::CheckDirection()  et modification GOC_Move2D::Update_Climb() + GOC_Move2D::Update_Walk() + GOC_Move2D::ControlUpdate_Ground()
+        =====> GOC_Animator2D::CheckDirection() est renommé GOC_Animator2D::ApplyChangeDirection() et sera utilisé à chaque changement d'animation donc plus nécessaire dans Preloader.xml AnimatorTemplate_Spider
+
+    ✔ 11/04/2020 : ajout de l'araignee : c'est un climber
+        => Ajout de l'AnimatorTemplate_Spider
+        ==> modification de GOC_Animator2D + GOC_Move2D et Urho3D::AnimatedSprite2D::UpdateSourceBatchesSpriter_OneMaterial() pour permettre la rotation de l'animatedSprite (marche sur les murs)
+        ===> OK à modifier GOC_Animator2D::CheckDirection() pour que les offsets transmis à Urho3D::AnimatedSprite2D::SetLocalPosition() correspondent aux dimensions des collisionShapes.
+        ===> voire pour developper un composant (ou deriver le GOC_PhysicsGrapin ?) pour la gestion du fil de l'araignée
+        =====> OK : trouver un point d'ancrage lors du fall et lors du jump,
+        =====> OK : si un point d'ancrage est trouvé, attache du fil entre le point d'ancrage et l'araignée
+        =====> OK : mise à jour du fil (thread) : longueur et angle entre le point d'ancrage et l'araignée.
+        ======> le fil doit etre deformable en longueur => voir pour integrer Urho3D::StrechableSprite2D
+        =======> Urho3D::StrechableSprite2D intégré OK, néanmoins pour le fil ce ne sera pas nécessaire, un simple scale d'un staticsprite suffira
+        =======> le scale ne fonctionne pas, il faut pouvoir modifier le drawRect du staticsprite => integration dans Urho3D::StaticSprite2D de SetDrawRect() et UseSetDrawRect() de Urho3D-1.7
+        ====> l'araignee doit avoir la possibité de monter ou descendre de son fil. (passer en CLIMB MV_TOUCHOBJECT)
+        =====> OK CTRL_JUMP pour monter
+        ====> OK : modification du GOB_FollowAttack et GOB_Follow pour tenir compte du Climb et du fil. => OK pour le Climb
+        ====> OK : tenir compte du node scale pour la longueur du fil.
+        ========> OK le 16/04/2020 : Implementation fonctionnelle de GOC_StaticRope.
+
+    ✔ 06/04/2020 : Modification de Urho3D::PhysicsWorld2D::BeginContact() pour permettre le passage en mode plateform (check one way) pour les rigidbodies qui ne sont pas des MapCollider mais qui veulent permettre ce mode
+        => utilisation dans les fournitures tel que Armoire ou Table par exemple
+        => il faut déclarer ces rigidbodies avec body->SetColliderInfo((void*)1)
+        ==> tous les nodes mettant GOA_Plateform à true auront ce mode
+        ==> OK : ajout de GOA::PLATEFORM et modification de GOC_Destroyer::UpdateFilterBits() et de GOC_Move2D::CheckGoDownWall()
+
+    ✔ 24/03/2020 : le lizard n'inflige plus aucun dégat
+        => le collider Trig_Attack s'affiche bien
+        ==> Le Trig_Attack doit etre renommé TA depuis xx/02/2020 !
+        ===> ok pour l'ensemble des SCML et recopie dans FromBones_Resources
+
+    ✔ 05/03/2020 : modifier le point d'application pour les Effects avec Tick qui sont par defaut à la position ZERO sur le node recevant l'effet.
+        => enregistrer le point d'impact meme si ce n'est pas une GOC_ZoneEffect
+        ==> OK : ajout de EffectInstance::localImpact_ et modification EffectsManager::AddEffectOn et EffectsManager::Update
+
+    ✔ 19/02/2020 : Resoudre les problemes de states d'equipment
+        => finir Equipment::Dump() qui est utilisé dans Player::Dump() et log via "dumpplayer" dans la console
+        ==> les equipments ne doivent impacter la valeur d'attaque ou de defense que si les slots d'equipements existent pour l'avatar => check AnimationEquipment::HasSlot(slothash)
+        ===> pour le moment Equipment n'a pas acces à AnimationEquipment (qui est dans UIC_EquipmentPanel)
+        ====> déplacement d'AnimationEquipment dans Equipment et modification Equipment::UpdateAttributes() (ajout de !AnimationEquipment.HasSlot())
+        =====> OK : verifier si pas de redondance dans les updates
+        => les degats de feu ou autre effets doivent etre opposés à la défense de meme type et pas sur GOA::DEFENSE
+        ==> verifier le GOC_ZoneEffect avec l'effet de Flame de Darkren
+        ===> pour le moment tous les degats sont en GOA::ENERGY
+        ===> GOC_Life::HandleReceiveEffect doit etre modifié pour accepter d'autre type d'effet.
+        ====> OK ajout de GOA::FIRE et modification de GOC_Life et d'Equipment
+        ==> RAF : renommer GOA::ATTACK et GOA::DEFENSE qui ne doivent etre que pour le CaC en GOA::LIFE, renommer egalement GOA::ENERGY en GOA::LIFE (implique de modifier dans toutes les ressources xml)
+        ===> les Collectables pourront avoir des resistances aux differents effets de base GOA::LIFE, GOA::DEATH, GOA::FIRE, GOA::WATER, GOA::MATTER, GOA::VOID, GOA::TIME
+        ====> une valeur positive sur l'un de ces attributs ajoute un bonus en defense sur le type d'effet correspondant
+        ====> une valeur negative sur l'un de ces attributs ajoute un bonus en attaque sur le type d'effet correspondant
+        =====> OK : remplacement de GOA::ENERGY,GOA::ATTACK et GOA::DEFENSE par GOA::LIFE
+        ======> ajout de Equipment::defenseEquipmentBonus_ et Equipment::attackEquipmentBonus_ pour remplacer Equipment::equipmentAttributes_ pour le stockage des bonus de defense et d'attack pour chaque type d'effet de base.
+
+    ✔ 20/02/2020 : pour un collectable (ex: potion regen), avoir un GOC_ZoneEffect lorsque l'effet à plusieurs tick n'est pas approprié. Il faudrait un manager plutot qu'un composant qui serait lui reseté des que le collectable sera supprimé.
+        => Ajouter un manager pour les Effets de zone : MAN_ZoneEffect.h => class ZoneEffectManager
+        ==> ce manager reprendra la gestion de GOC_ZoneEffect mais en static, chaque GOC_ZoneEffect y sera déclaré
+        ===> OK : 28/02/2020 ajout de EffectsManager qui prend en charge la gestion des effets applicables à des nodes. GOC_ZoneEffect y fait appel. => ajout de PotionRegen en test OK
+        ===> RAF1 : on pourra également ajouter les effets d'une arme (tel que poison...) qui s'appliquent s'en avoir besoin d'une ZoneArea.
+        ====> GOC_Collide2D doit faire appel à EffectsManager::AddEffectOn(0, node_, effect) GOC_Attack doit maintenir les effects qui seront transmis à EffectManager.
+        ====> OK : 01/03/2020 modification de GOC_Collide2D, de GOC_Attack et de Equipment::UpdateAttributes() : recherche de GOA_EffectID1à3 et enregistrement dans Equipment::equipmentEffects_ accessible via GOC_Attack::GetEquipmentEffects()
+            GOC_Collide2D utilise EffectsManager::SetEffectsOn()->AddEffectOn() permettant de recuperer les effets à appliquer des attacks/effets utilisés par l'attaquant.
+        ===> RAF2 : il faut egalement penser a ajouter une propriété qui permet de supprimer un effet actif des que l'entité qui a provoquer cet effet meurt (pour certains sortileges notamment)
+        => comme pour la gestion des resistances aux effets gerer par GOC_Life (cf LifeProps::defBonuses_), il faut une gestion des attaques par type d'effet qui sera mis à jour lors du changement d'equipment / avatar.
+        ==> de plus les defense et attaque de base doivent egalement etre enregistrés par effets de base
+        ===> OK : ajout de AttackProps et modification majeure dans GOC_Attack, utiliser GOC_Attack::GetUsedEffects() et GOC_Attack::GetDamage(effect) pour obtenir la liste des AttackProps equipés et les damages par effet.
+        ==> commonaliser le SendEvent(GO_RECEIVEEFFECT) dans GOC_Collide2D::HandleBeginContact() et GOC_ZoneEffect::HandleScenePostUpdate()
+        ===> remplacement de GOC_Life::HandleReceiveEffect() par GOC_Life::ReceiveEffectFrom(), envoyer qd meme l'event GO_RECEIVEEFFECT pour les subscribers comme ScrapsEmitter.
+
+    ✔ 17/02/2020 : ajout des ailes en slot renderanimation.
+        => changer le type de GOC_Move2D si equipé et effectif
+        ==> ajouter l'ability ABI_Fly => OK
+        ===> modifier ABI_Fly pour etre plus generique, des problemes à corriger lors de l'activation / desactivation de l'abilité
+        ===> RAF : tester dans GOC_Move2D::UpdateAttributes() lorsque le flag MV_WALK est enclenché si l'entité touche le sol.
+        ====> OK 21/02/2020 : Correctif GOC_Move2D
+        ===> RAF2 : pouvoir specifier l'echelle d'un renderAnimation (les ailes de darkren paraissent trop petites sur le lizard)
+        ====> modification de AnimatedSprite2D::AddRenderedAnimation(), ajout du scale provenant de Spriter::NodeUpdater::timekey_ qui est un Spriter::SpriteTimelineKey
+        =====> pb : Spriter ne sauvegarde pas les scale_x et scale_y des Point, il faut les rajouter manuellement dans le SCML.
+                ex : <timeline id="41" name="IN_Special1" object_type="point">
+                        <key id="0" spin="0">
+                            <object x="44.682365" y="30.511911" angle="281.507731" scale_x="2" scale_y="2"/>
+                        </key>
+                     </timeline>
+        =====> OK : le faire manuellement pour le moment
+
+    ✔ 29/01/2020 : ajout de GOT_Darkren
+        => ajout de GameHelpers::SetPhysicFlipX() permettant le flipX des collisionBox2D qui ont un angle ou un decentrage suivant x.
+        ==> utilisation dans GOC_Animator2D::OnChangeDirection()
+        ==> Faire des tests avec GOT_RockGolem pour voir si mauvais impacts.
+        ===> voir pour la possibilité de filtrer le collider de pied de Darkren qui est en flamme est donc ne devrait pas entrer en collision avec les autres entités.
+        ===> utiliser le collider mask CM_INSIDEEFFECT et CM_OUTSIDEEFFECT
+        ===> Modifier l'attribut CollisionShape2D::ExtraContactBits pour ajouter ce bit Effect
+        ====> ajouter aussi un trigger pour mettre en feu l'entité touchée. => utilisation de GOC_ZoneEffect.
+        ====> les bombes ne traversent pas le collider pied
+        =====> CONTACT_ISEFFECT est renommé CONTACT_BODILESS, ajout des CM_INSIDEBODILESSPART et CM_OUTSIDEBODILESSPART, modification de GOC_Destroyer::UpdateFilterBits()
+
+    ✔ 05/02/2020 : GOC_Animator2D::SpawnAnimationInside fonctionne après correctif mais utilise un trigger de SPRITER pour chaque animation ce qui est lourd à gérer.
+        => préferer utiliser le CharacterMapping. Pour les entities qui n'ont pas d'Equipment, verifier le contenu de l'inventaire à la recherche d'objet Wearable
+        => Etendre le CharacterMapping pour ajouter des nodes contenant des AnimatedSprite2D en plus des Sprite2D (utilisation de RenderNode de AnimatedSprite2D dans ce cas comme en utilisant GOC_Animator2D::SpawnAnimationInside)
+        => cf GOC_Inventory::EquipSlotOn() et AnimatedSprite2D::SwapSprites()
+        ==> suppression de GOC_Animator2D::SpawnAnimationInside et remplacement dans GOC_Inventory::EquipSlotOn()
+        ==> AnimatedSprite2D::renderNodes_ devient AnimatedSprite2D::renderedAnimations_
+        ==> dans Spriter, il suffit d'ajouter un point dans le nom commence par IN_ suivi du nom du mapping (ex:Weapon1) pour déclencher dans Urho3D l'affichage d'un RenderedAnimation (qui est un AnimatedSprite2D) dans l'AnimatedSprite2D
+        ===> faire attention de bien setter l'angle de ce point
+        ====> OK le 10/02/2020 avec essai sur RPI3 ok
+
+    ✔ 23/12/2019 : lorsqu'une entité tape sur une autre qui marche, l'entité tapée reste coincée ave animation fall
+        => pb de collision ? cf GOC_Collide2D
+        ==> pb dans GOC_Move2D::Update_Walk() lorsque GOC_Life::ApplyForceEffect est utilisée, la velocity peut prendre une valeur inf à -velMinFalling qui occasionne un fall
+        ===> verifier aussi les autres Update et rajouter la condition !(moveStates_ & (MV_TOUCHGROUND | MV_CLIMB)
+        => OK !
+
+    ✔ 05/02/2020 : en utilisant l'attribut "Auto Switch Attack", le switch s'opere pour tout type d'animation (idle, walk etc...) et donc pas uniquement pour les attaques.
+        => cf dans GOC_Animator2D
+        ==> OK : attribut remplacé par "Auto Switch Animations"
+
+    ✔ 03/01/2020 : Déplacement non interruptible lors d'un saut ou en vol jusqu'à une collision
+        => cf GOC_Move2D ou GOC_Collide2D
+        ==> OK : Correctif dans GOC_Move2D::Update_Fly() et GOC_Move2D::Update_Walk().
+
+    ✔ 28/12/2019 : lorsqu'une entité est morte et que la camera la rend invisible puis revisible, l'animation respawn au debut du temps de mort.
+        => cf GOC_Destroyer et GOC_Animator2D, AnimatedSprite2D
+        ==> Modification dans Urho3D::AnimatedSprite2D::UpdateAnimation() => la condition de !visibility_ ne doit pas reseter l'animation
+        ===> impact sur les objets tel que money qui ne s'affiche plus sans interaction physique
+        ====> OK : Modification dans Urho3D::AnimatedSprite2D::UpdateAnimation() ajout de Drawable2D::ForceUpdateBatches()
+
+    ✔ 15/12/2019 : parfois certains collectables ne peuvent pas être ramassés. Identifier la cause de ce bloquage.
+        => En Mode Server, apres avoir eté en Arena, GameStatus::AllowUpdate_ vaut false lorsque le mode World est lancé.
+        ==> en mode server, GameNetwork attend que tous les clients soient lancés pour permettre la prise des objets.
+        ==> verifier si des clients existent autrement activer GameStatus::allowUpdate_.
+        ===> OK : Modification GameNetwork::HandlePlayServer_NetworkUpdate
+
+    ✔ 15/12/2019 : Le contenu des coffres devient de plus en plus gros à mesurer du changement de map. GOC_Inventory::SetInventoryAttr() n'utilise pas de ResetSlots()
+          les slots sont générés une fois lors du chargement du template node puis clonés avec ObjectPool. l'AutoPopulatedSlots permet de générer un contenu different pour chaque clone.
+          mais mal utilisé dans le OnSetEnabled() aboutit tjrs au meme inventaire.
+        -> choix de toujours générer un contenu différent : autopopulatedslot devient obsolete.
+        --> le VariantVector valuesToPopulated_ est utilisé uniquement par le templatenode lors du GOC_Inventory::AddToSlotAttr()
+        --> les clones n'auront jamais ce variantvector d'initialisé car le Getter de l'attribut "Add To Slot" return un champ vide.
+        ---> lorsque le template est cloné, le VariantVector est uniquement transmis par valeur le GOC_Inventory::GetInventoryAttr() -> GOC_Inventory::SetInventoryAttr()
+            ce qui permet de setter un inventaire different si valuesToPopulated contient des RANDOM.
+        --> quand un coffre a été vidé par une entité et que la map est déchargée et donc sauvegardée, l'inventaire vide est sauvegardé via GOC_Inventory::GetInventoryAttr().
+        --> au retour sur cette map, le coffre sera bien vide.
+
+    ✔ 14/12/2019 : Modification du Behavior::GOB_Patrol pour ajouter le saut.
+        -> GOB_Patrol fait appel à GOC_Destroyer::HasWallInFront() qui utilise le WorldMapPosition::shapeRectInTile_ defini dans GOC_Destroyer::UpdateShapesRect()
+        --> Tous les Controllers doivent faire appel à GOC_Destroyer::UpdateShapesRect() à leur initialisation pour pouvoir utiliser GOB_Patrol
+        ---> OK : Déplacement du UpdateShapesRect() de Actor::Start() dans GOC_Destroyer::OnSetEnabled() et limitation aux controllers uniquement.
+
+    ✔ 05/12/2019 : à l'apparition avec petit, le changement de viewZ par le dessus retourne dans tous les cas un bloquage dans le mur
+        -> verifier que GOC_Destroyer::UpdateShapesRect() soit utilisé à l'initialisation du premier avatar et pas seulement au moment du changement d'avatar
+        ==> OK : correctif dans Actor::Start();
+
+    ✔ 30/10/2019 : pb ce changement de viewZ dans la situation specifique suivante : en frontview se mettre sous un passage et monter => l'avatar est bloqué dans le mur en innerview.
+        -> GOC_Destroyer::UpdatePositions() va tester le rectangle de chaque collisionshape via Map::CheckFreeTilesAtViewZ()
+        --> lors du changement d'avatar ces rectangle ne sont pas mis à jour.
+        ---> ajout de GOC_Destroyer::UpdateShapesRect() et utilisation dans Player::UpdateAvatar()
+        ----> OK : dans GOC_Destroyer::UpdateShapesRect(), calcul du rectangle englobant des shapes, simplification de Map::CheckFreeTilesAtViewZ()
+
+    ✔ 24/10/2019 : En changeant d'avatar en haut d'une piece, le nouvel avatar plus gros se retrouve coincé dans le plafond
+        -> lors du changement d'avatar, lorsqu'un wall est voisin, realigner l'avatar sur le centre du tile ou se situait l'ancien avatar.
+        --> cf Player::UpdateAvatar()
+        ---> Ajout de GOC_Destroyer::AdjustPositionInTile() et Map::AdjustPositionInTile()
+             Modification GOC_Destroyer::SetWorldMapPosition() correctif centre de masse.
+        ----> OK le 02/11/2019 : la position est ajustée pour le moment seulement quand l'actor est démarré. Actor::Start(). Actor::Start() est utilisé dans Player::UpdateAvatar()
+
+    ✔ 07/10/2018 : certains problemes de changement de viewZ pour les avatars
+        => detecter en mode world (testzone), en changeant d'avatar mais sans passer en INNERVIEW (sans prendre une porte)
+        => vérifier la chaine de changement
+        ==> ViewManager, GOC_Destroyer, Player
+        ===> suppression de la variable currentViewZ_;
+        ====> faire des tests
+        -> 23/10/2019 : avec petit pas de pb, mais lizard se retrouve souvent bloquer dans un mur en voulant passer une porte par le dessus
+        --> cf GOC_Destroyer::UpdatePositions()
+        ---> les avatars etant composés de plusieurs collisionshapes, il faut s'assurer que chaque centre de ces formes ait le meme tileposition
+        ----> dans avatar-...xml, en utilisant bien UseFixtureMass=False et changeant le MassCenter de lizard toujours le pb
+        ----> en utilisant la Version de GOC_Destroyer::GetUpdatedWorldPosition2D version drawable, le pb n'apparait pas.
+        -----> 24/10/2019 : modification de GOC_Destroyer::GetUpdatedWorldPosition2D Drawable pour utiliser le MassCenter si pas de drawable
+        ------> 02/11/2019 : repasser en GOC_Destroyer::GetUpdatedWorldPosition2D version physic centre de masse suite aux resolutions de
+                tous ces pb de changement de viewZ et de stuck lors du changement d'avatar. cf  24/10/2019 et 30/10/2019 ci-dessus.
+
+        -> GOB_MountOn : poids trop important des players montés => diviser par deux le poids lorsque monté
+        --> OK
+
+    ✔ 30/10/2019 : le transfer par le portail des entities montés n'est pas fonctionnel
+        -> les entities montées ne sont plus parentées a l'avatar
+        --> OK : modification de GOB_MountOn pour le SetParent + modification Player::UpdateAvatar() pour eviter le scaling au moment du changement d'avatar
+
+    ✔ 28/10/2019 : les skeleton montés sur avatar ne changent pas de viewZ lorsque l'avatar effectue un changement de viewZ
+        -> OK : Ajout de l'event GO_CHANGEVIEWZ.
+        --> 30/10/2019 : suppression de l'event et des methodes associées et remplacement dans GOC_Destroyer::SetViewZ() par la mise à jour du viewZ des entités montées.
+
+    ✔ 28/10/2019 : les skeleton en demontant restent ensuite en animation idle
+        -> OK : dans GOB_MountOn::Stop() ajout GOC_Animator2D->ResetState()
+
+    ✔ 28/10/2019 : apres certains passages de portail, l'avatar se trouve coincé dans un mur
+        -> il s'agit de la position y du GOT_START (n'ayant pas de drawable ni de rigidbody)
+        --> OK : correctif dans GameStatus::FindMapPositionAt()
+
+    ✔ 28/10/2019 : Crash dans Slot::SetSlotAttr quand aucun type (par exemple des Parts de Elsarion)
+        -> OK, a tester avec des parts d'elsarions en changeant de map pour la sauvegarde des entities et le rechargement par SetEntities_Load
+        --> OK
+
+    ✔ 06/10/2018 : en arena, probleme d'accroche sur le mur droit dans la cave
+        => probleme de normal de collisionchain => normal inversée !
+        ==> meme cause que l'issue du 06/10/2018 (MAPWORLD) concernant les collisionshape de background
+        ==> modifier le seuil d'accroche ou de rebond à 0.1f ald 0.f
+        ===> GOC_Collide2D::AddWallContact2D ajout de ...Abs(normal.y_) > 0.1f... => OK!
+
+    ✔ 11/09/2018 : le use object ne fonctionne plus (utilisation des potions)
+        => voir UISlotPanel::HandleSlotDragEnd()
+        ==> OK remplacement du GetBoundingBox par GetWorldBoundingBox
+
+    ✔ 10/09/2018 : ajout de RockGolem => comment faire pour que le bodycollider épouse le sprite du corps (rotation compris) ?
+        => voir pour PhysicTrigger dans AnimatedSprite2D
+        ==> OK le 11/09/2018 : modification dans AnimatedSprite2D::UpdateTriggers + Box2D + Urho3D::CollisionBox2D ajout pivot pour la box
+
+    ✔ 06/09/2018 : spawn des bombes dans le ground
+        => analyser GOC_Animator2D::SpawnEntity() et Map::AddEntity()
+        ==> surement encore un probleme dans le positionnement des triggers dans AnimatedSprite2D
+        ===> probleme de flipX avec les triggers
+        ====> OK, correctif dans AnimatedSprite2D::LocalToWorld(), (pb d'angle) + dans GOC_Animator2D::SpawnEntity() : (direction plus nécessaire puisque l'angle est bien réglé)
+
+    ✔ 31/08/2018 : GOC_BodyExploder2D, probleme de charactermapping (des sprites n'apparaissent pas) apres changement de map et retour sur la map avec des newskeleton mappés
+        => dans Map::SetEntities_Load() le entityId est setté à 0 ce qui implique l'utilisation de l'entity id 0 de l'animatedsprite
+        ==> dans ce cas (loading attributes), l'entity ne doit pas être attribuée via GameHelpers::SetEntityVariation() mais par les attributs sauvegardés
+        ===> ajout dans ObjectPoolCategory::GetPoolNode() de entityid=-2 permettant d'éviter le GameHelpers::SetEntityVariation() pour Map::SetEntities_Load()
+
+    ✔29/08/2018 : GOC_BodyExploder2D, certains skeletons qui meurent, disparaissent sans laisser de bones.
+        [Wed Aug 29 23:49:37 2018] INFO: Map() - SetEntities Load : Map=13 1 Entities[1] : name=GOT_NewSkeleton2(16792199) position=1084.72 163.83 ... OK !
+        [Wed Aug 29 23:49:38 2018] INFO: Map() - SetEntities Load : Map=13 1 ... From Memory on nodeEntities = Map_13_1
+        [Wed Aug 29 23:49:38 2018] INFO: Map() - SetEntities Load : Map=13 1 ... timer =0 ms ... OK !
+        ---- puis
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_Life() - HandleLifeUpdate : GOT_NewSkeleton2(16792199) is Dead !
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - OnTrigEvent : Node=GOT_NewSkeleton2(16792199)
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - UpdatePositions node GOT_NewSkeleton2(16792199) ...
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - TransferExplodedNodesPositionsTo : node=GOT_NewSkeleton2(16792199) 0 0 to 1088.51 156.183  ... OK!
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - UpdatePositions node GOT_NewSkeleton2(16792199) ... position=1088.51 156.183 0 OK !
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_Collide2D() - HandleDead : Node=GOT_NewSkeleton2(16792199) ... disable topcontact
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_AIController() - StopBehavior Patrol
+        [Wed Aug 29 23:50:23 2018] INFO: PlayState() - HandleUpdateScores : Dead Entity ID=16792199, killed by ID=16803725
+        [Wed Aug 29 23:50:23 2018] INFO: Player() - OnDead : Avatar Node=16803725 kills node=16792199
+        [Wed Aug 29 23:50:23 2018] INFO: ActorStats() - DumpStat : category=3197354476, stat=GOT_NewSkeleton2, value=4
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - Explode : node GOT_NewSkeleton2(16792199) ... in 14 nodes ...
+        [Wed Aug 29 23:50:23 2018] INFO: GOC_BodyExploder2D() - Explode !
+        [Wed Aug 29 23:50:28 2018] ERROR: GOC_Animator2D() - ApplySimpleAnimations : GOT_NewSkeleton2(16792199) currentStateIndex=2 no animationname !
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_Animator2D() - ToDestroy : Node=GOT_NewSkeleton2(16792199) Send WORLD_ENTITYDESTROY
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_Destroyer() - OnWorldEntityDestroy : GOT_NewSkeleton2(16792199) ...
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_Abilities() - AddAbility : new Ability = 1506844804 ... OK !
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_BodyExploder2D() - ApplyAttributes : GOT_NewSkeleton2(16792199)
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_BodyExploder2D() - PrepareNodes node GOT_NewSkeleton2(16792199) ...
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_BodyExploder2D() - PrepareExplodedNodes : nodeID=16792199 fromAnimation=dead wposition=0 0 usePool=true ...
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_BodyExploder2D() - PrepareExplodedNodes nodeID=16792199 : ... numExplodedNodes=10 OK !
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_BodyExploder2D() - PrepareNodes node GOT_NewSkeleton2(16792199) ... OK !
+        [Wed Aug 29 23:50:28 2018] INFO: GOC_Life() - UpdateProperties : GOT_NewSkeleton2(16792199) ... Update Props(life=1, energy=1, dpsreceived=0)
+        => voir si le probleme provient du Map::SetEntities_Load()
+        ==> il s'agit d'un probleme de scaling pour les explodes parts, celles-ci sont tres petites presque invisibles et tombent dans les murs en général
+        ===> correctif dans GOC_BodyExploder2D::TransferExplodedNodesPositionsTo()
+                Vector2 deltaScale = rootNode->GetWorldScale2D()/initialScale_;
+                if (abs(deltaScale.x_) > PIXEL_SIZE)
+                {
+                    prepareNode_->Scale2D(deltaScale);
+                    URHO3D_LOGINFOF("GOC_BodyExploder2D() - TransferExplodedNodesPositionsTo : node=%s(%u) scale to %s (rootNodeScale=%s/initialScale_=%s) ... OK!",
+                                    rootNode->GetName().CString(), rootNode->GetID(), deltaScale.ToString().CString(), rootNode->GetWorldScale2D().ToString().CString(), initialScale_.ToString().CString());
+                }
+
+    ✔ 29/08/2018 : GOC_Portal : apres franchissement d'un portail, le portail a destination ne se réactive pas
+        => correctif dans GOC_Portal:OnSetEnabled() => si enabled UnsubscribeFromEvent(PORTAL_REACTIVE) si disabled & et dans le Pool UnsubscribeFromEvent(PORTAL_REACTIVE)
+
+    ✔ 25/08/2018 : A la mort d'une entity desactiver le Collider corps (Extra Contact Bits=0). il restera le Collider pied.
+        => creation de GOC_Collide2D::SetCollidersEnable
+        => remplacement de CONTACT_ALLOWBOTTOM par CONTACT_BOTTOM (plus simple)
+        => remplacement de extrabits (0) par (CONTACT_TOP+STABLE=3) pour l'ensemble des objects
+
+    ✔ 07/05/2018 : ajouter les colliders boxes pour le corps des entities et voir pour modifier GOC_Collide2D et GOC_Destroyer, Impact sur Behavior Mounted ?
+        => dans GOC_Destroyer modifier UpdateFilterBits pour l'ensemble des collisionshapes => OK
+        => pb lors de la descente d'une plateforme : l'entité se raccroche avec le second collidershape à la plateforme
+        ==> remplacement de l'attribut CollisionShape2D::colliderStability_ par extraContactBits_
+        ===> Modification Urho3D::PhysicWorld2D::BeginContact pour permettre le contact seulement si (otherShape->GetExtraContactBits() & CONTACT_ALLOWBOTTOM)
+        ===> modifications de tous les Object.xml pour remplacer cet attribut et indiquer l'extraBits les collider (le collider de "corps" doit avoir l'extrabits a 0 pour ne pas permettre la collision avec plateforme)
+        ===> OK le 07/06/2018.
+
+    ✔ 10/04/2018 : revoir le JUMP
+        => pb avec moins de 60 fps
+        => le player monte à l'infini si en cours de saut, les seuils de montée et de descente ne sont pas atteints (basés sur la vitesse)
+        ==> pour reproduire ce bug, essayer de se mettre sous un mob et de sauter, ou bien sauter et rester appuyer au niveau d'un plafond
+        ===> introduction d'une hauteur maximale de saut
+        ===> 06/06/2018 : OK pour le bloquage du saut lorsque touchroof => correctif dans GOC_Move2D
+        ===> OK le 07/06/2018, RAF => checker à moins de 60 fps
+
+    ✔ 02/06/2018 : la chaine du grapin ne s'affiche plus.
+        => Pb avec RigidBody2D::ApplyWorldPosition suite à modification après la version du 23/04/2018 (node position2D)
+        ==> en utilisant node_->SetWorldPosition(ToVector3(transform.p)); ald SetWorldPosition2D tout rentre dans l'ordre
+        ===> voir dans Node pour régler ça et remettre SetWorldPosition2D
+        ====> il faut finir de remplacer dans les derive de Drawable2D, les Matrix3x4 par des Matrix2x3, les GetWorldPosition et GetWorldTransform par leur équivalent 2D
+              et modifier OnWorldBoundingBoxUpdate et GetWorldBoundingBox() de drawable à remplacer dans Drawable2D
+        ====> point de sauvegarde 04/06/2017 avec le compromis dans RigidBody2D
+        =====> en cours de modification : Pb avec BodyExploder2D => corriger le StaticSprite2D::WorldBoundingBoxUpdate avec BoundingBox::Transformed(Matrix2x3)
+        ======> il s'agit d'un probleme dans le calcul de la translation dans la Matrix2x3::Inverse() => correction ok
+        =======> StaticSprite2D et RigidBody2D sont désormais OK avec SetWorldPosition2D
+
+    ✔ 31/05/2018 : pb de Drop Items dans le FrontView, les colliders ne font pas leur job => traverse les murs
+        => Analyser les attributs de l'entité droppée voir pour le zview et les collider filters
+        => voir UISlotPanel::HandleSlotDragEnd() && GOC_Collectable::DropSlotFrom()
+        ==> Bug difficile à reproduire
+        ====> bug resolu avec le pb du grapin ci-dessus
+
+    ✔ 02/06/2018 : la bombe n'explose plus
+        => correction dans GOC_Animator2D_Template::AddState() => generait 2 STATE_DISAPPEAR due à l'utilisation de GetSignedStateIndex(unsigned) à lieu de GetSignedStateIndex(StringHash)
+        ==> Pas de Scraps
+        ===> Urho3D::AnimatedSprite2D::UpdateTriggers() patched : SendEvent mal placer ne permettant pas d'envoyer des Events sans parametres
+        ====> OK !
+
+    ✔ 11/05/2018 : Ajouter à GOC_DropZone (Sanctuaire) la possibilité de spawner une entité spécifique (characterMaps) en fonction des objets ajoutés (genre épée avec bone = warrior skeleton)
+        => OK le 31/05/2018 ajout de GOC_DropZone::SelectBuildableEntity && BuildableObjectInfo dans GameAttributes.
+
+    ✔ 30/05/2018 : Les entities réapparaissent une fois mortes (sauf les entities avec BodyExploder2D)
+        => pas de probleme dans version FromBones_master-WIP20180423-PatchBackScroller
+        =====> inversion de parametre d'entrée "nextstate" & "condition" dans GOC_Animator2D_Template::ApplyEventToStates pour AEvent_EndLoop avec "State_Disappear"
+               lors du GOC_Animator2::RegisterObject()
+        ======> OK le 30/05/2018 !
+
+    ✔ 28/05/2018 : probleme lors du Get Item, l'item va bien dans l'inventaire cependant il n'est plus effacé de la scene
+        => pas de pb avec la version FromBones_master-WIP20180423-PatchBackScroller
+        ==> GOC_Animator2D checker les templates Avec le AAction_ToDestroy pour les 2 versions
+        ===> version courante : l'enregistrement ne semble pas fonctionner pour l'AAction_ToDestroy
+        ===> version FromBones_master-WIP20180423-PatchBackScroller : AAction_ToDestroy apparait bien dans les logs
+        ====> comparer les diff dans l'enregistrement des GOC_Animator2D_Template.
+        =====> oubli de la prise en compte du nouveau parametre d'entrée "condition" dans GOC_Animator2D_Template::ApplyEventToStates lors du GOC_Animator2::RegisterObject()
+        ======> OK le 30/05/2018 !
+
+    ✔ 22/05/2018 : Bloquer l'animation shoot directionnel si pas d'arme avec ability
+        => ajout du composant GOC_Abilities pouvant être utiliser meme si pas d'Actor
+        => Nouvelle Ability ABI_AnimShooter
+        => GOC_Animator2D : ajout de SucceedTransition testant si la condition de la transition (passage d'un state à un autre) est validée
+        => Modification de l'Enregistrement de NewEvent dans Preloader.xml => ajout de condition:ActiveAbility=ABI_AnimShooter
+        => PirateGun => déclaration de l'ability ABI_AnimShooter
+        => NewSkeleton2 => déclaration de l'ability ABI_AnimShooter comme wearable
+        ==> OK le 25/05/2018!
+        => gestion des AI cf AI
+
+    ✔ 03/05/2018 : ajout des animations directionnels pour le skeleton shoot
+        => ajout dans GOC_Animator2D=>AnimatorState de directionalAnimations_ (bool)
+        ==> indique si le state est directionel
+        ===> dans ce cas l'ordre des animations directionelles est le suivant : a[0] = Center; a[1]=45°UP; a[2]=90°UP; a[3]=45°DOWN; a[4]=90°DOWN
+        ====> Ok le 10/05/2018
+
+    ✔ 03/05/2018 : l'ability Lame a perdu la rotation
+        => Ok correctif dans Node::SetWorldRotation2D()
+
+    ✔ 23/12/2017 : Modifier les controles pour permettre l'ajout/suppression de TILES
+        -> ability comme grapin (genre magie chez "petit")
+        ==> 26/04/2018 : ajout de ABI_WallBuilder pour petit
+        ===> ajouter la possibilité de créer des tiles en diagonales haut et bas
+        ===> OK !
+
+    ✔ 26/04/2018 : Ajout de ABI_WallBreaker pour Buros
+        -> des sewing restent parfois après un remove tile et ajout de decals en outerview non souhaité lorsqu'un bloc est ajouté en INNER
+        ==> lors de la supression de tiledimensions les anciens sewing restent
+        ===> OK, oubli d'ajouter les SEWING dans ObjectTiled::ClearChunkBatches et ObjectTiled::SetChunkBatchesDirty
+        -> dans les addtile ou removetile vérifier si des furnitures sont sur le tile et les détruire
+        ==> OK, un tileindex spécifique aux furnitures static permet d'enregistrer le tile sur lequel s'accroche la furniture. Il est donné dans Map::SetFurnitures (via eventData[Go_Appear::GO_TILE])
+        et intégrer dans GOC_Destroyer::OnWorldEntityCreate
+
+    ✔ remettre les Sanctuary avec la ressurection des Skeletons
+        => furniture comme Portal, mais avec GOC_DropZone
+        ==> OK 18/04/2018, premier Test sur GOC_DropZone OK
+        ===> OK 19/04/2018, spawn skeleton OK dans Arena, des problemes en mode Test si Object_Pool no more node
+
+    ✔ Ajouter la possibilité de descendre d'un mur ou plateforme : flechebas+saut (04/08/2017)
+        => 17/04/2018 OK : ajout de GOC_Move2D::CheckGoDownWall()
+
+    ✔ 15/04/2018 : suite à changement dans le chargement des maps MapStorage::InitializeMap() qu'en mode delayed, le GOC_Portal ne peut obtenir une map en INSTANT
+        => il faut donc delayer dans GOC_Portal
+        ==> des problemes apparaissent lors du transfer
+        ===> apres plusieurs teleportations, plusieurs portals sont superposés et si pris ils engendrent plusieurs teleportations
+        ====> un oubli d'ajout GOT_Furniture aux listValue GOTYPEPROPERTIES de GameAttributes => OK !
+        ===> NOTE : les Furnitures sont skipper lors du MapStorage::SaveEntities2Memory() (ce qui est plus rapide).
+                    Bien prendre en compte que cela ne permet pas de sauvegarder les changement de position de ces furnitures en cas de suppressions/ajouts des Tiles.
+        ===> dans ces cas il arrive que le player aboutisse dans une map vide ce qui implique sa mort
+        ====> pb dans GOC_Destroyer::SetWorldMapPosition() et RigidBody2D::ApplyApplyWorldTransform()
+        =====> la nouvelle position n'est pas prise en compte par RigidBody2D dans OnMarkedDirty à cause du physicsWorld_->SetApplyingTransforms(true) dans RigidBody2D::ApplyApplyWorldTransform()
+        ======> création de RigidBody2D::ApplyUserWorldTransform()
+        =======> OK!
+        ===> la teleportation arrive souvent dans le ciel en tile 1 2 (map sans GOC_Portal, ni GO_START)
+        ====> le GameRand va tjrs donne le meme nombre car la seed est lié à chaque map du coup le tirage au sort est mal placer le mettre à la l'affectation sur la map (soit dans le OnSetEnabled)
+        =====> OK!
+        ====> de plus des entities parasites GOT_Start sont encore dans la liste des entités arrivant à des situations impossibles (voir pb suivant)
+
+    ✔ 16/01/2018 : GOT_Start ne sont pas retirés de la liste des entities dans World2D car pas de GOC_Detroyer
+        => créer une PurgeEntities dans World2D appelé lors des UnloadMapAt
+        ==> OK !
+
+    ✔ 08/02/2018 : impossibilité de franchir certaines entrées des caves (outerview vers innerview) en testmode en zone AnlWorldModel
+        -> probleme de generation de collider ?
+        => verifier dans une precedente version dans zone problematique => pas de pb a priori avec la precedente version 1.5
+        ==> le ShrinkSelfCommonPoints réalisé dans MapColliderGenerator::CloseContour() pose problème dans la méthode GOC_Destroyer::UpdatePositions() à cause du
+          ShrinkEpsilon appliqué pour grossir un peu les contours (afin d'éviter aux holes d'intersecter les contours)
+        ===> 09/02/2018 : solution ne pas grossir les contours, seulement rétrécir les holes et tester
+        ====> 09/02/2018 : atm ok
+
+    ✔ remettre les Lames
+        => OK en cours de test
+        => voire pour le reseau
+
+    ✔ reactivation des grapins
+        => décrocher du grapin si changement d'avatar => OK
+        => voire pour le reseau (surement à desactiver, juste pour le mode local)
+        => pouvoir monter à la corde (must have)
+        => pb de stability sur les grapins
+
+    ✔ remettre les Portals :
+        => 23/10/2017 : Reactivation avec nouveau portal
+        => pb avec RigidBody2D qui bloque le changement de worldposition
+        ==> il faut reinitialiser le RigidBody2D::bodyDef_.position dans RigidBody2D::ApplyWorldTransform pour permettre à RigidBody2D::OnMarkedDirty de bien mettre à jour box2D
+        => RAF : Population des Portals et Connection des portals entre eux (setdestination), finaliser le setdestination avec viewz
+        ==> 7/11/2017 : Ok ajout des Furnitures dont fait partie Portal, simple population sans objectif dans les dungeons, la map destination est établie au hasard
+        puis prend comme destination le premier portal disponible dans cette map; autrement prend comme destination le premier GOT_START trouvé dans la celle-ci.
+
+    ✔ Changement de ViewZ : Ajout temporisation(switchViewEnable_) dans GOC_Destroyer::UpdatePositions et check Feature sur newViewZ dans ViewManager::SwitchToViewIndex
+        -> encore des stucks possibles (02/08/2017)
+        => OK 03/08/2017 : MassCenter corrigé sur Vampire ; ajout GOC_Destroyer::IsOnTileBorder pour supprimer d'éventuels stuck par le haut si besoin (desactiver pour le moment)
+        ==> (16/10/217) réapparition du problème de stuck dans les murs lors du changement de viewZ
+        ==> 18/10/2017 : correction du problème provenant de GOC_Destroyer::GetUpdatedWorldPosition() => position du centre de masse doit être worldscaled
+        ===> Attention fonctionne bien si le RigidBody2D a l'attribut UseFixtureMass = false
+        ==> la temporisation avec switchViewEnable_ n'est plus nécessaire
+
+    ✔ GOC_PhysicsGrapin (16/10/2017) : dans Urho3D Node::GetWorldPosition2D() pose probleme avec le grapin (chaine stressée).
+        -> Surement un pb lors du GOC_PhysicsGrapin::CreateChains : les Node::SetWorldRotation2D utilisées ne permettent pas la mise
+           à jour Node::rotation2D_ (qui est ensuite utilisée par Node::GetWorldRotation2D().
+           -> ce probleme est introduit à la mise en place des Matrix2x3 (mai 2017 - aucun pb avant sur grapin)
+        => patch rapide dans Urho3D : mise à jour de Node::rotation2D_ à chaque changement sur Node::rotation_
+        ==> quantifier l'impact sur les perf.
+
+    ✔ Coffre se déclenche si entity n'est pas de type player. Les types player et Ally sont les seuls autorisés à se servir dans les coffres
+        => OK (04/08/2017) : correctif dans GOC_Detector ; prend en compte seulement la body collisionshape de type trigger.
+          Coffre ne se ferme pas apres depart du player
+        => OK (04/08/2017) : Erreur d'event dans PreLoader.xml (Go_DetectorPlayerOut ald Go_DetectorPlayerOff)
+        => Ajouter Light pour le coffre lorsqu'il s'ouvre plein, l'eteindre quand vide ou se ferme
+        => OK (04/08/2017) : Ajout de GOC_Animator2D::LightOn, GOC_Animator2D::LightOff et GOC_Animator2D::ApplyNewStateAction se déclenchant à chaque changement de state,
+          le currentState a ainsi une nouvelle possibilité de lancer une Action (en plus de celui déclenché via START_LOOP event)
+
+    ✔ Suite à l'ajout du SWIM, bug après un firstboxjump dans l'animation walk (reste en "fall") (constaté chez Petit).
+        => OK (03/08/2017) : correctif movestate dans GOC_Move2D::Update_Walk
+
+    ✔ Changement de GOC_Destroyer::GetUpdatedWorldPosition(Vector2& position) basé sur le MassCenter de RigidBody2D ald Drawable2D
+        -> (02/08/2017) : bien mettre à jour les xml des entités avec UseFixtureMass=False et MassCenter=x y (impact sur le changement de viewZ)
+
+    ✔ Suite  à l'ajout du SWIM, le vampire ne marche plus, mais vol si sur le sol
+        => OK, CANWALKONGROUND ajouter dans GOC_MOVE2D && GOC_ANIMATOR2D
+
+    ✔ activer touche spécial pour junkelspil = passage dans les murs : creer ability automount
+        => OK, Actor AddNativeAbilities et refactor Equipment
+
+    ✔ affectation de la touche manette spécial ability. utilise l'ability si avatar est autorisé
+        => OK, activé via l'equipment et holder->HasTag(ability)
+
+    ✔ pb bat : bat ne bouge pas (pb de prey ?)
+        => Les Bats se ciblaient. Interdiction pour le GOC_Detector de prendre pour target des node de meme nom
+        => OK, en Test
+
+    ✔ pb option switch mur : ajouter une routine pour empecher d'entrer dans un mur
+        => OK dans Player SwitchViewZ
+        ==> Ajouter dans ABI_CrossWalls
+
+    ✔ pb fin de mission : rewards sont données en continue à intervalle de quelques secondes si l'on n'accepte pas une nouvelle mission.
+        => ok ajout mission state IsFinished
+
+    ✔ GOB_MountOn
+        -> trouver pourquoi ne fonctionne pas après changement de level
+         => OK : pb de creation nouveau GOC_AIControl dans UpdateComponents
+
+    ✔ non affichage de l'equip sur le second joueur sauf l'armure
+        -> pb d'updateslot ou bien sur l'equipment ?
+        -> lorsque prise de collectable en direct, pas d'update dans le bagpanel, ni equipment
+        ==> OK : pb de ControllerType GO_AI_ALLY
+
+    ✔ l'attaque fantome ne detruit pas les collectables ! la bombe oui !
+        -> corriger l'attaque fantome ? pb de faction ?
+        ==> OK : pb de rbody->SetAwake; remplacer par SetAllowSleep(false)
+
+    ✔ non prise en compte de la diminution de la vie sur le client
+        ==> OK : pb Server_UpdateObjectControls, ne prenait pas en compte les nodes provenant des clients pour le PrepareControl.
+

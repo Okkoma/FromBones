@@ -163,8 +163,9 @@ void UIC_ShopPanel::SwitchInventoryTo(GOC_Inventory* inventory)
             itemTag_ = BASKETITEM;
             // no moneyslot in basket
             startSlotIndex_ = 0;
-            endSlotIndex_ = 4;
-            numSlots_ = endSlotIndex_ - startSlotIndex_ + 1;
+            endSlotIndex1_ = endSlotIndex2_ = 4;
+            numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
+            slotselector_ = startSlotIndex_;
 //            URHO3D_LOGINFOF("UIC_ShopPanel() - SwitchInventoryTo : panel=%s BASKET", name_.CString());
         }
         else
@@ -172,14 +173,15 @@ void UIC_ShopPanel::SwitchInventoryTo(GOC_Inventory* inventory)
             inventory_ = shop_;
             slotZone_ = shopZone_;
             itemTag_ = SHOPITEM;
-            if (inventorySection_ != String::EMPTY)
+            if (inventorySectionStart_ != String::EMPTY)
             {
-                startSlotIndex_ = inventory_->GetSectionStartIndex(inventorySection_);
-                endSlotIndex_ = inventory_->GetSectionEndIndex(inventorySection_);
-                numSlots_ = endSlotIndex_ - startSlotIndex_ + 1;
+                startSlotIndex_ = inventory_->GetSectionStartIndex(inventorySectionStart_);
+                endSlotIndex1_ = endSlotIndex2_ = inventory_->GetSectionEndIndex(inventorySectionEnd_);
+                numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
+                slotselector_ = startSlotIndex_;
             }
 //            URHO3D_LOGINFOF("UIC_ShopPanel() - SwitchInventoryTo : panel=%s SHOP slotzone=%u startSlotIndex=%u endSlotIndex=%u",
-//                             name_.CString(), slotZone_, startSlotIndex_, endSlotIndex_);
+//                             name_.CString(), slotZone_, startSlotIndex_, endSlotIndex2_);
         }
     }
 }
@@ -466,10 +468,10 @@ void UIC_ShopPanel::UpdatePrice()
 void UIC_ShopPanel::UpdateShopSlots(bool updateButtons, bool updateSubscribers)
 {
     // Update Shop slots
-//    URHO3D_LOGINFOF("UIC_ShopPanel() - UpdateShopSlots : start=%u to end=%u !", startSlotIndex_, endSlotIndex_);
+//    URHO3D_LOGINFOF("UIC_ShopPanel() - UpdateShopSlots : start=%u to end=%u !", startSlotIndex_, endSlotIndex2_);
 
     SwitchInventoryTo(shop_);
-    for (unsigned i=startSlotIndex_; i<=endSlotIndex_; ++i)
+    for (unsigned i = startSlotIndex_; i <= endSlotIndex2_; ++i)
         UpdateSlot(i, updateButtons, updateSubscribers);
 }
 
@@ -479,7 +481,7 @@ void UIC_ShopPanel::UpdateBasketSlots(bool updateButtons, bool updateSubscribers
 //    URHO3D_LOGINFOF("UIC_ShopPanel() - UpdateBasketSlots !");
 
     SwitchInventoryTo(basket_);
-    for (unsigned i=0; i < 5; ++i)
+    for (unsigned i = 0; i < 5; ++i)
         UpdateSlot(i, updateButtons, updateSubscribers);
 
     updatePrice_ = true;

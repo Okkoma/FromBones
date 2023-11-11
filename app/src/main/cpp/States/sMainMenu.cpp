@@ -50,7 +50,7 @@
 #include "sMainMenu.h"
 
 
-const int numMenuChoices_ = 3;
+const int numMenuChoices_ = 2;
 
 WeakPtr<Node> titlescene_;
 Scene* rootScene_;
@@ -58,9 +58,8 @@ UI* ui_;
 
 int menustate_ = 0, lastmenustate_ = 0;
 bool drawDebug_;
-IntRect startRect_, arenaRect_, worldRect_;
+IntRect arenaRect_, worldRect_;
 
-Node* buttonsolo = 0;
 Node* buttonarena = 0;
 Node* buttonworld = 0;
 
@@ -247,7 +246,6 @@ void MenuState::CreateScene()
     }
 #endif // ACTIVE_WEATHEREFFECTS
 
-    buttonsolo = mainscene->GetChild("ButtonSolo");
     buttonarena = mainscene->GetChild("ButtonArena");
     buttonworld = mainscene->GetChild("ButtonWorld");
 
@@ -339,34 +337,22 @@ void MenuState::UpdateAnimButtons()
     {
         Node* skel = titlescene_->GetChild("MainScene")->GetChild("Skel");
         if (skel) skel->GetComponent<AnimatedSprite2D>()->SetAnimation("idle");
-        if (buttonsolo) buttonsolo->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
-        if (buttonarena) buttonarena->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
-        if (buttonworld) buttonworld->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
-    }
-    // SOLO on
-    else if (menustate_ == 1)
-    {
-        Node* skel = titlescene_->GetChild("MainScene")->GetChild("Skel");
-        if (skel) skel->GetComponent<AnimatedSprite2D>()->SetAnimation("light_on");
-        if (buttonsolo) buttonsolo->GetComponent<AnimatedSprite2D>()->SetAnimation("on");
         if (buttonarena) buttonarena->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
         if (buttonworld) buttonworld->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
     }
     // ARENA on
-    else if (menustate_ == 2)
+    else if (menustate_ == 1)
     {
         Node* skel = titlescene_->GetChild("MainScene")->GetChild("Skel");
         if (skel) skel->GetComponent<AnimatedSprite2D>()->SetAnimation("idle");
-        if (buttonsolo) buttonsolo->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
         if (buttonarena) buttonarena->GetComponent<AnimatedSprite2D>()->SetAnimation("on");
         if (buttonworld) buttonworld->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
     }
     // WORLD on
-    else if (menustate_ == 3)
+    else if (menustate_ == 2)
     {
         Node* skel = titlescene_->GetChild("MainScene")->GetChild("Skel");
         if (skel) skel->GetComponent<AnimatedSprite2D>()->SetAnimation("idle");
-        if (buttonsolo) buttonsolo->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
         if (buttonarena) buttonarena->GetComponent<AnimatedSprite2D>()->SetAnimation("off");
         if (buttonworld) buttonworld->GetComponent<AnimatedSprite2D>()->SetAnimation("on");
     }
@@ -376,18 +362,6 @@ void MenuState::UpdateAnimButtons()
 
 void MenuState::SetMenuColliderPositions()
 {
-    if (buttonsolo)
-    {
-        AnimatedSprite2D* startbutton = buttonsolo->GetComponent<AnimatedSprite2D>();
-        if (!startbutton->GetWorldBoundingBox().Defined())
-        {
-            URHO3D_LOGERRORF("MenuState() - SetMenuColliderPositions : soloButton wbox=%s !", startbutton->GetWorldBoundingBox().ToString().CString());
-            startbutton->MarkDirty();
-        }
-        GameHelpers::OrthoWorldToScreen(startRect_, startbutton->GetWorldBoundingBox());
-        URHO3D_LOGINFOF("MenuState() - SetMenuColliderPositions : solobutton=%s !", startRect_.ToString().CString());
-    }
-
     if (buttonarena)
     {
         AnimatedSprite2D* arenabutton = buttonarena->GetComponent<AnimatedSprite2D>();
@@ -450,7 +424,7 @@ void MenuState::UnsubscribeToMenuEvents()
 void MenuState::BeginNewLevel(GameLevelMode mode, unsigned seed)
 {
     URHO3D_LOGINFO("MenuState() - ---------------------------------------");
-    URHO3D_LOGINFOF("MenuState() - BeginNewLevel : %s              -", levelModeNames[mode]);
+    URHO3D_LOGINFOF("MenuState() - BeginNewLevel : %s seed=%u          -", levelModeNames[mode], seed);
     URHO3D_LOGINFO("MenuState() - ---------------------------------------");
 
     GameContext::Get().ResetGameStates();
@@ -506,35 +480,15 @@ void MenuState::Launch(int selection)
 
     switch (selection)
     {
-    // SOLO
-    case 1:
-        BeginNewLevel(LVL_NEW);
-        break;
-
     // ARENA
-    case 2:
+    case 1:
         if (IsNetworkReady())
             BeginNewLevel(LVL_ARENA);
         break;
 
-    // TEST
-    case 3:
+    // WORLD
+    case 2:
         BeginNewLevel(LVL_TEST);
-        break;
-
-    // LOAD
-    case 4:
-        BeginNewLevel(LVL_LOAD);
-        break;
-
-    // CREATE
-    case 5:
-        BeginNewLevel(LVL_CREATE);
-        break;
-
-    // QUIT
-    case 6:
-        Quit();
         break;
     }
 
@@ -615,21 +569,11 @@ void MenuState::HandleMenu(StringHash eventType, VariantMap& eventData)
             position.y_ = eventData[TouchBegin::P_Y].GetInt();
         }
 
-        if (startRect_.IsInside(position) == INSIDE)
+        if (arenaRect_.IsInside(position) == INSIDE)
         {
             if (menustate_ != 1)
             {
                 menustate_ = 1;
-                move = 1;
-            }
-            launch = (lastmenustate_ == menustate_ && eventType == E_TOUCHEND);// && eventData[TouchBegin::P_PRESSURE].GetFloat() > 0.7f);
-            if (eventType == E_TOUCHBEGIN) lastmenustate_ = menustate_;
-        }
-        else if (arenaRect_.IsInside(position) == INSIDE)
-        {
-            if (menustate_ != 2)
-            {
-                menustate_ = 2;
                 move = 1;
             }
             launch = (eventType == E_TOUCHEND);// && eventData[TouchBegin::P_PRESSURE].GetFloat() > 0.7f);
@@ -637,9 +581,9 @@ void MenuState::HandleMenu(StringHash eventType, VariantMap& eventData)
         }
         else if (worldRect_.IsInside(position) == INSIDE)
         {
-            if (menustate_ != 3)
+            if (menustate_ !=2)
             {
-                menustate_ = 3;
+                menustate_ = 2;
                 move = 1;
             }
             launch = (eventType == E_TOUCHEND);// && eventData[TouchBegin::P_PRESSURE].GetFloat() > 0.7f);
@@ -679,7 +623,7 @@ void MenuState::HandleMenu(StringHash eventType, VariantMap& eventData)
 
             move = abs(motion) >= 0.9f ? (motion < 0.f ? -1 : 1) : 0;
             if (move)
-                URHO3D_LOGINFOF("MenuState() - HandleMenu JoystickAxisMove on joyid=%d axis=%d motion=%f(%f)",
+                URHO3D_LOGINFOF("MenuState() - HandleMenu JoystickAxisMove on joyid=%d axis=%d motion=%F(%F)",
                                 joyid, axis, motion, joystick->GetAxisPosition(axis));
         }
 
@@ -689,27 +633,20 @@ void MenuState::HandleMenu(StringHash eventType, VariantMap& eventData)
 
             move = motion != 0.f ? (motion < 3.f ? -1 : 1) : 0;
             if (move)
-                URHO3D_LOGINFOF("MenuState() - HandleMenu JoystickHatMove motion=%f", motion);
+                URHO3D_LOGINFOF("MenuState() - HandleMenu JoystickHatMove motion=%F", motion);
         }
 
         if (move != 0)
         {
             menustate_ = menustate_ + move;
 
-            if (menustate_ > numMenuChoices_)
+            if (menustate_ >= numMenuChoices_)
             {
-                menustate_ = 1;
+                menustate_ = 2;
             }
             else if (menustate_ <= 0)
             {
-                menustate_ = numMenuChoices_;
-            }
-            if (menustate_ == 1 && !buttonsolo)
-            {
-                if (move == -1)
-                    menustate_ = numMenuChoices_;
-                else
-                    menustate_ = 2;
+                menustate_ = 1;
             }
         }
     }
@@ -869,7 +806,6 @@ void MenuState::OnPostRenderUpdate(StringHash eventType, VariantMap& eventData)
 
         // For Debugging GameHelpers::OrthoWorldToScreen : Ok finished!
 
-        GameHelpers::DrawDebugUIRect(startRect_, Color::BLUE);
         GameHelpers::DrawDebugUIRect(arenaRect_, Color::BLUE);
         GameHelpers::DrawDebugUIRect(worldRect_, Color::BLUE);
         if (buttonarena)

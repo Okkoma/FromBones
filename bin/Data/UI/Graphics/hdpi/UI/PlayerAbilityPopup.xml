@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<element>
+    <attribute name="Name" value="Abilities" />
+    <attribute name="Size" value="400 100" />
+    <attribute name="Layout Mode" value="Free" />
+    <attribute name="Focus Mode" value="Focusable" />
+	<element type="BorderImage">
+		<attribute name="Name" value="I_Select" />
+		<attribute name="Sprite" value="UI/game_equipment.xml@slothalo" />
+		<attribute name="Color" value="1 1 1" />
+		<attribute name="Priority" value="110" />
+		<attribute name="Opacity" value="0.8" />
+		<attribute name="Is Visible" value="false" />
+	</element>  
+	<element>
+		<attribute name="Name" value="SlotZone" />
+		<attribute name="Layout Mode" value="Horizontal" />
+		<attribute name="Layout Spacing" value="4" />
+		<attribute name="Vert Alignment" value="Center" />
+		<element type="Button">
+			<attribute name="Name" value="Abi_1" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="64 64" />
+                <attribute name="Max Size" value="64 64" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_2" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Horiz Alignment" value="Center" />                  
+                <attribute name="Min Size" value="64 64" />
+                <attribute name="Max Size" value="64 64" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_3" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="64 64" />
+                <attribute name="Max Size" value="64 64" />
+            </element>
+		</element>
+			<element type="Button">
+			<attribute name="Name" value="Abi_4" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="64 64" />
+                <attribute name="Max Size" value="64 64" />
+            </element>
+		</element>
+		<element type="Button">
+			<attribute name="Name" value="Abi_5" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />
+			<attribute name="Hover Image Offset" value="0 0" />
+			<attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Min Size" value="64 64" />
+                <attribute name="Max Size" value="64 64" />
+            </element>
+		</element>
+	</element>
+</element>

@@ -3,8 +3,8 @@
     <attribute name="Name" value="Options" />
     <attribute name="Is Movable" value="true" />
     <attribute name="Is Resizable" value="false" />
-    <attribute name="Min Size" value="782 582" />
-    <attribute name="Max Size" value="782 582" />
+    <attribute name="Min Size" value="782 607" />
+    <attribute name="Max Size" value="782 607" />
     <attribute name="Layout Mode" value="Vertical" />
     <attribute name="Layout Spacing" value="10" />
     <attribute name="Layout Border" value="6 6 6 6" />
@@ -21,14 +21,11 @@
             <attribute name="Name" value="TitleText" />
             <attribute name="Text" value="Options" />
         </element>
-        <element type="Button" >
+        <element type="Button">
             <attribute name="Name" value="closebutton" />
             <attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
             <attribute name="Sprite Hover" value="icon_close_on" />
-            <!-- <attribute name="Texture" value="Texture2D;Textures/game_equipment.png" />
-            <attribute name="Image Rect" value="192 135 224 167" /> -->
             <attribute name="Pressed Image Offset" value="0 0" />
-            <!-- <attribute name="Hover Image Offset" value="33 0" /> -->
             <attribute name="Min Size" value="32 32" />
             <attribute name="Max Size" value="32 32" />
             <attribute name="Focus Mode" value="NotFocusable" />
@@ -40,8 +37,8 @@
     <element>
         <attribute name="Layout Mode" value="Horizontal" />
         <attribute name="Layout Spacing" value="10" />
-        <attribute name="Min Size" value="776 410" />
-        <attribute name="Max Size" value="776 410" />
+        <attribute name="Min Size" value="776 425" />
+        <attribute name="Max Size" value="776 425" />
         <attribute name="Horiz Alignment" value="Center" />
         <attribute name="Vert Alignment" value="Center" />
 
@@ -108,8 +105,8 @@
         <element>
             <attribute name="Name" value="Content" />
             <attribute name="Layout Mode" value="Free" />
-            <attribute name="Min Size" value="566 410" />
-            <attribute name="Max Size" value="566 410" />
+            <attribute name="Min Size" value="566 425" />
+            <attribute name="Max Size" value="566 425" />
 
             <!-- Content of the category "Game" -->
             <element>
@@ -179,18 +176,20 @@
                         <attribute name="Name" value="WorldName" />
                         <attribute name="Min Size" value="170 50" />
                         <attribute name="Max Size" value="170 50" />
-                        <attribute name="Resize Popup" value="true" />                      
+                        <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="TestZone2" />
-                                            <attribute name="Is Editable" value="false" />                                         
+                                            <attribute name="Is Editable" value="false" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="Custom" />
                                             <attribute name="Is Editable" value="true" />
                                         </element>
@@ -198,7 +197,7 @@
                                 </element>
                             </element>
                         </element>
-                    </element>                                       
+                    </element>
                 </element>
 
                 <element>
@@ -220,9 +219,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -260,9 +259,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -279,7 +278,7 @@
                                         </element>
                                         <element type="Text" style="OptionDropDownSelectorText">
                                             <attribute name="Text" value="Huge" />
-                                        </element>                                                                                
+                                        </element>
                                     </element>
                                 </element>
                             </element>
@@ -305,23 +304,26 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
                                             <attribute name="Text" value="Random" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="1000" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="2000" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="66536" />
-                                        </element>                                        
+                                        </element>
                                     </element>
                                 </element>
                             </element>
@@ -341,13 +343,13 @@
                         <attribute name="Text" value="" />
                         <attribute name="Text Alignment" value="Left" />
                     </element>
-                    <element type="BorderImage" >
+                    <element type="BorderImage">
                         <attribute name="Min Size" value="170 170" />
                         <attribute name="Max Size" value="170 170" />
                         <attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
                         <attribute name="Border" value="4 4 4 4" />
                         <attribute name="Resize Border" value="8 8 8 8" />
-                        <element type="Button" >
+                        <element type="Button">
                             <attribute name="Name" value="WorldSnapShot" />
                             <attribute name="Min Size" value="160 160" />
                             <attribute name="Max Size" value="160 160" />
@@ -390,15 +392,53 @@
                 <attribute name="Layout Spacing" value="25" />
                 <attribute name="Horiz Alignment" value="Center" />
                 <attribute name="Vert Alignment" value="Center" />
-                <attribute name="Min Size" value="566 125" />
-                <attribute name="Max Size" value="566 350" />
+                <attribute name="Min Size" value="566 175" />
+                <attribute name="Max Size" value="566 425" />
+
+                <!-- "MultiViews" -->
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="450 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="140 50" />
+                        <attribute name="Max Size" value="240 50" />
+                        <attribute name="Text" value="MultiViews" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="MultiViews" />
+                        <attribute name="Min Size" value="200 50" />
+                        <attribute name="Max Size" value="200 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="Off" />
+                                        </element>
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="On" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
 
                 <!-- "NumPlayers" -->
                 <element>
                     <attribute name="Min Size" value="350 50" />
                     <attribute name="Max Size" value="450 50" />
                     <attribute name="Horiz Alignment" value="Center" />
-                    <!-- <attribute name="Vert Alignment" value="Center" /> -->
                     <attribute name="Layout Mode" value="Horizontal" />
                     <attribute name="Layout Spacing" value="10" />
                     <element type="Text" style="OptionText">
@@ -413,21 +453,25 @@
                         <attribute name="Max Size" value="200 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="1" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="2" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="3" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="4" />
                                         </element>
                                     </element>
@@ -442,7 +486,6 @@
                     <attribute name="Min Size" value="350 50" />
                     <attribute name="Max Size" value="450 50" />
                     <attribute name="Horiz Alignment" value="Center" />
-                    <!-- <attribute name="Vert Alignment" value="Center" /> -->
                     <attribute name="Layout Mode" value="Horizontal" />
                     <attribute name="Layout Spacing" value="10" />
                     <element type="Text" style="OptionText">
@@ -457,9 +500,9 @@
                         <attribute name="Max Size" value="140 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -485,6 +528,7 @@
                         <attribute name="Max Size" value="50 50" />
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="..." />
+                            <attribute name="Auto Localizable" value="false" />
                         </element>
                     </element>
                 </element>
@@ -508,9 +552,9 @@
                         <attribute name="Max Size" value="140 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -539,6 +583,7 @@
                         <attribute name="Max Size" value="50 50" />
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="..." />
+                            <attribute name="Auto Localizable" value="false" />
                         </element>
                     </element>
                 </element>
@@ -562,9 +607,9 @@
                         <attribute name="Max Size" value="140 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -593,6 +638,7 @@
                         <attribute name="Max Size" value="50 50" />
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="..." />
+                            <attribute name="Auto Localizable" value="false" />
                         </element>
                     </element>
                 </element>
@@ -616,9 +662,9 @@
                         <attribute name="Max Size" value="140 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="1" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -647,6 +693,7 @@
                         <attribute name="Max Size" value="50 50" />
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="..." />
+                            <attribute name="Auto Localizable" value="false" />
                         </element>
                     </element>
                 </element>
@@ -692,7 +739,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="Z" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -715,7 +762,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="S" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -738,7 +785,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="Q" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -761,7 +808,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="D" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -784,7 +831,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="Space" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -814,7 +861,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="F" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -837,7 +884,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="E" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -860,7 +907,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="R" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -883,7 +930,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="A" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -906,7 +953,7 @@
                                 <attribute name="Min Size" value="105 45" />
                                 <attribute name="Max Size" value="105 45" />
                                 <attribute name="Horiz Alignment" value="Center" />
-                                <element type="Text" style="OptionText22">
+                                <element type="Text" style="OptionText16_NoL10">
                                     <attribute name="Text" value="X" />
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
@@ -926,7 +973,6 @@
                         <attribute name="Name" value="ResetControl" />
                         <attribute name="Min Size" value="100 50" />
                         <attribute name="Max Size" value="100 50" />
-                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="Reset" />
                             <attribute name="Text Alignment" value="Center" />
@@ -936,7 +982,6 @@
                         <attribute name="Name" value="ApplyControl" />
                         <attribute name="Min Size" value="100 50" />
                         <attribute name="Max Size" value="100 50" />
-                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="Apply" />
                             <attribute name="Text Alignment" value="Center" />
@@ -946,14 +991,12 @@
                         <attribute name="Name" value="Player" />
                         <attribute name="Min Size" value="100 50" />
                         <attribute name="Max Size" value="100 50" />
-                        <!-- <attribute name="Horiz Alignment" value="Center" /> -->
                         <element type="Text" style="OptionText">
                             <attribute name="Text" value="Close" />
                             <attribute name="Text Alignment" value="Center" />
                         </element>
                     </element>
                 </element>
-
             </element>
 
             <!-- Content of the category "Interface" -->
@@ -984,15 +1027,17 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="English" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="Francais" />
                                         </element>
                                     </element>
@@ -1020,24 +1065,29 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="2" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="50" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="100" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="150" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="200" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="250" />
                                         </element>
                                     </element>
@@ -1046,7 +1096,6 @@
                         </element>
                     </element>
                 </element>
-
             </element>
 
             <!-- Content of the category "Graphics" -->
@@ -1098,9 +1147,9 @@
                         <attribute name="Max Size" value="250 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1132,26 +1181,30 @@
                         <attribute name="Name" value="TextureQuality" />
 
                         <attribute name="Is Enabled" value="false" />
-                        
+
                         <attribute name="Min Size" value="170 50" />
                         <attribute name="Max Size" value="250 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="2" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="Low" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="Med" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="High" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="Max" />
                                         </element>
                                     </element>
@@ -1179,9 +1232,9 @@
                         <attribute name="Max Size" value="250 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="2" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1218,9 +1271,9 @@
                         <attribute name="Max Size" value="250 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1265,27 +1318,32 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
                                             <attribute name="Text" value="None" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="1" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="2" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="3" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="4" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="5" />
                                         </element>
                                     </element>
@@ -1313,27 +1371,32 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
                                             <attribute name="Text" value="None" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="1" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="2" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="3" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="4" />
                                         </element>
-                                        <element type="Text" style="OptionDropDownSelectorText_NoL10">
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="5" />
                                         </element>
                                     </element>
@@ -1372,9 +1435,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1408,9 +1471,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1444,9 +1507,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1480,9 +1543,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1516,9 +1579,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1552,9 +1615,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1569,7 +1632,7 @@
                         </element>
                     </element>
                 </element>
-                
+
                 <element>
                     <attribute name="Min Size" value="350 50" />
                     <attribute name="Max Size" value="450 50" />
@@ -1588,9 +1651,9 @@
                         <attribute name="Max Size" value="170 50" />
                         <attribute name="Resize Popup" value="true" />
                         <attribute name="Selection" value="0" />
-                        <element type="Window" popup="true" internal="true" >
-                            <element type="ListView" internal="true" >
-                                <element type="BorderImage" internal="true" >
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
                                     <element internal="true" style="none">
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text" style="OptionDropDownSelectorText">
@@ -1605,8 +1668,8 @@
                         </element>
                     </element>
                 </element>
-                
-<!--
+
+                <!--
                 <element type="Button" style="OptionButton">
                     <attribute name="Name" value="ResetMaps" />
                     <attribute name="Min Size" value="350 50" />
@@ -1626,7 +1689,7 @@
                         <attribute name="Text" value="SaveMapsFeatures" />
                     </element>
                 </element>
--->
+                -->
             </element>
         </element>
     </element>
@@ -1634,7 +1697,7 @@
     <element>
         <attribute name="Min Size" value="770 50" />
         <attribute name="Max Size" value="770 50" />
-        <element type="Button" >
+        <element type="Button">
             <attribute name="Name" value="applybutton" />
             <attribute name="Sprite" value="UI/game_equipment.xml@markcheck1" />
             <attribute name="Sprite Hover" value="markcheck0" />

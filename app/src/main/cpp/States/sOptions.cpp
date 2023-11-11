@@ -113,6 +113,7 @@ enum OptionParameters
     OPTION_WorldModel,
     OPTION_WorldSize,
     OPTION_WorldSeed,
+    OPTION_MultiViews,
     OPTION_NumPlayers,
     OPTION_ControlP1,
     OPTION_ControlP2,
@@ -151,6 +152,7 @@ OptionParameter optionParameters_[OPTION_NUMPARAMETERS] =
     OptionParameter("WorldModel"),
     OptionParameter("WorldSize"),
     OptionParameter("WorldSeed"),
+    OptionParameter("MultiViews"),
     OptionParameter("NumPlayers"),
     OptionParameter("ControlP1"),
     OptionParameter("ControlP2"),
@@ -607,57 +609,56 @@ void OptionState::ResetToCurrentConfigControlKeys()
     tempbuttonsmap = GameContext::Get().buttonsMap_;
 }
 
-void OptionState::ResetToDefaultConfigControlKeys(int configid)
+void OptionState::ResetToDefaultConfigControlKeys(int controlid)
 {
-    if (GameContext::Get().playerState_[configid].controltype == CT_KEYBOARD)
+    if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
     {
-        tempkeysmap[configid] = PODVector<int>(GameContext::Get().defaultkeysMap_[configid], MAX_NUMACTIONS);
+        tempkeysmap[controlid] = PODVector<int>(GameContext::Get().defaultkeysMap_[controlid], MAX_NUMACTIONS);
     }
-    else if (GameContext::Get().playerState_[configid].controltype == CT_JOYSTICK)
+    else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
     {
-        configid = GameContext::Get().joystickIndexes_[configid] != -1 ? GameContext::Get().joystickIndexes_[configid] : 0;
-        tempbuttonsmap[configid] = PODVector<int>(GameContext::Get().defaultbuttonsMap_[configid], MAX_NUMACTIONS);
+        int joyid = GameContext::Get().joystickIndexes_[controlid] != -1 ? GameContext::Get().joystickIndexes_[controlid] : 0;
+        tempbuttonsmap[joyid] = PODVector<int>(GameContext::Get().defaultbuttonsMap_[joyid], MAX_NUMACTIONS);
     }
 }
 
-void OptionState::ResetToCurrentConfigControlKeys(int configid)
+void OptionState::ResetToCurrentConfigControlKeys(int controlid)
 {
-    if (GameContext::Get().playerState_[configid].controltype == CT_KEYBOARD)
+    if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
     {
-        tempkeysmap[configid] = GameContext::Get().keysMap_[configid];
+        tempkeysmap[controlid] = GameContext::Get().keysMap_[controlid];
     }
-    else if (GameContext::Get().playerState_[configid].controltype == CT_JOYSTICK)
+    else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
     {
-        configid = GameContext::Get().joystickIndexes_[configid] != -1 ? GameContext::Get().joystickIndexes_[configid] : 0;
-        tempbuttonsmap[configid] = GameContext::Get().buttonsMap_[configid];
+        int joyid = GameContext::Get().joystickIndexes_[controlid] != -1 ? GameContext::Get().joystickIndexes_[controlid] : 0;
+        tempbuttonsmap[joyid] = GameContext::Get().buttonsMap_[joyid];
     }
 }
 
-void OptionState::ApplyConfigControlKeys(int configid)
+void OptionState::ApplyConfigControlKeys(int controlid)
 {
-    if (GameContext::Get().playerState_[configid].controltype == CT_KEYBOARD)
+    if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
     {
-        GameContext::Get().keysMap_[configid] = tempkeysmap[configid];
+        GameContext::Get().keysMap_[controlid] = tempkeysmap[controlid];
         for (int action=0; action < MAX_NUMACTIONS; action++)
-            GameContext::Get().playerState_[configid].keys[action] = tempkeysmap[configid][action];
+            GameContext::Get().playerState_[controlid].keys[action] = tempkeysmap[controlid][action];
     }
-    else if (GameContext::Get().playerState_[configid].controltype == CT_JOYSTICK)
+    else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
     {
-        configid = GameContext::Get().joystickIndexes_[configid] != -1 ? GameContext::Get().joystickIndexes_[configid] : 0;
-        GameContext::Get().buttonsMap_[configid] = tempbuttonsmap[configid];
+        int joyid = GameContext::Get().joystickIndexes_[controlid] != -1 ? GameContext::Get().joystickIndexes_[controlid] : 0;
+        GameContext::Get().buttonsMap_[joyid] = tempbuttonsmap[joyid];
         for (int action=0; action < MAX_NUMACTIONS; action++)
-            GameContext::Get().playerState_[configid].joybuttons[action] = tempbuttonsmap[configid][action];
+            GameContext::Get().playerState_[controlid].joybuttons[action] = tempbuttonsmap[joyid][action];
     }
 }
 
-void OptionState::UpdateConfigControls(int configid)
+void OptionState::UpdateConfigControls(int controlid)
 {
-    URHO3D_LOGINFOF("OptionState() - UpdateConfigControls ... %d", configid);
+    URHO3D_LOGINFOF("OptionState() - UpdateConfigControls ... %d", controlid);
 
     UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
 
-    if (GameContext::Get().playerState_[configid].controltype == CT_JOYSTICK)
-        configid = GameContext::Get().joystickIndexes_[configid] != -1 ? GameContext::Get().joystickIndexes_[configid] : 0;
+    int joyid = GameContext::Get().joystickIndexes_[controlid] != -1 ? GameContext::Get().joystickIndexes_[controlid] : 0;
 
     for (int action=0; action < MAX_NUMACTIONS; action++)
     {
@@ -665,14 +666,14 @@ void OptionState::UpdateConfigControls(int configid)
         Button* actionbutton = configcontrolframe->GetChildStaticCast<Button>(actionname, true);
         Text* actiontext = actionbutton->GetChildStaticCast<Text>(0);
 
-        if (GameContext::Get().playerState_[configid].controltype == CT_KEYBOARD)
+        if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
         {
-            int key = GameContext::Get().input_->GetKeyFromScancode(tempkeysmap[configid][action]);
+            int key = GameContext::Get().input_->GetKeyFromScancode(tempkeysmap[controlid][action]);
             actiontext->SetText(GameContext::Get().input_->GetKeyName(key));
         }
-        else if (GameContext::Get().playerState_[configid].controltype == CT_JOYSTICK)
+        else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
         {
-            int button = tempbuttonsmap[configid][action];
+            int button = tempbuttonsmap[joyid][action];
             actiontext->SetText(String(button));
         }
     }
@@ -725,6 +726,16 @@ void OptionState::SynchronizeParameters()
             fontsize = 22;
         else
             fontsize = 32;
+    }
+
+    if (optionParameters_[OPTION_MultiViews].control_)
+    {
+    #if defined(URHO3D_VULKAN)
+        GameContext::Get().gameConfig_.multiviews_ = false;
+        optionParameters_[OPTION_MultiViews].control_->SetEnabled(false);
+    #endif
+        optionParameters_[OPTION_MultiViews].control_->SetSelection(GameContext::Get().gameConfig_.multiviews_);
+//        ApplyNumPlayers();
     }
 
     if (optionParameters_[OPTION_NumPlayers].control_)
@@ -1119,6 +1130,9 @@ void OptionState::SubscribeToEvents()
 
     // Player
 
+    if (optionParameters_[OPTION_MultiViews].control_)
+        SubscribeToEvent(optionParameters_[OPTION_MultiViews].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleMultiViewsChanged));
+
     if (optionParameters_[OPTION_NumPlayers].control_)
         SubscribeToEvent(optionParameters_[OPTION_NumPlayers].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleNumPlayersChanged));
 
@@ -1279,6 +1293,9 @@ void OptionState::UnsubscribeToEvents()
         UnsubscribeFromEvent(worldsnapshotimage, E_CLICKEND);
 
     // Player
+
+    if (optionParameters_[OPTION_MultiViews].control_)
+        UnsubscribeFromEvent(optionParameters_[OPTION_MultiViews].control_, E_ITEMSELECTED);
 
     if (optionParameters_[OPTION_NumPlayers].control_)
         UnsubscribeFromEvent(optionParameters_[OPTION_NumPlayers].control_, E_ITEMSELECTED);
@@ -1476,58 +1493,34 @@ void OptionState::HandleCaptureKey(StringHash eventType, VariantMap& eventData)
 
     UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
     Text* text = configcontrolframe->GetChildStaticCast<Button>(String(ActionNames_[currentActionButton_]), true)->GetChildStaticCast<Text>(0);
-    text->SetText(GameContext::Get().input_->GetKeyName(key));
+    text->SetText(GameContext::Get().input_->GetKeyName(GameContext::Get().input_->GetKeyFromScancode(scancode)));
+//    text->SetText(GameContext::Get().input_->GetScancodeName(scancode));
     text->SetColor(Color::WHITE);
+
+    URHO3D_LOGINFOF("OptionState() - HandleCaptureJoyButton ...  Capture Key '%s' keycode=%s(%d) scancode=%s(%d) !",
+                     text->GetText().CString(), GameContext::Get().input_->GetKeyName(key).CString(), key,
+                     GameContext::Get().input_->GetScancodeName(scancode).CString(), scancode);
 }
 
 void OptionState::HandleCaptureJoyButton(StringHash eventType, VariantMap& eventData)
 {
+    URHO3D_LOGINFOF("OptionState() - HandleCaptureJoyButton ...  Capture Key !");
     UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
 
     int button = eventData[JoystickButtonDown::P_BUTTON].GetInt();
-    tempbuttonsmap[currentPlayerID_-1][currentActionButton_] = button;
+    int joyid = GameContext::Get().joystickIndexes_[currentPlayerID_-1] != -1 ? GameContext::Get().joystickIndexes_[currentPlayerID_-1] : 0;
+    tempbuttonsmap[joyid][currentActionButton_] = button;
 
     UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
     Text* text = configcontrolframe->GetChildStaticCast<Button>(String(ActionNames_[currentActionButton_]), true)->GetChildStaticCast<Text>(0);
     text->SetText(String(button));
     text->SetColor(Color::WHITE);
-
-//URHO3D_EVENT(E_JOYSTICKBUTTONDOWN, JoystickButtonDown)
-//{
-//    URHO3D_PARAM(P_JOYSTICKID, JoystickID);        // int
-//    URHO3D_PARAM(P_BUTTON, Button);                // int
-//}
-//
-///// Joystick button released.
-//URHO3D_EVENT(E_JOYSTICKBUTTONUP, JoystickButtonUp)
-//{
-//    URHO3D_PARAM(P_JOYSTICKID, JoystickID);        // int
-//    URHO3D_PARAM(P_BUTTON, Button);                // int
-//}
-//
-///// Joystick axis moved.
-//URHO3D_EVENT(E_JOYSTICKAXISMOVE, JoystickAxisMove)
-//{
-//    URHO3D_PARAM(P_JOYSTICKID, JoystickID);        // int
-//    URHO3D_PARAM(P_AXIS, Button);                  // int
-//    URHO3D_PARAM(P_POSITION, Position);            // float
-//}
-//
-///// Joystick POV hat moved.
-//URHO3D_EVENT(E_JOYSTICKHATMOVE, JoystickHatMove)
-//{
-//    URHO3D_PARAM(P_JOYSTICKID, JoystickID);        // int
-//    URHO3D_PARAM(P_HAT, Button);                   // int
-//    URHO3D_PARAM(P_POSITION, Position);            // int
-//}
 }
-
 
 void OptionState::HandleApplyParameters(StringHash eventType, VariantMap& eventData)
 {
     ApplyParameters();
 }
-
 
 void OptionState::HandleCloseFrame(StringHash eventType, VariantMap& eventData)
 {
@@ -2020,6 +2013,16 @@ void OptionState::ApplyWorldChange()
 
 // Player Category Handle
 
+void OptionState::HandleMultiViewsChanged(StringHash eventType, VariantMap& eventData)
+{
+    if (optionParameters_[OPTION_MultiViews].control_->GetSelection() != GameContext::Get().gameConfig_.multiviews_)
+    {
+        GameContext::Get().gameConfig_.multiviews_ = optionParameters_[OPTION_MultiViews].control_->GetSelection();
+
+        URHO3D_LOGINFOF("OptionState() - HandleMultiViewsChanged ... ");
+    }
+}
+
 void OptionState::HandleNumPlayersChanged(StringHash eventType, VariantMap& eventData)
 {
     if (optionParameters_[OPTION_NumPlayers].control_->GetSelection()+1 != GameContext::Get().numPlayers_)
@@ -2041,7 +2044,9 @@ void OptionState::HandleControlP1Changed(StringHash eventType, VariantMap& event
         if (GameContext::Get().players_[0])
             GameContext::Get().players_[0]->UpdateControls(true);
 
+
         URHO3D_LOGINFOF("OptionState() - HandleControlP1Changed ... controltype=%d !", GameContext::Get().playerState_[0].controltype);
+
     }
 }
 

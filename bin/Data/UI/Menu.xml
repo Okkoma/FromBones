@@ -75,7 +75,7 @@
 		</component>
 	</node>
 
-<!--
+	<!--
 	<node>
 		<attribute name="Is Enabled" value="false" />
 		<attribute name="Name" value="ButtonSolo" />

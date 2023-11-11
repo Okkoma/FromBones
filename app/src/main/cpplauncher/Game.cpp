@@ -637,17 +637,20 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
     return fileName;
 }
 
+#ifdef __LINUX__
 #include <link.h>
-
 int loadedSOcallback(struct dl_phdr_info *info, size_t size, void *data)
 {
     URHO3D_LOGINFOF("Game() - %s used", info->dlpi_name);
     return 0;
 }
+#endif
 
 void ShowLoadedSo()
 {
+#ifdef __LINUX__
     dl_iterate_phdr(loadedSOcallback, 0);
+#endif
 }
 
 void Game::Start()

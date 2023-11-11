@@ -4826,7 +4826,7 @@ void AnimatorEditor::UpdateTimelineInfos()
         static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(timeline->name_);
         Spriter::BoneTimelineKey* tKey = static_cast<Spriter::BoneTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
         static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(tKey->id_) + String(" - time : ") + String(tKey->time_));
-        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[tKey->curveType_]));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Urho3D::Spriter::SpriterData::GetCurveTypeStr(tKey->curveType_)));
         static_cast<Text*>(timelineInfoContainer->GetChild(3)->GetChild(1))->SetText(String(tKey->info_.x_) + " " + String(tKey->info_.y_));
         static_cast<Text*>(timelineInfoContainer->GetChild(4)->GetChild(1))->SetText(String(tKey->info_.angle_));
         static_cast<Text*>(timelineInfoContainer->GetChild(5)->GetChild(1))->SetText(String(tKey->info_.scaleX_) + " " + String(tKey->info_.scaleY_));
@@ -4843,7 +4843,7 @@ void AnimatorEditor::UpdateTimelineInfos()
         static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(timeline->name_);
         Spriter::SpriteTimelineKey* tKey = static_cast<Spriter::SpriteTimelineKey*>(timeline->GetTimeKey(editedAnimatedSprite_->GetCurrentAnimationTime()));
         static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(tKey->id_) + String(" - time : ") + String(tKey->time_));
-        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[tKey->curveType_]));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Urho3D::Spriter::SpriterData::GetCurveTypeStr(tKey->curveType_)));
         static_cast<Text*>(timelineInfoContainer->GetChild(3)->GetChild(1))->SetText(String(tKey->info_.x_) + " " + String(tKey->info_.y_));
         static_cast<Text*>(timelineInfoContainer->GetChild(4)->GetChild(1))->SetText(String(tKey->info_.angle_));
         static_cast<Text*>(timelineInfoContainer->GetChild(5)->GetChild(1))->SetText(String(tKey->info_.scaleX_) + " " + String(tKey->info_.scaleY_));
@@ -4858,7 +4858,7 @@ void AnimatorEditor::UpdateTimelineInfos()
         static_cast<Text*>(timelineInfoContainer->GetChild(0)->GetChild(1))->SetText(String::EMPTY);
         Spriter::MainlineKey* mainkey = editedAnimatedSprite_->GetSpriterInstance()->GetAnimation()->GetMainlineKey(editedAnimatedSprite_->GetCurrentAnimationTime());
         static_cast<Text*>(timelineInfoContainer->GetChild(1)->GetChild(1))->SetText(String(mainkey->id_) + String(" - time : ") + String(mainkey->time_));
-        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Spriter::CurveTypeStr[mainkey->curveType_]));
+        static_cast<Text*>(timelineInfoContainer->GetChild(2)->GetChild(1))->SetText(String(Urho3D::Spriter::SpriterData::GetCurveTypeStr(mainkey->curveType_)));
         for (unsigned i=3; i < 7; i++)
             timelineInfoContainer->GetChild(i)->SetVisible(false);
     }

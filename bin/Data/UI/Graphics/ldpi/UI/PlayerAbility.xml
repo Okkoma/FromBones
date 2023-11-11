@@ -2,8 +2,16 @@
 <element>
     <attribute name="Name" value="Abilities" />
     <attribute name="Size" value="400 100" />
-    <attribute name="Horiz Alignment" value="Center" />
+    <attribute name="Layout Mode" value="Free" />
     <attribute name="Focus Mode" value="Focusable" />
+	<element type="BorderImage">
+		<attribute name="Name" value="I_Select" />
+		<attribute name="Sprite" value="UI/game_equipment.xml@slothalo" />
+		<attribute name="Color" value="1 0.5 0" />
+		<attribute name="Priority" value="110" />
+		<attribute name="Opacity" value="0.5" />
+		<attribute name="Is Visible" value="false" />
+	</element>    
 	<element>
 		<attribute name="Name" value="SlotZone" />
 		<attribute name="Layout Mode" value="Horizontal" />

@@ -174,9 +174,9 @@ void UIC_EquipmentPanel::OnSlotUpdate(StringHash eventType, VariantMap& eventDat
 {
     unsigned index = eventData[Go_InventoryGet::GO_IDSLOT].GetUInt();
 
-    if (index < startSlotIndex_ || index > endSlotIndex_)
+    if (index < startSlotIndex_ || index > endSlotIndex2_)
     {
-        URHO3D_LOGWARNINGF("UIC_EquipmentPanel() - OnSlotUpdate : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex_);
+        URHO3D_LOGWARNINGF("UIC_EquipmentPanel() - OnSlotUpdate : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex2_);
         return;
     }
 
@@ -231,9 +231,9 @@ void UIC_EquipmentPanel::UpdateEquipment(unsigned index)
 {
     URHO3D_LOGINFOF("UIC_EquipmentPanel() - UpdateEquipment : panel=%s index=%u...", name_.CString(), index);
 
-    if (index < startSlotIndex_ || index > endSlotIndex_)
+    if (index < startSlotIndex_ || index > endSlotIndex2_)
     {
-        URHO3D_LOGWARNINGF("UIC_EquipmentPanel() - UpdateEquipment : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex_);
+        URHO3D_LOGWARNINGF("UIC_EquipmentPanel() - UpdateEquipment : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex2_);
         return;
     }
 
@@ -268,7 +268,7 @@ bool UIC_EquipmentPanel::UpdateSlotPositions(bool force)
     {
         Sprite2D* sprite = Sprite2D::LoadFromResourceRef(GetContext(), ResourceRef(SpriteSheet2D::GetTypeStatic(), "UI/game_equipment.xml@slot"));
 
-        for (unsigned i = startSlotIndex_; i <= endSlotIndex_; i++)
+        for (unsigned i = startSlotIndex_; i <= endSlotIndex2_; i++)
         {
             const StringHash& slotHashName = inventory_->GetSlotHashName(i);
 

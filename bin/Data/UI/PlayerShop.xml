@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <element type="Window">
 	<attribute name="Name" value="PlayerShop" />
-    <attribute name="Is Movable" value="true" />
-    <attribute name="Is Resizable" value="false" />
-    <attribute name="Layout Mode" value="Vertical" />
-    <attribute name="Layout Spacing" value="4" />
-    <attribute name="Layout Border" value="6 6 6 6" />
-    <attribute name="Resize Border" value="6 6 6 6" />
+	<attribute name="Is Movable" value="true" />
+	<attribute name="Is Resizable" value="false" />
+	<attribute name="Layout Mode" value="Vertical" />
+	<attribute name="Layout Spacing" value="4" />
+	<attribute name="Layout Border" value="6 6 6 6" />
+	<attribute name="Resize Border" value="6 6 6 6" />
 	<attribute name="Min Size" value="362 552" />
 	<attribute name="Max Size" value="362 552" />
-    <attribute name="Opacity" value="0.8" />
+	<attribute name="Opacity" value="0.8" />
 	<attribute name="Focus Mode" value="Focusable" />
 	<element>
 		<attribute name="Pivot" value="0 0" />
@@ -17,7 +17,7 @@
 		<attribute name="Layout Spacing" value="4" />
 		<element style="HorizontalPanel">
 			<attribute name="Layout Mode" value="Horizontal" />
-	        <attribute name="Layout Spacing" value="4" />
+			<attribute name="Layout Spacing" value="4" />
 			<attribute name="Min Size" value="356 32" />
 			<attribute name="Max Size" value="356 32" />
 			<element type="Text">
@@ -36,20 +36,20 @@
 				<attribute name="Text Alignment" value="Center" />
 				<attribute name="Auto Localizable" value="true" />
 			</element>
-			<element type="Button" >
-	            <attribute name="Name" value="OkButton" />
+			<element type="Button">
+				<attribute name="Name" value="OkButton" />
 				<attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
-	            <attribute name="Sprite Hover" value="icon_close_on" />
-	            <attribute name="Pressed Image Offset" value="0 0" />
-	            <attribute name="Min Size" value="32 32" />
-	            <attribute name="Max Size" value="32 32" />
-	            <attribute name="Focus Mode" value="NotFocusable" />
-	        </element>
+				<attribute name="Sprite Hover" value="icon_close_on" />
+				<attribute name="Pressed Image Offset" value="0 0" />
+				<attribute name="Min Size" value="32 32" />
+				<attribute name="Max Size" value="32 32" />
+				<attribute name="Focus Mode" value="NotFocusable" />
+			</element>
 		</element>
-		<element type="BorderImage" style="EditorDivider" >
-	        <attribute name="Min Size" value="356 11" />
-	        <attribute name="Max Size" value="356 11" />
-	    </element>
+		<element type="BorderImage" style="EditorDivider">
+			<attribute name="Min Size" value="356 11" />
+			<attribute name="Max Size" value="356 11" />
+		</element>
 		<element>
 			<attribute name="Min Size" value="362 250" />
 			<attribute name="Max Size" value="362 250" />
@@ -282,14 +282,14 @@
 			<element type="Button">
 				<attribute name="Name" value="PriceButton" />
 				<attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
-		        <attribute name="Border" value="4 4 4 4" />
+				<attribute name="Border" value="4 4 4 4" />
 				<attribute name="Min Size" value="120 80" />
 				<attribute name="Max Size" value="120 80" />
 				<attribute name="Color" value="0.5 0.5 0.5 0.9" />
 				<attribute name="Horiz Alignment" value="Center" />
 				<attribute name="Pressed Image Offset" value="0 0" />
-		        <attribute name="Hover Image Offset" value="0 0" />
-		        <attribute name="Pressed Child Offset" value="-1 1" />
+				<attribute name="Hover Image Offset" value="0 0" />
+				<attribute name="Pressed Child Offset" value="-1 1" />
 				<element type="Text">
 					<attribute name="Name" value="PriceText" />
 					<attribute name="Font" value="Font;Fonts/aby32.xml" />

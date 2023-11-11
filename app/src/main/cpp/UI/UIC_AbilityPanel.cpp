@@ -8,6 +8,8 @@
 
 #include <Urho3D/Resource/ResourceCache.h>
 
+#include <Urho3D/Input/Input.h>
+
 #include <Urho3D/UI/BorderImage.h>
 #include <Urho3D/UI/Button.h>
 #include <Urho3D/UI/Sprite.h>
@@ -24,7 +26,7 @@
 
 #include "GOC_Inventory.h"
 
-#include "Actor.h"
+#include "Player.h"
 #include "Ability.h"
 #include "Equipment.h"
 
@@ -36,10 +38,9 @@
 
 UIC_AbilityPanel::UIC_AbilityPanel(Context* context) :
     UIPanel(context),
-    activeAbilityButton_(0)
-{
-    ;
-}
+    popup_(false),
+    selectHalo_(0),
+    activeAbilityButton_(0) { }
 
 void UIC_AbilityPanel::RegisterObject(Context* context)
 {
@@ -62,8 +63,103 @@ void UIC_AbilityPanel::Start(Object* user, Object* feeder)
         URHO3D_LOGWARNINGF("UIC_AbilityPanel() - Start id=%d : no holder !");
 
     slotZone_ = panel_->GetChild("SlotZone", true);
+    slotselector_ = 0;
+    selectHalo_ = panel_->GetChild(String("I_Select"), true);
 
     Clear();
+}
+
+void UIC_AbilityPanel::GainFocus()
+{
+    if (selectHalo_)
+        selectHalo_->SetVisible(true);
+    if (popup_)
+    {
+        SetVisible(true);
+        GetElement()->SetPriority(GetElement()->GetParent()->GetPriority()+11);
+    }
+    UIPanel::GainFocus();
+}
+
+void UIC_AbilityPanel::LoseFocus()
+{
+    if (selectHalo_)
+        selectHalo_->SetVisible(false);
+    if (popup_)
+        SetVisible(false);
+    UIPanel::LoseFocus();
+}
+
+bool UIC_AbilityPanel::CanFocus() const
+{
+    return holder_->GetAbilities()->GetNumAbilities() && UIPanel::CanFocus();
+}
+
+void UIC_AbilityPanel::OnSetVisible()
+{
+    UIPanel::OnSetVisible();
+
+    if (panel_->IsVisible())
+    {
+        int controltype = GameContext::Get().playerState_[static_cast<Actor*>(user_)->GetControlID()].controltype;  
+        if (controltype == CT_KEYBOARD || controltype == CT_JOYSTICK)
+        {
+            if (panel_->HasFocus())
+            {
+                URHO3D_LOGINFOF("UIC_AbilityPanel() - OnSetVisible : is visible and has the focus ...");
+
+                // Allow Selection Access to other UIC with the keyboard Arrows
+                if (controltype == CT_KEYBOARD)
+                {
+                    SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
+                }
+                else
+                {
+                    SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
+                    SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
+                #ifdef ALLOW_JOYSTICK_AXIS
+                    SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
+                #endif
+                }
+
+                UpdateSlotSelector();
+            }
+            else
+            {
+                URHO3D_LOGINFOF("UIC_AbilityPanel() - OnSetVisible : is visible and has not the focus ...");
+
+                if (HasSubscribedToEvent(E_KEYDOWN))
+                {
+                    UnsubscribeFromEvent(E_KEYDOWN);
+                }
+                else
+                {
+                    UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+                    UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
+                #ifdef ALLOW_JOYSTICK_AXIS
+                    UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
+                #endif
+                }
+            }            
+        }
+    }
+    else
+    {
+        if (selectHalo_)
+            selectHalo_->SetVisible(false);
+
+        if (HasSubscribedToEvent(E_KEYDOWN))
+            UnsubscribeFromEvent(E_KEYDOWN);
+
+        if (HasSubscribedToEvent(E_JOYSTICKBUTTONDOWN))
+        {
+            UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+            UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
+        #ifdef ALLOW_JOYSTICK_AXIS
+            UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
+        #endif
+        }
+    }    
 }
 
 void UIC_AbilityPanel::Clear()
@@ -81,12 +177,6 @@ void UIC_AbilityPanel::Clear()
     }
 
     SetVisible(false);
-}
-
-void UIC_AbilityPanel::Update()
-{
-    if (holder_ && holder_->GetAbilities() && holder_->GetAbilities()->GetNumAbilities())
-        SetVisible(true);
 }
 
 void UIC_AbilityPanel::SetActiveAbility(const StringHash& hash)
@@ -139,6 +229,24 @@ void UIC_AbilityPanel::DesactiveAbility()
     }
 }
 
+void UIC_AbilityPanel::UpdateSlotSelector()
+{
+    if (!selectHalo_)
+        return;
+
+    UIElement* slotselected = slotselector_ != -1 ? slotZone_->GetChild(slotselector_) : 0;
+    if (slotselected)
+    {
+        selectHalo_->SetMinSize(slotselected->GetSize());
+        selectHalo_->SetMaxSize(slotselected->GetSize());
+        selectHalo_->SetPosition(slotselected->GetScreenPosition() - panel_->GetScreenPosition());
+    }
+
+    selectHalo_->SetVisible(slotselected != 0);
+
+    URHO3D_LOGINFOF("UIC_AbilityPanel() - UpdateSlotSelector : %s ... slotselector_=%d size=%s !", 
+                    panel_->GetName().CString(), slotselector_, selectHalo_->GetSize().ToString().CString());
+}
 
 void UIC_AbilityPanel::HandleClic(StringHash eventType, VariantMap& eventData)
 {
@@ -161,7 +269,6 @@ void UIC_AbilityPanel::HandleClic(StringHash eventType, VariantMap& eventData)
 
     GetSubsystem<UI>()->SetFocusElement(0);
 }
-
 
 void UIC_AbilityPanel::OnAbilityUpdated(StringHash eventType, VariantMap& eventData)
 {
@@ -209,7 +316,8 @@ void UIC_AbilityPanel::OnAbilityUpdated(StringHash eventType, VariantMap& eventD
 //            }
         }
 
-        SetVisible(true);
+        if (!popup_)
+            SetVisible(true);
     }
     else if (eventType == GO_ABILITYREMOVED)
     {
@@ -256,6 +364,55 @@ void UIC_AbilityPanel::OnNodesChange(StringHash eventType, VariantMap& eventData
         panel_->SetVar(GOA::PANELID, name_);
         slotZone_->SetVar(GOA::PANELID, name_);
 
-        Update();
+        if (!popup_ && holder_ && holder_->GetAbilities() && holder_->GetAbilities()->GetNumAbilities())
+            SetVisible(true);
+    }
+}
+
+void UIC_AbilityPanel::OnKey(StringHash eventType, VariantMap& eventData)
+{
+    Player* player = static_cast<Player*>(holder_.Get());
+    if (player->GetFocusPanel() != this)
+        return;
+
+    int scancode = GetKeyFromEvent(player->GetControlID(), eventType, eventData);
+    if (!scancode)
+        return;
+
+    const PODVector<int>& keymap = GameContext::Get().keysMap_[player->GetControlID()];
+
+    URHO3D_LOGINFOF("UIC_AbilityPanel() - OnKey : panel=%s ...", name_.CString());
+
+    // TODO add an ability selector
+    if (scancode == keymap[ACTION_DOWN])
+    {        
+        LoseFocus();
+        player->SetFocusPanel(-1);
+    }
+    else if (scancode == keymap[ACTION_UP])
+    {        
+        LoseFocus();
+        if (popup_)
+        {
+            player->GetPanel(STATUSPANEL)->GainFocus();
+            player->SetFocusPanel(STATUSPANEL);
+        }
+        else
+            player->SetFocusPanel(-1);
+    }    
+    else if (scancode == keymap[ACTION_LEFT]) // Move Selector to left
+    {
+        slotselector_ = Clamp(slotselector_-1, 0, (int)holder_->GetAbilities()->GetNumAbilities()-1);
+        UpdateSlotSelector();
+    }
+    else if (scancode == keymap[ACTION_RIGHT]) // Move Selector to right
+    {
+        slotselector_ = Clamp(slotselector_+1, 0, (int)holder_->GetAbilities()->GetNumAbilities()-1);
+        UpdateSlotSelector();
+    }
+    else if (scancode == keymap[ACTION_INTERACT]) // Active/Desactive Ability under the Selector
+    {
+        eventData["Element"] = slotZone_->GetChild(slotselector_);
+        HandleClic(StringHash::ZERO, eventData);
     }
 }

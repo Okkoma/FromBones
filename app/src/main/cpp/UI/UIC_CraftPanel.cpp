@@ -50,6 +50,7 @@ UIC_CraftPanel::UIC_CraftPanel(Context* context) :
 {
     craft_ = new GOC_Inventory(context);
     craft_->SetTemplate("InventoryTemplate_Craft");
+    SetInventorySection("Material", "Tool");
 
     craftTimer_ = new DelayInformer(context);
 }
@@ -82,15 +83,19 @@ void UIC_CraftPanel::SetSlotZone()
 {
     slotSize_ = 64;
 
-    Actor* actor = ((Actor*)user_);
+    incselector_[ACTION_LEFT] = -1;
+    incselector_[ACTION_RIGHT] = 1;
+    incselector_[ACTION_UP] = -1;
+    incselector_[ACTION_DOWN] = 1;
 
     slotZone_ = panel_->GetChild("SlotZone", true);
     if (!slotZone_)
     {
-        URHO3D_LOGERRORF("UIC_CraftPanel() - Start name=%s : Can't get SlotZone Element !!!", name_.CString());
+        URHO3D_LOGERRORF("UIC_CraftPanel() - SetSlotZone : name=%s : Can't get SlotZone Element !!!", name_.CString());
         return;
     }
 
+    Actor* actor = ((Actor*)user_);
     if (actor)
     {
         slotZone_->SetVar(GOA::OWNERID, actor->GetID());
@@ -98,6 +103,16 @@ void UIC_CraftPanel::SetSlotZone()
     }
 
     inventory_ = craft_;
+    if (inventorySectionStart_ != String::EMPTY)
+    {
+        startSlotIndex_ = inventory_->GetSectionStartIndex(inventorySectionStart_);
+        endSlotIndex1_ = inventory_->GetSectionEndIndex(inventorySectionStart_);
+        endSlotIndex2_ = inventory_->GetSectionEndIndex(inventorySectionEnd_);
+        numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
+        slotselector_ = startSlotIndex_;
+
+        URHO3D_LOGERRORF("UIC_CraftPanel() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", startSlotIndex_, endSlotIndex2_);
+    }
 }
 
 void UIC_CraftPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)

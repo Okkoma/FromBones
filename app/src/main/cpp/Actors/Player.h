@@ -40,6 +40,20 @@ using namespace Urho3D;
 //    int* lines_;
 //};
 
+enum Panels
+{
+    STATUSPANEL = 0,
+    BAGPANEL,
+    EQUIPMENTPANEL,
+    CRAFTPANEL,
+    ABILITYPANEL,
+    DIALOGUEPANEL,
+    SHOPPANEL,
+    JOURNALPANEL,
+    MISSIONPANEL,
+    MINIMAPPANEL
+};
+
 class Player : public Actor
 {
     URHO3D_OBJECT(Player, Actor);
@@ -54,7 +68,7 @@ public :
 //    void SetPlayerID(unsigned id);
     void SetPlayerName(const char *n);
     void SetMissionEnable(bool enable);
-    void Set(UIElement* elem, bool missionEnable=false, unsigned id=0, const char *n=0);
+    void Set(UIElement* elem, bool missionEnable, bool multiLocalPlayerMode, unsigned id=0, const char *n=0);
     void SetScene(Scene* scene, const Vector2& position, int viewZ, bool loadmode, bool initmode, bool restartmode, bool forceposition=false);
     void SetFaction(unsigned faction);
     void SetDirty()
@@ -100,7 +114,7 @@ public :
     void ResizeUI();
     void SetVisibleUI(bool state, bool all=false);
     void UpdatePoints(const unsigned& points);
-    void UpdatePanelFocusUI();
+    void NextPanelFocus();
     void DebugDrawUI();
 
     void UpdateAvatar(bool forced=false);
@@ -136,6 +150,7 @@ protected :
     void OnFire1(StringHash eventType, VariantMap& eventData);
     void OnFire2(StringHash eventType, VariantMap& eventData);
     void OnFire3(StringHash eventType, VariantMap& eventData);
+    void OnStatus(StringHash eventType, VariantMap& eventData);
     void OnCollideWall(StringHash eventType, VariantMap& eventData);
     void OnAvatarDestroy(StringHash eventType, VariantMap& eventData);
     void OnInventoryEmpty(StringHash eventType, VariantMap& eventData);
@@ -155,7 +170,7 @@ protected :
     virtual void OnDead(StringHash eventType, VariantMap& eventData);
 
 private :
-    void CreateUI(UIElement* root);
+    void CreateUI(UIElement* root, bool multiLocalPlayerMode);
     void ResetUI();
     void UpdateUI();
 
@@ -187,7 +202,6 @@ private :
     unsigned faction_;
     // index avatar
     int avatarIndex_, avatarAccumulatorIndex_;
-    int currentpanelfocus_;
     int lastxonui_, lastyonui_;
 
     Vector<int> avatars_;

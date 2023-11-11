@@ -32,6 +32,7 @@
 #include "MapWorld.h"
 #include "ViewManager.h"
 #include "DialogueFrame.h"
+#include "UISlotPanel.h"
 
 #include "Actor.h"
 
@@ -109,7 +110,6 @@ void ActorStats::DumpAllStats() const
 
 /// Class Actor Implementation
 
-static int sViewZ_ = 0;
 Vector<WeakPtr<Actor> > Actor::actors_;
 
 void Actor::RegisterObject(Context* context)
@@ -388,7 +388,8 @@ Actor::Actor() :
     started_(false),
     nodeID_(0),
     controlID_(0),
-    clientID_(0)
+    clientID_(0),
+    viewZ_(0)
 {
     info_.actorID_ = 0;
 }
@@ -571,7 +572,7 @@ void Actor::SetObjectFile(const String& name)
         URHO3D_LOGINFOF("Actor() : SetObjectFile %s ... OK => Reset Avatar ...", name.CString());
 
         if (scene_ && avatar_)
-            ResetAvatar();
+            ResetAvatar(Vector2::ZERO);
         else
             URHO3D_LOGWARNINGF("Actor() : SetObjectFile %s - scene=%u avatar=%u ... No ResetAvatar Here !", name.CString(), scene_, avatar_.Get());
     }
@@ -597,11 +598,15 @@ void Actor::SetEnableStats(bool enable)
     }
 }
 
+void Actor::SetViewZ(int viewZ)
+{
+    viewZ_ = viewZ;
+}
+
 void Actor::SetScene(Scene* scene, const Vector2& position, int viewZ)
 {
     scene_ = scene;
-    sViewZ_ = viewZ;
-
+    SetViewZ(viewZ);
 //    URHO3D_LOGINFOF("Actor() - SetScene !");
 
     ResetAvatar(position);
@@ -647,6 +652,21 @@ unsigned Actor::GetStat(const StringHash& category, const StringHash& stat) cons
     return ((const ActorStats *) stats_)->Value(category, stat);
 }
 
+UIPanel* Actor::GetPanel(int idpanel) const
+{
+    HashMap<int, WeakPtr<UIPanel> >::ConstIterator it = panels_.Find(idpanel);
+    return it != panels_.End() ? it->second_.Get() : 0;
+}
+
+void Actor::SetFocusPanel(int idpanel)
+{
+    focusPanel_ = WeakPtr<UIPanel>(GetPanel(idpanel));
+}
+
+UIPanel* Actor::GetFocusPanel() const
+{
+    return focusPanel_;
+}
 
 /// Commands
 
@@ -1002,7 +1022,7 @@ void Actor::ResetAvatar(const Vector2& newposition)
         }
         else
         {
-            avatar_ = World2D::SpawnEntity(info_.type_, info_.entityid_, nodeID_, 0, sViewZ_ ? sViewZ_ : viewManager_->GetCurrentViewZ(controlID_), PhysicEntityInfo(position.x_, position.y_), SceneEntityInfo());
+            avatar_ = World2D::SpawnEntity(info_.type_, info_.entityid_, nodeID_, 0, viewZ_ ? viewZ_ : viewManager_->GetCurrentViewZ(controlID_), PhysicEntityInfo(position.x_, position.y_), SceneEntityInfo());
             URHO3D_LOGINFOF("Actor() - ResetAvatar : ... WorldSpawnEntity type_=%u nodeId_=%u ... ", info_.type_.Value(), nodeID_);
         }
 #else
@@ -1126,9 +1146,8 @@ void Actor::UpdateComponents()
     {
         gocDestroyer->Reset(true);
 //        gocDestroyer->UpdatePositions();
-        gocDestroyer->SetViewZ(sViewZ_ ? sViewZ_ : viewManager_->GetCurrentViewZ(controlID_), 0, 1);
-        // Reset static data
-        sViewZ_ = 0;
+        URHO3D_LOGINFOF("Actor() - UpdateComponents ... gocDestroyer controlid=%d viewZ_=%d currentviewz=%d ...", controlID_, viewZ_, viewManager_->GetCurrentViewZ(controlID_));
+        gocDestroyer->SetViewZ(viewZ_ ? viewZ_ : viewManager_->GetCurrentViewZ(controlID_), 0, 1);
     }
 
     if (abilities_)
@@ -1199,6 +1218,8 @@ void Actor::Start(bool resurrection, const WorldMapPosition& position)
     // 27/05/2023 : Here, be sure to set the viewZ, viewmask and filterbits
     if (destroyer)
         destroyer->SetViewZ();
+
+    viewZ_ = 0;
 
 //    GOC_Controller* controller = avatar_->GetDerivedComponent<GOC_Controller>();
 //    if (controller)

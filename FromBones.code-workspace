@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "../../Urho3D/Urho3D"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.txt": "c",
+			"typeinfo": "cpp"
+		},
+		"cmake.automaticReconfigure": false,
+		"cmake.skipConfigureIfCachePresent": true
+	}
+}

@@ -1,0 +1,1113 @@
+Todos:
+    ☐ 13/10/2023 : en mode arena, apres avoir passer le boss darkren au niveau2
+        -> pb de generation de monde
+
+    ☐ 13/10/2023 : lorsque l'on monte un mur,
+        .
+        *
+        ** <-/> ce bloc n'a pas de collider
+        *
+        *
+        => 16/10/2023 : Patch dans MapColliderGenerator::TraceContours_MooreNeighbor
+
+    ☐ 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.
+        => OK modification de ObjectFeatured::SetViewConfiguration
+        - 27/05/2023 : les Tronc ou autre furniture Static posent probleme au niveau collision si ils sont en Innerview mais restant visible en frontview :
+         le player voudrait pouvoir ci accrocher et le choix est fait que ce ne sera jamais le cas pour éviter que les furnitures innerview dans des murs ne pisent entrer en collision avec les acteurs du frontview
+        => modifier le visuel pour mettre en backactorview ces furnitures.
+        ==> OK : modification de Urho3D::Drawable2D::GetSourceBatchesToRender()
+        ==> OK : modification de Actor::Start() pour etre sur que le viewmask soit bien attribué.
+
+    ☐ 13/03/2023 : revoir les decorations en bordure de worldEllipses car en fin de monde ils ne sont plus raccord à l'ellipse affichée. Il faudrait que les decorations suivent bien le contour de l'ellipse (rotation).
+        => 01/05/2023 : premiere tentative sur DrawableScroller
+        => 22/05/2023 : seconde tentative -> pour la gestion des drawables, l'ellipse est traitée par partir : les demi-ellipses haute et basse.
+        ==> 25/05/2023 : grosse modification de DrawableScroller : ajout de DrawableScroller::UpdateDrawablesOnTopCurve() et  DrawableScroller::UpdateDrawablesOnBottomCurve()
+        ==> unifier la couleur entre worldEllipses et les 2 plus proches DrawableScrollers.
+        ===> uniquement à revoir les textures : la worldEllipse (ScrollingShape) s'appuie sur backrock de backshape.png qui est en niveaux de gris, les drawableScrollers s'appuient sur fond.png qui sont en couleur.
+        ====> remise en couleur du backrock
+        ===> mettre en (LIT) les DrawableScrollers et worldEllipse.
+        ☐ permettre le changement de zone, les elements de scrolling doivent pouvoir changer.
+
+    ☐ 26/07/2020 : pouvoir planter des graines (vegetation)
+        => gestion de la croissance des plantes/arbres/fleurs
+        ==> cf MapGenerator::GenerateBiomeFurnitures()
+        ==> le code s'appuie sur MapTopography et sur la carte de biome
+        ===> voir pour modifier les valeurs de biomemap pour y integrer les graines ?
+        ===> MapTopography est générée une fois à la creation de la map
+        ====> il faudrait pouvoir l'updater dans Map::SetTile mais attention avec la decoration d'arriere plan DrawableScroller (cf Map::AddBackGroundLayers et DrawableScroller::SetDrawableObjects) qui s'appuie aussi sur MapTopography
+        ====> les images collées au tilelayer de BACKGROUND sont des fonds.xml@fond3 (cf l'attribut "Map - Add ImageLayer" dans testzone2.xml => cf MapWorld::SetMapAddImageLayerAttr)
+        => pouvoir booster la pousse de la vegetation (intervention entity genre totoro, gardien de la nature ou esprit des plantes)
+        ==> faire un essai avec un mode souris qui en survolant les plantes les font grandir.
+        => pouvoir planter certaines types de graines sur RockGolem : transformation du RockGolem => le rend pacifique ou bien aggressif
+        => pousse de differents type de vegetation : pacifiques ou agressives (chaos...).
+        => la pousse de crystaux également à gérer.
+        => la propagation pourra être par graine (spore, graine...) ou par racine/extension du pied mere de proche en proche.
+        ==> 02/04/2023 : Reprise et création d'un LindenMayer System (LSystem).
+        ===> 03/04/2023 : Ajout de LSystem2D qui est un composant derivé de StaticSprite2D basé sur un system LindenMayer simple (cf "Algorithmic beauty of plants" en pdf dans /Dev/Lab/trees)
+        ====> gestion de l'age de la plante, de sa croissance et animation (repos, collision, vent1, vent2)
+        =====> RAF : ajouter un parametre global qui permet de régir l'animation pour differentes conditions de vent.
+        ====> RAF : ajouter les categories de presets : "plantes", "plantes florales", "arbustes", "arbres fruitiers", "grands arbres"
+        ====> certains grands arbres en bordure de map vont disparaitre ou apparaitre car lié à la visiblité de la map.
+        =====> il ne faudrait pas gerer l'activation/visiblité des ltree avec la visibilité des maps.
+        ======> 06/04/2023 - OK : ajout de l'attribut GOA::KEEPVISIBLE et modification de MapBase::AddFurnitures() et Map::SetVisibleEntities()
+        ====> RAF : adapter les sprites branch et leaf en fonction du type de biome.
+        ====> RAF : rajouter fleurs et fruits.
+        ====> RAF : possibilité d'ajouter des nodes pour permettre l'ajout de collider.
+
+    ☐ 08/03/2023 : ajout de MapGeneratorDungeon::MakeTowers()
+        => RAF : une meilleure repartition des tours.
+        => RAF : ajout de toitures ou de creneaux.
+        ==> utilisation de tiles.
+        ==> Modification de ObjectTiled::UpdateTiledBatches()
+        ==> Modification de MapColliderGenerator::GenerateWorkMatrix() et MapColliderGenerator::AddPointsToSegments, MapColliderGenerator::TraceContours_MooreNeighbor() pour generer les collider en halftiles nécessaire pour l'innerview.
+        => RAF : ajout de passerelles entre tours.
+        => RAF : ajout de remparts entre tours ou en devanture
+        => RAF : ajout de decoration exterieurs : drapeaux, torches, porche ...
+        => RAF : ajout d'acces : trappe au plafond.
+        => fermeture des pignons.
+        ==> 17/03/2023 : Modification de MapColliderGenerator avec ajout de BlockShape pour remplacer les HalfTiles et modification de MapColliderGenerator::TraceContours_MooreNeighbor().
+        ===> RAF : ajout d'un tile de fermeture.
+        => RAF : une tour peut se retrecir vers le sommet.
+        => RAF : une tour large peut se scinder en plusieurs tours vers le sommet.
+        => RAF : une tour dont les points d'accroche sont detruits doit s'ecrouler.
+        ==> RAF : si mise en place de roues : MOBILECASTLETYPE
+
+    ☐ 13/03/2023 : il existe des problemes de generation des maps
+        => lors MapCreator::PurgeMapsOutsideVisibleAreas() la map doit etre correctement dechargée autrement les furnitures et entities seront encore affectées et reapparaitront lors de sa reaffectation par MapPool.
+        ==> forcer le status à Unloading_Map.
+
+    ☐ 13/03/2023 : il faut absolument que la map current soit generer en priorité ainsi qu'afficher.
+
+    ☐ 06/03/2023 : ajout de MapGeneratorDungeon::MakeRandomWalk()
+        => pas encore top : pour le moment desactivation
+
+    ☐ 27/01/2023 : probleme d'affichage de RenderShape en Bordure de Map
+        => verifier le worldboundingbox ?
+        ==> OK : ajout de MarkDirty() dans RenderCollider::UpdateRenderShape()=>RenderShape::SetCollider() (qui modifie les shapes) afin de permettre de mettre worldBoundingBoxDirty_ à true.
+
+    ☐ 24/01/2023 : il faut ajouter des tiles d'incrustation supplementaires (mousse, pierre, crane, tache, planches ...)
+        => les terraintypes ne sont pas adaptés : ils ne servent qu'à associer un MapTerrain à un index 'terraintype' qui est lu dans la terrainmap.
+        => il faut pouvoir lier terrain et biome (pour le moment  c'est un niveau de vegetation)
+        ==> en fonction de la valeur de biome, le terrain sera choisi
+        => supprimer l'enumeration MapTerrainType et TerrainAtlas::GetTerrainFromType()
+        ==> OK remplacement par TerrainAtlas::GetBiomeTerrain.
+        => deplacer et modifier ScrapsEmitter::RegisterType() pour les terrains dans le TerrainAtlas qui ajoutera le bon type de scraps-sprite selon le terrain.
+        ==> OK : modification TileSheet2D::EndLoadFromXMLFile, MapBase::SetTile(), GameHelpers::SetTile() et GameHelpers::RemoveTile()
+        ===> il reste certaines Tiles qui ne renvoit pas le bon terrainid.
+        => il faut pouvoir creer plus de type de terrain dans la texture tiles_terrain_g.png pour le moment elle est en 1024.
+        ==> en hdpi on pourrait la passer de base à 2048 tout en gardant des tiles de 128 ce qui permet de stocker 4 fois plus terrains (pour le moment que 4 textures de terrain sont compris dans le png) on pourrait passer à 16.
+        ===> OK : adapter TileSheet2D pour prendre en compte le dpiRatio de la texture.
+        => la taille scraps en changeant de dpi n'est pas la bonne.
+        ==> OK : suppression dans GameHelpers::SpawnScraps() de l'utilisation des Dpi de Texture qui sont dejà pris en compte dans Sprite2D.
+
+    ☐ 20/01/2023 : lors de la generation des colliders (MapColliderGenerator), il arrive que son interruption pour repasser sur une autre map à créer, 
+        puis sa reprise ne permet pas de generer correctement les colliders (cela se voit tres bien avec les rendershapes)
+        => il faut pouvoir logger lors de la reprise et s'assurer que les bons etats et buffers sont correctes.
+        => correctif dans MapColliderGenerator::GeneratePhysicCollider() et MapColliderGenerator::GenerateRenderCollider()
+        ==> a verifier
+
+    ☐ 12/03/2021 : modifier le MapGeneratorDungeon pour reduire les passerelles exterieures et ajouter des escaliers, echelles ...
+        => voir pour avoir des exterieurs de dungeons qui soient plus uniformes : de grandes tours par exemple.
+        => voir pour creer l'aspect exterieur en premier et mettre les rooms dans l'espace alloué (inspiration : les habitats de glace/neige dans le film les minions)
+        ==> shape circulaire, ovale
+        ===> 15/03/2021 : ajout de PixelShape permettant de generer des superellipse, spirale etc...
+
+    ☐ 20/11/2022 : Utilisation seulement de WorkQueue pour l'ensemble de operations en thread (MapSerializer, AnlWorldModel)
+        => utilisation egalement des events E_WORKITEMCOMPLETED
+        ==> OK 22/11/2022 : Attention il faut utiliser WorkQueue::Complete() dans MapStorage::UpdateMapsInMemory() pour eviter une boucle sans fin pour non reception des events E_WORKITEMCOMPLETED lorsque l'on utilise World2D::UpdateInstant()
+        ==> RAF verifier les thread pour la generation de WorldMap. cf AnlWorldModel et anl::maptobuffer
+
+    ☐ Crash avec Generation des SnapShot d'IMAGING.
+        => le cache est redimensionné alors qu'utiliser par la generation d'une Map.
+        ==> il faut creer des slots MAPGENSLOT, SNAPGENSLOT qui seront passer à CNoiseExecutor
+        ===> OK
+
+    ☐ World2D
+        => 29/10/2022 : correctif dans World2D::UpdateStep() et MapStorage::UpdateBufferedArea() et MapStorage::UpdateMapsInMemory() permettant la bonne purge de MapCreator et aussi l'assurance que WorldViewInfo::currentMap_ soit bien attribuée.
+        ==> voir si impact si avec le transfert GOC_Portal.
+        ==> OK : ça à l'air bon.
+
+    ☐ Créer WorldMap
+        => 07/10/2022 : reprise
+        ==> voir AnlWorldModel::SaveScreenShots()
+        ==> creer l'ui de generateur de monde avec dimension du monde (minuscule, petit, standard, grand, tres grand), la racine, le nom du monde, les biomes majoritaires (jusqu'à trois) et l'apercu.
+        ===> pour l'aperçu lancer un thread pour la generation de la carte du monde en basse definition. ce thread va réaliser plusieurs aperçus sucessif. Le premier snap en tres basse resolution (64x64 pixel). Puis d'autre snapshots continueront d'etre generés pour ameliorer le visuel de l'apercu.
+            il faut que ce soit tres rapide, instantané pour le premier snap !
+        ===> également option d'edition du monde généré => on rentre alors de l'editeur de monde.
+        ===> également definir la position de départ sur le monde ("Default Map Point")
+        ==> le worldmap devra etre accessible en jeu dans la minimap en double-cliquant dessus par exemple ou sur un icone dédié placé sur le coin de la minimap.
+        ===> premier correctif OK sur la generation par thread de anl::maptobuffer (ajout de Urho3D::WorkQueue)
+        ====> Attention la generation des snapshots CaveMap ne fonctionne pas toujours => on obtient uniquement la version GrounMap
+        =====> ce n'est pas du à la dimension en pixel des essais concluants de generation avec testzone2 en debug et release de 32 à 1024 pixels !
+        =====> difficile d'identifier la cause
+        ======> en utilisant dans vm.inl la directive #USE_CACHESTAT, et en testant plusieurs fois pour generer au moins une erreur, on obtient des 'inf' et des 'nan' à partir de l'instruction 25(GradientBasis) et 14(GradientBasis)
+        =======> les valeurs d'entrée coord.x_ et coord.y_ sont hors des limites. Il faut remonter sur la generation de ces coordonnées juste avant l'application du Gradient.
+        ========> le probleme provient de l'instruction 213(RotateDomain) : les coordonnées z et u sont nan ici => pb d'initialisation.
+        =========> il s'agit de l'operateur + de CCoordinate qui initialiser un Coordinate via le construction CCoordinate(dimension) qui ne set pas les valeurs initiales.
+        ==========> suppression de ce constructeur et modification de l'op+
+        ===========> verifier si d'autres problemes de ce type dans les CCoordinate et VM.
+        ==> la bonne pratique en debuggage c'est de pouvoir remonter dans les fonctions. si une fonction renvoit un nan alors il suffit de le pister en rajoutant ensuite if (isnan(value)) et de rajouter l'appel à cette fonction qui plante une nouvelle fois
+            ex: avec le gradient_noise
+                    gradient_noise(coord, seed_, InterPolationFunctions[interpol_], &cache.outfloat_);
+                    if (isnan(cache.outfloat_))
+                        gradient_noise(coord, seed_, InterPolationFunctions[interpol_], &cache.outfloat_);
+        il faut mettre le point break sur le second gradient_noise ainsi l'on peut verifier en step into ce qui pose pb dans la fonction.
+        ===> dans ce cas le pb etait bien amont avec un pb de coord mais l'astuce precedente pourrait servir.
+        ==> pour l'ui dans sOptions, il y a deja la categorie world avec quelques parametres tel que worldmodel et worlddifficulty qui ne sont pas encore connectés.
+        ===> voire pour renover cette ui.
+        ===> ajouter worldsize et un slot pour montrer le snapshot aperçu => OK
+        ====> ajouter un bouton sur le snapshot pour l'agrandir
+        ====> ajouter un bouton pour selectionner le point de départ sur le snapshot
+        ===> ajouter un bouton pour lancer l'éditeur.
+        ===> ajouter un textedit pour le nom du monde => OK
+        ====> ajouter un generateur aleatoire de nom pour les mondes
+        ===> ajouter un bouton a coté du dropdownlist "racine" pour regénérer une nouvelle racine aléatoire. => pas besoin cliquer directement sur aleatoire
+        ====> supprimer worlddifficulty => OK
+        => la generation du snapshot ne devrait-t-elle pas etre comme celle de la minimap qui dispose de layers innerview et frontview.
+        ==> il faudrait aussi inclure les donjons lorsque la granularité dans AnlWorldModel::GenerateSnapShots est égale à AnlWorldModelGranularity.
+        => en release avec des snapshot de 1024, le thread sont trop long à completer ce qui va avoir pour effet en cas de changement de parametre (model,size ouseed) de geler le mainthread qui est en attente de la fin des autres threads pour finaliser les changements de parametres dans anlworldmodel.
+        ==> maximiser la taille traiter pour les SChunk à 2048max. Il y aura plus de Schunk (plus que le nombre de thread mais gerer par la workqueue donc pas de pb)
+        ===> OK 22/10/2022 : marche uniquement avec workqueue.
+        ===> 26/10/2022 : implementation de l'interaction pour la worldmap dans OptionState::HandleWorldSnapShotClicked (zoom in/out et move)
+        ====> il semble y avoir un decalage assez consequent en bordure de monde entre le snapshot et le monde généré en PlayState.
+        ====> test réalisé avec un monde moyen ellipse racine 2000 en bordure la map -62,1 de la worldmap devrait etre -52,1
+        ====> la scale si zoom maxi (taille d'une map) devrait etre de 1.f hors elle est 0.83f. le scale initial n'est pas le bon. Il faut une puissance de 2
+        =====> 30/10/2022 OK : modification OptionState::ApplyWorldChange() et OptionState::HandleWorldSnapShotClicked
+        ====> dissocier de OptionState => creer un composant UIC_WorldMap qui entrera en interaction avec OptionState et UIC_MiniMap.
+        =====> ajout de la structure de base UIC_WorldMap. Reprendre le contenu de OptionState.
+        =====> la texture snapshot sous vulkan est par défaut filtré lineaire : modification de Urho3D::Texture::UpdateParameters() pour obtenir le meme resultat que sous GL (fonction des parametres de filtre de chaque texture).
+        =====> le zoom/dezoom n'est plus bon. => verifier le set initial et le scale à 1.f en zoom maxi (1 map) => le zoom maxi est de 0.65f
+        ======> OK : la puissance de 2 doit etre sur le nummaxmaps (non sur le worldscale)
+        =====> zoom 4 map en initiale et centrage sur la carte courante World2D::GetCurrentMapPoint(0)
+        =====> le bouton worldButton doit etre un switch de UIC_MiniMap et UIC_WorldMap.
+        ======> OK : Creer un second button sur UIC_WorldMap pour reswitcher vers UIC_Minimap.
+        ===> pour le moment l'acces au monde Custom (GameStatus::testZoneId_=3) se fait uniquement si le nom du monde est rempli.
+        ====> remplacement de la logique : affichage par défaut du TestZone2 (voir pour ameliorer le code), en changeant le nom du monde on passe en CUSTOM.
+        =====> ajout du DropDownList avec LineEdit (cf style OptionEditableDropDownList) modification Urho3D::DropDownList ajout de attribut "Editable PlaceHolder"
+        ====> TestZone2 doit avoir les parametres non editable hormis la selection de la carte initiale par defaut.
+        =====> 02/11/2022 : OK lors du OptionState::HandleWorldNameChanged mettre les controls model,size,seed non editables si TestZone2
+        ===> correctif du radius par default dans AnlWorldModel
+        ====> mettre à 0.f puis dans modelAnlWorldModel::EndLoadFromXMLFile() le radius sera attribué avec la valeur spécifiée dans le XML. Si non spécifié dans le XML (par radialshape) alors il sera mis à 1.f.
+        ==> OK 03/11/2022 : OK ajouter la position des players
+        ==> OK : stocker en memoire directement plutot que dans un fichier snapshot.png.
+        ==> OK : changer la couleur blanche par défaut du snapshot.
+        ==> OK 05/11/2022 : Ameliorer la navigation de la WorldMap avec le cursor qui change pour indiquer le deplacement et deux boutons zoom et dezoom.
+        ===> ajout de Cursors direction et zoom + modification UIC_WorldMap::HandleWorldSnapShotClicked
+        ==> RAF : creer dans OptionState, un profil pour sauvegarder les parametres de chaque monde créé par le joueur (worldname, worldmodel, worldsize, worldseed, worlddefaultmap).
+
+    ☐ 28/10/2022 : probleme avec la worldellipse et les anlworldmodel :
+        => la worldellipse ne doit s'appliquer que pour le modele ellipse : il faut trouver un autre moyen d'afficher un fond pour les modeles circle et plane.
+        ==> meme pour le modele ellipse, il faut changer d'objet car pas toujours adapté (si on utilise un modele ellipse minuscule ou petit).
+        ==> voir pour extraire du snapshot du monde des points caracteristiques pour creer par map une shape de fond.
+        ===> voir World2DInfo::Update et toutes les ellipses World2DInfo::worldGroundRef_, World2DInfo::worldAtmosphere_, World2DInfo::worldHillTop_, World2DInfo::worldGround_, World2DInfo::worldCenter_
+        ====> pour le moment seuls World2DInfo::worldGround_ et World2DInfo::worldHillTop_ sont utilisé et seul World2DInfo::worldHillTop_ est utilisé pour le rendu avec le ScrollingShape de fond en BACKROCK et les DrawableScroller l'utilisent en boundcurve.
+        =====> inactivation des worldEllipses via ACTIVE_WORLDELLIPSES. Test avec la Spline2D MapTopography::backFloorCurve_.
+        ======> correctif de MapTopography::backFloorCurve_ : suppression de l'algo par dichotomie qui ne retournait pas de valeurs lissées. cf MapTopography::GetBackFloorNearestYAt
+        =======> verifier l'utilisation de MapTopography::freeSideTiles_ car il semble que les resultats different en fonction du CurrentViewZ. cf MapTopography::Generate
+        ========> uniquement utiliser par MapGenerator::GenerateBiomeFurnitures lors de la generation de la map.
+        =========> eclatement de MapTopography::Generate, creation de MapTopography::GenerateFreeSideTiles les freesidetiles ne sont generes que si creation de biomefurnitures (non creer en cas de chargement de la map), il n'est pas necessaire de les drawdebug.
+        ======> MapTopography::backFloorCurve_ ne peut etre utilisé pour les effets parallax de chaine de montagne ou foret. Il faut pouvoir reconnaitre une à plusieurs ellipses de ground à partir de la worldmap.
+        =======> voir World2DInfo::Update
+
+    ☐ 03/06/2022 : la sauvegarde du world avec les fluid activés n'est pas implementée
+        => voir MapData pour la serialization des FluidMaps
+        ==> Size d'une FluidMap 64x64 Tiles = 4096 Tiles => une FluidCell 1 byte pour stocker la mass uniquement = 4096bytes par fluidmap. 2 fluidmap par map (innerview et frontview) 8192bytes par map.
+        => voir MapCreator::GenerateLayers -> ObjectFeatured::SetFluidCells -> FluidDatas::SetCells() -> FluidCell::Set()
+        ==> modification de FluidDatas::SetCells() qui prend en compte désormais les valeurs de mass des FluidCell provenant de MapData
+        ==> la sauvegarde des FluidMap vers MapData::fluidValues_ se fera par FluidDatas::UpdateMapData() dans MapBase::UpdateMapData
+        ===> OK : RAF les FluidSources sont aussi à sauvegarder avec leur états de fluid en cours.
+
+    ☐ 26/05/2022 : les maps qui doivent etre visible apres teleportation doivent aussi etre prechargées.
+
+    ☐ 02/10/2021 : en world il y a certains problemes :
+        => le basculement des entités d'une map vers une autre ne s'operent pas toujours. (probleme existant surement avant)
+        => les entités mortes qui n'ont pas basculé vers leur nouvelle map, vont reapparaitre et se remettre en dead lors du deplacement vers la map affectée
+        ==> est-il possible que les entities ne soient pas bien detruites suite à des modifications de GOC_Life ?
+        ==> dans Map::SetVisibleEntities(), il faut aussi absolument tester avant de les reafficher si elles ne sont pas mortes ou si l'animation dead n'est pas finie.
+        ===> modification dans World2D::HandleObjectChangeMap(), GOC_Destroyer::UpdatePositions().
+        ==> suite au modification du 06/10/2021 voir s'il y a encore des pbs.
+
+    ☐ 21/05/2021 : Crash dans Map::AnchorEntityOnTileAt() du au tileindex qui trop grand
+        => erreur lors du GameHelpers::RemoveTile() avec ajout d'une porte
+        ==> OK : correctif dans MapData::AddEntityData() pour permettre l'utilisation prioritaire d'EntityData pour la position.
+
+    ☐ 21/05/2021 : Crash dans Map::SetEntities_Load() concernant les Usable Furnitures
+        => OK : Correctif anti-Crash voir ce qui en d'ecoule.
+
+    ☐ 10/03/2021 : Bloquage possible dans la generation de map dans MapCreator::CreateMap, MapStorage::InitializeMap()
+        => bloquer en boucle
+        [Wed Mar 10 21:53:11 2021] ERROR: MapCreator() - CreateMap at -2 20 map=356091968 ... status=Initializing=0[0] ... WAITING changing status to Generating_Map !
+        [Wed Mar 10 21:53:11 2021] ERROR: MapStorage() - InitializeMap mPoint=-2 20(map=356091968) ... Is Serializing MapData ... Wait !
+        ==> 11/03/2021 : Modification de MapStorage::InitializeMap(), check si la map est en cours de serialization, reinitialisation de MapData::state_.
+        ===> La serialization n'est faite pour le moment que lors du SaveWorld et lors du LoadMap.
+        ===> 15/03/2021 : Ajout du state MapStatus::Uninitialized
+        ====> encore des modifications dans MapCreator::Update et surement MapWorld et MapStorage pour le Multiviews
+        =====> Modification de MapCreator::mapToCreate_ devient Vector<ShortIntVector2></> et non plus Vector<Map*></> ce qui evite tout probleme d'affectation de differentes Map sous le meme mpoint.
+        ====> traquer l'erreur : [Tue Mar 16 15:23:32 2021] ERROR: MapCreator() - GenerateDungeonMap : map=-19 16 ... NO BACKVIEW ... ERROR !
+        =====> probleme du aux variables locales de MapCreator genFront_, genInner_ et les functors
+        ======> 17/03/2021 OK : mis dans MapGeneratorStatus
+        ====> traquer l'erreur : [Tue Mar 16 17:32:31 2021] ERROR: AnlWorldModel() - GenerateModules : mpoint=-6 -2 map=-6 -2(344023024) ... No More Threads ...
+        =====> ne pas permettre l'affectation d'une map via MapPool si la map a ete precedement purgé alors que la generation Thread AnlWorld etait en cours => dans ce cas les threads continuent d'ecrire dans les mapfeatures
+        ======> 17/03/2021 OK : check du MapStatus dans le Thread
+        ====> RAF : MapCreator::Update() à rendre Multiviews
+        ====> RAF : modifier World2D::OnMapVisibleChanged()
+
+    ☐ ObjectMaped:
+        ☐ 29/07/2020 : A partir des anciens commentaires suivants, realiser un composant ObjectMaped qui permettra dans un node de créer tous les composants permettant la réalisation d'un chateau ambulant
+            =>
+                - 17/06/2018 : decomposer Map et ObjectTiles pour creer :
+                    -> TileLayer(Drawable2D) : comprenant un sourcebatch par material pour les (tiles+decals) + un sourcebatch pour les sewings
+                    -> PhysicLayer : un layer =  un node contenant les component CollisionShape
+                    -> WaterLayer(Drawable2D) : un waterlayer = un sourcebatch
+                    -> ces composants sont ajoutés à une entité (Node)
+                      -> TileLayer & PhysicLayer ajustent leurs batches selon leur visibilité par rapport aux views
+
+                - 13/06/2018 : reconcevoir MapWorld qui est un manager de mise à disposition de Map, comme ObjectTiled l'est pour les Chunk
+                -> Map est un ensemble de méthodes construisant la partie physique limité à sa zone rectangulaire définie.
+                -> le monde(planete) est composé de Maps. et il est unique.
+                -> on veut pouvoir avoir plusieurs planetes (grosses ou petites) et générer de l'interaction entre elles à l'instar des autres entités
+                -> on veut aussi qu'une planete(entité) puisse s'aggréger ou s'exploser en differents fragments(entités)
+                    -> entité cassable (drawable et physic)
+                        - une planete est constituée de tiles dans notre cas. La Tile est le plus petit fragment.
+                    -> l'entité doit pouvoir également se déplacer sans moteur physique (cas des entités non visible)
+                        - creer un composant Drawable2D s'inspirant d'ObjectTiled et capable de modifier ses Batches en fonction de la partie visible
+                        - doit disposer d'une méthode UpdatePhysic() permettant de recalculer les collisionshapes sur la partie visible
+                            -> voir si l'on peut utiliser que des collisionboxes ce qui permet d'éviter MapColliderGenerator
+                    -> pouvoir utiliser ANL pour chaque planete,
+                    -> creer un composant WorldCreator creant les coordonnees et dimensions des planetes
+                        -> utiliser ces donnees pour creer le fichier de configuration d'entrée pour ANL pour chaque planete
+                        -> si la planete est hors de la zone d'exploration pas besoin de generer de feature
+
+                - 18/10/2017 : Modifier Map pour avoir la facilité de connection des FluidCells
+                -> sera utile pour la recherche de voisins etc...
+            =>
+            ==> Reprendre Map et le transformer en composant
+            ===> OK : supprimer tous les elements le reliant au world (minimap, connected maps, topography, backgroundlayer)
+            ===> garder l'ajout d'entités ou de furnitures STATIC uniquement mais non lié au world, ils seront des nodes fils du node d'ObjectMaped
+            ===> garder la génération par AnlWorldModel/MapCreator ? on veut pouvoir creer des asteroid, des iles volantes
+            ====> creation de MapBase qui devient la classe Parent de Map et de ObjectMaped
+            ==> Creer la fonction Node* GameHelpers::CreateObjectFrom(Map* map, const IntRect& rect) permettant la reprise d'une partie d'une map comme nouvelle entity ObjectMaped
+            ===> OK : renommer GameHelpers::CreateObjectMapedFrom()
+            ==> Creer un test pour le changement de position interactif d'un ObjectMaped.
+            ===> Creation de GameStatus::SetControllabledNode() avec utilisation de GOC_PlayerController, GOC_Collide2D, GOC_Move2D et GOC_Destroyer
+            ==> Probleme pour gerer les portes (GOC_Destroyer et currentMap_) => grosse modif à prévoir dans World2D pour intégrer les ObjectMaped, il faut pouvoir tester si l'entité est sur un ObjectMaped en plus d'être sur une Map.
+            ===> OK : modification de GOC_Destroyer::UpdatePositions()
+            ==> problemes pour faire bouger le chateau ambulant
+            ===> en body BT_DYNAMIC, les differents bodies composants le physic du chateau (1 body par layerZ) s'ecroulent et n'entrent pas en collision avec les colliders de la map.
+            ====> les CollisionShapes sont des CollisionChains pour l'ObjectMaped du chateau et la Map du decors : Box2D n'a pas implementé de contact de type Chain avec Chain (cf. b2Contact::InitializeRegisters())
+            =====> si on implemente le contact "chain avec chain" il y aura des problemes de collision avec des chain concaves.
+            =====> le plus simple est d'ajouter des collisionboxes aux extremités du chateau pour chaque collisionchain
+            ======> OK : creation de collisionboxes avec Generation dans MapColliderGenerator en mode BorderMode ou bien InnerMode
+            ====> le rendu ne suit pas les collisionsShapes
+            =====> l'objectTiled est sur le node principal alors que rigidbodies sont sur des nodes fils et ne sont pas liés : les nodes fils bougent librement mais pas le node parent.
+            =====> utiliser un seul node avec un seul rigidbody ald d'un rigidbody par viewz
+            ======> modifier PhysicWorld2D::BeginContact : faire attention à l'impact sur les elements de plateform tel que les cheminée, table etc... dont le rigidbody a un GetColliderInfo=(void*)1
+            ======> il faut mettre dans les CollisionShapes les ViewZ et les ColliderInfo
+            ======> 05/08/2020 : premier resultat ok sur le test chateau ambulant ! à verifier si impact sur les entity et furniture ou player ou network
+            =======> 09/08/2020 OK : lors de la reimplantation de GameHelpers::AddTile(), GameHelpers::RemoveTile() tester si sur un ObjectMaped
+            ========> 15/10/2020 OK : ObjectMaped utilise aussi MapBase::SetFurnitures et World2D::DestroyFurnituresAt()
+            ======> Certains problemes de collision entre les wallground de l'ObjectMaped et Avatar : l'Avatar passe à travers le mur
+            =======> 09/08/2020 OK : le RigidBody du ObjectMaped qui est un BT_DYNAMIC n'a pas la simulation complete de Box2D => forcer en le mettant en Bullet
+            ======> Probleme pas d'affichage des RenderShape sur l'ObjectMaped
+            =======> 01/09/2020 : Modification de ObjectMaped::OnSetEnabled() pour permettre activer les nodes des RenderShapes
+            ========> OK : les RenderShape ne sont pas prévu à l'origine pour se déplacer (tout comme ObjectTiled), ajout dans RenderShape::OnSetEnabled() de node_->AddListener(this) si l'attribut Dynamic est true, ajout de OnMarkedDirty()
+            =========> OK : lorsque les RenderShape sont déplacer, les Textures UV ne suivent pas les vertices, modification de RenderShape::UpdateFrameVertices(), il fallait utiliser la position local (cad celle de triangles) et non pas celle du world.
+            ======> Voir pour simplifier l'update du render lors du ObjectTiled::OnWorldBoundingBoxUpdate en mode dynamic. il faut simplement recalculer le positionnement dans les batches
+            =======> 10/08/2020 OK : ajout de BatchInfo::UpdateVerticePositions et modif de ObjectTiled::OnWorldBoundingBoxUpdate(), ObjectTiled::UpdateTiledBatches ... utilisable seulement si USE_CHUNKBATCH désativé.
+            ======> Modification de GameHelpers::ApplyLuminosity() pour permettre au furnitures des ObjectMaped de bien appliquer les couleurs
+            ======> la collision entre ObjectMaped et Map ne produit pas de GroundContact dans GOC_Collide2D.
+            =======> 10/08/2020 OK : Modification de GOC_Collide2D::HandleBeginContact() pour inverser la normaly s'il s'agit de 2 Walls (shapes qui ont un ColliderInfo) et qu'il y a un swap de body realisé.
+            ==> RAF : Creer une fonction Map::SetTiles(MapFeatureType feature, const IntRect& rect) permettant de modifier toute une zone rectangulaire dans une map
+            ==> Centraliser toutes les fonctions communes dans MapBase
+            ==> 11/08/2020 : Creer le systeme de serialization des features : permettra de faire des object custom
+            ===> sera egalement utile pour les MAP générées par AnlWorldModel et modifier par les joueurs lorsque le taux de tilemodifier dépasse un certain montant, il sera peut-etre mieux de sauvegarder les ObjectFeatured en custommap
+            ===> permettre le choix entre sauvegarde light (tilemodifier) ou complete (layer)
+            ===> pour gerer la serialization des ObjectMaped dans le meme systeme, il faut trouver une astuce pour le systeme de reference ShortIntVector2
+            ====> utiliser par exemple la plage y=-32767, les x donneront les idd des objectmaped.
+            ====> ObjectMaped est un component => ajouter attribut "MapData" pointant sur Resource MapData à créer.
+            =====> Pour créer MapData s'appuyer sur des Resource tel que TileMapFile et AnimationSet2D, deplacer les fonctions MapStorage::LoadTileModifiers(), MapStorage::LoadEntities() et Save dans MapBase ou Map
+            =====> Utiliser la Compression d'Urho3D utilisé pour les ObjectControl par exemple cf Connection::ProcessReceiveObjectControls(int msgID, MemoryBuffer& msg)
+            =====> Commencer par ajouter simplement à MapBase les fonction Load et Save
+            =====> voir pour utiliser ResourceCache::BackgroundLoadResource pour chargement en Thread
+            ===> Refactoring du systeme de Serialization des Maps
+            ====> MapData est le container des données mémoires à conserver et serializer => remplacer dans Map/MapBase toutes les données Spot/Furniture/Entity par la struct MapData.
+            =====> Seules les FeatureViews sont laissées dans l'ObjectFeatured de MapBase. MapData gardant seulement des pointeurs sur chaque view.
+            ====> Ajout de MapSerializer qui reprend en partie Urho3D::BackgroundLoader et y ajoute la serialization asynchrone (load et save) des MapData
+            ====> pour la sauvegarde il faut creer une copie integrale du MapData pour eviter la modification de ces données durant la sauvegarde.
+            =====> la Section Entity qui est un Vector de WorldEntityInfo doit être mise à jour avant sauvegarde avec les données de World2D
+            ====> Finir l'intégration dans MapCreator : générer les Feature, Spot, Entity, EntityAttr, Furniture (MapSerializer défini cet état) si l'état MapData::mapDataSetted_[] est faux.
+            =====> 22/08/2020 : serialization fonctionnelle sans crash avec l'option pour forcer la sauvegarde des featuresmaps+biomemap+terrainmap pour les Map (GameStatus::allMapsPrefab_)
+            =====> 27/08/2020 : correctif MapStorage::UnloadMapAt et dans AnlWorldModel::GenerateModuleThread
+            ======> utilisation de Urho3D::WorkQueue (MODULETHREAD_VERSION == 2) car l'implementation avec pthread en direct ne permet pas l'utilisation des Thread d'Urho3D (collision dans les threads ?)
+            ====> voir pour la serialization des ObjectMaped (voir le MapStorage)
+            =====> OK : déplacer MapStorage::SaveMapData() et MapStorage::LoadMapData() dans MapSerializer
+            =====> OK : rendre indépendant MapSerializer::FinishSerializingMapDatas() : le transformer en handle sur BeginFrame
+            =====> OK : déplacer MapStorage::UpdateMapData() et MapStorage::UpdateMapData_EntitiesAttributes() dans MapBase::UpdateMapData et dans Map::OnMapDataUpdate()
+            ======> ObjectMaped::HandleSet remplace ObjectMaped::Set et permet le setting en async comme pour Map
+            ======> ObjectMaped doit creer les objets ObjectFeatured, ObjectSkinned, ObjectTiled avant le ObjectMaped::Resize() pour permettre le stockage des Features lors du MapSerializer::LoadMapData()
+            ======> Ajout de GameHelpers::CreateObjectMapedFrom(int dataid)
+            =======> MapData doit pouvoir maintenir en memoire les featuredMap dans le cas des Prefab, pour permettre le deversement sans appel à MapSerializer.
+            ========> OK 31/08/2020 : ajout de MapData::prefabMaps_
+            =====> OK : suite aux modifications => pb les portes ne sont plus générées => le DungeonInfo::doorIndexes_ n'est plus rempli => correctif dans MapCreator::CreateMap() => une erreur dans le passage des parametre à ObjectFeatured::SetViewConfiguration().
+            =====> OK 01/09/2020 : les ObjectMaped seront desormais sauvegardés dans le dossier Custom pour permettre leur acces à l'ensemble des mondes
+            =====> Premier Test Ok en CREATEFROMGENERATOR => il faut maintenant pouvoir indiquer le anlworldmodel ainsi que le AnlMappingRange à MapGeneratorWorld.
+            ======> tout se passe dans MapGeneratorStatus, premier test dans GameCommands anltest avec Levels/anlworldVM-asteroid1.xml
+            =======> modification de AnlWorldModel::SetSeedAllModules() pour rendre le changement de seed fonctionnel en version model VM. le fichier model devra avoir un premier module Seed nommé seed.
+            ==> modifier MapCreator et ObjectFeatured::SetViewConfiguration ainsi que l'utilisation des viewId InnerView_ViewId, FrontView_ViewId etc... pour permettre la simplification du nombre de views.
+            ===> remplacer tout les occurences de InnerView_ViewId, FrontView_ViewId etc... par une fonction Get utilisant les LinkViewIdViewZ utilisés dans ObjectFeatured::SetViewConfiguration()
+            ====> difficile à réaliser étant donnée la structure ObjectFeatured::viewZ_[viewid]
+            =====> OK : Patch de ObjectFeatured::GetViewIDs(viewz) qui permet d'obtenir la liste des viewids pour un viewZ n'etant pas enregistrer (tel que le Frontview pour le modele Asteroid qui n'utilise que l'innerview et l'outerview
+            ===> modifier ObjectTiled::Resize(), ObjectMaped::Resize() pour y integrer le nombre de views dependant du modeltype appliquer dans ObjectFeatured::SetViewConfiguration()
+            ====> le modele asteroid n'a besoin uniquement que de 2 views (innerview et outerview)
+            ====> modifier MapColliderGenerator en BorderMode pour bien faire le tour avec les collisionBox
+            =====> OK : dans MapColliderGenerator::GenerateWorkMatrix, test du voisinage d'une feature block : si elle n'a pas 4 voisins il ne s'agit pas d'un block interne donc à garder dans en BorderMode
+            => OK 11/09/2020 : ne pas permettre la serialization des entités en mode Arena
+            => Pb en World, la sauvegarde des entities n'est pas correcte. Verifier l'instant de sauvegarde en memoire puis la serialization.
+            ==> correctif dans MapStorage::UnloadMapAt() : le code pour le check de l'état minimal en Available de la map à décharger était mal placé
+            => Pb dans la generation des colliders lors du chargement/generation simultané d'une Map et d'un ObjectMaped (utilisation des memes datas MapColliderGenerator::blockMap_ etc... ce qui crache si width_ et height_ differentes)
+            ==> OK 14/09/2020 : ajout de MapColliderGenerator::ResetMapGeneration(MapBase*) à utiliser lors du déchargement d'une map : MapColliderGenerator sauvegarde la reference de la map qui est en cours de génération sous MapColliderGenerator::map_.
+                    toutes demandes de génération tant que map_ n'est pas reseté sont refusées.
+            => il faut tester si l'ObjectMaped est à l'interieur d'une mapbase => si à l'interieur alors ses colliders ne doivent pouvoir entrer en contact avec les entités exterieures
+            ==> lors du changement de viewz vers INNERVIEW, verifier si l'ObjectMaped est masqué par une Map. si c'est le cas, desactiver les CollisionChains
+            ===> OK 18/09/2020 : ajout de MapBase::IsMasked(), ObjectMaped::GetRectIn(MapBase* map), et modification ObjectMaped::ChangeViewZ()
+            => l'update des colliders lors d'un SetTile ne semble pas fonctionner pour ASTEROID.
+            ==> voir MapBase::SetTile() pour trouver le pb avec les CollisionChains
+            ===> le code ne permet pas d'avoir plusieurs colliders pour une meme vue
+            ====> OK : il faut obtenir les Colliders selon le type Physic ou Render demandé et pour le couple IndZ, IndV => modifier GetPhysicCollider(int indv) en GetColliders(int type, int indv), ce qui permet d'avoir plusieurs colliders pour une view.
+            ===> l'update d'une collisionShape en x,y en BackMode ou en TopBorderBackMode ne permet pas la generation des colliders pour le BLOCK du dessous si il existe
+            ====> OK : Correctif dans MapColliderGenerator::GenerateWorkMatrix()
+            ===> MapBase::SetTile sur une tile innerview/outerview/backview sans tile background ne permet pas l'update des colliders
+            ====> OK : Modification des views impactées dans MapBase::SetTile
+            ==> implementer l'update des CollisionBoxes.
+            ===> 20/09/2020 OK : creation de MapBase::UpdateCollisionBox(), modification de PhysicCollider::blocks_ devient un HashMap.
+            => la generation d'ASTEROID peut produire des FeaturedMap vides !
+            ==> OK 20/09/2020 : La taille mimimale de generation doit etre 3. (et non 2)
+            => l'update des collisionbox doit tenir compte du mode de generation MapColliderMode notamment du mode BorderMode (Asteroid Box)
+            ==> OK 21/09/2020 : modifier MapBase::UpdateCollisionBox()
+            => lors du switch viewZ, il faut prendre aussi en compte si le player est sur un ObjectMaped
+            ==> OK 21/09/2020 : modification de GOC_Destroyer::IsOnFreeTiles() et GameHelpers::CheckFreeTilesAtViewZ()
+            => en innerview pour l'asteroid, le layer des tiles (LAYER_OBJECTMAPED) chevauche celui des acteurs
+            ==> OK 21/09/2020 : nouvelle modification des valeurs des layers cf. DefsViews.h solutionne aussi la pluie avec les Decals en outerview.
+            ==> OK 21/09/2020 : le changement des layers a modifié la generation des Dungeons. Il s'agit du parametrage dans Arena.xml et autres pour les dungeons => mettre les z à 40
+            => le chargement des furnitures n'est pas correcte si des modifications de tiles ont été réalisées.
+            ==> voir la sauvegarde des furnitures
+            ===> cf Map::OnUpdateMapData(), MapData::furnitures_ n'est pas mis à jour lorsqu'une furniture est supprimée par un removetile (ou autre) cf GameHelpers::RemoveTile
+            ====> pour les Map utilisation de World2D::DestroyFurnituresAt()
+            ====> pour les ObjectMaped utilisation de MapBase::RemoveFurnitures() qui reste à implémenter.
+            =====> sol1 (utilisez le define MAPDATA_SAVEFURNITURELIKEENTITIES) : sauvegarder les furnitures avec les MapData::entitiesAttributes_. La map loaded ne devra pas générer de nouvelles furnitures mais chargées celles sauvegardées.
+            ======> modification de Map::OnUpdateMapData() et MapData::Save() pour permettre la serialization dans MapData::entitiesAttributes_ (ne jamais sauvegarder MapData::furnitures_ qui devient caduque)
+            =======> pb1 : les entités Portal ne s'affichent pas correctement.
+            =======> pb2 : toutes furnitures n'apparaissent pas sur les maps precedemment decharger => voir le SaveWorld ?
+            ========> OK patch dans MapStorage::UnloadMapAt()
+            =======> pb3 : les furnitures tardent à s'afficher à l'approche en bordure de vision
+            ========> OK 25/09/2020 : dans AnimatedSprite2D patch lors de AnimatedSprite2D::UpdateAnimation(0.f) utiliser pendant AnimatedSprite2D::OnSetEnabled(), recalcul de drawRect_
+            =====> sol2 : modifier World2D::mapFurnitures_ pour y integrer une reference à chaque MapFurniture de MapData::furnitures_ pour permettre une modification facile en cas de Remove Furniture
+            ======> pb pour les DynamicFurnitures : n'étant pas static, elles ne peuvent être détruites par World2D::DestroyFurnituresAt(). Alors qu'elles figurent dans MapData::furnitures_ à la génération, si elles bougent (dynamic)
+                 ou bien si elles sont detruites leur entrée dans MapData::furnitures_ ne sera pas mise à jour ou supprimée. Par conséquent dans ces cas, la sauvegarde sera erronée. Ex: Portal.
+            =======> RAF : modifier Map::OnUpdateMapData() pour mettre à jour MapData::furnitures_
+            => RAF : certaines entities et furnitures tel que rockgolem et feudecamp ne sont pas bien sauvegarder en memoire car ont des nodes fils qui ne sont pas pris en compte par GameHelpers::SaveNodeAttributes()
+            ==> modifier GameHelpers::SaveNodeAttributes() et GameHelpers::LoadNodeAttributes() pour prendre en compte les nodes fils non temporaire
+            ==> ou bien utiliser Node::Save et Node::Load et remplacer les NodeAttributes par Serializer
+            ===> grosse modif : MapData::Load, MapData::Save, Map::OnUpdateMapData, ObjectPool::CreateChildIn, remplacer toutes les occurences de NodeAttributes par MemoryBuffer ou VectorBuffer ?
+            => RAF la serialization avant la teleportation n'a pas l'air ok.
+            => pouvoir generer des ObjectMaped non fixe en rotation.
+            ==> 29/09/2020 : ajout de parametre rotation dans MapBase::SetPhysicProperties() et MapModel::colliderBodyRotate_
+            ===> pour que cela fonctionne bien il faut revoir Urho3D::PhysicsWorld2D::BeginContact() => OK conversion des point locaux en world point pour tester si le contact est bien à l'exterieur de la shape.
+            ====> RAF : prendre en compte les holes (dans ce cas test si le contact est bien à l'interieur de la shape)
+            ===> RAF : MapBase::IsMasked() et MapBase::GetRectIn() sont à modifier pour etre compatible avec la rotation
+            => pouvoir generer des ObjectMaped sans Colliders (exemple asteroid en render uniquement, déplacement sans physic (comme static))
+            ==> 29/09/2020 : ajout de ObjectMaped::SetPhysicEnabled()
+            => faire un test de generation de plusieurs asteroids et les bombarder sur la scene
+            ==> modifier les ObjectMaped pour differencier les Id des Object avec Physics et les autres.
+            ===> 04/10/2020 OK : Les Object Physics ont des id pouvant aller de 1 à MAX_PHYSICOBJECTMAPEDS et sont enregistrés dans le tableau static physicObjects_.
+            ===> Les Object Non Physics ont des ids à partir de MAX_PHYSICOBJECTMAPEDS. ces Ids servent pour le Layering et pour la serialization. Encore des pbs avec la superposition de ces objects dans certains cas avec les DECALS
+            ===> Les Object Non Physics generes ne sont pas serializés et ne changeront pas de viewZ. cf ObjectMaped::CreateFrom.
+            ==> creer des asteroids sans collider en background, les faire se déplacer du haut de la zone visible vers le bas en diagonale. des qu'en bas et non visible les remettre en haut en changeant la position initiale et scale.
+            ===> 05/10/2020 Test OK
+            => Les Maps sont uniquement chargées la première fois en memoire si disponible puis sauvegarder en fin de jeu cf MapStorage::InitializeMap() et MapStorage::UnloadMapAt() et MapStorage::SaveMaps()
+            ==> OK : mis en Define MAPSTORAGE_ONLYSERIALIZEATSTARTANDEND
+            => creer un MapModel pour les chateaux ambulant.
+            ==> OK 07/10/2020 : Backview, InnerView, Outerview, utilisation du MapGeneratorDungeon, creation du collider INNERVIEW en SHT_BOX pour gerer le Dynamic
+            ===> Il manque les colliders des plateformes : modification de MapColliderGenerator, ajout de struct Plateform et PhysicCollider::plateforms_ devient un HashMap
+            ====> Ajout de MapBase::UpdatePlateformBoxes(), modification de MapBase::SetTile pour mettre à jour la carte Features lors de l'ajout/suppression de RoomPlateForm
+            ====> Crash à corriger surement dans MapBase::UpdatePlateformBoxes() lors de l'ajout à proximité à gauche d'une plateforme après avoir supprimer déjà une fois un RoomPlateform
+            =====> 14/10/2020 : Ne pas effacer systematiquement PhysicCollider::plateforms_ dans MapColliderGenerator::GeneratePhysicCollider() : ajout du parametre bool createPlateform.
+            ==> pouvoir ajouter un moyen de déplacement (roues / reacteurs ...)
+            ===> OK 10/10/2020 : ajout de virtual MapBase ObjectMaped::OnPhysicsSetted() - 2 roues aux extremités basses en mode rotation. le centre de gravité est au milieu des 2 roues et modification de l'inertie pour eviter crash Box2D.
+            ====> ajout des Drawables pour les roues, reglage du modele avec deux choix possibles avec resorts ou sans (cf. ObjectMaped::OnPhysicsSetted() et ObjectMaped::CreateWheel)
+            ====> RAF : voir pour créer des propulseurs, des pattes mécaniques permettant de gagner en stabilite/deplacement sur les reliefs.
+            => RAF : finir l'ajout des MapModel dans MapStorage::InitTable(), et modifier MapCreator::GenerateAsteroid() et autres fonctions generatrices pour utiliser MapModel
+            => RAF : implémenter correctement ObjectMaped pour l'utilisation du mode CREATEFROMGENERATOR pour chaque type de modeles (dungeon,cave,asteroid)
+            => il faudrait pouvoir reunir toutes les données spécifiques à chaque modèle dans la structure MapModel et réunir le code qui est disséminé
+                cf ObjectFeatured::SetViewConfiguration(), ObjectMaped::CreateFrom(), ObjectMaped::HandleSet(), MapCreator::SetGenerator(), MapCreator::GenerateAsteroid(), DefsMap => NUMASTEROIDPHYSICCOLLIDERS, MapBase::SetColliderType() ...
+            => ObjectMaped MobileCastle : probleme avec les Map si le donjon est haut et que le déplacement de la camera fait disparaitre les collider de la Map ou s'appuie le donjon : ecroulement du donjon.
+            => ObjectMaped MobileCastle : mouvement sacadé des entities du à l'espace entre collisionBoxes
+            ==> OK 12/10/2020 : diminution de la taille des collisionBoxes en InnerMode et réajout des CollisionShapes en INNERVIEW. les CollisionBoxes sont nécessaire pour les collisions ObjectMaped contre ObjectMaped
+            => ObjectMaped MobileCastle : la creation des doors n'est pas possible : cf GameHelpers::RemoveTile(), MapBase::SetTile()
+            ==> OK 15/10/2020 : pb corriger dans GameHelpers::RemoveTile()
+            => ObjectMaped MobileCastle : probleme avec les furnitures qui ont un RigidBody Static (masse infinie) ou bien Dynamic (la masse du donjon doit etre alors beaucoup plus grande que celles des furnitures) et qui peuvent entrer en collision avec les murs : mise en orbite du donjon.
+            ==> OK 11/10/2020 : mise en dynamic des furnitures (pour eviter la masse infinie des objets Static et tout risque de "satellisation" du donjon)
+                et correctif du centre de la collisionbox de sol pour les furniture tel que enclume, marmite, table, cheminee pour l'utilisation en innermode SHT_CHAIN du collider INNERVIEW du donjon
+            ===> ancrer physiquement les furnitures qui ont un rigidbody dynamic et qui ont la propriété GOTypeProperties::GOT_Static au tile lié
+            ====> lors du RemoveTile il faudra supprimer l'ancrage.
+            ===> on veut que certaines furnitures soient accrochees et libres en rotation.
+            ====> les tentures avec un seul rigidbody c'est impossible. la tringle doit etre fixe, le rideau accroche à la tringle et libre en rotation pour la partie basse => StretchableSprite2D piloté par 1 RigidBody pour la partie basse accroché avec 2 ContraintRope2D ?
+            ====> les tables, les armoires, les marmites doivent pouvoir glisser sur le sol (donc dynamic) et libre en rotation.
+            =====> OK : ces furnitures n'ont pas de tile support, ce sont des entités comme les autres en RigidBody Type Dynamic.
+            ====> les cheminées, les enclumes, les sanctuaires, les portails doivent etre ancrés au sol et pouvoir suivre le mouvement de rotation du chateau ambulant.
+            =====> OK : furnitures à tagger GOT_Static et mise en RigidBody Type Static (faire tres attention que les CollisionShapes de la furniture ne puissent entrer pas dans les Walls, au moment du pop). Essai concluant avec les Cheminées
+            =====> OK : Pb de visibilité des furnitures des ObjectMaped => correctif dans MapBase::SetFurnitures() et GOC_Destroyer::OnWorldEntityCreate() => specifier eventData[Go_Appear::GO_MAP] pour eviter que World2D::HandleObjectAppear
+                ne l'enregistre dans World2D::mapEntities_ sur un mauvais mPoint (celui de GOC_Destroyer n'est pas le bon)
+            ====> à l'utilisation de Urho3D::RigidBody2D::SetFixedRotation(false), RigidBody2D::SetUseFixtureMass(false) et RigidBody2D::SetMassCenter() il y a crash
+            =====> il faut alors spécifier une Inertie qui soit compatible avec b2Assert(m_I > 0.0f) avec (m_I = massData->I - m_mass * b2Dot(massData->center, massData->center) dans b2Body::SetMassData
+            =====> 22/10/2020 : dans Urho3D::RigidBody2D ajout de Urho3D::RigidBody2D::SanitateInertia() qui resoud le pb.
+            =====> Pas de destruction de furnitures hormis les portes : cf GameHelpers::RemoveTile(), World2D::DestroyFurnituresAt
+            ======> OK 26/10/2020 : modification de World2D::DestroyFurnituresAt, suppression de CC_FURNITURE au profit de CC_INSIDESTATICFURNITURE et CC_OUTSIDESTATICFURNITURE, modification de GOC_Destroyer::UpdateFilterBits()
+            =====> Pb de creation des portes lorsque le chateau est incliné
+            ======> OK 26/10/2020 : Correctif de MapBase::GetWorldPosition() : utilisation Node::GetWorldTransform2D() pour prendre en compte la rotation
+            => Test de l'ObjectMaped à l'interieur dans Dungeon.
+            ==> OK 28/10/2020 : en ViewZ=INNERVIEW pb de layer pour le Backview de l'ObjectMaped et les wheels (non visibles) => mettre en BACKVIEW+1
+            ==> OK 28/10/2020 : en ViewZ=FRONTVIEW pb de layer pour les wheels (visible) => mettre en OUTERVIEW-1
+            ==> interdire le changement de ViewZ vers FRONTVIEW pour les portes d'un ObjectMaped interne à un dungeon.
+            ===> 28/10/2020 : modification de GOC_Destroyer::UpdatePositions()
+            ====> OK 29/10/2020 : nouveau correctif de GOC_Destroyer::UpdatePositions() qui permet désormais de changer de ViewZ en empruntant un chemin vertical (jusqu'à présent ct une lacune). on peut désormais sortir de caverne par les conduits de "cheminee".
+            =====> il n'est normalement plus nécessaire de générer des MapfeatureType::Door qui posent probleme avec les TileModifier
+
+        ☐ 03/10/2021 : suite à modification ObjectTiled, RenderShape etc... les ObjectMaped ne s'affichent plus :
+            ==> il doit y avoir un probleme de creation des informations viewportDatas_ d'ObjectTiled pour ObjectMaped notamment ObjectTiled::ViewportRenderData::currentViewZindex_ qui vaut -1 dans ObjectTiled::UpdateSourceBatchesToRender()
+            ===> dans ObjectTiled::SetCurrentViewZ() currentViewZindex_ est lancé à -1., verifier pourquoi, il est seulement setté dans ObjectTiled::GetWorldBoundingBox2D()
+            ====> OK correctif dans ObjectTiled::GetWorldBoundingBox2D() car un ObjectMaped n'est pas forcement chunked.
+            => OK 03/10/2021 : probleme avec GOC_Destroyer et le Unstuck => ajout de GOC_Destroyer::SetEnableUnstuck() pour permettre la desactivation de l'Unstuck dans le cas des MobileCastle.
+            => OK 03/10/2021 : probleme avec les colliders : les filters ne sont pas les bons => ne pas permettre GOC_Destroyer::UpdateFilterBits(), et les Wheels ne peuvent plus utiliser CM_INSIDEEFFECT (qui n'entre plus en collision avec les walls).
+
+        ☐ 11/04/2022 : suite aux modifications dans MapBase::GetBlockPositionAt(), le positionnement des wheels n'est plus bon.
+        ==> la logique est modifié. il faut se positionner en bas cad à GetHeight()-1 et aller vers le haut UpDir.
+        ===> OK Correctif dans MapBase::GetBlockPositionAt() et ObjectMaped::OnPhysicsSetted()
+        ==> les RenderShapes ne sont pas affichés correctement après changement en INNERVIEW
+        ===> OK Correctif dans ViewManager::SwitchToViewIndex -> GameHelpers::UpdateLayering -> GameHelpers::SetDrawableLayerView pour eviter le changement des layers des rendershapes.
+
+    ☐ 26/09/2020 : Si changement de resolution d'écran, ou redimensionnement de la fenetre, apres teleportation via GOC_Portal il y a un zoom de camera apres la teleportation par GOC_Portal.
+
+    ☐ 26/07/2020 : pouvoir ajouter des lumieres/torches
+        => gestion de l'enlightement : calcul de la zone à éclairer et ajout de la light adéquate (rayon ...)
+
+    ☐ 08/04/2020 : pouvoir interagir avec certaines furnitures (ex : les tentures pour les tirer et voir ce qu'il y a derriere... ou bien ouvrir les portes des armoires et decouvrir des items)
+        => utiliser GOC_EntityAdder avec condition d'activation (animation "opened" par exemple).
+        => utiliser GOC_Inventory pour pouvoir collecter les items ?
+        => ajouter GOC_Animator2D et voir pour detecter le clic sur l'armoire (cf l'UI du marchand ?)
+        ==> Ajout du collisionBox Trigger + Modification Player::HandleClic()
+        ==> Ajout de l'animator template AnimatorTemplate_InteractiveFurniture dans PreLoader.xml
+        ===> 10/04/2020 : modification de GOC_Animator2D_Template::ApplyEventToStates() permettant l'ajout d'un meme event à deux states dont les nexstates sont differents
+            cf PreLoader.xml template AnimatorTemplate_InteractiveFurniture Event Go_TrigClicked
+
+    ☐ 11/02/2020 : Crash apres avoir supprimer des blocks en INNERVIEW pour remonter en surface,
+         puis en surface l'acces ne permet pas de rebasculer automatiquement en FRONTVIEW,
+         basculement en manuel, puis essai de creation d'un acces sur le block FRONTVIEW de cette sortie non visible => crash
+        LOG
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - SetTile feat=NoMapFeature(0) x=32 y=29 z=44(viewid=0) tileindex=1888 mPoint=6 19
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - SetTile ... before filters feat=NoMapFeature(0)
+        [Tue Feb 11 23:04:46 2020] INFO: ObjectFeatured() - ApplyFeatureFilters : COPYTILEMODIFIER ... addr=1888 feat=0 to 0 on viewId=0 to viewId=1 ... OK !
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - SetTile ... after filters feat=NoMapFeature(0)
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - SetTile : TileModifier Added => TileModifiers (NoMapFeature(0) 32 29 44) Size=19 !
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - SetTile : Update ObjectSkinned : x=32 y=29 ...
+        [Tue Feb 11 23:04:46 2020] INFO: ObjectSkinned() - SetTileFromTerrain mode=Connected0 x=32 y=29 viewid=0 feat=NoMapFeature(0) maxdim=10
+        [Tue Feb 11 23:04:46 2020] INFO: ObjectSkinned() - SetTileFromTerrain mode=Connected0 x=32 y=29 viewid=1 feat=NoMapFeature(0) maxdim=10
+        [Tue Feb 11 23:04:46 2020] INFO: ObjectSkinned() - SetTileFromTerrain mode=Connected0 x=32 y=29 viewid=2 feat=OuterFloor(14) maxdim=10
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - UpdatePhysicCollider : update collider i=2 x=32 y=29 ...
+        [Tue Feb 11 23:04:46 2020] INFO: MapColliderGenerator() - GeneratePhysicCollider ... viewZ=44 indz=1 indv=2 viewid=0 colliderZ=44(44) colliderMode=FrontMode=0 shapeType=SHT_CHAIN=2
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - UpdateCollisionChain ...
+        [Tue Feb 11 23:04:46 2020] WARNING: Map() - UpdateCollisionChain : mPoint=6 19 sLastContourId_=A > chains size(1)
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - UpdateCollisionChain : mPoint=6 19 sLastContourId_=A cs=437240048 SendEvent MAPTILEREMOVED at 1888 ...
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - UpdateCollisionChain : Contours Updated ...
+        [Tue Feb 11 23:04:46 2020] INFO: Map() - UpdateCollisionChain : Holes Updated ... OK ! => CRASH
+
+    ☐ 27/01/2020 : voir pourquoi MapTerrain::GetRandomTileGidForConnectIndex() est appelé dans les cas ou ConnectIndex=MapTilesConnectType::Void
+        -> en attendant de remonter à la cause, ajout d'un skip de si connectindex=Void
+
+    ☐ 17/01/2020 : les donjons en surface doivent avoir leurs propres types de materiaux : differents pavements
+        -> utilisation de MapSkin deja realisée
+        --> pour le moment utilisation d'un random skin cf MapCreator::GenerateDungeonMap()
+
+    ☐ 14/01/2020 : Modifier les Decals de bordure et les Tiles de Background en fonction des Biomes (penser à la vegetation).
+
+    ☐ 13/01/2020 : decalage des layers de +4 DefsViews.h afin d'avoir plus de place entre le BACKGROUND et les BACKBIOME (pb furnitures arbres en chevauchement avec tiles de background)
+        => ainsi les layerZ classique changent (BACKGROUND:6=>10 INNERVIEW:20=>24 FRONTVIEW:40=>44)
+        ==> possibilité d'avoir des vegetations en avant plan dans l'innerview grace à (FRONTBIOME) à implementer dans MapGenerator::GenerateBiomeFurnitures()
+
+    ☐ Créer une BiomeMap (carte des biomes : Rainforest, Grasslands, Desert, Temperate Forest, Tundra, Taiga, Polar, Chaparral)
+        -> elle agira notamment en modificateur sur la TerrainMap pour la selection du materiaux sur une tile
+        --> revoir SkinData => HashMap(FeatureType , MapTerrain*) devient HashMap(FeatureType, unsigned) unsigned étant index sur un tableau des Materiaux
+        ==> pour generer la biomemap, utiliser la worldmap pour identifier les differentes zones (montagneuses, plaines, sous-sol)
+        ===> 10/01/2020 : pour le moment la biomemap est un simplefbm ce qui pourrait etre suffisant
+        ====> voir pour la correspondance des valeurs de la biomeMap
+        =====> voir pour creer une TemperatureMap et une HumidityMap pour générer les biomes.
+
+    ☐ 10/11/2017 : finir l'ajout des furnitures (s'appuyant sur BiomeMap à créer)
+        -> seules les furnitures des Chunks Visible doivent s'afficher ce qui n'est pas le cas pour Portal pour le moment
+        => mais dans ce cas comment gérer les chunks non visible dont les furnitures dépassent
+        ==> ne pas le gérer dans les chunks mais plutôt dans le visibleRect_ de World2D
+        ===> toutes les furnitures qui ne sont pas à l'intérieur du visibleRect sont désactivés
+        ===> voire comment implanter la logique (voir World2D::SetEntitiesVisible() ?
+        ====> peut-etre faut-il les considerer comme des entités mais avec un flag static ?
+        ====> de plus si destruction de terrain que faire de ces furnitures => deja probleme avec les portal
+        ====> remplacer par du dynamic avec un poids important => oui + nouveau categoryBits/MaskBits GO_Furniture
+        =====> simplement enlever le mur et laisser tomber la furniture ? ou bien detruire la furniture accrochée ?
+        =====> comment lier une furniture à un mur sans qu'elle ne tombe par gravité (plante grimpante par exemple) le pb ne se posant pas pour portal puisque sur le sol.
+        =====> 2 familles de furnitures : les StaticFurniture et les DynamicFurniture
+        ======> les StaticFurniture ont un rigidbody static et ont une ref vers une tile. Si cette tile est detruite alors la StaticFurniture aussi (plante grimpante)
+        ======> les DynamicFurniture ont un rigidbody dynamic et n'ont pas de ref à une tile. (portal)
+        ======> les 2 familles ne peuvent pas être touchée par les autres entités autre que des murs, leurs triggers peuvent déclenchés une interaction avec les autres entities néanmoins
+        ======> de ces familles découle des catégories liées à la biomemap, au type de générateur (dungeon, world), ou bien aux quetes (portal, sanctuaire)
+        -> voir pour le layering (cf GOC_Destroyer::SetViewZ et GOA::LAYERALIGNMENT)
+        => 13/04/2018 : systeme de vegetation en cours ... premier resultat ok
+        ==> trop de furnitures générées en scene solo
+        ===> réduction du pourcentage de spawn dans les directions left/right/bottom ?
+        => 14/01/2020 : les StaticFurnitures n'ont plus besoin de RigidBody suite aux modifications et ajout World2D::AddStaticFurniture()
+        ==> pour la gestion des map visibility, il faut dissocier furnitures et entities : pour le moment les furnitures sont aussi des ENTITIES
+            if faut egalement dissocier l'affichage des Tiles de celui des Entities/Furnitures afin de ne pas avoir l'affichage des tiles bloqués par celui de l'affichage des entities d'une autre map
+
+    ☐ 15/09/2018 : ajouter dans MapGeneratorDungeon des templates de tours, chateaux parametrables
+
+    ☐ 03/08/2017 : Possibilité de créer des Custom Maps (via Editor Intégré ?) intéressant pour les lieux particuliers comme les boss zones
+        -> cf. EDITOR
+
+    ☐ 25/04/2018 : ajouter des portes (furnitures de dungeon). Clé, vérouillage ...
+        => le 12/09/2018 : ajout de la porte01. Le vérouillage sera effectué par une CollisionBox en static
+        ==> RAF : codage du verrou + object "clé"
+
+    ☐ Créer une TerrainMap (carte des terrain : argile, terre, sable, pierre)
+        -> l'altitude modifie le type de terrain 
+        --> en forte profondeur : 80% pierre et 20% argile;
+        --> en surface faible altitude (lit mer, riviere) : 50% sable, 35% pierre, 15% argile;
+        --> en surface moyenne altitude (plaine): 50% terre, 25% argile, 15% pierre, 10% sable;
+        --> en surface forte altitude (montagne) : 70% pierre, 20% terre, 10% sable;
+            l'eau (le terrain modifie la presence d'eau : argile et pierre créent des bassins, le sable et la terre filtre l'eau, la pierre crée des infiltrations moins importante),
+            la temperature de l'air (les reliefs, les caves, la concentration d'eau modifient le climat donc la BiomeMap)
+        ==> 06/02/2018 : à réaliser en priorité, ainsi que les furnitures ci-après.
+        -> voire avec le worldgenerator si possibilité de reprendre les cartes intermédiaires pour générer une terrainMap;
+        ==> 17/03/2018 : terrainMap générée avec le worldGenerator (simple fbm) ou bien par default avec MapGenerator::GenerateDefaultTerrainMap()
+        ===> dans le cas où l'on utilise un backscroller opaque les batches des tiles et decals sur le layer du backscroller ne sont pas nécessaires
+
+    ☐ Créer une PopulationMap
+        --> permet de placer les habitations et donjons
+        --> comment gérer la diversité des espèces par région ?
+        ---> suivants les biomes et terrain, altitude, profondeur et milieu (eau, air, terrain)
+
+    ☐ 24/08/2018 : Les TileModifiers ne sont pas sauvegarder
+        => Correctif appliqué dans Map::SaveTileModifiersTo()
+        ==> Attention : le Counter MAP_FUNC1 est utilisé, donc il doit être initialisé à 0 au debut de la sauvegarde.
+        ===> OK !
+        ==> Finir de mettre Asynchrone le code appelé par World2D::SaveWorld()
+
+    ☐ 13/06/2018 : voir Box2D pour recentrer les coordonnées dans le cadre d'un monde infini (donc pb sur les float).
+
+    ☐ 25/04/2018 : lors de la génération des Spots en dungeon, certains spots se trouvent en exterieur.
+        => bien vérifier que ceux-ci soient bien à l'intérieur des murs du dungeon.
+
+
+Archive:
+
+    ✔ OK 17/01/2023 : amelioration de World2D dans la gestion de la visibilité => evite d'avoir visibleAreaMap trop importante qui ralentissait l'application en cas de dezoom (dynamic zoom)
+
+    ✔ 08/04/2020 : ajouter le lustre
+        => 28/12/2022 : utilisation de GOC_PhysicsGrapin (à renommer ?)
+        ==> OK : quelques modifications dans GOC_Animator2D et GOC_Destroyer.
+
+    ✔ 09/12/2b022 : Correctif sur GOC_Destroyer::Unstuck()
+        => 10/12/2022 : encore des pb notamment le drawable apparait figer loin du RigidBody qui est coincé dans un mur.
+        ==> le Unstuck n'arrive pas à setter la position du body correctement.
+        ===> 28/12/2022 OK : Correctif dans GOC_Destroyer::Unstuck() avec ajout de RigidBody2D::SetBodyPosition() qui permet de setter la position dans Box2D. Utilisation egalement dans GOC_Destroyer::SetWorldMapPosition().
+        ====> Cela devrait regler les pbs : ce n'est pas sur. Risque de plantage si Box2D est en cours d'update.
+
+    ✔ 10/12/2022 : modifier l'AI des entity pour pouvoir descendre des plateformes.
+        => 27/12/2022 : c'est OK voir Behavior 20/12/2022
+
+    ✔ 24/05/2022 : toujours de gros probleme avec portal pour la teleportation
+        => lorsque la teleportation ne peut se faire et est annulée, l'avatar demeure invisible.
+        ==> OK : GOC_Portal::HandleBeginContact() il manque un return;
+        => lorsque la teleportation est reussie, à l'affichage de l'avatar les maps ne sont pas toujours toute chargées occasionnant des bloquages dans des murs
+            ou bien affichage en FrontView alors que l'avatar est en innerview.
+        ==> le probleme provient des attributs dMap_, dPosition_, dViewZ_ qui changent dans GOC_Portal::HandleTransferBodies juste après World2D::GoCameraToDestinationMap.
+        ===> OK : utilisation d'une structure differente GOC_Portal::TeleportInfo.
+
+    ✔ 18/05/2022 : les scrolling n'apparaissent pas après chargement d'une sauvegarde.
+        => les World2DInfo::imageLayerResources_ ne sont pas settés : la sauvegarde de l'attribut dans World2D n'est pas fait !
+        ==> OK ajout de "Map - Add ImageLayers" qui permet de gerer en StringVector.
+
+    ✔ 17/05/2022 : la serialization du world laisse des borders bloquantes : il faut les mettre en temporary pour eviter leur sauvegarde.
+        => OK : modification de World2D::UpdateVisibleCollideBorders() et World2D::Set()
+
+    ✔ 17/05/2022 : correctif dans RenderShape::GetSegmentsOnMapBorder() pour supprimer un crash du à MapBase::GetFeatureViewAtZ()
+        => GetViewId(viewZ) doit etre remplacer par une fonction renvoyant toujours une viewid valide : creer GetNearestViewId(viewZ)
+        => OK !
+
+    ✔ 11/05/2022 : serialization : bug de chargement de map vu en mode Arena apres avoir gagner dans le premier monde, changement de monde (aléatoire), sauvegarde.
+        => verifier si la sauvegarde inclut bien tous les parametres du composant World2D et si lors du chargement ils sont bien settés.
+        ==> OK : il s'agissait d'une desactivation de code dans GameHelpers::LoadSceneXML()
+
+    ✔ 05/10/2021 : les entities ne sont pas restaurées dans les pools apres un unload map
+        => cf Map::RemoveNodes => GOC_Destroyer::Destroy()
+        ==> Modification de GOC_Destroyer::Destroy() pour un remove immediat grace à static TimerRemover::Remove()
+        ==> il semble que les GOT Collectable ne soient pas toujours remis dans ObjectPool. Trouver ce qui pose probleme
+        ===> Cela arrive lorsque des Entity sont spawnés dans une map qui est en cours d'Unloading
+        ====> il faut bloquer le spawn dans une map en cours de purge.
+        ====> premier verrou dans World2D::SpawnEntity()
+        =====> provient de GOC_Inventory::HandleDrop() => GOC_Collectable::DropSlotFrom()
+        ======> GOC_Inventory::HandleDrop est provoqué par l'event GOC_LIFEDEAD envoyé par GOC_Destroyer::Destroy()
+        =======> dans l'ideal, il faudrait que GOC_Destroy n'envoit que l'event GO_DESTROY.
+        ========>pour l'instant ajouter la var GOA::DESTROYING et tester dans GOC_Inventory::HandleDrop()
+        ========> meme chose pour GOC_BodyExploder2D, GOC_BodyFaller2D et GOC_Collide2D, Actor::OnDead
+        ========> 06/10/2021 OK !
+
+    ✔ 05/10/2021 : il n'y a pas de rendershape en fond pour les map Dungeon
+        => dans DefsMap.cpp => modification de la table dungeonRenderColliderParams[]
+        ==> BackGround : { 1, 0, BACKGROUND, BACKGROUND, BackRenderMode, SHT_CHAIN, BACKGROUND_MASK, 0 }
+        ===> 05/10/2021 : OK, il faut obligatoirement le mode BackRenderMode autrement cela ne fonctionnera pas.
+
+    ✔ 03/10/2021 : les border rendershape ne sont pas toujours faite quand le mode est USE_TILERENDERING avec ACTIVE_RENDERSHAPE_EMBOSE
+        => il faut pouvoir regenerer les border des rendershape à la connection d'une map avec une autre.
+        ==> les bordures de map sont généré dans le batch EMBOSEBATCH. Il faut mettre dirty le batch EMBOSEBATCH.
+        ===> 05/10/2021 : OK correctif dans Map::UpdateRenderShapeBorders()
+
+    ✔ 04/10/2021 : Crash avec le Portal en world
+        => OK : Patch dans World2D::SetKeepedVisibleMaps() -> ObjectTiled::SetRenderPaused() -> corrigé node = 0
+
+    ✔ 27/04/2021 : Correctif pour la generation des holes des PhysicCollider et RenderCollider. Ceux-ci étaient en partie non générés dû à une erreur de definition des contourBorder dans MapColliderGenerator::TraceContours_MooreNeighbor().
+        => OK !
+
+    ✔ 10/03/2021 : ne pas permettre l'ajout des furnitures avec GOA::PLATEFORM sur le layer BACKGROUND car si une de ces furnitures est cachée, le collider est toujours utilisable. c'est le meme probleme avec ObjectMaped (chateau ambulant)
+        => cf MapGenerator::GenerateBiomeFurnitures() avec BiomeExternalBack
+        ==> OK : dans furnitures.json, ne jamais classifier ces furnitures dans les categories BiomeBackGround|BiomeBackGroundSides|BiomeBackGroundBottom
+
+    ✔ 24/01/2021 : ObjectTiled() - UpdateSourceBatchesToRender occasionne les lags dans ArenaZone ou MapWorld
+        => le profilage indique GetChunkBatchInfoBased.
+        ==> les lags ne sont présents qu'en debug en version non CHUNKBATCH
+
+    ✔ 28/09/2020 : encore des bloquages possibles de generation de map. Checker World2D::UpdateStep(), MapStorage::UpdateBufferedArea(), MapStorage::UpdateMapsInMemory()
+        => 05/12/2020 : cas sur Android => affichage d'une map erronée (set visible) puis chargement de la bonne map => pb de state avec le SetVisible et le Unload ?
+        ==> A tester apres les modification sur anlvm du 08/12/2020
+        ===> 19/12/2020 : correctif dans World2D, ajout de World2D::OnMapVisibleChanged() qui remplace World2D::UpdateVisibleCollideBorders(). Ne prend en compte que les maps qui sont effectiveVisible pour la mise à jour du collideBorder.
+        ====> RAF : a rendre Multiviews
+
+    ✔ 08/12/2020 : problemes de generation sur l'ensemble des Maps.
+        => vue sous linux en mode debug avec (MODULETHREAD_VERSION 2), le define ALTERNATE_COORDENTRY est donc actif.
+        => les maps semblent etre tronquées de moitié en Y. La moitié haute mal générée et la partie basse non générée ... A revoir.
+        ==> difficilement reproductible
+        => 12/12/2020  : sous windows gcc release avec WorkerThreads avec MODULETHREAD_VERSION 2, la generation est incorrecte. GCC Win Rel => le define ALTERNATE_COORDENTRY est inactif.
+        ==> 12/12/2020 : sous windows gcc release sans WorkerThreads avec MODULETHREAD_VERSION 2, la generation est incorrecte. GCC Win Rel => le define ALTERNATE_COORDENTRY est inactif.
+        ==> 12/12/2020 : sous windows gcc release sans WorkerThreads avec MODULETHREAD_VERSION 1, la generation est correcte. GCC Win Rel => le define ALTERNATE_COORDENTRY est inactif.
+        ==> 12/12/2020 : sous windows gcc release avec WorkerThreads avec MODULETHREAD_VERSION 1, la generation est correcte. GCC Win Rel => le define ALTERNATE_COORDENTRY est inactif.
+        ===> en activant ALTERNATE_COORDENTRY (cf VM/vm.inl) avec gcc release MODULETHREAD_VERSION 2, il y a crash si lancement sans debogage. avec debogage pas de crash ... pb d'initialisation de variable ?
+        ====> comme la carte est mal générée, le player ne trouve pas de place pour positionner l'avatar Player::UpdateComponents() => le GOC_Destroyer detruit l'avatar. ensuite Actor::avatar_=0 et crash dans Actor::ResetAvatar
+        =====> correctif dans Actor::ResetAvatar et dans PlayState::HandleInitialize
+        ==> 12/12/2020 : sous windows vs sans WorkerThreads avec MODULETHREAD_VERSION 2, la generation est correcte. MSC_VER => le define ALTERNATE_COORDENTRY est actif.
+        ==> 12/12/2020 : sous windows vs avec WorkerThreads avec MODULETHREAD_VERSION 2, la generation est correcte. MSC_VER => le define ALTERNATE_COORDENTRY est actif.
+        ==> 12/12/2020 : sous windows vs sans WorkerThreads avec MODULETHREAD_VERSION 1, la generation est correcte. MSC_VER => le define ALTERNATE_COORDENTRY est actif.
+        ==> 12/12/2020 : sous windows vs avec WorkerThreads avec MODULETHREAD_VERSION 1, la generation est correcte. MSC_VER => le define ALTERNATE_COORDENTRY est actif.
+        ==> remettre les gamelogfilters MAPCREATE et WORLDUPDATE pour le moment.
+        ===> OK 13/12/2020 : quelques modifications dans anlvm : notamment remplacement des std::containers par ceux d'Urho3D semblent avoir éliminer le probleme.
+        =====> OK 14/12/2020 : OK sur linux => suppression de ALTERNATE_COORDENTRY qui n'est plus necessaire
+
+        => verifier le delay maxi async utilisé pour le chargement initial des maps
+        ==> Utilisation de 3 fonctions d'acces globale TimeOver() à utiliser avant tout dans les Boucles, TimeOverMaximized() à utiliser en fin de block mcount pour finir la procedure courante si le delayUpdate donné est trop court pour continuer, et HalfTimeOver().
+        ===> OK 26/09/2020 : TimeOverMaximized() permet de gagner en rapidité pour les phases de chargement dans le delayToUpdate est long et de plus fragmenter durant les pĥases de jeux.
+        ====> le chargement async initial passe de 10sec à 4sec.
+
+    ✔ 26/09/2020 : probleme de non chargement/generation de maps surement lié au MapStorage.
+        ==> OK 28/09/2020 : il s'agit surement d'un bloquage du à MapColliderGenerator. Desormais, lorsqu'une nouvelle map necessite la generation de collider,
+            MapColliderGenerator deverouille la map qui bloque (reinitialisation local du MapCounter FUNC3 pour la map bloquante) et traite le collider de la nouvelle map
+            Changement de code dans MapCreator::Update() avec ajout d'un Tri permettant de recuperer la map la plus proche de la camera (mapsToCreate_ devient un Vector ald List)
+
+    ✔ 15/06/2020 : pb de NaN position genere par GOC_Destroyer::UpdatePositions() => GOC_Destroyer::GetUpdatedWorldPosition2D() avec certains parts générés en PrepareMode par GOC_BodyExploder2D
+        => à l'Explosion : GOC_BodyExploder2D::SetExplodedNodesComponents() va utiliser la methode World2D::AttachEntityToMapNode() qui fait appel à Node::SetWorldTransform2D()
+        ==> après analyser avant appel à cette derniere methode les valeurs de la transformation sont ok, apres appel les valeurs sont corrompues certaines fois et retourne NaN.
+        ===> LOG ti=0.7 -0 15.5004 0 0.7 1.72724 tf=-nan nan 15.5004 -nan nan 1.72724 => m00_ m01_ et m10_ m11_ sont corrompus => il s'agit de la partie scale et rotation.
+        ====> cf Node::SetWorldTransform2D() & Matrix2x3
+        =====> Modification de Matrix2x3::Rotation() qui utilise acos => ne permet pas le test des limites => utilisation de Urho3D::Acos() qui fait le Clamp aux limites
+        ======> OK : plus d'erreur pour le moment.
+
+    ✔ 13/02/2020 : sur RPI, les cartes générées sont differentes de celles generees sur WINDOWS ou LINUX
+        -> meme seed, meme 10 premiers nombres avec GameRand::Dump10Value()
+        => carte identique en arena
+        ==> test avec anl::KISS
+        ==> ajout de GameCommands : anltest qui lit anltest.xml et renvoit une carte 16x16 des valeurs flottantes générées également ajout du dump integral des instructions de anl::kernel avec les valeurs générées (notamment des constantes qui posent pb entre RPI et Linux)
+        ===> il s'agit d'un probleme de passage des random de KISS sur la pile lors de l'execution des methodes anl::CKernel::simpleFractalLayer (egalement BillowLayer et Ridged)
+        ====> correctif effectuer en creant des float angle,ax,ay,az pour les randoms dans anl::CKernel::simplefBm, anl::CKernel::simpleBillow() et anl::CKernel::simpleRidgedLayer()
+        =====> 17/02/2020 OK : les cartes générées sur LINUX sont les memes que sur RPI => tester sur WINDOWS.
+
+    ✔ 13/02/2020 : Pb de map non visible et de generation de map (vu sur RPI)
+        -> d'apres les logs, le status peut rester bloquer sur Unloading_Map alors que la map est egalement dans la pile des map à générer
+        --> la map n'est pas encore dechargée qu'elle est remise en load et donc retirer de la liste de maps à décharger
+        ===> correctif : PushMapToLoad et PushMapToUnload, ne pas faire de verification si maptoload est dans la liste unload.
+        ===> laisser faire le process sans raccourci. plus long mais plus sur.
+        ====> le 14/02/2020. A verifier sur RPI.
+
+    ✔ 23/01/2020 : crash apres removetile en bordure de map de 2 tiles sur chacune des map, retour menu puis rechargement (le pb n'existe pas en quittant et relancant l'application)
+        => dans ObjectTiled::UpdateSewingBatches => GetTerrainId() => Tile::GetDimensions()
+        ==> Modification de GetTerrainId() pour exclure les Tile*=0 et les Tile*=Tile::EMPTYPTR
+        => toujours sur la view BackView(viewid=3 z=13). La backview est setté uniquement les map dungeon.
+        ===> la map 1 19 est un dungeon et la map 0 19 est une cave, en allant chercher le terrainid de cette map dans la viewid=3 qui n'est pas setté cela va chercher un tile avec pointeur qui n'est plus affecté
+        ===> modifier ObjectTiled::UpdateSewingBatches en bordure en tenant compte de l'existence du viewid dans la connectmap : si pas de viewid correspondante toujours ajouté la couture.
+        ====> 27/04/2020 : OK !
+
+    ✔ 30/04/2018 : lors d'un removetile ou addtile tenir compte si le tile est en frontier de map pour créer les decals sur la map en bordure
+        -> 19/01/2020 : ObjectSkinned::SetTile doit etre modifié pour accepter les tile en bordure et gerer la connection avec les map voisines à l'instar de Map::ConnectHorizontalMaps()
+        ==> OK le 22/01/2020 : modification de ObjectSkinned::SetConnectIndex_0() utiliser par ObjectSkinned::SetTileFromSkin() et ObjectSkinned::SetTileFromTerrain()
+        ===> il reste une imperfection masquer par les Sewings lors du rechargement des TileModifiers : les decals en bordure ne s'affichent pas
+        ====> OK 25/01/2020 : correction de Map::ConnectHorizontalMaps() et Map::ConnectVerticalMaps() sur le meme principe
+
+    ✔ 23/01/2020 : apres un removetile, retour au menu et relance, la vegetation a disparu de la map
+        -> voir les logs
+        -> pb de reset des maps ? pas de pb en quittant le jeu et en rechargeant la partie
+        ==> OK 24/01/2020, static World2D::mapFurnitures_ n'etait pas vidé lors de la destruction de World2D
+
+    ✔ 13/09/2018 : Crash au chargement du monde
+        => il s'agit des TileModifiers. Si le fichier .til est corrompu ou bien si changement de dimension width,height des Maps
+        ==> voir à faire un test avant chargement des tilemodifiers pour vérifier l'intégrité des tilemodifiers
+        ===> 15/01/2020 : Patch dans Map::SetTileModifiers() pour eviter le crash et LOG ERROR de MAP Versioning.
+
+    ✔ 22/03/2018 : les entities changeant de map vers une map non chargée doivent être desactivés et mis en attente du chargement de la map. (créer un status d'attente)
+        => pour le moment, l'entity atteignant une zone non chargé, ne change pas de map et continue de tomber
+        ==> l'event GO_CHANGEMAP ne semble pas être envoyé
+        ====> test de GOC_Destroyer avec une BigBomb en bordure de map (PlayState::HandleCreateMode_MouseButton() avec LSHIFT+MButton)
+        =====> Modification rapide dans GOC_Destroyer::UpdatePositions() pour reactiver le ChangeMap
+        ======> RAF : créer le status d'attente et l'unstuck entity
+        -> lorsque une entité sort de la visiblemaparea, il faut vérifier si la carte non visible a un collider à cet endroit.
+        --> Si oui alors l'entité ne peut y rentrer et rebrouse chemin.
+        ==> 11/01/2020 : pour resoudre ces 2 problemes liés, il faut créer une collisionchain englobant les maps visibles
+        ===> cette collisionchain sera mise à jour à chaque changement de map visible : cette shape aura 4 vertices (rectangle).
+        ====> OK 12/01/2020 : creation de World2D::visibleCollideBorder_ et World2D::UpdateVisibleCollideBorder()
+
+    ✔ 03/01/2020 : voir pour la generation des colliders des zones fermées
+        => la generation est deja faite, disponible dans MapCollider::holeVertices_, il manque la creation des collisionchains correspondante
+        ==> OK pour Map::AddCollisionChain2D()
+        ==> OK 06/01/2020 : pour Map::UpdateCollisionChain()
+
+    ✔ 28/04/2018 : Modifier l'updateCollider
+        -> en créant des tiles, les zones qui sont fermées n'ont alors plus de Colliders
+        ==> si un tile ferme une zone, utiliser une plateforme (box collider)
+        -> le removetile doit permettre de supprimer les plateformes (box colliders)
+        ==> prendre en compte les boxes dans l'updatecollider
+        ===> Autre solution : generation des holes solutionnée le 06/01/2020
+
+    ✔ 31/12/2019 : certaines cartes ne se chargent pas et restent bloquées dans un Status Non Available (Bleu). Du coup, le joueur se trouve devant un vide
+        => mettre les logs de carte (desactiver le filtre GAMELOG_MAPCREATE) et reproduire ce bug, verifier le status de ces cartes, analyser les logs et le code de MapWorld et de MapStorage.
+        ==> Modification de MapCreator::Update() : verifier si la carte courante est Available, sinon la charger
+        ==> Modification de MapStorage::PushMapToUnload() : ajout de mapCreator_->PurgeMap
+        ===> il y a toujours un risque pour que les cartes voisines de la currentMap ne soient pas chargées
+        ====> voir pour tester que les maps de la visiblearea soient bien Available.
+        =====> OK 02/01/2020 : modification de World2D::UpdateVisibleArea() pour remplir World2D::visibleMaps_ et modification MapCreator::Update()
+
+    ✔ 31/12/2019 : les TileModifiers ne sont pas tous sauvegardés notamment ceux des cartes voisines à la carte courante
+        => à la sauvegarde du World2D (en quittant la partie en cours), sauvegarder tout d'abord en memoire les TileModifiers des cartes chargées en memoires
+        ==> OK 01/01/2020 : modification de MapStorage::SaveMaps() pour sauvegarder en memoire les TileModifiers de toutes les MapStorage::mapsInMemory_.
+
+    ✔ 23/12/2019 : en bordure haute de map, les plateformes ne sont pas solides pour les entités en Frontview. Pas de pb en Innerview
+        => cf MapCreator::CreateMap => MapCreator::GenerateColliders => Map::CreateColliders => Map::GenerateColliders
+        => cf Map::UpdateAllColliders, Map::UpdatePhysicCollider
+        => cf MapColliderGenerator::GeneratePhysicCollider, MapColliderGenerator::GenerateWorkMatrix
+        ==> cf MapColliderMode::BackMode dans MapColliderGenerator::GenerateWorkMatrix
+        ===> OK 27/12/2019 : utilisation de fluidview pour analyser les blocks
+        ===> Ajout Mode TopBorderBackMode dans MapColliderGenerator::GenerateWorkMatrix qui se charge de générer la blockmap pour la 1ere ligne
+        ===> Ajout de Map::SetCollisionChain2D() qui créer les collisionchains pour un collider id
+        ===> Ajout de Map::CreateTopBorderCollisionShapes() qui est lancé dans Map::ConnectVerticalMaps() uniquement et qui genere et cree les collisionchains pour la nouvelle bottom map connectée.
+        ====> Ajout des physicColliders OuterTop et BackTop pour gérer ce cas.
+
+    ✔ 28/10/2019 : sous linux en Debug en session de debuggage, le world ne produit pas les bons Inner
+        -> le pb provient de anlvm puisque le screenshot est aussi defectueux
+        --> sans session de debuggage, en redirigeant la sortie standard vers un log.txt, le probleme disparait
+        --> OK : en session de debuggage, en mettant le define ALTERNATE_COORDENTRY dans vm.inl (le meme que pour compiler sous Win32 VS), le probleme disparait
+        ---> 30/12/2019 : Ajout de preprocess defined(__linux) && defined(DEBUG)
+
+    ✔ 23/10/2019 : un crash se produit dans AnlWorlModel avec pthread (MODULETHREAD_VERSION == 1) dans GenerateModuleThread meme avec le mutex
+        -> à priori, ce crash disparait en parametrant engine_config.xml pour ne pas utiliser les WorkerThreads
+        --> OK : Ajout de la verification de la map de destination (info.genStatus_->features_[imodule]) avant ecriture. si non existante skip!
+
+    ✔ 24/10/2019 : en world, les mondes générés sont differents entre la version gcc et la version vs
+        -> avec VS dans ANLVM/vm.inl, anl::CNoiseExecutor::EvaluateInstruction() certaines instructions (GradientBasis) ne vont pas avoir d'acces aux coordonnées d'entrée CCoordinate
+            et generés des nan values (dans les modules "mix" outer_lowhigh et outer_mixed)
+        --> pour VS, passer directement par le vector coordcache_ fonctionne bien, contrairement à gcc.
+        ---> OK : garder les deux versions en utilisant des predefined de compilation
+
+    ✔ 05/10/2018 : Crash lors de la génération de map dans MapCreator::GenerateEntities -> MapGenerator::IsAreaForSpot() -> MapCollider::IsInside :
+        => MapCollider::contourVertices_ renvoie une taille infinie alors que le buffer n'est pas attribuer ...
+        ==> verifier le MapCollider::Clear() et Map::Clear()
+        ==> verifier le Map::Resize(), voir pour reutiliser un tableau de pointer sur PhysicCollider
+        ===> mauvais index de collider utilisé, remplacement de Map::GetMapColliderIndex() par Map::GetViewIndex() => les colliders sont indexer par indv
+
+    ✔ 06/10/2018 : les collisionChain de BackGround en FRONTVIEW entrent en collision avec les entities ce qui est non souhaité.
+        => probleme depuis le remplacement des MapCollider par PhysicCollider parametré avec ColliderParams
+        ==> voir Map::AddCollisionChain2D() et comparer avec la version SourceStable (24/09)
+        ===> vérifier si colliderZ vaut bien viewZ (06/10 ==> body->SetViewZ(physicCollider.params->colliderZ_) (24/09 ==> body->SetViewZ(mapcollider->viewZ_)) => ca a l'air ok
+        ===> test sur la world map (7, 3)
+        ===> vérifier dans PhysicWorld2D::BeginContact() : la normal est tres infime mais négative => il s'agit d'une inversion de normale du à la forme en ligne oblique générée par mapColliderGenerator
+        ====> correction appliquée dans PhysicWorld2D::BeginContact() => modification du seuil à -0.1f ald 0.f
+        =====> OK
+
+    ✔ 2/09/2018 : lorsque la zone est l'exterieur, les entités ne doivent pas popper en innerview.
+        => Generer les mapcolliders avant la generation des entités => OK
+        ==> lors de la génération des entités vérifiés si la zone est ouverte ou fermée pour attribuer le zview
+        ===> Ajout de GameHelpers::IsInsidePolygon() et MapCollider::IsInside()
+        ===> Generer la maptopography avant la generation des entités => OK (dans GenerateLayers meme avec GenerateColliders)
+        ==> 1. si map->GetTopography()->IsFullGround() == true
+        ===> pour chaque spot, essayer de le placer en FRONTVIEW
+        ====> si le mapspot verifie MapCollider(FRONTVIEW)->IsInside(mapspot.point, checkholes=false) == false, placer le mapspot en frontview
+        ====> sinon le mapspot vérifie MapCollider(INNERVIEW)->IsInside(mapspot.point, checkholes=true) == false, placer le mapspot en innerview sinon ne pas enregistrer ce POINT
+        ==> 2. sinon
+        ===> pour chaque spot, essayer de le placer en INNERVIEW
+        ====> si le mapspot vérifie MapCollider(INNERVIEW)->IsInside(mapspot.point, checkholes=true) == false, placer le mapspot en innerview sinon ne pas enregistrer ce POINT
+        => OK implanter dans MapCreator::GenerateEntities() -> MapGenerator::IsAreaForSpot()
+        ==> certaines entités sont coincées dans le décor (les BodyColliders sont en collision avec les MapColliders)
+        ====> Map::SetEntity_Add() : décaler en y pour toutes les entités (à l'instar des furnitures)
+        => s'assurer qu'il y est au moins un SPOT_START minimum par map notamment pour les cartes ciel vide
+        ==> Ok dans MapGenerator::GenerateRandomSpots()
+        => pourquoi les Portal poppent parfois en 0,0 ?
+        ===> int MapGeneratorDungeon::GetPositionOnGround() retournait false dans le premier cas => OK
+
+    ✔ 31/08/2018 : en TestZone VM ellipsoid en demarrant en map 4 3 => le GameStatus::SetWorldStartPosition() retourne une position de GOT_START en dehors de zone
+        => il s'agit d'une zone dungeon mais sans Room
+        ==> correctif dans MapGeneratorDungeon::GenerateSpots() pour la generation de GOT_START lorsque pas de rooms
+
+    ✔ 30/08/2018 : Le World2D ne rend visible que la map courante à l'apparition de la scene
+        => modification de UpdateInstant
+        ==> les bordures de map ne sont affichées qu'après apparition
+        ===> Correctif ObjectTiled::UpdateDirtyChunks() pour prendre en compte le notimer
+
+    ✔ 29/08/2018 : boucle infinie à debugguer
+        => en version(TestZone) ANLVM avec ou sans ACTIVE_WORLD2D_THREADING
+        ==> reproduction du crash : map -2 4 de départ
+        ===> GameCommand : go2map=9,2, puis prendre le portail à gauche (il mene à la map=12 4) puis descendre
+        ====> les logs indiquent
+            [Wed Aug 29 12:25:04 2018] INFO: MapCreator() - CreateMap at 12 2 ... Creating_Map_Layers ...
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViews ... startTimer=0
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViewFromTerrain : id=1 featureData=218865296 ...
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViewFromTerrain : id=1 featureData=218865296 Connected0 ...
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViews ... view=2/3 ... timer=0 msec
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViewFromTerrain : id=2 featureData=218869408 ...
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViewFromTerrain : id=2 featureData=218869408 Connected0 ...
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViews ... view=3/3 ... timer=1 msec
+            [Wed Aug 29 12:25:04 2018] INFO: ObjectSkinned() - SetViews ... OK !
+        ====> puis boucle sans fin; l'interruption par le debugger donne un pthread_mutex_lock lié à WorkQueue::ProcessItems
+        =====> tester Urho3D sans Thread
+        ======> le MapCreator est bloqué sur l'UpdateMaskViews => Dump des viewIds
+        =======> un pb de generation des viewIds => vérifier la chaine
+        =======> solution temporaire : dans UpdateMaskViews correction du skip lorsque viewid=-1;
+        =======> d'autres crashs pourraient se produire, des l'appel a ObjectFeatured::GetViewIDs() sans protection supplementaire
+        ========> correctif dans ObjectFeatured::GetViewIDs() : ajout du check (viewIds_[viewZ].Size() && viewIds_[viewZ].Back() == -1))
+        =========> correctif de ObjectFeatured::SortViews() et simplification de ObjectFeatured::GetViewIDs()
+        ==========> RAF : certain ObjectTiled renvoit une erreur ObjectTiled::SetCurrentViewZ() avec node_=0 voir pourquoi ils sont sollicités et lié à quelles maps ?
+
+    ✔ 21/08/2018 : World2D::SetVisibleMaps() => Ajout d'un purge pour mapsToShow_ : la liste générée lors d'un dezoom etait trés grosse et générait de tres gros ralentissement (10-20fps)
+        => reste un bug : certaines maps restent bloquées au Status InitializedMap
+
+    ✔ 20/07/2018 : correctif pour la Pause
+        => OK : ViewManager::MoveCamera() si Scene IsUpdateEnabled()
+
+    ✔ 19/07/2018 : Ajout CAMERAFOCUS_ADJUSTWALK (ajuster le camera focus pour décaler d'un offset dans le cas d'un walker)
+        => cf ViewManager::UpdateFocus()
+
+    ✔ 13/06/2018 : pourquoi de lag ? cf FAQ de SFML ou c'est plutot bien expliqué
+        -> Profilage dans (World2D_Update)
+        --> il s'agit probablement de procedures qui ne sont pas optimisé en Async (doit être plus rapide que 5msec)
+        --> Optimiser ObjectTiled::UpdateTiledBatches, ObjectTiled::UpdateDecalBatches, ObjectTiled::UpdateSewingBatches
+        --> Optimiser Map::SetCollisionShapes()
+        --> Optimiser Map::SetFurnitures, Map::AddBackScroller
+        -> faire le meme profilage sur RPI et Android
+        -> apres amelioration, le lag se produit encore
+        --> engine, renderer2d, trop de batches ?
+        --> TODO
+        ---> 17/08/2018 : fin de la premiere tentative avec correction du deplacement dans mapworld
+
+    ✔ 11/06/2018 : ObjectTiled -> revoir le container pour les differents batches (TILES, DECALS, SEWING)
+        -> Creer ChunkBatch
+        --> diminution du nombre de batch (pour les decals et les sewing) mais il faut encore modifier les batches des scrollers pour permettre un dégradé sur les decals
+
+    ✔ 28/06/2018 : affichage décroche par moment en mode arena (WINDOWED 1024x768 VSYNC)
+        --> comparatif du num batches entre la version courante et la version FromBones_master-WIP20180604-ConditionalAbilities+PatchBombeGrapin en mode arena (chunk 4x2)
+        ---> version courante = 80 batches  version ancienne = 40 batches
+        ----> trouver les changements impactant les batches dans FromBones et/ ou Urho3D
+        -----> Dans Urho3D Rendered2D::CompareSourceBatch2Ds => il est necessaire de garder le code
+            if (lhs->material_ != rhs->material_)
+                return lhs->material_->GetNameHash() => rhs->material_->GetNameHash();
+
+    ✔ 07/06/2018 : ameliorer la rapidité de traitement avec le PhysicWorld2D,
+        => utilisé le RigidBody2D::GetColliderInfo() pour identifier les "MapCollider2D"
+        ==> OK remplacement effecté dans FromBones et Urho3D
+
+    ✔ 23/05/2018 : disparition des tags ROOMS des la version "FromBones_master-WIP20180423-PatchBackScroller"
+        => comparer cette version avec la précédente "FromBones_master-WIP20180413-Vegetation"
+        ==> La génération des Spots est centralisée dans GenerateSpots
+        ===> ne plus créer des spots en dehors de la fonction
+        ===> OK, MapDungeonGenerator modifier !
+
+    ✔ 25/04/2018 : flipping à l'apparition d'une entité via ObjectPool::CreateChildIn()
+        => cette procédure rend enable le node si le parent(la map) est déjà enabled
+        ==> ce qui implique l'affichage avant le changement de position réalisé ultérieurement par GOC_Destroyer::UpdatePositions()
+        ===> ajout dans GOC_Destroyer::Reset() de node_->GetDerivedComponent(Drawable2D)()->GetSourceBatchesToRender() qui permet de rafraichir
+        => OK !
+
+    ✔ 25/04/2018 : disparition du player si déplacement sur d'autres maps hors player focus
+        => lors du UnLoadMap, l'ajout de World2D::PurgeEntities() vide la liste des entities dont fait partie le Player, qui ne peut plus être affiché par la suite via le World2D::SetEntitiesVisible()
+        ==> modification du World2D::PurgeEntities() pour skipper les entities players (à l'instar de Map::RemoveNodes())
+        ===> OK !
+
+    ✔ grace à ANLWorldModel, il est possible de créer une WorldMap : créer une WorldMap et remettre la MiniMap (04/08/2017)
+        => 22/10/2017 : MiniMap réactivée (pb dans les angles à corriger)
+        ==> 10/02/2018 : priorité créer une WorldMap permettant de visualisation un fichier anlworld et d'afficher et regler les differents modules d'ANLWORLD et de sauver le modele en mode creation
+        ===> une nouvelle version d'anl est disponible mais changement important
+        ====> voir comment convertir les modeles anlworld vers cette version (VM).
+        =====> pouvoir comparer les 2 versions en terme de rapidité de generation sur un monde équivalent (les modules n'étant pas les memes)
+        ======> modifier AnlWorldModel pour gérer les 2 versions en parallèle
+        ======> OK : 14/02/2018, VM est beaucoup moins rapide
+        =======> ajouter des caches comme les CacheArray ajouté à la V1.
+        ========> OK : 19/02/2018, divise par 2 le temps d'exec dans imaging
+        ========> OK : 21/02/2018, ajout des threads detaché dans AnlWorldModel avec CacheArray (avec cachearray activé on passe de 130msec à 70msec (avec 2 threads))
+        =========> réduire le nombre d'instructions générées avec les constantes, interpolation etc...
+        ==========> NOK : 15/03/2018, après bcp d'efforts, pas de résultat concluant en rapidité en réduisant le nombre d'instructions voir V2 du 13/03/2018, peut-être qu'il s'agit d'une erreur de passer sans récursion
+        ===========> serait-il bien meilleur de reprendre la V1 et de l'adapter à la VM ?
+        ============> OK : 20/03/2018 ajout de radial, la carte obtenue en V1 est satisfaisante et beaucoup plus rapide mais sans thread : 30msec ald de 70msec en VM (avec 2 threads)
+        ======> gestion des seeds avec VM ?
+        => 22/03/2018 : sous WIN32, VM n'est pas utilisable en thread (pas de pthread et plantage avec pthread-win32) et genere des maps buggées en asynchrone.
+
+    ✔ pbs récurrent sur les ObjectPools à corriger !
+        -> écrasement des nodes existants => perte de certains nodes dans la scene. Impact également le Network. voir note 20170509
+        -> ObjectPools : les animations ne sont pas tjrs restaurées dans la pool (bolttransfo du vampire par exemple). Il semble que l'animation spawnée ne soit pas à son état initial.
+            -> bug toujours actif le 11/10/2017 ===> A CORRIGER RAPIDEMENT
+            => l'effet est pris en compte par World2D (liste des entities), dans ce cas si l'effet est dejà restauré et qu'il n'est pas supprimé de cette liste
+               alors le setvisible du world2D peut le réactiver (l'utiliser alors qu'il est dans le pool)
+            ==> OK 12/10/2017 : Map::AddEntity() : ne pas envoyer l'event GO_APPEAR si le node a l'attr GOT_Effect
+        -> 20/03/2018 : pb toujours actif !
+            description du bug
+                etape1 : spawn d'une entity RayonHypno
+                    -> World2D() - SpawnEntity  on map 0,0
+                    --> appel GOC_Animator2D() - ToDestroy RayonHypno(16800192)
+                etape2 : déplacement générant un appel à World2D() - SetMapVisible
+                    -> appel de World2D()-SetEntitiesVisible : mPoint=0 0 visible=show ...
+                    --> appel de GOC_Animator2D() - Start : RayonHypno(16800192) state=State_Spawn(445058125) !
+                    ---> appel de GOC_Animator2D() - ToDestroy RayonHypno(16800192)
+                    ----> génération de ERROR: ObjectPool() - Free : Node=RayonHypno(16800192) ... already inside Pool !!!
+                etape3 : spawn d'une entity RayonHypno
+                    --> l'entity réapparait bloqué
+        ==> il semblerait qu'à l'étape 2, l'entity soit tjrs affectée à la map 0,0 occassionant un respawn lors du World2D()-SetEntitiesVisible
+        ===> vérifier la liste des entités dans la map0,0 avant le World2D()-SetEntitiesVisible
+        ====> il apparait bien dans la liste
+        =====> vérifier si dans la chaine de destroy, on supprime bien l'entity de la liste de World2D
+        ======> Correctif dans GOC_Animator2D() - ToDestroy => ajout de World2D::RemoveEntity() et correctif dans World2D::RemoveEntity() => erase par iterator ald unsigned
+        ======> 21/03/2018 : OK
+
+    ✔ 07/02/2018 : AccidentalNoise ajout de CacheArray : met en cache tout une carte générée pour être réutiliser dans un autre process
+        => diviser par 2 le temps de generation du WORLDGROUNDMAP.
+
+    ✔ 18/10/2017 : Map Modifiable par les joueurs
+        => fonctions de base OK 23/12/2017
+            -> penser à la serialization + réseau
+            -> analyser minetest.
+            -> modifier les controles (actuellement simple test avec souris BL=addtile BR=removetile sur le viewZ courant du joueur)
+                -> cf behavior
+
+    ✔ vu dans World1 (Map1_0), des doors apparaissent dans des zones interieures non souhaitées
+        -> les FeatureFilters TRANSFERFRONTIER générent des Doors dans des zones de dungeon car TunnelInnerSpace > RoomInnerSpace
+        => Correctif : 16/12/2017 inversion de l'ordre des MapFeatureType (TunnelInnerSpace doit etre inferieur à RoomInnerSpace)
+
+    ✔ les FluidBatches de la précédente viewZ flippent juste après changement de vue (03/08/2017)
+        -> voir la mise à jour de ces batches
+        => Semble corrigé depuis correctif du 09/10/2017
+
+    ✔ 09/10/2017 : Correctif pour l'update des fluids dans ObjectTiled : l'update des batches est bien réalisé seulement si la simulation apporte des changements.
+
+    ✔ reactivation des fluids : FluidSimulator + render in ObjectTile
+        ==> Test en cours
+        => prévoir le déversement des fluids entre les maps
+        => les fluids doivent pouvoir changer de view (exemple inside vers outside, exit et windows)
+        --> si fluid sur innerview, si pas de frontview bloquant ni de outerview bloquant, deversé sur outerview
+        => OK le 03/09/2017
+            -> ok pour le deversement sur les maps adjacentes
+            -> à tester avec le deversement suivant Z : methode 2 OuterViews (une pour innerview, l'autre pour frontview)
+             -> voir pour réduire le nombre de fluidview : linker la featureview (outerview) pour permettre le check des cellules
+                => OK le 04/09/2017
+
+    ✔ Generation des wallcolliders : au bas des windows, en innerview il n'y a pas de collider, en frontview ils existent bien
+        -> voir MapColliderGenerator pour corriger l'INNERVIEW
+        => OK (04/08/2017) : MapColliderGenerator::GenerateWorkMatrix (ajout de la detection du feat Window pour le BackMode) & Map::AddCollisionChain2D (BackView reconnu comme InsideWalls pour le SetFilterBits)
+
+    ✔ les maskviews ne suppriment pas assez de tiles (qui devraient être masqués)
+        => OK (02/08/2017) : modification ObjectFeatured::GenerateMaskViews pour les modes Connect4 et 0 (decals+dimensions)
+        ==> ObjectFeatured::UpdateMaskViews ne sert plus pour le moment
+        => Tres bon Gain sur la quantité de Tile Masked
+        => Test sur les performances à faire
+        => OK (04/08/2017) 1msec sur du 64x64 pour une viewZ
+
+    ✔ les fluids ne s'affichent plus lors d'un changement de carte, seulement si switch view
+        => le simulator fonctionne correctement
+        => provient des fluidbatches, surement un pb de setdirty
+        => si pb, le fait de rendre la map invisible et de la remettre visible résoud le pb d'affichage
+        ==> OK : il peut arriver à l'initialisation d'une map que le UpdateSourceBatchesToRender se déroule avant le HandleUpdateFluid, dans ce cas il convient d'ajouter les sourceBatches
+        ===> ajout d'un updateFluid dans le ObjectTiled::UpdateSourceBatchesToRender
+        ====> réapparition du bug (02/08/2017)
+        =====> 03/08/2017 OK : réactiver UpdateFluids ald UpdateFluidBatches
+        ====> apres changement de zView, la simulation sur la zview précedente s'arrete (scene1 pas test): toutes les vues doivent etre simulees
+        =====> 03/08/2017 OK : correctif dans MapCreator::GenerateSimpleGroundMap AddFluidViewToViewZ(InnerView_ViewId ...) ald AddFluidViewToViewZ(BackGround_ViewId ...)
+
+    ✔ Intégration de la nouvelle TileSet : pb de hotspot => modification TileSheet2D + ObjectTiled
+        => OK (02/08/2017)
+
+    ✔ Modifier MapCreator pour intégrer par défaut MapCreator::GenerateMapFromWorld()
+        -> prévoir la possibilité de basculer vers l'ancien GenerateGround si pas de AnlWorld setted.
+        => 07/07/2017 OK !
+
+    ✔ Refactor des viewBatches (Vector<<<>>> en HashMap + Vector) </>
+        -> Correction d'un crash (ayant lieu dans le Renderer2D du à corruption Material* (0x18)) : UpdateSourceBatchesToRender() corrigé - les Fluids ne doivent pas etre envoyé vers le Renderer si pas de viewBatches
+        => 05/07/2017 OK !
+
+    ✔ Au chargement initial, réduire le nombre de map buffered à générer pour réduire le temps de chargement ? ou bien augmenter le temps alloué à la génération par frame
+        => OK, Augmentation du temps par frame
+
+    ✔ incorporation AccidentalNoise / Creation AnlWorld Generator
+        => prévoir le remplacement des GOT_Exits par de la logique au niveau du GOC_Move2D ou GOC_Destroyer
+        ===> Remplacement des GOT_Exits réalisé via GOC_Destroyer::UpdatePositions.
+        ===> 21/06/2017, Sur AnlWorld generator
+        ====> dans le FeatureMap BACKVIEW mettre les blocks faisant frontiere entre interieur et exterieur en Door ---> OK!
+        ====> dans le FeatureMap FRONTVIEW suppression de ces blocks frontiere ---> OK!
+        ===> 24/06/2017, version generation asynchrone AnlWorldModel::GenerateModules OK!
+
+    ✔ Les maps créer sont différentes sur chaque plateforme sauf normalement en activant c++11 (utilisation Mersen Twister)
+        => refactor du Generateur de Hasard (GameRand créer)
+        ==> Test à réaliser en multi platerform avec et sans c++11
+        ===> Les tests en C++11 ne sont pas conformes. Des différences apparaissent au niveau des randoms dans la phase de génération du sol (MapCreator).
+        ====> il s'agit de la précision float qui différe entre plateform. passage en integer (précision réglable dans les const)
+        ====> suite au passage en integer, l'utilisation du SetParamsInt(int n, ...) par args présente un bug non identifié.
+        =====> utilisation exclusif de SetParamsInt(PODVector) pour le passage de params.
+        ====> correction de Noise (il restait un rand() ...)
+        =====> 20/06/2017 : OK, tests concluant en C++11 et inférieurs (avec ou sans Mersen)
+
+    ✔ Crash au niveau du destructor ~MapGeneratorDungeon sur le PODVector selfAllocatedMap :
+        => le crash apparait seulement si la generation des plateforms est activé (ACTIVE_DUNGEONPLATEFORMS)
+        => il n'apparait que lorsque de nouvelles cartes sont générées après déplacement dans le mapworld
+        => le problème semble engendre par la création des features Plateforms
+        ==> changement de l'algo MapGeneratorDungeon::MakeRoomPlateforms()
+        ===> après test avec ce nouvel algo, il apparait encore ce crash de façon moins systématique
+        ====> il semble que ce crash soit insidueux, assert à mettre dans mapworld, mapstorage, map, peut-etre une corruption mémoire suite à dépassement des limites qui se répercute sur les datas du mapgeneratordungeon
+        =====> OK : disparition suite à Refactoring ObjectTile 20170616. A tester si réapparition.
+        ======> 16/06/2017 : Réapparition du crash, en utilisant c++11 générateur random Mersenne-Twister
+        =======> 20/06/2017 : Pas de nouvelle reapparation depuis le changement SetParamsInt(PODVector)
+
+    ✔ le debugfluid n'est pas sur la bonne view :
+        => Ok, inversion dans StaticTiledObject2D::DrawDebugGeometry() entre fluidViewIds.Front() et fluidViewIds.Back()
+        ==> TODO : Vérifier si les fluidViewIds sont triés par zview à l'instar des viewIds
+
+    ✔ pbs récurrent sur les ObjectPools à corriger !
+        -> les CollectablePart provenant de BodyExploder2D sont supprimer 2x de suite occasionnant mess err
+           WARNING: World2D() - HandleObjectDestroy : GO DESTROY node=(16781466) no entity in mpoint=0 0 !!!
+           ERROR: ObjectPool() - Free : Node=CollectablePart(16781466) ... already inside Pool !!!
+        ==> OK, modification du TimeRemover pour effacer en instant si delay=0.f
+
+    ✔ les players ne doivent pas être parentés aux maps ! il serait mieux que les entités ne le soient pas également
+        ==> OK en inactivant REPARENT_ENTITIES_ONMAP
+
+    ✔ pb d'ObjectPool avec les CollectPart du BodyExploder en Replicated
+        -> les GOT_Skeletons ne laissent plus leurs bones : non-apparition des bones lors de l'explode après une seconde régénération du BodyExploder (rechargement d'une scene par ex)
+        -> les nodes semblent être disabled et pas à la bonne place à priori
+        -> ce probleme n'existe pas en mettant les CollectPart en Local dans GOT::InitDefaultTables()
+        ==> OK dans ObjectPool::FreeNode reactive le AddChild vers le nodeCategory. Autrement, les nodes bones reparenté au mapNode sont effacés par le SceneCleaner.
+
+

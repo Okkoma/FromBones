@@ -1,8 +1,9 @@
 
-<GAME GENERAL>
-=============
+/** ============= **/
+/** GAME GENERAL  **/
+/** ============= **/
 
-<TODO>
+/* TODO
 ------
 
 =====> IMPORTANT : 01/09/2021 par defaut le net simulateur est activé. NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h la ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
@@ -150,10 +151,14 @@ linux  ...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Port
 ===> Tester sur RPI, et Android
 ====> 05/06/2020 : sous RPI4 en KMSDRM, le chargement est en boucle infini sur l'Objet Wearable Armure_Petit => Patch dans GOT::PreLoadObjects() remplacement de la boucle for par while
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
+
+- 09/11/2023 : Creation CMakePresets.json qui permet de gestion des build (meme chose que mon script Bake homemade)
+=> permet l'utilisation dans VSCode sans probleme.
+=> creer tous les presets necessaire. Pour le moment Linux Debug et Release BackEnd GL seulement.
 
 - 10/12/2020 : creer le chargement et la sauvegarde d'une partie en World.
 => sauvegarde du world + sauvegarde des players déjà fait + position des players dans le world.
@@ -205,16 +210,15 @@ linux  ...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Port
 -> ATTENTION : dans Game::Start() le PreloadRessources() doit être fait avant le ResetScreen() autrement problème d'affichage (Renderer2D) pour les ObjectPool Nodes.
 
 
-</>
-
-</>
-________________________________________________________________________
+*/
 
 
-<GRAPHICS>
-=========
 
-<NOTE>
+/** ========= **/
+/** GRAPHICS  **/
+/** ========= **/
+
+/* NOTE
 ------
 
 - 30/08/2022 : si l'on souhaite ajouter une nouvelle texture dans un LAYERMATERIAL, il faut mettre à jour également le shader fragment avec la bonne quantité de samplers (=> sampler2D samplers[quantité])
@@ -238,9 +242,9 @@ ________________________________________________________________________
 -> <dpi scale="x"/> n'est pas à utiliser dans ce cas (lorsque l'on utilise une spritesheet par resolution dpi ;
    les textures spritesheets generées par l'outil ne sont pas un simple resize du mdpi - les sprites ont des positions differentes).
 
-</NOTE>
+*/
 
-<TODO>
+/* TODO
 ------
 
 - 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ...
@@ -249,7 +253,7 @@ ________________________________________________________________________
 
 - 23/06/2023 : modification de Urho3D::Spriter::SpriterInstance::UpdateTimelineKeys pour reutiliser les TimelineKey au lieu de toujours les effacer/recreer pour les bones et les sprites egalement.
 => ajout de Urho3D::Spriter::TimelineKey::Copy()
-=> Resolution des problemes avec les KEY_POOLS : il faut allouer pas mal de keys du premier coup (on ne peut pas redimensionner après coup car les pool de key sont de simple Vector<TimelineKey> sans méthodes operator ==(const TimelineKey) pour permettre le resize du Vector ...
+=> Resolution des problemes avec les KEY_POOLS : il faut allouer pas mal de keys du premier coup (on ne peut pas redimensionner après coup car les pool de key sont de simple Vector<TimelineKey/> sans méthodes operator ==(const TimelineKey) pour permettre le resize du Vector ...
 ==> pour les allouer pour le moment ca se passe dans Spriter::SpriterData::Register() mais on pourrait faire ça directement dans FromBones. En fait le nombre de Key va dépendre du nombre d'animatedSprite dans les ObjectPool etc...
 ==> les KEY_POOLS semblent moins rapide que l'allocation mémoire ... bizarre => faire un profilage.
 
@@ -464,14 +468,14 @@ ________________________________________________________________________
 ====> OK dans les scml ajouter fx="1" aux files qui doivent etre unlit.
 
 - 26/03/2020 : etablir une nouvelle arborescence pour les graphics permettant de changer de taille de textures en fonction du device cible
--> Data/Graphics/(lpdi-mpdi...)
---> voir dans Urho3D::FileSystem() s'il existe une fonction permettant de monter le repertoire /Data/Graphics/mdpi par défaut pour que 2D/animation.scml ou bien UI/menu.xml soient bien reconnus
----> utiliser ResourceCache::AddResourceDir() dans Game::Setup()
+=> Data/Graphics/(lpdi-mpdi...)
+==> voir dans Urho3D::FileSystem() s'il existe une fonction permettant de monter le repertoire /Data/Graphics/mdpi par défaut pour que 2D/animation.scml ou bien UI/menu.xml soient bien reconnus
+===> utiliser ResourceCache::AddResourceDir() dans Game::Setup()
 ===> ok : ajout de GameStatus::GameState.deviceDPI_ et modification de Game::Setup
 ====> ajout de <variable name="deviceDPI_" value ="mdpi" /> dans engine_config.xml
 ====> OK : ajout de Urho3D::Texture::dpiScale_ et ajout dans qui permet l'integration rapide de toutes les spritesheets sans avoir à modifier les xml, ni les scml
-=====> il suffit simplement de changer l'echelle de toutes les textures et d'ajouter dans les xml de texture le parametre <dpi scale="x"> </>
-    pour specifier qu'il s'agit d'une texture de tel resolutiondpi (par ex: <dpi scale="0.75"> </> pour specifier qu'il s'agit d'une ldpi)
+=====> il suffit simplement de changer l'echelle de toutes les textures et d'ajouter dans les xml de texture le parametre <dpi scale="x"/>
+    pour specifier qu'il s'agit d'une texture de tel resolutiondpi (par ex: <dpi scale="0.75"/> pour specifier qu'il s'agit d'une ldpi)
 => OK le 28/03/2020
 ==> Urho3D::Texture::GetDpiScale() est uniquement integrer à Sprite2D.
 ===> RAF : il faut également l'intégrer à l'UI
@@ -509,7 +513,7 @@ ________________________________________________________________________
     => Description de la phase UpdateSourceBatches
         => Renderer2D::HandleBeginViewUpdate()
             => Threaded WorkQueue => CheckDrawableVisibility()
-                => Drawable::GetWorldBoundingBox2D() <----specifique----></> StaticSprite2D::GetWorldBoundingBox2D
+                => Drawable::GetWorldBoundingBox2D() ====specifique===> StaticSprite2D::GetWorldBoundingBox2D
                 => if (worldBoundingBoxDirty_)
                     => Drawable2D->StaticSprite2D::OnWorldBoundingBoxUpdate()
                         => Drawable2D::GetSourceBatchesToRender()
@@ -600,12 +604,12 @@ ________________________________________________________________________
 - 28/12/2019 : DrawableScroller de BackGround => probleme en bord de monde (bordures de l'ellipse) : faire un clamp des X dans la plage de l'ellipse ? (cf scrolling parallax 17/04/20218)
 
 - 14/12/2019 : ajouter les effets de climat et de temps
--> OK 21/12/2019 : Jour et Nuit => sprite soleil, sprite lune
---> voire pour le mode nuit modifier Enlightment progressivement
+=> OK 21/12/2019 : Jour et Nuit => sprite soleil, sprite lune
+==> voire pour le mode nuit modifier Enlightment progressivement
 ====> OK le 11/02/2020
---> voire pour ajouter les etoiles, constellations
--> OK 28/12/2019 : Cloud => synchroniser le défilement des nuages avec la direction des intemperies (rain)
---> voire pour ajouter un fond plus rempli en nuage avec un effet alpha progressif pour voiler les astres
+==> voire pour ajouter les etoiles, constellations
+=> OK 28/12/2019 : Cloud => synchroniser le défilement des nuages avec la direction des intemperies (rain)
+==> voire pour ajouter un fond plus rempli en nuage avec un effet alpha progressif pour voiler les astres
 -> Orage : assombrissement, ajout de nuages plus noirs, pluie forte, ajout eclair (sprite temporaire + luminosité)
 -> Neige
 -> Grele
@@ -614,10 +618,10 @@ ________________________________________________________________________
 
 - 30/10/2019 : le Skeleton avec 2 katanas - les katanas ne s'affichent pas avec les bonnes positions, echelles
 -> cf AnimatedSprite2D::SwapSprites
---> AnimateSprite2D utilise le sprite de remplacement comme reference pour stocker le SpriteInfo contenant les offset de position et de scale.
+==> AnimateSprite2D utilise le sprite de remplacement comme reference pour stocker le SpriteInfo contenant les offset de position et de scale.
     Si ce sprite est deja utilisé dans cet AnimatedSprite2D, les offsets sont remplacés occasionnant ce pb.
----> OK : spriteInfoMapping_ HashMap( Sprite2D*, SpriteInfo ) devient HashMap(Sprite2D*, HashMap(Sprite2D*, SpriteInfo ) )
-----> RAF : Voir pour remplacer par une structure plus simple et rapide HashMap ( unsigned, SpriteInfo ) avec unsigned un hash de 2 Sprite2D* ?
+===> OK : spriteInfoMapping_ HashMap( Sprite2D*, SpriteInfo ) devient HashMap(Sprite2D*, HashMap(Sprite2D*, SpriteInfo ) )
+====> RAF : Voir pour remplacer par une structure plus simple et rapide HashMap ( unsigned, SpriteInfo ) avec unsigned un hash de 2 Sprite2D* ?
 
 - 07/10/2018 : Terrain avec RenderShape
 => Par Map, créer la texture WeightMap à partir de la ObjectFeatured::terrainMap_ generée par worldGenerator/MapGenerator (cf 17/03/2018)
@@ -743,7 +747,7 @@ ou bien avec des Stretchablesprite ou bien avec un shader ?
 -> cas de l'alignement des waterfalls est problématique :
  - les waterfalls apparaissent aussi en resurgence qd la cellule du dessous est une waterfall
   -> ce qui implique un alignement centré obligatoire puisque pas la cellule du dessus est de l'air ou un bloc généralement, ce qui donne une remontée en waterfall non souhaitée. (09/10/2017)
-  --> règles d'alignement pour les waterfall, waterwave à modifier ! (09/10/2017)
+  ==> règles d'alignement pour les waterfall, waterwave à modifier ! (09/10/2017)
 -> essai en cours d'un triflows par cell : pour le moment buggué (13/10/2017)
 ==> NOTE : pour reactiver les fluids : engineconfig => fluidEnabled_ = true ou bien GameCommand "fluidenable" et "fluidpull" pour vider les fluids
 ===> NOTE : si aucun visuel pour les fluids => verifier si Urho3D::Drawable::GetWorldBoundingBox() est bien virtual (nécessaire pour ObjectTiled)
@@ -756,9 +760,9 @@ ou bien avec des Stretchablesprite ou bien avec un shader ?
 ===> il s'agit de mettre à jour BodyExploder2D pour supprimer les parts superflues dans l'anim Dead des lors que l'affectation de l'entité et du charactermapping sont faites
 ===> utilisation de GameHelpers::SetEntityVariation() dans ObjectPoolCategory::Resize() (des l'initialisation) pour afficher qu'un seul crane (application d'un mapping par defaut)
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - 21/03/2023 : les maskview n'ont plus l'air de fonctionner correctement : les tiles du background qui doivent etre masquées par les tiles du frontview sont qd meme rendu.
@@ -1390,7 +1394,7 @@ ou bien avec des Stretchablesprite ou bien avec un shader ?
 ====> importance de l'ordre dans le fichier SPRITER dans le charactermap WEAPON2 l'arme doit être en premier
 ===> correctif également apporté à AnimatedSprite2D::SwapSprite();
 ===> dans SPRITER ne pas oublier de regler le hotspot par defaut pour l'arme
-====> OK le 06/06/2018
+====> OK le 06/06/2018</>
 
 - 25/05/2018 : retour sur les elements d'armures => skeleton avec armure petit affiche 2 torses (1 sur la ceinture centrale)
 => 28/05/2018 : OK modification de armurepetit2.scml => suppression du second folder et réduction à 3 items uniquement
@@ -1501,17 +1505,16 @@ sur un autre animationset.
 => Correction dans AnimatedSprite2D : swapSprites + hotspot => ajout du deltahotSpot dans SpriteInfo, correction des hotspots des armures à (0.5 0.5),
     pour les casques hotspot sur les yeux. pour les armures penser à bien modifier les SCML des collectables
 
-</>
 
-</>
-__________________________________________________________________________
+*/
 
 
 
-<SOUNDS>
-=======
+/** ======= **/
+/** SOUNDS  **/
+/** ======= **/
 
-<TODO>
+/* TODO
 ------
 
 - 06/06/2018 : les sons sont long à poper (décalage entre l'action et le son d'1/2sec environ) (exemple le feet)
@@ -1519,9 +1522,9 @@ __________________________________________________________________________
 
 - 24/04/2018 : changement dynamique des musiques d'ambiance en fonction de la zone (cave,dungeon,exterieurs) et du climat (weather ...), des actions (combat, marchand, exploration)
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - 23/08/2018 : Correction crash Object::Sounds
@@ -1531,20 +1534,44 @@ __________________________________________________________________________
 => utiliser les Waves et non plus les OGG (qui utilisent trop de ressources)
 ==> reactivation des sons des monstres
 
-</>
-
-</>
-
-___________________________________________________________________
-________
+*/
 
 
 
-<UI>
-====
+/** === **/
+/** UI  **/
+/** ==== **/
 
-<TODO>
+/* TODO
 ------
+
+- 10/11/2023 : Permettre le deplacement de l'avatar durant la selection dans l'UI
+=> pour cela, il faut utiliser le Joystick Hat uniquement pour l'UI avec Joystick Reset
+==> OK : creation de static void UIPanel::SetAllowSceneInteraction(bool enable)
+
+- 10/11/2023 : Parametrer 2 nouvelles touches Prev/Next pour le deplacement dans les panneaux UI.
+
+- 08/11/2023 : AbilityPanel
+=> en multiplayer sans multiview, pb de position de l'abilitypanel pour chaque joueur car centré en haut et trop gros. il faudrait trouver un autre systeme comme pour la selection des personnages.
+==> en mode un joueur garder l'abilityPanel tel quel.
+==> en multijoueur la remplacer par une version petite qui poppera au besoin à coté du Panneau de Status. Touche à définir.
+===> OK : remplacement de Actor::Vector<WeakPtr UIPanel /> panels_ par un HashMap plus facile d'utilisation pour l'enregistrement nommé de panels
+===> dans Player::CreateUI positionner AbilityPanel en fonction. Ajout de la propriété UIC_AbilityPanel::popup_ qui permet d'afficher en mode popup en mode multiplayer.
+===> 10/11/2023 : OK en mode multijoueurs, le panel est affiché en popup à coté du Panneau de Status.
+
+- 08/11/2023 : ajouter une dropdownlist pour l'activation du multiview dans Options/Joueur
+=> ne pas activer en API Vulkan pour le moment
+=> OK
+
+- 08/11/2023 : probleme de font pour l'affichage des Touches lors de la configuration des touches clavier dans les Options
+=> ajout de OptionText16_NoL10 qui utilise BlueHighway.ttf qui dispose de tous les caracteres necessaires.
+=> RAF : attention ça rajoute beaucoup de batch ... à terme mieux modifier les polices "aby32,22.xml..." mais bon le menu Options est lancé en pause ... pas d'impact directe sur les performances en jeu.
+
+- 07/11/2023 : ajout de la gestion des UIPanel avec le joystick
+=> OK : UISlotPanel::OnKey prend en charge cette gestion avec UIPanel::GetKeyFromEvent(), UIPanel::GainFocus() et Urho3D::UI::SetHandleJoystickEnable
+==> pour CraftPanel, ajout de UISlotPanel::endSlotIndex2_ et modification UISlotPanel::OnKey et UISlotPanel::UpdateSlotSelector pour gerer les deux sections differente "Material" et "Tool"
+==> Modification de PlayerCraft.xml autrement le slotSelector se met dans l'entete (passage en Layout Free pour la fenetre principal à l'instar de PlayerInventory.xml)
+=> RAF : les dérivés UIPanel restants JournalPanel et MissionPanel : Modifier Start et ajouter un handle OnKey.
 
 - 30/01/2023 : lorsque l'avatar meurt et apparition de la messagebox "recommencer", si l'on ouvre les options et que l'on quitte, le jeu ne quitte pas et pas possibilité de revenir en arriere : bloquage du jeu.
 
@@ -1564,7 +1591,7 @@ ________
 => nonreproductible sous ubuntu avec une resolution plus basse et pleine ecran.
 ==> voir le double-clic sous RPI si operationel.
 => fonctionne sous RPI4 CrossCompile. Refaire un essai de compilation sous RPI4 natif.
-==> verifier la taille des elements UI qui pourrait se mettre dessus apres resize en 640x480.
+==> verifier la taille des elements UI qui pourrait se mettre dessus apres resize en "640x480".
 
 - 05/11/2022 : ajouter la position des Actors dans la MiniMap.
 => OK : ajouter GO_AI_None dans GO_Entity utilisé dans UIC_MiniMap::PopulatePoints()
@@ -1618,9 +1645,9 @@ ________
 ==> Modifier "int GOC_Inventory::AddCollectableFromSlot()" pour retourner un tableau des slots remplit ce qui permet de ne pas faire un UpdateSlots mais plutot un sendevent ciblé.
 
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - 25/05/2022 : le ScissorTest pour les listviews, console et dropdownlist ne fonctionne pas encore sous VULKAN
@@ -1807,17 +1834,13 @@ ________
 - 27/03/2018 : les rigidbodies static ne suivent pas le déplacement de leur node
 => modification de RigidBody2D::ApplyWorldTransform() pour que le body prend la position du node.
 
-</>
+*/
 
-</>
-__________________________________________________________________________
+/** === **/
+/** AI  **/
+/** === **/
 
-
-
-<AI>
-====
-
-<TODO>
+/* TODO
 ------
 
 - 04/10/2021 : il arrive que certaines entités ne bougent pas meme lorsqu'elles se font taper dessus. Il faut alors changer de Map et revenir pour les reveiller.
@@ -1871,9 +1894,9 @@ et de l'attribut XML "Detects Target" pour permettre la detection de target dans
 
 => 10/04/2018 : Commands System
 
-</>
+*/
 
-<DONE>
+/* DONE 
 ------
 
 - 21/04/2020 : mauvaise gestion de la logique pour la detection et maintien de la target
@@ -1895,18 +1918,34 @@ car le subscribe à l'event CHANGEDIRECTION ne pouvait etre realisé car l'updat
 - 10/04/2018 : deallocation Actor => ajout static Actor::RemoveActors()
 => ne dealloue que les Actors non les Players
 ==> utilisation dans PlayState::EndScene()
-</>
 
-</>
-__________________________________________________________________________
+*/
 
 
 
-<BEHAVIOR>
-=========
+/** ========= **/
+/** BEHAVIOR  **/
+/** ========= **/
 
-<TODO>
+/* TODO
 ------
+
+- 06/11/2023 : pb avec la vache pour tirer en continue avec le joystick
+
+- 06/11/2023 : le button JUMP pour les joystick n'est pas toujours bien mapper malgré ce qui est afficher. il faut simplement cliquer sur l'ecran pour debloquer. Pkoi ?
+=> le pb c'est que UI::HandleJoystick provoque JoystickState::Reset().
+==> il y a focus sur l'ui : suppression du focus initial
+===> il y aura encore le meme probleme des que focus sur un autre uielement.
+===> pour le deplacement dans l'ui avec le joystick, il est necessaire de garder JoystickState::Reset()
+====> il faudrait un bouton pour activer/desactiver le focus sur l'ui
+====> ajout dans Urho3D::UI de SetHandleJoystickEnable qui permet de desactiver la gestion des joysticks par l'UI lorsque l'on utilise UIPanel et ses derivés.
+
+- 06/11/2023 : en mode 2 joueurs multiview=false, le changement d'Avatar ne set pas correctement la ViewZ du joueur2
+-> correctif dans Actor::ResetAvatar(), ajout de Actor::SetStaticViewZ
+
+- 07/10/2023 : creer objets de jeu :
+-> "poudre de pluie" : declenche la pluie
+-> "une potion d'eau" : change le pouvoir de feu de la sorciere en pouvoir d'eau, et rend plus puissant les entités de type "eau"
 
 - 11/04/2023 : ajout de la teleportation à partir de la worldMap en appuyant sur le bouton souris milieu.
 => Correctif apporté au GEF_Scrolling et DrawableScroller pour le recentrage sur la position de repop.
@@ -2354,9 +2393,9 @@ cf les collisionCircle2D qui doivent être déclaré en ContactTopOnly.
 
 - si le personnage mounted le + haut a un moveState >= MV_WALKANDFLY alors le controlleur herite de ce comportement.
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - 20/01/2023 : la lance a été modifiée (recentrage du collider) pour eviter le spawn dans les murs vers la gauche (il manque en effet lors du flipping, le flipping du physic de la lance ... à voir)
@@ -3165,7 +3204,7 @@ puis prend comme destination le premier portal disponible dans cette map; autrem
 </>
 
 </>
-__________________________________________________________________________
+
 
 
 
@@ -3914,16 +3953,26 @@ La bombe revient en arriere est prend la position du serveur avec le double de d
 
 </>
 
-</>
-_______________________________________________________________________
+*/
 
 
+/** ========= **/
+/** MAPWORLD  **/
+/** ========= **/
 
-<MAPWORLD>
-=========
-
-<TODO>
+/* TODO
 ------
+
+- 13/10/2023 : en mode arena, apres avoir passer le boss darkren au niveau2
+-> pb de generation de monde
+
+- 13/10/2023 : lorsque l'on monte un mur,
+.
+*
+** <-/> ce bloc n'a pas de collider
+*
+*
+=> 16/10/2023 : Patch dans MapColliderGenerator::TraceContours_MooreNeighbor
 
 - 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.
 => OK modification de ObjectFeatured::SetViewConfiguration
@@ -4520,9 +4569,9 @@ LOG :
 - 25/04/2018 : lors de la génération des Spots en dungeon, certains spots se trouvent en exterieur.
 => bien vérifier que ceux-ci soient bien à l'intérieur des murs du dungeon.
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - OK 17/01/2023 : amelioration de World2D dans la gestion de la visibilité => evite d'avoir visibleAreaMap trop importante qui ralentissait l'application en cas de dezoom (dynamic zoom)
@@ -5028,18 +5077,15 @@ LOG :
 -> ce probleme n'existe pas en mettant les CollectPart en Local dans GOT::InitDefaultTables()
 ==> OK dans ObjectPool::FreeNode reactive le AddChild vers le nodeCategory. Autrement, les nodes bones reparenté au mapNode sont effacés par le SceneCleaner.
 
-</>
-
-</>
-
-_________________________________________________________________________
+*/
 
 
 
-<STORY>
-=======
+/** ======= **/
+/** STORY   **/
+/** ======= **/
 
-<TODO>
+/* TODO 
 ------
 
 - 30/03/2023 : voir pour generer des actors dans le monde avec des tasks/activités (chasseur, batisseur, agriculteur, alchimiste, commercant, voleur, assassin par exemple)
@@ -5133,22 +5179,21 @@ _________________________________________________________________________
 
 => checker la view pour le Player::HandleClic() si pas sur la meme view que l'interactor ne rien faire.
 
-</TODO>
+*/
 
-<DONE>
+/* DONE 
 ------
 
 
-</DONE>
-
-</>
+*/
 
 
 
-<EDITOR>
-=======
+/** ======= **/
+/** EDITOR  **/
+/** ======= **/
 
-<TODO>
+/* TODO
 ------
 
 - 07/06/2023 : Enrichissement de l'Editor : l'editeur en Script ne sera plus mise à jour. Utilisation uniquement du static ou du shared.
@@ -5286,9 +5331,9 @@ _________________________________________________________________________
 
 - faire l'update des colliders après Map::SetTile
 
-</>
+*/
 
-<DONE>
+/* DONE
 ------
 
 - Créer les fonctions de bases pour la modification de tiles et la mise à jour des batches
@@ -5296,12 +5341,5 @@ _________________________________________________________________________
     => 15/11/2017 : OK pour Connected4 et Connected0
     => 12/11/2017 : dans le cas ou l'on supprime le dernier tile d'un batch, celui-ci est toujours apparent
         => Corrige ObjectTiled::UpdateTiledBatches(), ajout de ClearBatchVertices
-</>
 
-</>
-_________________________________________________________________________
-
-
-
-
-
+*/

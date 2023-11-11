@@ -51,6 +51,7 @@
 HashMap<String, SharedPtr<UIPanel> > UIPanel::panels_;
 SharedPtr<UIElement> UIPanel::draggedElement_;
 bool UIPanel::onKeyDrag_ = false;
+bool UIPanel::allowSceneInteraction_ = false;
 
 UIPanel::UIPanel(Context* context) :
     Object(context),
@@ -65,11 +66,18 @@ UIPanel::~UIPanel()
 
     if (panel_)
     {
-        GetSubsystem<UI>()->GetRoot()->RemoveChild(panel_);
+        panel_->GetParent()->RemoveChild(panel_);
         panel_.Reset();
     }
 
     URHO3D_LOGINFOF("~UIPanel() - ... OK !");
+}
+
+void UIPanel::RegisterObject(Context* context)
+{
+    context->RegisterFactory<UIPanel>();
+
+    panels_.Clear();
 }
 
 UIPanel* UIPanel::GetPanel(const String& name)
@@ -90,16 +98,16 @@ void UIPanel::RegisterPanel(UIPanel* panel)
     panels_[panel->name_] = panel;
 }
 
+void UIPanel::RemovePanel(UIPanel* panel)
+{
+    URHO3D_LOGINFOF("UIPanel() - RemovePanel id=%s !", panel->name_.CString());
+    if (panels_.Contains(panel->name_))
+        panels_.Erase(panel->name_);
+}
+
 void UIPanel::ClearRegisteredPanels()
 {
     draggedElement_.Reset();
-    panels_.Clear();
-}
-
-void UIPanel::RegisterObject(Context* context)
-{
-    context->RegisterFactory<UIPanel>();
-
     panels_.Clear();
 }
 
@@ -116,12 +124,13 @@ void UIPanel::SetPosition(const IntVector2& position, HorizontalAlignment hAlign
     GetElement()->SetPosition(lastPosition_);
 }
 
-bool UIPanel::Set(const String& name, const String& layout, const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign, float alpha)
+bool UIPanel::Set(int id, const String& name, const String& layout, const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign, float alpha, UIElement* parent)
 {
     URHO3D_LOGINFOF("UIPanel() - Set panel=%s ...", name.CString());
 
+    id_ = id;
     name_ = name;
-    panel_ = GameHelpers::AddUIElement(layout, position, hAlign, vAlign, alpha);
+    panel_ = GameHelpers::AddUIElement(layout, position, hAlign, vAlign, alpha, parent);
 
     lastPosition_ = position;
 
@@ -153,6 +162,26 @@ void UIPanel::Stop()
     UnsubscribeFromAllEvents();
 }
 
+void UIPanel::GainFocus()
+{
+    if (GetElement())
+        GetElement()->SetFocus(true);
+
+    OnSetVisible();
+
+    GameContext::Get().ui_->SetHandleJoystickEnable(false);
+}
+
+void UIPanel::LoseFocus()
+{
+    if (GetElement())
+        GetElement()->SetFocus(false);
+
+    OnSetVisible();
+
+    GameContext::Get().ui_->SetHandleJoystickEnable(true);
+}
+
 void UIPanel::SetVisible(bool state, bool saveposition)
 {
     URHO3D_LOGINFOF("UIPanel() - SetVisible : panel=%s ... %s !", name_.CString(), state ? "show":"hide");
@@ -160,11 +189,6 @@ void UIPanel::SetVisible(bool state, bool saveposition)
     panel_->SetVisible(state);
 
     OnSetVisible();
-}
-
-bool UIPanel::IsVisible()
-{
-    return panel_->IsVisible();
 }
 
 void UIPanel::ToggleVisible()
@@ -202,6 +226,76 @@ void UIPanel::ToggleVisible()
     }
 }
 
+bool UIPanel::IsVisible() const
+{
+    return panel_->IsVisible();
+}
+
+bool UIPanel::CanFocus() const
+{
+    return GetElement()->GetFocusMode() == FM_FOCUSABLE && !GetElement()->HasFocus();
+}
+
+const float PanelJoystickSensivity_ = 0.98f;
+int UIPanel::GetKeyFromEvent(int controlid, StringHash eventType, VariantMap& eventData) const
+{
+    int scancode = 0;
+    const PODVector<int>& keymap = GameContext::Get().keysMap_[controlid];
+
+    if (eventType == E_JOYSTICKBUTTONDOWN || eventType == E_JOYSTICKAXISMOVE || eventType == E_JOYSTICKHATMOVE)
+    {
+        const PODVector<int>& buttonmap = GameContext::Get().buttonsMap_[controlid];
+        JoystickState* joystick = GameContext::Get().input_->GetJoystickByIndex(GameContext::Get().joystickIndexes_[controlid]);
+        int joyid = joystick->joystickID_;
+
+        if (eventType == E_JOYSTICKBUTTONDOWN && eventData[JoystickButtonDown::P_JOYSTICKID].GetInt() == joyid)
+        {
+            if (eventData[JoystickButtonDown::P_BUTTON].GetInt() == buttonmap[ACTION_INTERACT])
+            {
+                scancode = keymap[ACTION_INTERACT];
+            
+                if (!allowSceneInteraction_ || buttonmap[ACTION_INTERACT] == buttonmap[ACTION_JUMP])
+                    joystick->Reset();
+            }
+        }
+        else if (eventType == E_JOYSTICKHATMOVE && eventData[JoystickHatMove::P_JOYSTICKID].GetInt() == joyid)
+        {
+            int axis = eventData[JoystickHatMove::P_HAT].GetInt(); 
+            int position = eventData[JoystickHatMove::P_POSITION].GetInt();
+            {
+                if (position == HAT_UP)
+                    scancode = keymap[ACTION_UP];
+                else if (position == HAT_DOWN)
+                    scancode = keymap[ACTION_DOWN];
+                else if (position == HAT_LEFT)
+                    scancode = keymap[ACTION_LEFT];
+                else if (position == HAT_RIGHT)
+                    scancode = keymap[ACTION_RIGHT];
+            }
+            if (!allowSceneInteraction_)
+                joystick->Reset();
+        }                
+        else if (!allowSceneInteraction_ && eventType == E_JOYSTICKAXISMOVE && eventData[JoystickAxisMove::P_JOYSTICKID].GetInt() == joyid)
+        {
+            int axis = eventData[JoystickAxisMove::P_AXIS].GetInt(); 
+            float position = eventData[JoystickAxisMove::P_POSITION].GetFloat();
+            if (position > PanelJoystickSensivity_)
+                scancode = keymap[axis == 0 ? ACTION_RIGHT : ACTION_DOWN];
+            else if (position < -PanelJoystickSensivity_)
+                scancode = keymap[axis == 0 ? ACTION_LEFT : ACTION_UP];
+            joystick->Reset();               
+        }
+        if (scancode)
+            URHO3D_LOGINFOF("UIPanel() - GetKeyFromEvent : controlid=%d joystickid=%d scancode=%d ...", controlid, joyid, scancode);        
+    }
+    else if (eventType == E_KEYDOWN)
+    {
+        scancode = eventData[KeyDown::P_SCANCODE].GetInt();
+    }
+
+    return scancode;
+}
+
 void UIPanel::OnSetVisible()
 {
     if (panel_->IsVisible())
@@ -221,7 +315,8 @@ void UIPanel::OnSetVisible()
         UnsubscribeFromEvent(panel_, E_DEFOCUSED);
 
 //        URHO3D_LOGINFOF("UIPanel() - OnSetVisible : %s novisible", name_.CString());
-        panel_->SetFocus(false);
+
+//        panel_->SetFocus(false);
     }
 }
 
@@ -264,7 +359,6 @@ void UIPanel::DebugDraw()
 
 /// UISlotPanel
 
-UIElement* selectHalo_;
 WeakPtr<UIElement> UISlotPanel::selectSlotByKey_;
 WeakPtr<UIElement> UISlotPanel::beginDragElementByKey_;
 UISlotPanel* UISlotPanel::fromPanelDrag_;
@@ -272,8 +366,10 @@ UISlotPanel* UISlotPanel::fromPanelDrag_;
 UISlotPanel::UISlotPanel(Context* context) :
     UIPanel(context),
     slotZone_(0),
+    selectHalo_(0),
     startSlotIndex_(0),
-    endSlotIndex_(0),
+    endSlotIndex1_(0),
+    endSlotIndex2_(0),
     slotselector_(0),
     numSlots_(0),
     inventory_(0)
@@ -309,9 +405,10 @@ void UISlotPanel::Start(Object* user, Object* feeder)
         URHO3D_LOGWARNINGF("UISlotPanel() - Start panel=%s : no user !", name_.CString());
 }
 
-void UISlotPanel::SetInventorySection(const String& section)
+void UISlotPanel::SetInventorySection(const String& sectionstart, const String& sectionend)
 {
-    inventorySection_ = section;
+    inventorySectionStart_ = sectionstart;
+    inventorySectionEnd_ = sectionend.Empty() ? inventorySectionStart_ : sectionend;
 }
 
 void UISlotPanel::Reset()
@@ -325,12 +422,10 @@ void UISlotPanel::SetSlotZone()
     slotSize_ = 80;
     miniSlotSize_ = 20;
 
-    const PODVector<int>& keymap = GameContext::Get().keysMap_[static_cast<Actor*>(user_)->GetControlID()];
-
-    incselector_[keymap[ACTION_LEFT]] = -1;
-    incselector_[keymap[ACTION_RIGHT]] = 1;
-    incselector_[keymap[ACTION_UP]] = -5;
-    incselector_[keymap[ACTION_DOWN]] = 5;
+    incselector_[ACTION_LEFT] = -1;
+    incselector_[ACTION_RIGHT] = 1;
+    incselector_[ACTION_UP] = -5;
+    incselector_[ACTION_DOWN] = 5;
 
     slotZone_ = panel_->GetChild("SlotZone", true);
     if (!slotZone_)
@@ -349,13 +444,15 @@ void UISlotPanel::SetSlotZone()
 
         if (inventory_)
         {
-            if (inventorySection_ != String::EMPTY)
+            if (inventorySectionStart_ != String::EMPTY)
             {
-                startSlotIndex_ = inventory_->GetSectionStartIndex(inventorySection_);
-                endSlotIndex_ = inventory_->GetSectionEndIndex(inventorySection_);
-                numSlots_ = endSlotIndex_ - startSlotIndex_ + 1;
+                startSlotIndex_ = inventory_->GetSectionStartIndex(inventorySectionStart_);
+                endSlotIndex1_ = inventory_->GetSectionEndIndex(inventorySectionStart_);
+                endSlotIndex2_ = inventory_->GetSectionEndIndex(inventorySectionEnd_);
+                numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
+                slotselector_ = startSlotIndex_;
 
-                URHO3D_LOGERRORF("%s() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", GetTypeName().CString(), startSlotIndex_, endSlotIndex_);
+                URHO3D_LOGERRORF("%s() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", GetTypeName().CString(), startSlotIndex_, endSlotIndex2_);
             }
         }
     }
@@ -415,7 +512,7 @@ void UISlotPanel::UpdateSlots(bool updateButtons, bool updateSubscribers)
 
 //    URHO3D_LOGINFOF("UISlotPanel() - UpdateSlots panel=%s ... ", name_.CString());
 
-    for (unsigned i=startSlotIndex_; i<=endSlotIndex_; ++i)
+    for (unsigned i=startSlotIndex_; i<=endSlotIndex2_; ++i)
         UpdateSlot(i, updateButtons, updateSubscribers);
 }
 
@@ -433,7 +530,20 @@ void UISlotPanel::OnSetVisible()
 
     if (panel_->IsVisible() && panel_->HasFocus())
     {
-        SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(UISlotPanel, OnKeyDown));
+        int controltype = GameContext::Get().playerState_[static_cast<Actor*>(user_)->GetControlID()].controltype;
+        if (controltype == CT_KEYBOARD)
+        {
+            SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(UISlotPanel, OnKey));
+        }
+        else if (controltype == CT_JOYSTICK)
+        {
+            SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(UISlotPanel, OnKey));
+            SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(UISlotPanel, OnKey));
+        #ifdef ALLOW_JOYSTICK_AXIS
+            SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(UISlotPanel, OnKey));
+        #endif            
+        }
+
         selectHalo_ = panel_->GetChild(String("I_Select"), true);
         UpdateSlotSelector();
 
@@ -444,7 +554,17 @@ void UISlotPanel::OnSetVisible()
         if (selectHalo_)
             selectHalo_->SetVisible(false);
 
-        UnsubscribeFromEvent(E_KEYDOWN);
+        if (HasSubscribedToEvent(E_KEYDOWN))
+            UnsubscribeFromEvent(E_KEYDOWN);
+
+        if (HasSubscribedToEvent(E_JOYSTICKBUTTONDOWN))
+        {
+            UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+            UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
+        #ifdef ALLOW_JOYSTICK_AXIS
+            UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
+        #endif                
+        }
 
 //        URHO3D_LOGINFOF("UISlotPanel() - OnSetVisible : panel=%s hide selecthalo !", name_.CString());
     }
@@ -456,9 +576,9 @@ void UISlotPanel::OnSlotUpdate(StringHash eventType, VariantMap& eventData)
 
     unsigned index = eventData[Go_InventoryGet::GO_IDSLOT].GetUInt();
 
-    if (index < startSlotIndex_ || index > endSlotIndex_)
+    if (index < startSlotIndex_ || index > endSlotIndex2_)
     {
-        URHO3D_LOGWARNINGF("UISlotPanel() - OnSlotUpdate : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex_);
+        URHO3D_LOGWARNINGF("UISlotPanel() - OnSlotUpdate : panel=%s index %u out of section (%u to %u) !", name_.CString(), index, startSlotIndex_, endSlotIndex2_);
         return;
     }
 
@@ -906,46 +1026,47 @@ void UISlotPanel::UpdateSlotSelector()
     if (!selectHalo_)
         return;
 
-    slotselector_ = Clamp(slotselector_, startSlotIndex_, endSlotIndex_);
+    slotselector_ = Clamp(slotselector_, slotselector_, endSlotIndex2_);
 
     String slotname = inventory_->GetSlotName(slotselector_);
     if (slotname.Empty())
-        slotname = inventorySection_ + String("_") + String(slotselector_-startSlotIndex_+1);
-
-//    URHO3D_LOGINFOF("UISlotPanel() - UpdateSlotSelector : %s ... slotselector_=%u slotname=%s !", panel_->GetName().CString(), slotselector_, slotname.CString());
+    {
+        if (slotselector_ > endSlotIndex1_)
+            slotname = inventorySectionEnd_ + String("_") + String(slotselector_-endSlotIndex1_+1);
+        else
+            slotname = inventorySectionStart_ + String("_") + String(slotselector_-startSlotIndex_+1);
+    }
 
     selectSlotByKey_ = panel_->GetChild(slotname, true);
 
     bool setHalo = selectSlotByKey_ && selectSlotByKey_->IsVisible();
-
     if (setHalo)
     {
-        selectHalo_->SetSize(selectSlotByKey_->GetSize());
+        selectHalo_->SetMinSize(selectSlotByKey_->GetSize());
+        selectHalo_->SetMaxSize(selectSlotByKey_->GetSize());
         selectHalo_->SetPosition(selectSlotByKey_->GetScreenPosition() - panel_->GetScreenPosition());
         if (selectSlotByKey_->GetChild(0))
             selectSlotByKey_ = selectSlotByKey_->GetChild(0);
     }
 
+    URHO3D_LOGINFOF("UISlotPanel() - UpdateSlotSelector : %s ... slotselector_=%u slotname=%s size=%s !", panel_->GetName().CString(), slotselector_, slotname.CString(), selectHalo_->GetSize().ToString().CString());
+
     selectHalo_->SetVisible(setHalo);
 }
 
-void UISlotPanel::OnKeyDown(StringHash eventType, VariantMap& eventData)
+void UISlotPanel::OnKey(StringHash eventType, VariantMap& eventData)
 {
-    if (!GetElement()->HasFocus())
+    Actor* holder = static_cast<Actor*>(user_);
+    if (holder->GetFocusPanel() != this)
         return;
 
-    int qualifiers = eventData[KeyDown::P_QUALIFIERS].GetInt();
-    if ((qualifiers & QUAL_SHIFT) == 0)
-    {
-        URHO3D_LOGINFOF("UIC_StatusPanel() - OnKeyDown : qual=%d ...", qualifiers);
+    int scancode = GetKeyFromEvent(holder->GetControlID(), eventType, eventData);
+    if (!scancode)
         return;
-    }
 
-    int scancode = eventData[KeyDown::P_SCANCODE].GetInt();
+    const PODVector<int>& keymap = GameContext::Get().keysMap_[holder->GetControlID()];
 
-    const PODVector<int>& keymap = GameContext::Get().keysMap_[static_cast<Actor*>(user_)->GetControlID()];
-
-    if (scancode == keymap[ACTION_JUMP])
+    if (scancode == keymap[ACTION_INTERACT])
     {
         URHO3D_LOGINFOF("UISlotPanel() - OnKeyDown : %s key=%s action ... !", panel_->GetName().CString(), GameContext::Get().input_->GetScancodeName(scancode).CString());
 
@@ -956,11 +1077,27 @@ void UISlotPanel::OnKeyDown(StringHash eventType, VariantMap& eventData)
         else
             EndKeyDrag();
     }
-    else if (scancode == keymap[ACTION_LEFT] || scancode == keymap[ACTION_DOWN] || scancode == keymap[ACTION_RIGHT] || scancode == keymap[ACTION_UP])
-    {
-        slotselector_ += incselector_[scancode];
-        UpdateSlotSelector();
-    }
     else
-        return;
+    {
+        int inc = 0;
+        if (scancode == keymap[ACTION_LEFT])
+            inc = incselector_[ACTION_LEFT];
+        else if (scancode == keymap[ACTION_DOWN])
+            inc = incselector_[ACTION_DOWN];
+        else if (scancode == keymap[ACTION_RIGHT])
+            inc = incselector_[ACTION_RIGHT];
+        else if (scancode == keymap[ACTION_UP])
+            inc = incselector_[ACTION_UP];
+
+        if (inc != 0)
+        {
+            if (inc < 0 && slotselector_ == startSlotIndex_)
+                slotselector_ = endSlotIndex2_;
+            else if (inc > 0 && slotselector_ == endSlotIndex2_)
+                slotselector_ = startSlotIndex_;
+            else
+                slotselector_ += inc;
+            UpdateSlotSelector();
+        }
+    }
 }

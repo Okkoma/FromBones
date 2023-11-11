@@ -1,0 +1,1279 @@
+Todos:
+    ☐ 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ...
+        => OK : dans Urho3D::AnimatedSprite2D::UpdateSourceBatches() et ..._Custom(), il faut toujours setter vertex.z_ ou vertex.position.z_. 
+        (Car vertex.position_ est un Vector3 en GL et un Vector2 en VK) et que l'on utilise une matrix2x3 =>
+            resultat vector2 en VK et un vector3 avec le z_ non attribué (NA)...
+
+    ☐ 23/06/2023 : modification de Urho3D::Spriter::SpriterInstance::UpdateTimelineKeys pour reutiliser les TimelineKey au lieu de toujours les effacer/recreer pour les bones et les sprites egalement.
+        => ajout de Urho3D::Spriter::TimelineKey::Copy()
+        => Resolution des problemes avec les KEY_POOLS : il faut allouer pas mal de keys du premier coup (on ne peut pas redimensionner après coup car les pool de key sont de simple Vector<TimelineKey/> sans méthodes operator ==(const TimelineKey) pour permettre le resize du Vector ...
+        ==> pour les allouer pour le moment ca se passe dans Spriter::SpriterData::Register() mais on pourrait faire ça directement dans FromBones. En fait le nombre de Key va dépendre du nombre d'animatedSprite dans les ObjectPool etc...
+        ==> les KEY_POOLS semblent moins rapide que l'allocation mémoire ... bizarre => faire un profilage.
+
+    ☐ 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas.
+        => pb avec StaticSprite2D, Drawable2D ?
+        => difficilement reproductible
+        ==> OK : Patch dans Drawable2D::GetSourceBatchesToRender(Camera* camera) : si le sourceBatch n'a pas de vertices alors sourceBatchDirty_ = true
+
+    ☐ 12/04/2023 : Fantomette ne s'affiche plus sous GL
+        => OK : pour les RenderTarget avec ACTIVE_LAYERMATERIALS, il ne faut pas appliquer de CustomMaterial dans GOT::PreLoadObjects donc eviter de mettre node->GetDerivedComponents</StaticSprite2D/>()
+
+    ☐ 31/03/2023 : les TileEntity créés pour fermer les zones de boss ne sont pas sur le bon layer par rapport aux particules qui passe au dessus de la partie Tile et au dessous de la partie Decals.
+        => OK : ajout DRAWORDER_TILEENTITY
+
+    ☐ 31/03/2023 : le splash de la vache doit etre au dessus des autres entités.
+        => OK : ajout de l'attribut "Order in Layer" value="1000"" (attribut de Drawable2D)
+
+    ☐ 21/03/2023 : les monstres comme mirubil depassent des murs
+        => voir pour appliquer un depthstencil comme pour l'eau ? entre les pieces d'une meme view ca ne donnerait pas le bon resultat.
+        ==> il faudrait appliquer un clipping par entity en fonction de sa localisation dans une piece et de la geometrie de la piece.
+
+    ☐ 22/02/2023 : sans Activation du clipping, certains RenderShapes avec holes posent pb : si le rendershape est adjacent à un autre rendershape alors le hole s'affiche comme si il n'etait pas integré à la rendershape
+        => surement PolyShape::Sanitate et la reaffectation des holes au bon contour.
+        ==> dans Sanitate la duplication des hole et le Test par BoundingRect n'est pas suffisant occasionnant de garder des holes hors contours (ces holes se retrouver tracer plusieurs fois pour plusieurs contours).
+        ===> OK : 23/02/2023 : utilisation de GameHelpers::IsInsidePolygon()
+
+    ☐ 05/02/2023 : l'ajout du clipping pour les RenderShapes dont les formes sont complexes pose probleme.
+        => l'utilisation de l'algo SutherLandHodgmanClip genere des contours avec des lignes qui s'intersectent dans les cas complexes ce qui ne permet pas de generer des triangles correctes.
+        => on pourrait faire un test avec Clipper en upscale les Vector2 en IntVector2
+        ==> à terme si le test fonctionne on pourrait modifier MapColliderGenerator pour generer des contours basés sur des IntVector2 : gain en rapidité
+        ===> la transformation en Vector2 se referait au moment de la creation des batches.
+        => 13/02/2023 : OK : Test concluant avec Clipper1. A voir pour la rapidité (allocation memoire etc...)
+        ==> il reste encore des problemes pour les holes bien visible au niveau des fenetres (holes) qui ne sont pas evidées (RenderShape BACKVIEW)
+        ===> certains holes font crasher la triangulation (polytri) : il s'agit de holes complexes.
+        ===> PolyShape::Sanitate() doit reattribuer les holes lorsque un contour est explosé en plusieurs contours plus simples.
+        ====> 15/02/2023 OK : ajout de PolyShape::SplitContour, il reste encore des cas en arena en BACKVIEW avec des holes qui split le contour de façon inattendue.
+        =====> OK : decalage du point splitter dans le second contour créé pour eviter qu'il soit en intersection avec ce meme point splitter du premier contour.
+        =====> 16/02/2023 : il reste un probleme specifique dans Arena avec un hole qui ferme un contour dans ce cas il faut reduire le hole (shrink). Ce probleme n'existe pas sans clipping.
+        ======> OK : 17/02/2023 : Ajout de PolyShape::AdjustHoles() qui se fera dans le Sanitate une seule fois (donc au moment du PolyShape::AddContour)
+        =======> RAF : encore des cas avec des holes en bordure de clipping qui posent probleme !
+        ==> faire un test de rapidité sous RPI4
+        ===> le clipping des rendershapes n'est pas obligatoire sur des configurations Desktop normalement. on ne pourrait que l'activer pour RPI.
+
+    ☐ 30/01/2023 : sous Android, le Texture Repeat des ScrollingShape et des RenderShape ne fonctionne pas
+        => voir ce qui pose pb dans les vertex.uv_ et parametre de texture. Peut-etre que l'utilisation des TextureAtlas pose pb avec le TextureRepeat
+        ==> meme probleme que celui du 12/12/2022 : specifique à Android (n'existe pas sous RPI Legacy GLES)
+        - 12/12/2022 : GLES => uniquement sous Android
+        => pb avec les RenderShapes : lorsque la map de depart initial n'est pas (0,0) alors les textures des rendershapes sont comme tres zoomées !
+        ==> ce probleme n'apparait pas en GL ni Vulkan.
+        ===> pb de precision des coordonnées de textures lors du fract(vTextCoord) dans le shader 120 ?
+        => 01/02/2023 : probleme resolu dans ScrollingShape
+        ==> il fallait reduire les coord UV pour Android qui n'accepte pas de trop grandes coord UV.
+        ===> appliquer le meme code dans RenderShape.
+        ====> OK il y a encore quelque pb sur certains triangles mais ca reste convenable pour le moment
+        =====> 13/02/2023 : ca devrait etre bon -> plus de coord negative
+
+    ☐ 29/01/2023 : sous RPI les grandes surfaces tel que les WorldEllipses provoquent des errors de blitting.
+        => voir pour faire un clipping de ces grandes surfaces à la zone visible (frustum), donc mise à jour à chaque frame !
+        ==> cf ACTIVE_WORLDELLIPSES, World2D::Set() => ScrollingShape
+        ===> il faut realiser un clipping de l' ellipse avec le visibleRect.
+        ====> 1. si le visiblerect est à l'interieur de l'ellipse : alors utiliser le visibleRect et calculer les uv pour conserver le mapping de la texture.
+        ====> 2. si le visiblerect est à l'exterieur de l'ellipse, pas besoin d'afficher le ScrollingShape
+        ====> 3. si intersection, faire un clipping avec l'algo "https://rosettacode.org/wiki/Sutherland-Hodgman_polygon_clipping#C++" et calculer les uv pour conserver le mapping de la texture.
+        ====> OK 30/01/2023 : ajout de GameHelpers::ClipShape()
+        ====> generaliser le clipping pour les RenderShapes
+        ====> faire l'implantation pour le multiviewport
+
+    ☐ 28/01/2023 : le skeleton affiche 3 cranes à sa mort
+        => surement un pb dans le CharaterMapping suite aux modifications
+        ==> il est important pour GOC_BodyExploder2D que lors de la PrepareNodes le characterMapping soit dejà fait.
+        ==> OK : Modifications de GameHelpers::SetEntityVariation() pour toujours au moins avoir un charactermapping de tete attribué.
+
+    ☐ 28/01/2023 : certains lustres ne s'affichent plus.
+        => pb avec StaticSprite2D ?
+        ==> verifier les modifications dans Urho3D sur Drawable2D et StaticSprite2D
+        ===> OK : pb avec Drawable2D::drawRect_ qui n'était pas initialiser
+
+    ☐ 23/01/2023 : correctif dans AnimatedSprite2D pour la mise à jour du DrawRectangle : worldBoundingBoxDirty_ n'etait pas setté à true lorsque mise à jour dans UpdateDrawRectangle ce qui ne permettait pas de mettre à jour la worldBoundingBox qui est utilisait pour la visibilité.
+        => modifier AnimatedSprite2D::UpdateDrawRectangle().
+        ==> OK : tester sur les bougies en bordure de visibilité.
+
+    ☐ 28/06/2022 : pb de charactermapping sur les lizard ou les skeleton apres loading de map, affichage de sprites casque ou armure non conformes
+        => cf Map::SetEntities_Load(), l'equipment list n'est surement pas sauvegardé.
+        ==> voir le composant AnimatedSprite pour les attributs à sauvegarder (sprites mapping ...)
+        ===> compliquer à mettre en place
+        ===> pour le moment mesure compensatoire mis en place : dans Map::SetEntities_Load() ajout d'un nouveau randomize du charactermapping apres le LoadAttributes() qui a lieu dans ObjectPool::CreateChildIn().
+        ====> 20/01/2023 : reapparition du probleme faire un comparatif de code
+        =====> il y a eu changement de code à partir du 04/12/2022 dans GameHelpers::SetEntityVariation()
+        ======> correctif dans GameHelpers::SetEquipmentList : La Torche pose pb car Weapon1 et pas de SpriteList.
+        ======> la mesure compensatoire n'est pas suffisante car node->ApplyAttributes est appliqué après le GameHelpers::SetEntityVariation().
+        =======> OK : déplacement de GameHelpers::SetEntityVariation() de ObjectPoolCategory::GetPoolNode() vers ObjectPool::CreateChildIn() après GameHelpers::LoadNodeAttributes
+        =======> pour resoudre le probleme, il faudrait sauvegarder l'equipement utilisé pour le mapping pour toutes les entités le necessitant.
+
+    ☐ 13/01/2023 : crash avec les RenderShapes dans la map=-12,-6 en partant de la map=-15,-1
+        => fastpoly2tri.h entre en boucle infinie dans MPE_FlipEdgeEvent
+        ==> ajout d'un return
+        ==> cela genere neamoins un rendershape qui ne va pas etre bon : il faut trouver la source du probleme sur les vertex envoyés à fastpoly.
+
+    ☐ 16/11/2022 : VULKAN
+        => Perte du contexte graphique sous Android
+        ==> il faut recreer la surface de la fenetre lorsque la fenetre est redimensionnée ou bien lorsque pas AcquireFrame
+        ===> OK ajout de GraphicsImpl::surfaceDirty_ et modification GraphicsImpl::AcquireFrame() et Graphics::OnWindowResized()
+        => sous Android, la version VK est plus lente que la version GL.
+        ==> voir pour les sub render pass ? et la sync ? texture ?
+        => RAF Viewport
+        ==> important pour le jeu en multiplayer local
+
+    ☐ 09/11/2022 : trouver une solution pour GLES2 pour les fluid (android et rpi)
+        => le renderpath ForwardUrho2D.xml (2 passes) ne fonctionne pas ?
+        ==> voir pour completer les shaders 120 puis refaire un test sous rpi4
+
+    ☐ 09/11/2022 : Suppression de la directive ACTIVE_FLUID
+        => celle-ci est remplacé par GameStatus::gameConfig_.fluidEnabled_ qui est parametrable dans les Options. Par contre en PlayState, il manquera un state fluid dirty pour reinitialiser la partie graphique (le renderPath ForwardUrho2D.xml par exemple)
+        ==> il faut s'assurer que les fluidmap sont toujours créés pour rendre utilisable les fonctions comme GameHelpers::AdjustPositionInTile ... GOC_Destroyer::Unstuck().
+        ===> ça a l'air d'etre le cas pas de ACTIVE_FLUID dans ObjectFeatured
+        => 15/09/2022 : ajouter des watercolumn pour les cascades.
+
+    ☐ 22/05/2022 : sous Android GLES2 hdpi bug d'affichage de texture sur EliegorGolem. Il s'agit bien de la bonne texture mais pas des bons sprites
+        => l'entité a plusieurs AnimatedSprites ... peut-etre c'est lié ...
+        ==> vu egalement sous VULKAN
+        ==> cela provient surement du setviewZ qui ne doit pas bien fonctionner lorsqu'il y a plusieurs animatedSprite pour une meme entity.
+        ===> 30/08/2022 : ça doit être résolu, il s'agit surement du meme bug : avec les LayerMaterials, il fallait bien s'assurer que le material est bien appliqué à tous les drawables du node (et sous nodes).
+        ===> 13/09/2022 : apparement non, rare à reproduire : les flore apparaissent bien mais pas le corps de pierre. pb de visibilité d'animatedsprite ?
+
+    ☐ 30/08/2022 : probleme sous vulkan avec ubuntu22.04 au niveau du layer water2d : des artefacts apparaissent => un probleme de synchro.
+        ==> le layer water2d est sous la meme renderpass que le background qui est utilisé en attachement pour l'effet d'onde de l'eau.
+        ===> OK : bien dissocier en 2 renderpass : correctif dans GraphicsImpl::SetRenderPath : utilisation renderPathCommandIndex_=11 (ald 10).
+        ===> RAF : il faudrait aussi resoudre les imagelayout (pour le moment mis à VK_IMAGE_LAYOUT_GENERAL)
+        ====> cf aussi GraphicsImpl::CreateRenderPasses et Graphics::PrepareDraw et Texture2D::SetData
+
+    ☐ 14/06/2022 : il faut résoudre avec Vulkan, les Render Targets
+        => actuellement sous OGL, lorsque l'usage d'une Urho3D::Texture est TEXTURE_RENDERTARGET alors il est créé une Urho3D::RenderSurface qui peut etre lié à un viewport
+        ==> ce viewport est lié à une scene, une camera. Une fois la scene rendu, la texture est "resolve" avec ce rendu. (BlitFrame ?)
+        ==> cf. View::SetRenderTargets() => Graphics::SetRenderTarget() pour les outputs (attachements vers lesquels la scene doit etre rendu)
+        ==> cf. View::SetTextures() => Graphics::SetTexture() pour les inputs (attachements utilisé par les stages shaders)
+        => sous Vulkan : il faut utiliser VkRenderPass en utilisant dans la subpass un VkFramebuffer (attachement qui contient VkImageView + VkSampler : ceux-ci provenant de la texture créée).
+        => pour une texture "viewport" utilisée en input dans le renderpath courant : il faut créer un Descriptor qui pointe vers les attachements du VkFrameBuffer de la frame courante.
+        ==> voire les subpass utilisée dans https://developer.samsung.com/galaxy-gamedev/resources/articles/renderpasses.html
+        ==> par renderpath, créer et stocker les renderpass.
+        ===> cela va solutionner les renderpaths avec la pass refract qui utilise en input une texture viewport.
+        ===> mais ne solutionnera pas l'exemple 10-RenderToTexture qui utilise une scene Rtt qui va etre rendu dans une texture.
+        ====> pour cela pour creer les renderpass pour la scene Rtt, il faudra prendre en compte la renderSurface finale en plus du renderpath associé au viewport de la Scene Rtt.
+        ===> creer une structure comme PipelineInfo pour RenderPath pour Vulkan.
+        ====> OK 27/06/2022 : premier essai concluant avec 2 RenderPass utilisées.
+        =====> RAF : il reste à finaliser GraphicsImpl::SetRenderPath car pour le moment c'est specifique pour ForwardUrho2D.
+
+    ☐ 03/06/2022 : l'on pourrait aussi utiliser le depthwrite systematiquement en specifiant toutes les positions z de tous les elements.
+        et ecrire les layers du plus proche (-z) au plus éloigné (+z) inversant le draworder.
+
+    ☐ 13/05/2022 : Portage de Urho3D sur Android Vulkan OK
+        => modification des fichiers gradle, modification mineure dans Urho3D, integration des Validation layers.
+        => pour Urho3D Vulkan ajouter un dossier Source/Shaders à compiler.
+        ==> utilisation de l'homeMade SpirvShaderPacker (à modifier pour permettre les modes quiet ou verbose)
+        ===> generer le variation hashname du shader dans l'outil.
+        => l'utilisation d'Urho3D Vulkan Directional Light CRASH l'application quelque soit l'appareil cible.
+        ==> 14/06/2022 : remplacement dans le shader LitSolid DIRLIGHT, l'uniform LightPS doit etre mis en set3 binding0 plutot que prendre le binding3 du set0
+        ===> il y a un pb d'attribution lorsque l'on pass en descriptor dynamic : voir ce qui ne va pas dans ConstantBuffer et Graphics::PrepareDraw
+
+    ☐ 18/03/2022 : Portage de Urho3D sur l'API Vulkan. Test avec FromBones.
+        => crash avec les pipelines lorsque le define NUMVERTEXLIGHTS est utilisé.
+        ==> on pourrait creer une pipeline pour chaque define NUMVERTEXLIGHTS=1à4. soit 4 pipelines à multiplier encore par le nombre déjà existant de shaders.
+        ===> pour FromBones qui utilise peu de shaders en mode ACTIVE_LAYERMATERIALS, cela pourrait aller. Mais pas pour d'autres jeux 3D.
+        ====> choix d'utiliser d'un seul shader (pipeline) quelque soit le nombre de vertexlights : ajout de cNumVertexLights
+        => des problemes avec les pipelines à corriger pour l'UI : pour force à utiliser le BlendMode Alpha, utiliser UIElement::SetOpacity(0.95f)
+        => 08/04/2022 : Pas mal de correctif dans Urho3D Vulkan sur le rendering avec Lights
+        ==> OK : les VERTEXLIGHTS fonctionnent ainsi que les PERPIXEL Lights : utilisation de Light PERPIXEL avec avatar-petit OK ! mais pas avec OpenGL (il faut alors desactiver les lights PERPIXEL - cf GameHelpers::SetLightActivation(Player*))
+        ==> Reste pas mal de choses à faire : notamment en priorité les RenderTargets, le MultiViews, test sur android ensuite le shadowing et l'Instancing.
+        => 14/04/2022 : correctif pour le mode sRGB dans Urho3D Vulkan pour eviter le Gamma Correction automatiquement fait par VULKAN en cas de difference entre le mode srgb pour les textures et la swapchain.
+        ==> le gamma correction est utilisé pour test sur okkologo (déclaré non sRGB) ce qui permet de faire briller le logo.
+
+    ☐ 21/12/2021 : creer un outil pour automatiser la creation des spritesheets et texturefiles dans les bons dossiers.
+        -> il faut exporter les sprites à partir d'inkscape en 90ppp pour chaque entité.
+        -> pour un ensemble d'entités, créer une texture à la bonne resolution (768x768 en ldpi ... 1024x1024 en mdpi)
+        -> pour chaque scml, il faut une spritesheet associée.
+        => indiquer le dossier contenant les scml
+        => lire les fichiers png necessaire dans chaque scml
+        => charger chaque png du dossier contenant les png (chaque png doit avoir un nom unique)
+        ==> faire un essai avec la spritesheet1 (petit, lizard, skel et equipment)
+        ===> redimensionner petit, lizard, skel pour mettre les nodes en scale 1,1,1
+        ===> prendre soin des pivot pour les objets equipable (armors, swords, pistolet, torche etc..) et integrer les nouveaux equipements (filet, pelle)
+        ====> l'equipement pose probleme : il faut renommer dans les SCML avec equipement (Petit, Lizard, skel) les equipements de façon unique sans redondance avec les pngs existants
+        =====> l'outil TexturePacker generera des spritesheets avec les bons attributs (taille et hotspot provenant des scmls) pour ces sprite2D sans position defini dans la texture
+        =====> puis AnimatedSprite2D effectuera bien la mise à l'echelle des equipements vers ces sprite2D "holder".
+        ======> il faut donc faire attention que les equipements mis en place dans les SCML porteurs (petit,lizard,skel) n'aient pas les memes noms que ceux exportés dans equipment.scml
+        =======> OK : le probleme c'est pour l'equipement natif des entités non-joueurs qui ont l'equipement de base des scmls.
+        ========> Revoir les SCML pour integrer au minimum les characterMaps Armor et No_Armor si un element est présent (ex skeleton warrior)
+        ========> Ajouter une cmap Naked dans chaque entity SCML pour cacher tous les sprites d'equipement.
+        ========> Ajouter le code pour générer un equipement "aléatoire" sur ces entités : GameHelpers::GetRandomizedEquipment
+        ====> à modifier le dimensionnement des renderedAnimations.
+        ====> OK : probleme concernant les scaling des weapons reglés par la modification de Urho3D::AnimatedSprite2D::SwapSprite() et l'ajout de l'attribut pour AnimatedSprite2D "MappingScaleRatio".
+        =====> il s'agit du rapport entre le width du sprite weapon du scml et celui du sprite contenu dans la texture exportée (exemple pour petit 68.f / 240.f = 0.28f)
+        ======> à utiliser pour les avatars avec equipement comme petit, lizard et skeleton.
+        ====> OK : inclure dans TexturePacker la possibilité de spécifier un sprite à mettre en premier position dans la spritesheet : utile pour les collectables pour indiquer le sprite à prendre en compte dans Slot.
+        ====> OK : corriger la torche (surement le scaling dans Urho3D::AnimatedSprite2D::AddRenderedAnimation etant donner que la torche n'est pas orientée comme les épées)
+        ====> OK : les colliders des collectable parts ne sont pas bien dimensionner : le staticsprite est centré par rapport à son hotspot et le collider par rapport au centre du node.
+        =====> le probleme est au niveau du GetBoundindBox, il faut utiliser à la place les dimensions du sprite et de son hotspot.
+        ====> OK : modifier la taille de la jambe de bois, du bandeau et du crochet pour la remettre à la taille native du skel ou bien utiliser les characterMaps (necessiter de modifier le SCML de skel)
+        =====> redimensionnement de la jambe de bois et du crochet, le reste passe en charactermapping.
+        => probleme avec le marchand et son armement : la torche et l'épée de feu sont 2x trop grosse =>
+        ==> OK : utiliser le MappingScaleRatio : modification de Urho3D::AnimatedSprite2D::AddRenderedAnimation avec ajout du scaling mappingScaleRatio_.
+        => OK : les scraps des bones sont trop gros : ajout du dpiratio dans GOC_BodyExploder2D::SetExplodedNodesComponents et modification de GameHelpers::SpawnScraps
+        ====> OK : probleme de grossissement des bones lorsqu'ils tournent : probleme lié à StaticSprite2D ?
+        =====> correctif dans StaticSprite2D::UpdateSourceBatches() pour bien appliquer le scale (attention à la partie rotation entremelée).
+        ====> RAF : les ailes sur le lizard ne reagissent pas bien au changement d'animations flyup. A la mort du Lizard avec ailes, l'animation aile continue, il faut l'enlever.
+        ====> RAF : la cape est mal positionnée sur le skel : la cape a 3 sprites : le Wearable mapping n'a pas été configuré
+        => redimensionner les collectables casque, epee etc... lors du drop ils apparaissent maintenant trop petits.
+
+    ☐ 03/12/2021 : creer une structure effects (textureFX et Color) pour chaque Sprite2D d'AnimatedSprite2D.
+        -> Cela va permettre d'avoir des effets (notamment UNLIT) et une couleur specifiques pour chaque sprite composant un AnimatedSprite2D.
+        ==> modification de la structure Urho3D::Spriter::File avec ajout int fx_
+        ===> ok simple essai avec Sorceress, animation die, le feu est bien en Unlit.
+        ====> OK dans les scml ajouter fx="1" aux files qui doivent etre unlit.
+
+    ☐ 26/03/2020 : etablir une nouvelle arborescence pour les graphics permettant de changer de taille de textures en fonction du device cible
+        => Data/Graphics/(lpdi-mpdi...)
+        ==> voir dans Urho3D::FileSystem() s'il existe une fonction permettant de monter le repertoire /Data/Graphics/mdpi par défaut pour que 2D/animation.scml ou bien UI/menu.xml soient bien reconnus
+        ===> utiliser ResourceCache::AddResourceDir() dans Game::Setup()
+        ===> ok : ajout de GameStatus::GameState.deviceDPI_ et modification de Game::Setup
+        ====> ajout de <variable name="deviceDPI_" value ="mdpi" /> dans engine_config.xml
+        ====> OK : ajout de Urho3D::Texture::dpiScale_ et ajout dans qui permet l'integration rapide de toutes les spritesheets sans avoir à modifier les xml, ni les scml
+        =====> il suffit simplement de changer l'echelle de toutes les textures et d'ajouter dans les xml de texture le parametre <dpi scale="x"/>
+            pour specifier qu'il s'agit d'une texture de tel resolutiondpi (par ex: <dpi scale="0.75"/> pour specifier qu'il s'agit d'une ldpi)
+        => OK le 28/03/2020
+        ==> Urho3D::Texture::GetDpiScale() est uniquement integrer à Sprite2D.
+        ===> RAF : il faut également l'intégrer à l'UI
+        ====> Integration dans BorderImage::SetImageRect
+
+    ☐ 11/03/2021 : revoir le layering car les marchands interferent avec les players qui sont equipés.
+        => à priori les players multibatch interferent tous
+        => voir AnimatedSprite2D.
+
+    ☐ 02/02/2021 : Test dans BackShape2DAtlas du Shader WireFrame et Grid sur les RenderShape InnerView
+        => le but étant d'ajouter un effet d'alpha progressif sur la bordure avec le mode USE_CHUNKBATCH
+        ==> avec les coordonnées Barycentriques il ne sera pas possible de ne garder que les edges de contours
+        ==> Les Shaders dans ce cas n'apporteront pas de solution.
+        ===> Creation d'une shape supplementaire pour les dégradés de bordure, ajout d'Embose dans RenderShape pour generation ces shapes cf. RenderShape::AddShape et RenderCollider::CreateRenderShape
+        ====> pour un contour de n faces cela rajoute 2 triangles par face soit 2*n triangles
+        ====> RAF : lors de l'embose (qui correspond à un offset sur polygon), si le contour a des trous, le contour "embose" risque d'etre en intersection avec ceux-ci. ce qui aboutit a un contour degeneré.
+        =====> il faut soit eviter ces cas, soit lors du ScaleShape(), il faut test si intersection avec les holes et dans ce cas modifier le contour.
+        ======> des libs tel que CGAL::Straight_skeleton_2 permettent de creer une polyligne de centre et ainsi offseter par la suite simplement.
+        ======> integration simple de ClipperLib mais sans utilisation pour le moment
+        ======> Pour le moment les Holes qui sont en intersection avec le contour sont supprimés.
+        ======> RAF : 12/02/2021 : une fois le SanitateContour effectué, le seul cas qui pose probleme c'est les Holes Adjacents (1 point commun avec le contour).
+            Les Holes doivent etre ouverts et integrés au contour afin de permettre le shrink du contour et la creation des degradés de bordure
+        =======> La detection des intersections entre Contour et Hole ne semble pas fonctionner (trouve des intersections en testant un contour de 3x3 tile avec 1 hole sur le tile central).
+        ========> remplacer FindIntersections() par un FindIntersections_HV() qui doit tester uniquement les segments horizontaux avec les segments verticaux.
+        =========> 24/02/2021 : OK.
+        =========> RAF : ouverture des contours shrinked avec les holes en intersection
+        ====> cas des bordures de map : ne pas ajouter d'effet de dégradé si la map est connecté et que le tile voisin est plein
+        =====> 23/02/2021 : dégradés satisfaisants sur les bordures de map connectées.
+        ====> RAF : trouver pourquoi dans certains cas, lors de la modification de contour (SetTile), les holes disparaissent alors qu'ils devraient etre la.
+        =====> peut-etre si split contour, les holes ne sont pas bien reaffecter au bon contour ? (cf SanitateShape)
+
+    ☐ 10/12/2020 : au chargement d'entities qui ont un StaticSprite2D => Map::SetEntities_Load(), il faut faire un Drawable2D::ForceUpdateBatches
+        => voir si dans la sauvegarde l'entity est Enabled ou non. voir l'interaction avec StaticSprite2D. pb de Draw Rectangle. Surement suite aux modifications apportées à Urho2D dans StaticSprite2D.
+        ==> verifier les modifications faites à Drawable2D, StaticSprite2D et AnimatedSprite2D
+            => Description de la phase UpdateSourceBatches
+                => Renderer2D::HandleBeginViewUpdate()
+                    => Threaded WorkQueue => CheckDrawableVisibility()
+                        => Drawable::GetWorldBoundingBox2D() ====specifique===> StaticSprite2D::GetWorldBoundingBox2D
+                        => if (worldBoundingBoxDirty_)
+                            => Drawable2D->StaticSprite2D::OnWorldBoundingBoxUpdate()
+                                => Drawable2D::GetSourceBatchesToRender()
+                                    => Drawable2D::UpdateSourceBatchesToRender()
+
+    ☐ 01/11/2020 : Multiviews voir pour ajouter le MultipleViewports en mode 2-4 joueurs
+        => cf Urho3D::Sample::MultipleViewports
+        ==> pouvoir choisir le mode de jeu en multiviews ou bien sur une seule view (dans ce cas il faudra modifier de toute façon le code pour que les joueurs locaux restent dans la seule vue : mettre un collisionbox sur l'ecran limitant uniquement les joueurs locaux ? ce qui va limiter les chutes et les sauts)
+        ===> 03/11/2020 : ajout de GameConfig::multiviews_ et utilisation dans PlayState::SetViewports()
+        ==> définir un Viewport et une camera pour player. voir pour la possibilité de split/regroupement de viewport en cas d'éloignement/rapprochement des joueurs.
+        ==> 03/11/2020 : ajout de la gestion de Viewports dans ViewManager : ajout de ViewportInfo, ViewManager::SetViewportLayout(), ViewManager::ResizeViewports()
+            et grosse modification pour la gestion multiviewport notamment modification de Urho3D::Renderer2D et Urho3D::AnimatedSprite2D (suppression de Renderer2D:IsDrawableVisible)
+        ==> A modifier ObjectTiled, DrawableScroller, World2D, GEF_Rain, GameHelpers::OrthoWorldToScreen, GameHelpers::ScreenToWorld2D
+        ==> les Batches generés par les drawables tel que ObjectTiled et DrawableScroller devront tenir compte de chaque Viewport
+        ===> World2D, WeatherManager devront pouvoir gerer les differents Viewports.
+        ====> le pb va venir aussi de Urho3D::Renderer2D::GetFrustumBoundingBox et World2D::GetVisibleRect() utilisé notamment dans ObjectTiled::GetWorldBoundingBox2D() et de l'utilisation de l'unique Camera GameStatus::camera_
+        ====> World2D::GetVisibleRect() va etre utilisé aussi par MapCreator::Update et GEF_Scrolling
+        ====> le visibleRect va être updaté par World2D::UpdateStep qui se base sur la camera World2D::camera_
+        ====> pour le moment WeatherManager est lié à GameStatus::cameraNode_
+        => pour World2D, à chaque Update prendre la camera de chaque viewport en compte.
+        ==> modifier World2D::UpdateVisibleCollideBorder() : les visiblerect sont à tester pour verifier si intersection => si intersection, regrouper les collisionshape en collision en une seule.
+        ==> World2D::UpdateInstant() utilisé dans le changement de position de camera (teleportation) est délicat
+        ===> il convient de differencier dans le process amont (World2D::UpdateVisibleLists(), World2D::mapsToShow_, World2D::mapsToHide_) les differents viewport en gardant à l'esprit qu'une carte visible peut être
+            visible par plusieurs viewport et aussi pas à tous (il ne faut donc pas la caché dans ce cas). UpdateInstant sera a utilisé pour un ensemble de viewports pas forcément tous (cas de 2 joueurs qui se téléportent mais pas le troisième).
+        ====> World2D::mapsToShow_, World2D::mapsToHide_ sont à mettre dans WorldViewInfo
+        ==> pb en boucle: erreur dans la definition du worldVisibleRect
+            [Sat Nov  7 10:07:16 2020] ERROR: GEF_Rain() - HandleUpdate() : worldVisibleRect is in Full BackGround => rain paused !
+            [Sat Nov  7 10:07:16 2020] ERROR: GEF_Rain() - HandleUpdate() : worldVisibleRect is not in Full BackGround => rain resumed !
+        ==> verifier dans ObjectTiled, l'attribution et l'utilisation de visibleRect_ et de chunkGroup_, notamment dans ObjectTiled::GetWorldBoundingBox2D() et ObjectTiled::UpdateChunksVisiblity()
+        ===> les informations comme ObjectTiled::indexViewZ_, ObjectTiled::viewZ_, ObjectTiled::chunkGroup_ ... sont à lier à un viewport.
+        ===> 11/11/2020 : OK grosse modification dans ObjectTiled rendant indépendants les sourcebatches.
+        ====> sur viewport > 0, pb de changement de viewz sur les maps voisines de la map courante
+        =====> 12/11/2020 : correctif dans ViewManager::SwitchToViewIndex : le viewport doit etre celui du node player autrement les ViewManager::viewportInfos_ (notamment viewZindex_) ne sont pas updatées pour le bon viewport.
+        ==> Desactivation de GameHelpers::ApplyLuminosity()
+        ==> 14/11/2020 : Modification de DrawableScroller pour le multiviews
+        ==> 16/11/2020 : Modification de WeatherManager, GEF_Scrolling et GEF_Rain pour le multiviews
+        ===> OK changement des viewmasks inside et outside en multiviews pour les effets Weather (rain et cloud) cf VIEWPORTSCROLLER_INSIDE_MASK et VIEWPORTSCROLLER_OUTSIDE_MASK
+        ===> lorsque les players sont dans la meme zone (visible rects en intersection), il faut que les effets soient les memes : voir pour synchroniser les effets.
+        ====> 16/11/2020 : OK modification WeatherManager::Update() et GEF_Rain.
+        ===> 16/11/2020 : OK Modification de GOC_Portal.
+        ===> 17/11/2020 : OK GameHelpers::OrthoWorldToScreen, GameHelpers::ScreenToWorld2D
+        ===> 17/11/2020 : Correctif des ViewMask des Lights dans GameHelpers::SetLightActivation(Node* node) et GOC_Destroyer::SetViewZ()
+        ===> 17/11/2020 : Modification de la position des panels pour le multiview dans Player::ResizeUI()
+        ===> 18/11/2020 : OK : appliquer le viewmask du viewport au DialogueFrame du Marchand : modifications dans Player::HandleClic(), Actor::SetEnableDialogue() et dans DialogueFrame::SetFrameLayer()
+        ===> 19/11/2020 : OK voir pour World2D::UpdateInstant() pourquoi forcer viewport=0 => cela semble ralentir le chargement initial ... peut-etre à cause de l'updateStep qui rajoute des cartes à créer ? pb de viewRect ?
+         le probleme venait de ViewManager::AddFocus qui utilisait World2D::UpdateInstant et dans la boucle initiale PlayState::SetViewports() cela posait pb car UpdateInstant utilise World2D::UpdateStep qui met à jour pour tous les viewports.
+         Lors du premier UpdateInstant (viewport=0), World2D::UpdateStep ajoutait des Map 0,0 ; 0,1 ... pour les viewports suivants (les positions de camera sur ces viewports n'etant alors pas encore définies). => Suppression de UpdateInstant du AddFocus.
+        ===> 18/11/2020 : il peut encore arriver que dans un viewport, le changement de viewZ pour une map ne soit pas bien effectué
+        ====> il faut pouvoir faire la visibilité des ObjectTiled par viewport et non sur l'ensemble des viewports à chaque fois dans Map::SetVisibleTiles()
+        =====> ne pas utiliser ObjectTiled::SetCurrentViewZ() dans le Map::SetVisibleTiles() mais faire plutot un check du viewZ dans le ObjectTiled::GetWorldBoundingBox2D()
+        ======> 19/11/2020 : OK suppression du code dans Map::SetVisibleTiles() et integration dans ObjectTiled::GetWorldBoundingBox2D().
+        ===> 20/11/2020 : OK Patch dans GOC_Portal pour les entities mounted et en multiviews.
+        ===> le SwitchViewZ ne fonctionne pas pour les player CPU en multiviews
+        ====> 20/11/2020 : OK modification de GOC_Destroyer::SetViewZ() et ViewManager::SwitchToViewIndex()
+        ===> en multiviews, en selectionnant dans le MainMenu 2 joueurs avec le second en temps que CPU, l'affichage sur le second viewport ne se fera pas
+        ====> 21/11/2020 : OK modification de PlayState::SetViewports()
+        ===> RAF : voir pour modifier ObjectMaped::HandleChangeViewIndex() qui est pour un seul viewport
+        ===> RAF : verifier les fluidbatches
+        ===> RAF : faire un essai de GameHelpers::TransferPlayersToMap()
+        ===> RAF : RenderShape en multiviews ?
+        ===> 19/12/2020 : RAF : finir la modification de World2D::UpdateVisibleCollideBorders()
+
+    ☐ 02/07/2020 : voir pour reduire tous les sprites des scml pour se conformer à une echelle 1:1 dans les object.xml (petit, vampire, coffre, skeleton, les armes, les effets ...)
+        => elsarion et raignee sont deja fait. La sorciere c'est ok. A verifier dans Inkscape. Refaire une galerie de monstre avec decors pour le dimensionnement des monstres.
+        ==> 9 à redimensionner
+
+    ☐ 14/05/2020 : en USE_CHUNKBATCH les RenderShapes ne sont pas sur le bon layer à cause de ChunkBatch qui ne differencie pas les differents type de Tile (TILE,DECAL,SEWING)
+        => le layer des RenderShapes doit etre entre les Tiles/Sewing (en dessous) et les Decals(toujours au dessus)
+        => il faudrait corriger les ChunkBatch dans ObjectTiled pour separer les differents type de Tile (TILE,DECAL,SEWING)
+        ==> USE_CHUNKBATCH vaut-il le cout à modifier ?
+        ===> Test du nombre de batches en Arena (en desactivant les Entities et avec les Furnitures)
+        ====> avec USE_CHUNKBATCH => 20 batches en FRONTVIEW
+        ====> sans USE_CHUNKBATCH => 21 batches en FRONTVIEW
+        =====> est-il plus rapide ?
+
+    ☐ 09/04/2020 : ajout de color dans Urho3D::Spriter::Entity
+        => permet d'ajouter des couleurs specifiques à chaque entité spriter et pas seulement à tout l'animationset : il faut ajouter dans le SCML l'attribut 'color' dans le tag entity (cf armoire.scml)
+        ==> il s'agit d'une teinte globale pour une entity et non par sprite (ce qui sera un must to have)
+
+    ☐ 23/02/2020 : la ceinture de l'armure du skeleton n'apparait pas sur le skeleton. elle apparait bien sur le lizard
+
+    ☐ 11/02/2020 : régler la luminosité jour/nuit/transition avec ou sans l'activation de GameStatus::gameConfig_.enlightScene_
+        => completer l'utilisation de GameStatus::luminosity_ pour les ObjectTiled et les RenderShape
+        => en innerview en fonction de la profondeur sous terre, appliquer un modifier
+
+    ☐ 28/12/2019 : DrawableScroller de BackGround => probleme en bord de monde (bordures de l'ellipse) : faire un clamp des X dans la plage de l'ellipse ? (cf scrolling parallax 17/04/20218)
+
+    ☐ 14/12/2019 : ajouter les effets de climat et de temps
+        => OK 21/12/2019 : Jour et Nuit => sprite soleil, sprite lune
+        ==> voire pour le mode nuit modifier Enlightment progressivement
+        ====> OK le 11/02/2020
+        ==> voire pour ajouter les etoiles, constellations
+        => OK 28/12/2019 : Cloud => synchroniser le défilement des nuages avec la direction des intemperies (rain)
+        ==> voire pour ajouter un fond plus rempli en nuage avec un effet alpha progressif pour voiler les astres
+        -> Orage : assombrissement, ajout de nuages plus noirs, pluie forte, ajout eclair (sprite temporaire + luminosité)
+        -> Neige
+        -> Grele
+
+    ☐ 10/04/2018 : ajouter ambiance de cave : lumière, brouillard, fumée => particule emitter ? => ce sont des furnitures
+
+    ☐ 30/10/2019 : le Skeleton avec 2 katanas - les katanas ne s'affichent pas avec les bonnes positions, echelles
+        -> cf AnimatedSprite2D::SwapSprites
+        ==> AnimateSprite2D utilise le sprite de remplacement comme reference pour stocker le SpriteInfo contenant les offset de position et de scale.
+            Si ce sprite est deja utilisé dans cet AnimatedSprite2D, les offsets sont remplacés occasionnant ce pb.
+        ===> OK : spriteInfoMapping_ HashMap( Sprite2D*, SpriteInfo ) devient HashMap(Sprite2D*, HashMap(Sprite2D*, SpriteInfo ) )
+        ====> RAF : Voir pour remplacer par une structure plus simple et rapide HashMap ( unsigned, SpriteInfo ) avec unsigned un hash de 2 Sprite2D* ?
+
+    ☐ 07/10/2018 : Terrain avec RenderShape
+        => Par Map, créer la texture WeightMap à partir de la ObjectFeatured::terrainMap_ generée par worldGenerator/MapGenerator (cf 17/03/2018)
+        ==> voir comment modifier les textures associées au shader par le code
+        ==> voir comment ajouter ou modifier les parametres de shaders par le code
+        => Finir la gestion asynchrone dans Map de UpdatePhysicColliders, UpdateRenderShapes, UpdateRenderColliders
+        => Creer les shaders pour HLSL (Windows)
+        ==> OK pour Terrain2D.hlsl à recuperer sur ROG
+        => Modifier les shaders pour OpenGL 2.0 ES (Mobiles et Armv7) attention textureGrad(), dFdx() ... n'existe pas en OpenGL 2.0 ES
+        => Gestion de l'eau
+        => Les resultats sur RPI sont pire avec RenderShape qu'avec ObjectTiled
+        ==> Creer MapChunk : Object qui intégre la gestion des physiccolliders et des rendercolliders
+        ===> permet le remplacement des Chunks d' ObjectedTiled avec en plus la gestion des collisionShapes.
+        ===> Utiliser RenderShape par layer : drawable2D qui detient les batches d'un layer (batch de mur, de bordure, de fluide ...)
+        ===> MapChunk pointe vers N RenderShapes
+        ==> remplacer les Vegetations AnimatedSprite par des StaticSprite
+        ===> ok, pas mieux sur rpi avec les plantsStatics
+
+    ☐ 05/10/2018 : Correctif du mipmaping dans Urho2D : pour varier la qualité de texture
+        => prise en compte du level de texture dans Sprite2D::GetTextureRectangle et Sprite2D::SetFixedRectangle
+        => ajout static Sprite2D::SetTextureLevels(quality) qui régle le level de mipmap pour l'ensemble des sprite2D en fonction de la qualité de texture demandée
+        => en déclenchant touche "1" => Game::HandleKeyDownHUD => renderer->SetTextureQuality + Sprite2D::SetTextureLevels + Event WorldDirty => update des tilesheets (utilisant des tiles (sprite2D avec fixedRectangle)) + update des batchs objecttiled
+        ==> RAF : méthode Sprite2D To Sprite (UI) a mettre à jour.
+
+    ☐ 18/09/2018 : les herbages pourraient etre generes comme dans 62-geomReplication avec les effets de vent au lieu d'utiliser des AnimatedSprite2D
+        ou bien avec des Stretchablesprite ou bien avec un shader ?
+
+    ☐ 13/04/2018 : probleme de scaling dans AnimatedSprite2D avec SpriteSheet SJSON
+        => suite à l'ajout du parser SJSON, il reste des problemes dans le code AnimatedSprite2D::UpdateSourceBatchesSpriter_OneMaterial && MultiMaterial
+        ==> voir plant02 les 2 versions avec Urho2dSpriterAnimation (sample) et analyser ce qui cloche
+
+    ☐ 20/07/2018 : AnimatedSprite2D update seulement si le sprite est visible
+            => Description de la phase UpdateAnimation
+                => Scene::Update()
+                    => AnimatedSprite2D::UpdateAnimation()
+                        => if (Renderer2D::IsDrawableVisible(drawable))
+                            => Drawable2D::GetWorldBoundingBox()
+                                => AnimatedSprite2D::UpdateDrawRectangle()
+                                    => if (drawRectDirty_)
+                                        => if (spriterInstance->NoSpriteKeys)
+                                            AnimatedSprite2D::UpdateSpriterAnimation()
+                                            => SpriterInstance::Update()
+                                            => sourceBatchesDirty_ = true;
+                                        => calculate drawRect_
+            => Description de la phse d'activation (OnSetEnabled)
+                => AnimatedSprite2D::OnSetEnabled()
+                    => Drawable2D::OnSetEnabled()
+                        => enabled_ = true
+                            => worldBoundingBoxDirty_ = true
+                            => visibility_ = Renderer2D::IsDrawableVisible(drawable)
+                                => Drawable2D::GetWorldBoundingBox()
+                                    => StaticSprite2D::OnWorldBoundingBoxUpdate()
+
+                        => enabled_ = false
+
+            => Description de la phase UpdateSourceBatches
+                => Renderer2D::HandleBeginViewUpdate()
+                    => Threaded WorkQueue => CheckDrawableVisibility()
+                        => Drawable::GetWorldBoundingBox2D()
+                        => if (worldBoundingBoxDirty_)
+                            => Drawable2D->StaticSprite2D::OnWorldBoundingBoxUpdate()
+                                => Drawable2D::GetSourceBatchesToRender()
+                                    => Drawable2D::UpdateSourceBatchesToRender()
+                                        => AnimatedSprite2D::UpdateSourceBatches()
+                                            => AnimatedSprite2D::UpdateSourceBatchesSpriter_OneMaterial
+        => à tester !
+            => à corriger dans AnimatedSprite2D, lorsque une entité devient visible, les batches doivent etre vide sinon flip sur l'ancienne position => OK
+            => Urho3D modifié pour gerer la visibilité des Drawable2D (version Urho3D-1.5-20180722-AnimatedSprite2DVisibility)
+            => Attention : à la mort d'une entité, réapparition éphémère de l'animation juste après disparition
+            ==> voir le CheckVisibility dans Renderer2D, surement le fait que la visibilité soit reeffective alors que le node est disabled
+            ===> voir dans GOC_Animator2D entre le Disappear et le Destroy : peut-etre le changement d'animation passe par l'animation défaut
+            ====> il s'agit du changement d'animation lorsque le state passe à Destroy, le nom d'animation est vide
+            =====> 24/08/2018 : solution provisoire appliquée = GOC_Animator2D::ApplySimpleAnimations() skip si nom vide
+
+    ☐ 18/04/2018 : Modifier les Trigger dans animatedSprite pour éviter de régénérer des StringHash dans l'updateTiggers
+
+    ☐ 18/04/2018 : en bordure visuelle de entre 2 maps, les chunks de la seconde map ne sont pas affichés
+        => voire comment les visiblechunks sont selectionnés
+
+    ☐ 04/04/2018 : pb de draworder avec AnimatedSprite2D en MultiTexture (charactermap eredot)
+        => recouvrement des parties d'une animatedSprite par d'autre animatedSprite en multitexture
+        ==> analyser le code d'animatedSprite2D et notamment des drawOrder
+
+    ☐ 07/02/2018 : la modification apportée à Renderer2D::UpdateGeometry pour ScrollingShape semble poser des sacades après quelques minutes de jeu
+        => étudier une nouvelle solution pour la gestion d'indexBuffer en mode mutli-primitive (Triangle+Quad) (note: à la base Rendered2D ne se base que sur des quads)
+        ===> déversement des sourcebatches dans View et Renderer
+            Chaine Update:
+            Engine::Update()=>E_RENDERUPDATE
+                =>Renderer->Update()=>Renderer->UpdateQueuedViewport()
+                    =>view->Update()
+                        =>E_BEGINVIEWUPDATE
+                            => renderer2D->HandleBeginViewUpdate()
+                                => Renderer2D->UpdateViewBatchInfo()
+                                    =>AddViewBatch() => creation viewBatchInfo.geometries_ et assocation de l'indexbuffer et du vertexbuffer avec celles-ci.
+                                    =>Update des Drawable::batches_ alimenté par viewBatchInfo
+                        =>View::GetBatches()=>GetBaseBatches=>pour chaque drawable copie les sourcebatches dans la queue=>AddBatchToQueue
+            Chaine render:
+            Engine::Render()=>BEGINFRAME
+                =>Renderer->Render()
+                    =>view->Render()
+                        =>view->UpdateGeometries()
+                            =>drawable->UpdateGeometry(frame_)
+                                => renderer2D->UpdateGeometry()=>update de l'indexbuffer et du vertexbuffer
+                        =>view->ExecuteRenderPathCommands()
+                            => command SCENEPASS
+                                => view::BatchQueue->Draw
+                                    => BatchQueue::BatchGroup->Draw
+                                    => BatchQueue::Batch->Draw
+                                        => envoie les vertexbuffers et indexbuffers des Batch::geometry_ vers Graphics::Draw
+                        =>view->BlitFramebuffer()
+        ===> solution : creer 2 indexbuffers et 2 vertexbuffers dans renderer2D, un par primitive (QUAD/TRIANGLE)
+        ====> la methode ne change pas le probleme de sacades : ces sacades disparaissent une fois pris un teleporteur, bizarre ...
+        ======> apres quelques tests sans scrollingshape, pas de sacades detectees.
+        ======> voir si une map specifique declenche les sacades (peut-etre un pb de vertex du a la generation de polytri pour scrollingshape)
+        ======> il s'agit peut-etre des erreurs de precisions de calcul en float qui entrainent ces saccades !
+
+    ☐ fluidBatches : Ameliorer le Rendu
+        -> 14/09/2017 : analyse des cellules voisines => generation du FluidPattern (MESH4)
+        => logique dans UpdateDrawPattern() à completer :
+         -> cas de raccordement non satisfaisants ... cf image capture 2017-09-14 12-19-59 && 2017-09-14 12-20-11
+
+    ☐ MESH4 : FluidBatches incomplets à finaliser (ou changement de méthodes) :
+        -> cas de l'alignement des waterfalls est problématique :
+         - les waterfalls apparaissent aussi en resurgence qd la cellule du dessous est une waterfall
+          -> ce qui implique un alignement centré obligatoire puisque pas la cellule du dessus est de l'air ou un bloc généralement, ce qui donne une remontée en waterfall non souhaitée. (09/10/2017)
+          ==> règles d'alignement pour les waterfall, waterwave à modifier ! (09/10/2017)
+        -> essai en cours d'un triflows par cell : pour le moment buggué (13/10/2017)
+        ==> NOTE : pour reactiver les fluids : engineconfig => fluidEnabled_ = true ou bien GameCommand "fluidenable" et "fluidpull" pour vider les fluids
+        ===> NOTE : si aucun visuel pour les fluids => verifier si Urho3D::Drawable::GetWorldBoundingBox() est bien virtual (nécessaire pour ObjectTiled)
+
+    ☐ pb d'index pour l'affichage des animatedsprite2D en réseau
+
+    ☐ 25/05/2018 : Le BodyExploder avec le CharacterMapping de NewSkeleton éclate en 3 cranes ...
+        - 03/05/2018 : Multi-Entities et ObjectPool => pb lors du crumble, toujours les mêmes cranes : le GOC_BodyExploder2D prepare les nodes avec Simple1 uniquement
+        ==> pour ces 2 problemes qui n'en sont qu'un pour le moment, garder toujours le meme crane
+        ===> il s'agit de mettre à jour BodyExploder2D pour supprimer les parts superflues dans l'anim Dead des lors que l'affectation de l'entité et du charactermapping sont faites
+        ===> utilisation de GameHelpers::SetEntityVariation() dans ObjectPoolCategory::Resize() (des l'initialisation) pour afficher qu'un seul crane (application d'un mapping par defaut)
+
+Archive:
+
+    ✔ 21/03/2023 : les maskview n'ont plus l'air de fonctionner correctement : les tiles du background qui doivent etre masquées par les tiles du frontview sont qd meme rendu.
+        => en desactivant ACTIVE_DUNGEONROOFS et en remettant les anciennes MapFeatureType, cela ne pose plus de pb.
+        ==>  OK : cela provenait du decalage de MapFeatureType::NoDecal impactant surement ObjectFeatured::UpdateMaskViews et ObjectFeatured::IsTotallyMasked qui l'utilisait (remplacer maintenant par MapFeatureType::Threshold)
+
+    ✔ 21/03/2023 : certains tiles en frontview sont en dessous des actors alors que leur decals au dessus
+        => en desactivant RENDER_ROOFS, les tiles sont bien au dessus
+        ==> un chunk initialise le draworder de son batch avec le premier tile qui lui est ajouté.
+        ===> dans le cas rare ou en OUTERVIEW on a un tile Roof comme premier tile d'un chunk alors le chunkBatch en FRONTVIEW prendra en draworder la valeur de ce tile (qui est inferieur au bon draworder pour les tiles de front)
+        ====> pour que cela fonctionne il faut mettre les Roofs sur un autre indexM pour pouvoir avoir un autre chunkBatch
+        =====> OK : modification de ObjectTiled::GetMaterialIndex et ajout de indexMRoof=1 dans ObjectTiled::UpdateTiledBatches().
+
+    ✔ 21/03/2023 : le loup et les arbres ont des problemes de scale scml
+        => verifier les svg export avec les sprites utilisé dans les scmls
+        ==> le scml du loup est créé avec des sprites 96dpi, le script d'export est en 90dpi (les sprites de la spritesheet seront en 90dpi)
+        ===> modification du script ExportSVG pour en tenir compte de la base dpi des sprites dans inskcape/spriter qui peuvent etre 90dpi ou 96dpi.
+        ====> OK : modification du nom d'export du svg => loup-export_lo.svg devient loup-export96_lo.svg
+        ====> les plantes posent plus de probleme car n'apparaissent pas avoir un dpi commun à chaque sprite ... pour bien faire il faudrait reexporter les sprites et modifier le scml
+        =====> OK : rescaling des troncs et branches dans le svg
+
+    ✔ 06/12/2022 : certains animatedsprites n'appliquent pas le fx unlit pour les feux (mort de la sorciere ou les yeux et flammes de darkren)
+        => OK : correctif Urho3D::AnimatedSprite2D : il s'agit de la fonction Batch utilisé pour le character mapping (notamment Fire, No_Fire utilisé justement par les entity utilisant du feu) qui n'appliquait pas le fx unlit.
+
+    ✔ 18/11/2022 : EliegorGolem n'affiche pas toujours son corps :
+        => les deux AnimatedSprites sont bien presents
+        ==> le premier n'a pas la bonne entité attribuée (flore est attribuée 2x ...).
+        ===> pb dans les set attributes de AnimatedSprite2D ?
+        ====> 26/11/2022 : correctif sur le nom de l'entity qui doit etre "rockgolem_flore" et non pas "rockgolem-flore"
+        ====> le pb apparait toujours : verifier que le setentityvariation ne soit pas utilisé pour rockgolem (qui a plusieurs entités pour la construction du visuel avec plusieurs animatedsprites)
+        ====> par défaut lors du chargement des GOTs entityVariation est bien à false.
+        ====> il peut y avoir confusion entre changement de charactermapping et changement d'entity.
+        =====> OK 04/12/2022 : il faut etre plus explicite : scinder en 2 la fonction GameHelpers::SetEntityVariation()
+
+    ✔ 25/11/2022 : Implementer le WallFlipping pour les Trigger dans AnimatedSprite2D
+        => Ok modification de Urho3D::AnimatedSprite2D::UpdateTriggers() avec ajout d'une transformation local comme pour les sprite.
+
+    ✔ 18/11/2022 : en Gl (avec les rendertarget) le petit fantome ne s'affiche pas à partir de certains avatars de départ comme Petit.
+        => Mais fonctionne à partir de Lizard.
+        ==> la diff avec les logs, ce sont les layer et viewmask qui ne sont pas bien attribué lorsque l'on passe de Petit vers Fantomette.
+        ===> 23/11/2022 OK : dans GOC_Destroyer::SetViewZ(), l'utilisation de GOC_Animator2D::GetDrawables() était commentée.
+        ====> cette fonction sert effectivement dans le cas des rendertargets.
+        ====> Rechercher dans l'historique pourquoi cela a été désactivée (surement pour resoudre un autre bug).
+
+    ✔ 18/11/2022 : apres recharge d'une partie à coté d'un coffre qui a été vidé, l'animation du coffre est l'animation du coffre rempli.
+        => 23/11/2022 Ok : ajout dans GOC_Inventory::OnSetEnabled() d'un CheckEmpty.
+
+    ✔ 18/11/2022 : rain ne s'affiche plus.
+        => pb avec World2D::IsVisibleRectInFullBackGround().
+        ==> le state visibleRectInFullBackground_  a été setté dans World2D::UpdateVisibleLists() depuis la derniere modif. cette fonction peut etre appelée avant qu'une map ne soit chargée (donc que la topography ne soit pas encore totalement faite).
+        ==> il faut déplacer le set de visibleRectInFullBackground_ (voir aussi pour isUnderground_)
+        ===> 23/11/2022 OK ajout de World2D::UpdateVisibleRectInfos.
+
+    ✔ 18/11/2022 : pb avec les renderCollider (sous GL ou Vulkan) en bordure : edgeOffset ?
+        => 23/11/2022 OK : apres resolution du pb avec la pluie. Le phenomene n'apparait plus... Bizarre. A surveiller.
+
+    ✔ 19/10/2022 : l'affichage des fluidcell d'arriere plan est chaotique. Seulement certains watertiles s'affichent.
+        ==> surement un pb de z depth
+        ===> les vertices de watertiles qui ne sont pas affichés ont un inZ=1
+        ====> correctif WaterLayerData::UpdateTiledBatch
+        =====> autre probleme majeure : la texture unit doit etre 1 et non pas 0 : le Shader utilisé est ShaderGrounds si textureId=0 alors il applique un effet BackShape.
+        ======> 21/10/2022 : OK correctif dans la material WaterTile.xml et dans WaterLayer::UpdateTiledBatch
+
+    ✔ 5/10/2022 : les waterline deformations ne sont pas toujours effectuées en bordure de waterline lorsque la waterline est grande avec un angle important
+        => cf Waterline::Update
+        ==> OK : correctif dans la section Add Point Deformations.
+
+    ✔ 29/09/2022 : finir l'implementation du WaterLayer
+        => ajout d'un smoothing entre les watersurface d'un waterline pour eviter d'avoir des marches du au changement de tile en Y : cf WaterLine::Update()
+        => déplacer les fluidSourceBatches de ObjectTiled vers WaterLayer et établir les waterline avant de generer le batch pour les watertiles (cela permettra de supprimer la difference entre les watertiles de surface et les waterlines.
+        ==> OK : passage de la simulation et de la gestion des batches dans WaterLayer
+        ===> réorganisation des batches qui sont eparpillés dans les structure ViewportRenderData (pour les WaterTile) et WaterLayer (pour les WaterLine)
+        ====> OK : mis dans WaterLayer.
+        ===> 03/10/2022 OK : désormais les Waterlines peuvent mettre à jour les vertices du waterTileBatch lorsque les waterlines se superposent aux watertiles (le cas pour les fall head, fall part et fall surface mais uniquement avec numquads=1).
+
+        => 30/05/2022 : ajouter les lignes d'eau de surface :
+            => Utilisation define WATERLINE_TEST pour tester dans ObjectTiled les waterlines de façon rapide.
+            ==> plutot un bon debut. Il faut maintenant generer les waterlines avec plus de vertex et ajouter la deformation par ondulation en cas de contact avec des entités.
+            ==> pouvoir separer le fluidbatch en WaterFallBatch, WaterBassinBatch, et WaterLineBatch
+            ===> le WaterBassinBatch = FPT_Surface + FPT_Swirl + FPT_FullWater
+            ===> revoir les conditions pour l'obtention de WaterFall. cf FluidCell::FindPatternType_PassBottomToTop et FluidCell::FindPatternType_PassTopToBottom().
+            ====> OK : cf ObjectTiled::UpdateFluidBatch pour Mesh4 : RAF Swirl à supprimer. Bon algo.
+            ====> ajout du #define VALIDATE_BASSIN pour bien separer les surfaces des waterfall : utilise une detection simple de bassin par ligne.
+            =====> cela permet de ne pas utiliser les FPT_FullWater dans les WaterFalls. Cependant ne permet pas d'obtenir un bon rendu sur des grosses vagues si on continue d'utiliser un seul batch.
+            ====> on genere le waterLineBatch et le WaterBassinBatch à partir des WaterLines
+            ====> les WaterLines s'appuient sur les WaterPoints provenant des points milieux de chaque WaterTiles de types FPT_Surface et FPT_Swirl
+            ====> la deformation par ondulation de chaque Waterline doit etre persistante : chaque WaterLine est liée à un FluidCell et testé à chaque modification du fluidcell ?
+            ==> Interaction avec les WaterLines : voire pour commencer GOC_Move2D::UpdateAreaStates() : routine utilisée pour savoir si l'entity est dans le liquide.
+            ===> 06/07/2022 : ajout de WaterSurface et WaterLine et pour l'interaction ajout d'une CollisionBox2D dans WaterLine
+            ====> 24/07/2022 : ajout des extremités de la WaterLine et calcul de l'angle à appliquer à la CollisionBox2D
+            =====> 14/08/2022 : suppression de WaterLine::surfaceDepth_.
+            ====> 14/08/2022 : en extremité de waterline ne pas deformer
+            =====> modification de WaterLine::AddDeformations.
+            =====> modification de WaterLine::Update
+            ====> 14/08/2022 : ne pas déformer plus que la profondeur d'eau disponible.
+            =====> modification de WaterLine::Update : ajout de clamp
+            ====> 14/08/2022 : pb avec la persistance des deformations malgré l'utilisation d'un mapping des waterlines => du au reset des watersurfaces à chaque frame.
+            =====> 20/08/2022 : ajout du check de la startcell au voisinage.
+            ====> 21/08/2022 : certaines waterline n'interagissent pas toujours, Map::HandleBeginFluidContact est bien déclenché => vérifier si il y a bien ajout dans WaterLine::AddDeformations
+            =====> verifier WaterLine::boundingRect_ => la boundingRect peut avoir une hauteur de 1pixel => ajout d'un seuil de déclenchement pour la hauteur dans WaterLine::AddDeformations.
+            ====> 21/08/2022 : ajout debug waterline color
+            ====> lorsqu'un waterline est décomposé en 2 à cause de l'ajout d'un tile par exemple, les déformations ne suivent pas sur le nouveau waterline ajouté.
+            ====> pour la persistance des waterDeformationPoints_ entre waterlines et entre maps, il faut plutot que les deformations soient calculées en static pour chaque waterpoint et que les waterlines viennent prendre les waterpoints qui sont dans leur boundingbox
+                et reprennent ces calculs pour les integrer afin d'obtenir le batch.
+            =====> lors d'une interaction avec le water2d, enregistrer un waterpoint et trouver le fluidcell associer.
+            =====> puis à chaque frame, vérifier si le waterpoint est toujours actif et verifier le changement de fluidcell (update du y du waterpoint si nécessaire) et calcul de la deformation centrée sur ce waterpoint.
+            =====> puis pour chaque waterline générée, trouver les waterpoints inclus dans la boundingbox, effectuer le calcul final des deformations pour cette waterline et batcher.
+            =====> pour le moment, il n'y a pas de continuité de deformation entre maps.
+            =====> la recherche des waterlines doit se faire à chaque frame pour chaque currentviewz de chaque viewport.
+            ======> pour l'instant les WaterLines sont formés dans chaque FluidData à partir de WaterSurface empilées par ObjectTiled lors du FluidBatch.
+            =======> il faudrait déplacer les WaterSurfaces dans une classe de rendu pour le viewport qui ne soit pas associer à une map.
+            =======> cette structure sera appelée dans chaque ObjectTiled::UpdateFluidBatch()
+            =======> Refactoring : creation de WaterLayer qui est un composant créé par world2D et qui cree waterlines et batch à partir des watersurfaces transmises par objecttiled.
+            ========> ce composant doit remplir les batches apres objecttile => modification de Renderer2D::UpdateViewBatchInfo et ajout de Drawable2D::isSourceBatchedAtEnd_
+            ========> 08/09/2022 : OK pour les waterlines. le CheckConnectedNeighborsAt() est corrigé (avant ne pouvait pas continuer la waterline sur un tile au dessus ou en dessous).
+            =========> RAF : 2 pbs sur les deformations par endroit : decalage en x et deformation saccadée. (voir WaterLine::Update() partie add deformation point)
+            ===========> correctif ok pour le decalage en x
+            =========> 12/09/2022 : OK : les splashs doivent etre fonction de la velocité des acteurs en contact.
+            => 12/09/2022 : corriger la simulation des fluid lorsque en fin de chute d'eau il y a une fullWater et au dessus une isolatedWater => il faut alors que la fullwater soit une SurfaceWater.
+            ==> OK : Patch dans la pass2 de ObjectTiled::UpdateFluidBatch.
+
+        => 30/05/2022 : interaction avec les feux devant être éteints en contact avec l'eau.
+            ==> 06/07/2022 : OK GameHelpers::SetLightActivation(), utilisation de GOA::FIRE comme attribut dans le node des feux.
+                                GameHelpers::UpdateLayering(), utilisation de GOC_Animator2D::CheckFireLight()
+
+        => l'eau n'est pas affiché au niveau des fenetres du aux z des decals
+            => par ces fenetres, l'eau de l'INNERVIEW est au dessus des entités qui sont en FRONTVIEW
+            ==> il faut une pass WATER pour l'innerview et une pour le FRONTVIEW.
+            ==> ou bien utiliser uniquement la pass WATER pour le currentview et dans les autres view utiliser la pass ALPHA.
+            ===> comment ? utiliser deux materials differents l'un pour les watertiles (pass ALPHA) "watertiles.xml" et l'autre pour la refraction "waterrefract.xml"
+            ====> OK : modification des material water : watertiles.xml, waterrefract.xml avec technique et shader. et ObjectTiled::UpdateFluidBatch
+            =====> RAF : modification shader sous OGL 110 et 120.
+            ==> OK 19/09/2022 : correctif pour Vulkan dans ObjectTiled::UpdateFluidBatch => SetTextureMode(TXM_UNIT, 0, texmode) : les watertiles n'avaient pas leur textureunit d'initialiser (Unit=0 dans ce cas)
+
+    ✔ 08/09/2022 : les staticSprite du GO_Pool ne sont pas mis dans LAYERMATERIAL.
+        => OK ajout dans GO_Pool::Resize
+
+    ✔ 30/08/2022 : OK correctif du SRGB pour le basculement en fullscreen sous VULKAN.
+
+    ✔ 30/08/2022 : probleme de uiscale avec la mouse en fullscreen (qui utilise le MM_WRAP mode) : le curseur ne peut pas parcourir tout l'écran.
+        ==> OK : en supprimant le MM_WRAP mode (unique mode = MM_FREE)
+        ==> c'est un pb dans Urho3D : voir Input::HandleSDLEvent() les positions fournies par SDL_MOUSEMOTION event ne pourront pas etre recuperés si MM_WRAP.
+        ===> les positions avec le mode MM_WRAP sont settés dans Input::Update() ... peut-etre que le SDL_GetGlobalMouseState ne fonctionne pas bien en fullscreen...
+
+    ✔ 30/08/2022 : RockGolem-Flore sous l'eau n'affiche pas les flores
+        ==> le material LayerActors n'est pas setté s'il y a plus qu'un animatedSprite dans l'entité.
+        ===> OK : modification de GOT::PreLoadObjects pour inclure tous les animatedSprite de l'entité.
+
+    ✔ 30/08/2022 : probleme d'affichage des text3D : ils sont sous le layer water.
+        ==> OK : dans TextMessage::Set ajout du material LayerFrontText3D.xml utilisant une technique qui spécifie la pass "front"
+        ==> OK : modification pour les dialogues avec utilisation du LayerFrontShapes et LayerFrontText3D.
+
+    ✔ 15/06/2022 : l'AnimatedSprited "RenderTarget" de fantommette ne s'affiche plus.
+        => l'exemple 52 dans Urho3D fonctionne bien.
+        ==> l'exemple 52 avait était modifié.
+        => le debug de la scene rtt s'affiche bien. Ce n'est pas un probleme de rendu de la scene rtt vers la scene main.
+        ==> l'animatedSprite ne s'affiche pas dans le viewport overlay "DebugRttScene"
+        ===> OK : correctif d'un probleme de parametre NearClip FarClip pour la camera rtt dans GameStatus::Initialize()
+        ==> probleme avec GOC_Destroyer::SetViewZ() : lorsque Petit est en INNERVIEW et changement vers Fantomette puis Fantomette va en FRONTVIEW alors Fantomette n'a pas changer de ViewZ
+        ===> dans GOC_Animator2D::CheckAnimatedSprite() ajouter les 2 AnimatedSprite (main et target), faire un update GOC_Destroyer::SetViewZ().
+        ====> ainsi les deux AnimatedSprite auront le meme viewMask. ViewManager::SwitchToViewIndex() change le viewMask de la camera de rttScene.
+        =====> pourquoi ne pas laisser tout simplement les animations rendertarget avec toujours le meme viewmask et ne pas changer le viewmask de la camera rttScene ?
+        =====> RAF: cela ne fonctionne pas pourquoi ? laisser l'update du viewmask dans le rtt pour l'instant.
+
+    ✔ 03/06/2022 : pb sous OGL lorsqu'il n'y a plus de light et que le "ShaderLit" doit être bien actif (donc pénombre), c'est du "ShaderUnlit" qui prende le relai générant la lumière ambiente non voulue.
+        => OK : modification du shaderGrounds : vVertexLight doit toujours prend au minimum la valeur de la zone Ambient si VERTEXLIGHT.
+
+    ✔ 30/05/2022 : retour sur les watereffects
+        => s'appuit sur le WaterEffect d'Urho3D avec suppression de la reflection. la Refraction de l'arriere-plan est
+            réalisée par le shader Water2D en pass refract, celui-ci utilise en texture d'entrée la texture viewport générée en pass alpha.
+        => modification du renderpath => voir RenderPaths/ForwardUrho2D.xml
+        => on utilise le depthbuffer pour l'affichage de l'eau. (le draworder 2D ne sert à rien dans ce cas)
+        => les tiles de ground doivent donc avoir leur position z settée. (rappel les z positifs sont vers l'interieur de l'écran)
+        => RAF : portage VULKAN : Shader Water2D et position Z à rajouter au Vertex2D.
+        ==> seules les vertex utilisant la texture des groundtiles ont leur position z utilisé (cf shaderGrounds)
+        ==> technique TechGrounds : activation depthwrite=true pour l'écriture des position z des tiles dans le DepthBuffer.
+        ==> technique Water2D : activation depthtest=less : seuls les vertex dont z sont inferieurs (donc vers l'exterieur de l'écran) à ceux du depthbuffer passent.
+        ==> modification de ObjectTiled pour ecrire les z dans ObjectTiled::UpdateTiledBatches et ObjectTiled::UpdateFluidBatch
+        ===> les decals et les sewings ne seront pas pris en compte.
+        ====> si on ajoute les z pour les decals l'effet n'ira pas sur les bordures et il y a aura un vide d'eau entre les vertex de bordure et la texture de bordure.
+        ===> RAF PB en SwitchViewZ=FRONTVIEW on ne peut plus voir les watertiles de l'INNERVIEW.
+        ====> il faut modifier les positions z des watertiles INNERVIEW visibles.
+        =====> OK modification logique dans ObjectTiled::UpdateFluidBatch.
+        => utiliser le depthwrite augmente le nombre de batch : autant créer un batch separer pour les tiles.
+        => pb lors de l'affichage initial de la scene : les groundtiles (dont les z sont desormais negatives) ne sont pas affichées.
+        ==> on pourrait eviter d'utiliser les z negatifs.
+        ==> OK : mettre en z=1.0 tous les shaders sauf ground et water. et utilise la valeur 1.0-zf dans ObjectTiled::UpdateTiledBatches et ObjectTiled::UpdateFluidBatch
+        ===> les decals en front et les nuages doivent etre rendu dans le LayerRenderShapes ... Apres les WaterTiles
+        ====> creer une nouvelle passe ? pass front
+        =====> OK, il y a un pb pour le Lit. cf Renderer::LoadPassShaders et Technique::BeginLoad
+        ======> OK : dans la technique LayerFrontShapes ajouter dans la pass "front" l'attribut lighting="pervertex"
+        ====> modification de ObjectTiled::UpdateDecalBatches pour utiliser le bon material LayerFrontShapes pour les Decals en front.
+        ====> RAF : il faudrait mettre les Decals Platform dans un autre batch, pour pouvoir utilise la meme technique dans l'INNERVIEW
+        =====> à modifier ObjectTiled::UpdateDecalBatches, notamment mettre material = GameStatus::layerMaterials_[viewIds.Back() == viewID ? LAYERFRONTSHAPES : LAYERGROUNDS];
+
+    ✔ 24/05/2022 : probleme avec les luminaries du portal
+        => suite à la modification de GOC_Animator2D introduisant la gestion de plusieurs animatedSprite (pour SteleRip), GOC_Animator2D::SetEnabled() a été modifié pour setter sur le meme layer tout les animatesprites.
+         il faut desormais utiliser l'attribut AnimateSprite2D::"Layer Modifier" ou bien specifier AnimatedSprite2D::SetOrderInLayer
+        ==> attention GOC_Destroyer::SetViewZ respecifiait le order in layer => desactivation de la ligne. (voir ce que ca donne)
+        ==> OK : attention de bien ecrire l'attibut "Order in Layer" ("in" sans i majuscule)
+
+    ✔ 22/05/2022 : difference de colorimetrie entre Desktop OGL3 et Android GLES2,
+        => solution 1 : dans Urho3D::Graphics.h ajout #define DISABLE_SRGB, pour mettre les plateformes à la meme colorimetrie
+        => solution 2 : gerer la colorimetrie dans FromBones
+        ==> ajout de la correction de gamma dans les shaders GL120. (GLES2)
+        ==> OK : dans DefsViews.h modification des valeurs des RS_ALPHA en GLES2
+
+    ✔ 17/05/2022 : probleme avec Vulkan lors du redimensionnement de la fenetre durant le Splash initial (qui utilisent l'UI) => ecran noir. (pas de pb avec le SplashScreen tete de mort)
+        => pas de probleme avec Ogl
+        ==> 25/05/2022 OK : correctif dans GraphicsImpl::CleanUpSwapChain() : reset des states.
+
+    ✔ 3/12/2021 : apres passage dans Portal, Fantomette 'RenderTarget' ne reapparait pas
+        => probleme d'affichage de la texture rendertarget
+        => ca fonctionne pourtant correctement en changeant d'avatar.
+        ==> voir Urho3D::AnimatedSprite2D::OnSetEnabled()
+        ===> OK : correctif sur la visibilité
+
+    ✔ 3/12/2021 : les effets de lumiere de Portal ne fonctionnent plus en LAYERMATERIALS
+        => cf GOT::PreLoadObjects()
+        ==> OK : declarer l'effet haloportal comme furniture egalement (GOT_Furniture) dans Effects.json
+        ==> on pourrait également modifier le code dans GOT::PreLoadObjects() et aussi ajouter un champ layermaterial dans les .json pour permettre cette déclaration explicitement.
+
+    ✔ 17/11/2021 : les modifications apportées sous la variation Tex2D ne sont pas compatibles OpenGL2
+        => pour cibler RPI, il faut modifier les shaders pour enlever les operators bit & et pas de keyword flat pour la non interpolation des varying et pas de switch case
+        ==> Ajout de Round() pour regler la non interpolation entre le VertexShader et le FragmentShader : Ok pour TextureId mais pas pour TextureFX.
+        => Pour les BackShapes, il faut reintegrer le shader BackShapeAtlas2D.
+        => Correctif Urho3D/SDL permettant l'utilisation du KMSDRM backend.
+        ==> 24/11/2021 : Ok sous RPI3 PiOS
+        ===> en 640x480, la version Tex2D (13 batches=>20fps) est beaucoup plus lente que la precedente version (25batches=>45fps)
+        ====> surement le fait de binder plusieurs textures pour un batch.
+        ==> Permettre d'etre lancer en RPI legacy (Raspbian precedents Buster avec /opt/include/vc) avec RPIVIDEO (et fenetrage X11).
+        ===> en RPI legacy, la version Tex2D a de gros probleme de lenteur (1fps) et d'affichage : probleme combiner des bind et des shaders...
+        ==> 29/11/2021 : creation de plusieurs dossiers shader en fonction des versions de GLSL, selection du dossier GLSL au demarrage en fonction de la version OpenGL.
+        ==> 29/11/2021 : modification des shaders GLSL110 (OpenGL2) pour etre plus rapide (suppression de ExtractBits, remplacement par les differentes valeurs possibles pour un type d'effet)
+        ===> sous RPI4 bullseye, la version Tex2D arrive à 35fps en 640x480
+        ====> refaire un essai en RPI Legacy.
+        ====> faire un essai en modifiant le MASK_VERTEX2D pour avoir plus de float (surement plus couteux en bande passante) permettant de s'affranchir de calcul couteux dans les fragment shaders
+        =====> utiliser MASK_TANGENT qui est vec4 ald MASK_TEXCOORD2 (vec2)
+        ======> ca n'ameliore pas grand chose.
+        => commenter ACTIVE_LAYERMATERIALS dans GameOptions.h pour remettre le bind que d'une texture en meme temps
+        ==> cela solutionne le probleme sous RPI et permet de conserver le travail fait sous la version Tex2D : le principe des LayerMaterials (plusieurs textures par batch) n'est pas performant sur RPI, voir sur mobile
+        ==> rebalayer le physique de tous les objets : avec le resizing/repacking des monstres dans des spritesheets, il faut revoir les colliders.
+        ===> 3/12/2021 : OK
+        ==> sous RPI à priori pas de RenderTarget (OpenGL2 ?), il faut pouvoir mettre la version classique de fantomette.
+        ===> 3/12/2021 : Ajout de ACTIVE_RENDERTARGET, permet de desactiver le RenderTarget (cf GameStatus::Initialize(), Urho3D::AnimatedSprite2D::SetRenderTargetContext(), Urho3D::AnimatedSprite2D::SetRenderTargetAttr())
+
+    ✔ 05/11/2021 : grosse modification graphics dans Urho3D
+        => modification du shader URHO2D.glsl pour permettre l'utilisation de plusieurs spritesheets dans un drawcall (inspiration Hazel).
+        ==> modification de OGLShaderProgram ShaderProgram::Link() pour ajouter sUrho2DTextures[]
+        ==> il faut maintenant reunir dans le material LayerActors.xml toutes les spritesheets des entities
+        ==> de meme pour tout les layers : regrouper les backgrounds dans LayerBackgrounds.xml et les Tiles dans LayerTiles.xml
+        => le shader URHO2D.glsl englobera tous les effects necessaire pour le 2D (lit/unlit/alpha/vegetation etc...)
+        ==> modification des attributs de Vertex2D => ajout de Vector2(TextureID, TextureFX)
+        ===> modification des UpdateSourceBatches dans StaticSprite2D et AnimatedSprite2D.
+        ====> faire de meme pour ParticuleEmitter2D
+        => ajout du rendering target dans AnimatedSprite2D qui permet de rendre dans une view intermediaire (buffer) : utile pour appliquer des effets comme l'alpha global sur animatedsprite. (Fantomette ok)
+        ==> Gain en Batches
+        ===> en Arena : le jeu s'execute avec RenderShapes et UI compris en 10 batches en frontview et 14 batches en innerview avec 1 seul acteur (petit)
+        ====> OK : RainEffect integrer au material LAYERGROUNDS.
+        ====> OK : AnimatedSprite2D en MultiMaterials => verifier si les RenderedAnimations sont bien retirés lors du changement d'avatar.
+        =====> Ca a l'air ok, en dumpant le nodeattr et dans AnimatedSprite2D::UpdateSourceBatchesSpriter_RenderAnimations mais le nombre de batches augmenter lorsque l'on utilise l'epee de feu (qui a un effet flame en RenderedAnimation en plus de l'epee)
+        ======> en dumpant le nombre de batches pour l'AnimatedSprite2D, le nombre est bien de un. bizarre !
+        =======> apres visualisation dans QRenderdoc, il apparait que l'effet flamme est affiché une premiere fois dans le layer background engendrant un batch supplementaire et ensuite dans le batch actor.
+        ========> correctif dans AnimatedSprite2D::AddRenderedAnimation() -> toujours setter l'animation incluse à SetRenderEnable(false).
+        ====> OK : ParticleEmitter2D modification pour utiliser des spritesheets.
+        =====> Les Particules avec un blendmode different du BLENDALPHA ne seront pas bien affichés si l'on utilise le material LayerActors.xml pour reduire le nombre de batches.
+        ======> 09/11/2021 : soit n'utiliser que des particules en blendapha, soit permettre l'ajout de batches avec d'autre mode de blend tel que blendadd (necessaire pour lifeflame)
+        => la texture RenderTarget doit etre debinder si pas d'utilisation. Les mipmaps pour elle sont constamment generes car c'est une rendertarget (pourquoi ? pas trouver de reponse dans Urho3D)
+        ==> 10/11/2021 : OK realiser dans GOC_Animator2D::OnComponentChanged()
+        => 10/11/2021 : Optimisation des textures pour l'ui : regler l'Opacity à 0.9 pour forcer le blend alpha.
+        ==> 10/11/2021 : modification de Urho3D::Cursor pour eviter un batch pour le cursor : ajout de Urho3D::Cursor::DefineShape(CursorShape, const CursorShapeInfo&) pour passer la texture existante.
+        => 15/11/2021 OK : generer toutes les textures Actors à intégrer au material LAYERACTORS.
+        => generer toutes les textures Collectables à intégrer au material LAYERACTORS et modifier GOC_BodyExploder2D, GOC_Inventory, GOC_Collectable, ScrapsEmitter, GameHelpers::SetCollectableProperties(), GameHelpers::SpawnScraps() pour specifier le material si necessaire
+        ==> OK : mettre les Scraps dans collectable1.png intégré au LAYERACTORS, et les Parts (bone, elsarionmeat) => permet de corriger la creation des Collectable Parts via la texture UI game_equipment.
+        ==> RAF : modifier GameHelpers::SetCollectableProperties()
+        => Resultats (Renderdoc):
+        ==> en Frontview (10 batches)
+        ===> 1 batch LAYERBACKGROUNDS (backscrollers + sun,moon,cloud)
+        ===> 1 batch LAYERGROUNDS (background + vegetation)
+        ===> 1 batch RenderShape (sur background)
+        ===> 1 batch LAYERGROUNDS (backview)
+        ===> 1 batch LAYERACTORS (innerview tous les entities, objects + vegetation + Particules forcées en blend alpha)
+        ===> 1 batch LAYERGROUNDS (outerview) + Rain + Vegetation + cloud
+        ===> 1 batch LAYERACTORS (tous les entities, objects + vegetation)
+        ===> 1 batch LAYEREFFECTS (tous les particules en blend addapha)
+        ===> 1 batch LAYERGROUNDS (Frontview) + Rain + Vegetation + cloud
+        ===> 1 batch UI (tous les panels + cursor)
+        ==> en Innerview (13 batches)
+        ===> 1 batch LAYERBACKGROUNDS (0-5)(backscrollers + sun, moon, cloud)
+        ===> 1 batch LAYERGROUNDS (BACKBIOME=10 to BACKGROUND=20) (background + vegetation)
+        ===> 1 batch LAYERACTORS  (BACKACTORVIEW=21) (backactorview tous les entities, objects + vegetation en color BLACK provenant du frontview + Particules forcées en blend alpha)
+        ===> 1 batch RenderShape  (BACKGROUND+LAYER_RENDERSHAPE=23) (sur background)
+        ===> 1 batch LAYERGROUNDS (BACKVIEW=40)
+        ===> 1 batch RenderShape  (BACKVIEW+LAYER_RENDERSHAPE=43)
+        ===> 1 batch LAYERGROUNDS (BACKINNERBIOME=50 to INNERVIEW+LAYER_PLATEFORMS=63) (innerview back) + mobiliers + vegetation
+        ===> 1 batch RenderShape  (INNERVIEW+LAYER_PLATEFORMS+LAYER_RENDERSHAPE=66 innerview back pour les plateforms)
+        ===> 1 batch LAYERACTORS  (INNERVIEW+LAYER_ACTOR=67) (tous les entities, objects + vegetation + particule en blend alpha)
+        ===> 1 batch LAYEREFFECTS (INNERVIEW+LAYER_ACTOR=67+ORDER1000ou2000) (tous les particules en blend addapha)
+        ===> 1 batch LAYERGROUNDS (INNERVIEW=70 to INNERVIEW+1(for SteleRip)=71)(innerview front pour les walls +frontfurnitures)
+        ===> 1 batch RenderShape  (INNERVIEW+LAYER_RENDERSHAPE=73)(sur wall innerview)
+        ===> 1 batch UI (tous les panels + cursor)
+        ==> Attention au resultat en utilisant le debugHUD F2, cela va rajouter 2 batches (1 pour l'ui Urho3D + 1 pour le cursor du jeu).
+        => MUSTHAVE : la derniere amélioration serait de transformer tous les Batch Quads en Batch Triangles (Mesh2D). Ce qui permettra de n'avoir que des batchs Triangles pour le Renderer2D. l'UI peut rester en Quad.
+        ==> suppression de l'indexBuffer ?
+        => Fusion des RenderShape avec LAYERGROUNDS :
+        ==> Frontview = 7 batches - Innerview = 7 batches
+        ==> tous les drawable2D à reprendre (StaticSprite2D, AnimatedSprite2D, ParticleEmitter, ObjectTiled, DrawableScroller, RenderShape (deja fait en partie)).
+
+    ✔ 01/10/2021 : la pluie au demarrage est trop droite.
+        => 05/10/2021 OK : Patch dans Droplet::Reset() pour avoir un peu plus de dispersion.
+
+    ✔ 06/04/2021 : les montagnes ne s'affichent plus en mode Arena apres avoir été en underworld.
+        => pb de reinitialisation des DrawableScroller ? bloquer en underworld ?
+        ==> DrawableScroller::SetDrawableObjects() utilise DrawableScroller::boundcurve_ défini dés le passage en AnlWorldModel. Il faut le remettre à 0 lors du passage en FlatMode.
+        ===> OK !
+
+    ✔ 11/12/2020 : en innerview, les entities frontview sont affichés alors qu'elles doivent etre masquées
+        => faut-il revenir en arriere et remettre le viewmask ne permettant pas d'afficher les entities frontview lorsque l'on se trouve en innerview ?
+        ==> attention, il faut tenir compte des differents viewports : depuis le passage en multiviews le GameHelpers::ApplyLuminosity() a été enlevé de ViewManager::SwitchToViewIndex().
+            Il permettait justement de mettre les entities sur le bon layer en plus de regler la luminosité.
+        ==> en Multiviews, il ne faut surtout pas les changer de layer via Drawable2D::SetLayer() ce qui aurait un impact sur les autres viewports qui ne sont pas forcemenent sur le meme viewZ
+        ==> le probleme etant GameHelpers::ApplyLuminosity() qui n'est pas multiviews et qui met en BACKACTORVIEW les nodes si le currentviewZ est INNERVIEW et les nodes FRONTVIEW.
+        ===> le currentviewZ devant etre dépendant du viewport
+        ===> faut-il introduire un layermodifier dans Drawable2D comme ObjectTiled::SetLayerModifier() qui sera pris directement dans le UpdateSourceBatches() ?
+        ====> dans un premier temps, si le multiviews n'est pas actif continuer d'utiliser les anciennes procédures GameHelpers::ApplyLuminosity().
+        =====> RAF : Si multiviews utiliser les anciens viewmask comme pour les furnitures frontview qui ne sont pas affichées si player en innerview.
+        ======> 02/03/2021 : Desactivation complet des Luminosity via VIEWZ_LUMINOSITY_EFFECT
+        ======> il faudrait que le Drawable2D::GetSourceBatches() se fasse en fonction du viewport avec modification de la couleur des vertices en fonction du layer du viewport et celui du drawable ?
+        =====> OK : 25/03/2021 : Modification de Urho3D::Drawable2D et classes filles pour ajouter un sourcebatche dédié au BACKACTORVIEW. GameHelpers::ApplyLuminosity() devient GameHelpers::UpdateLayering()
+        ======> la color du BACKACTORVIEW est géré dans Urho3D::StaticSprite2D : color2_ par défaut Color::BLACK.
+        ======> l'astuce pour le changement de sourcebatch se fait dans Drawable2D::GetSourceBatchesToRender(), le premier set de sourcebatches est pour INNERVIEW/FRONTVIEW, le second pour BACKACTORVIEW
+        ======> suppression de VIEWZ_LUMINOSITY_EFFECT et du code associé
+        =====> voir pour l'integration de Drawable2D::SetLayer avec les classes filles autre que StaticSprite2D et AnimatedSprite2D.
+        ======> OK : pour ParticleEmitter modification de Drawable2D::GetSourceBatchesToRender() pour ne pas afficher les particules en BACKACTORVIEW.
+
+    ✔ 11/03/2021 : apres chargement d'une sauvegarde avec epee enflammée, une épée enflammée reste statique à l'endroit du pop du porteur.
+        => ne pose pas de probleme si seulement utilisation du LoadStuff (F5), uniquement si jeu->charger.
+        => cf Player::LoadAvatar(), AnimatedSprite2D avec RenderAnimation.
+        ==> OK : quelques correctifs dans AnimatedSprite2D
+        ==> OK : correctifs dans Player::LoadAvatar(), le node etait enabled alors qu'il faut que le node soit enabled seulement dans PlayState::HandleAppearPlayer().
+            Egalement Ajout de Equipment->SetDirty() permettant d'esquiver Equipment->Update() dans Player::UpdateComponents() avant que l'equipment soit loader. (evite d'avoir 2 Equipment->Update rapprochés).
+        ===> 13/03/2021 : apres teleportation, l'arme et l'effet ne s'affiche pas.
+        ====> OK : modification de AnimatedSprite2D::OnSetEnabled()
+
+    ✔ 12/03/2021 : probleme lors du chargement d'une partie avec un Portal dans la zone visible. Lors du splashscreen le portal s'affiche.
+        => les portals sont desormais des usable furniture chargé avec Map::SetEntities_Load
+        ==> OK : modification de Map::SetEntities_Load pour ajouter le SetEnabled aussi pour les usable furnitures.
+
+    ✔ 02/03/2021 : pendant la teleportation de GOC_Portal, les ObjectTiled disparaissent parfois : il faut pouvoir les garder jusqu'à la teleportation effective.
+        => voir si encore actif apres modification la grosse modification BEHAVIOR sur GOC_Portal et MapStorage du 05/03/2021.
+        ==> 10/03/2021 : les ObjectTiled dont les maps sont visibles ne doivent pas avoir d'update de leur batches juste avant la teleportation effective car sinon les chunk rendus sont ceux de la nouvelle position
+        ===> OK : ajout de ObjectTiled::SetRenderPaused() utiliser dans World2D::SetKeepedVisibleMaps().
+
+    ✔ 02/03/2021 : toujours probleme de visibilité avec les StaticSprite2D
+        => en bordure d'écran affichage soudain
+        => parfois n'apparaissent pas du tout
+        ==> OK : forcer l'update des batches lors du MapBase::SetFurnitures()
+
+    ✔ 09/12/2020 : les feudecamp et les bougie ne sont pas sur le bon layer.
+        => n'ayant pas de GOC_Destroyer comme les autres furnitures, le layer n'est pas setté correctement
+        => voir Map::AddFurniture() et Map::SetFurnitures()
+        ==> Appel ObjectPool::CreateChildIn() => Appel GameHelpers::SetDrawableLayerView()
+        ===> OK : correctif dans GameHelpers::SetDrawableLayerView()
+
+    ✔ 20/11/2020 : l'Halo du Portal n'apparait plus.
+        => voir les dernieres modifications sur GOC_Destroyer. il s'agit du portalluminaries.scml
+        ==> OK : Modification de GOC_Destroyer::SetViewZ() : le Portal a deux Drawables qu'il faut prendre en compte dans le layering et ordering
+
+    ✔ 02/07/2020 : les effets des entités (tel que la morsure du vampire, flamme sur epée etc...) doivent toujours etre eclairés (ne doivent pas utiliser un material lightmap ou diffmap => toujours utiliser Urho2D)
+        => tel quel, cela va avoir une incidence significative sur le nombre de batch
+        ==> il faut rassembler tous les effets sur une meme texture et les spawner sur le layer effect
+        ==> pas mal de travailler sur les scml notamment, les effets comme morsure deviendront des entités animation à spawner
+        => pour les armes avec effets (epee de flame), qui utilisent les RenderAnimations, il faut pouvoir rajouter le material pour les effets (Urho2D)
+        ==> ajout de la possibilité d'utiliser un customMaterial dans les RenderAnimations : modification de GOC_Inventory::EquipSlotOn() et AnimatedSprite2D::UpdateSourceBatches_MultiMaterials()
+        ===> ajout de Materials/Effects.xml qui sera le CustomMaterial à ajouter pour les effets qui ne doivent pas utiliser de l'enlightment.
+        ====> cela risque d'etre couteux en Batchs : il faudrait mieux resortir l'effet (tant pis pour le draworder du scml) et le mettre avec les autres sur le layer effect dédié.
+        => reglé en intégrant une nouvelle data TextureEffect aux shaders !
+
+    ✔ 01/07/2020 : Pb a corriger dans DrawableScroller / Map => DrawableScroller::HandleUpdateEllipseMode
+        [Wed Jul  1 22:03:34 2020] ERROR: DrawableScroller() - SetDrawableObjects : !dinfo on currentMapPoint=4 15 !
+        [Wed Jul  1 22:03:34 2020] ERROR: DrawableScroller() - HandleUpdateEllipseMode : SetDrawableObjects NOK this=318860928 !
+        ==> pb apparait lors de DrawableScroller::HandleCameraPositionChanged
+        ===> les map concernées sont celles qui n'ont pas besoin de scroller (sous terre)
+        ===> fausse erreur => à désactiver => OK
+
+    ✔ 14/05/2020 : en Fullscreen avec une resolution qui est plus petite que la resolution du bureau, la souris peut déplacer l'écran en cas de déplacement sur les bord droite et bas
+        => voire pour restreindre le déplacement de la souris au dimension de la resolution choisie
+        ==> si FullScreen passer la souris en MM_WRAP
+        ===> cela regle le pb mais les fonctions de conversion de position entre UI et World ne fonctionnent pas correctement
+        ====> il faut utiliser la position de GameStatus::cursor_ au lieu de celle de la souris
+        => OK remplacement des occurences de input->GetMousePosition() par GameStatus::cursor_->GetPosition()
+
+    ✔ 07/04/2020 : verifier les differences de visibleWorldRect_ entre Dektop et RPI => l'utilisation de ObjectTiled::viewRangeMode_ = ViewRange_WorldVisibleRect en mode debug reduit les fps sur RPI
+        => le probleme vient du zoom de la camera qui est le ratio de la hauteur fenetre par 1080.f appliqué apres le World2D::SetCamera
+        => appliquer le zoom avant + modification World2D::SetCamera
+        ==> OK, meme visiblerect entre Desktop et RPI
+
+    ✔ 08/04/2020 : TileSheet2D, le tilespanning est desormais declaré dans GameConfig. Utilisation du tilespanning + edgeoffset. TileSpanning de 0.1 sur desktop est bien voir sur RPI
+
+    ✔ 07/04/2020 : Ajout de l'attribut "Custom SpriteSheet" dans Urho3D::AnimatedSprite2D permettant l'utilisation d'un fichier spritesheet XML commun à plusieurs SCML (utiliser pour les fournitures => furnituresdung01.xml)
+
+    ✔ 06/04/2020 : Limitation de Urho3D::MAX_VERTEX_LIGHTS à 3 pour RPI (cf Urho3D::Drawable)
+
+    ✔ 06/04/2020 : Garder toujours la light du player allumée
+        => pour cela il faut fixer le Urho3D::Drawable::sortValue_ à -M_LARGE_VALUE (ajout dans cf Player::UpdateComponents())
+        ==> ajout de Light::useFixedSortValue_ et Modification de Urho3D::Light::SetIntensitySortValue() et ajout Light::SetFixedSortValue()
+
+    ✔ 05/04/2020 : ajout de GOC_EntityAdder permettant l'ajout d'entity ObjectPool via un composant dans le node du composant
+        => utiliser pour les furnitures : pour ajouter un objet sur une table par exemple.
+
+    ✔ 29/03/2020 : sur RPI on ameliore les fps, en augmentant le nombre de chunk à 8x8 (soit 8tilesX8tiles pour une map de 64X64tiles) au lieu de 4x4 (soit 16tilesX16tiles pour une map de 64X64tiles).
+        => passer en 8x8
+
+    ✔ 14/02/2020 : reduire le nombre de batch
+        => analyser les textures pouvant etre mise ensemble en fonction du layering
+        ==> pour les arriere plans, mettre sur une à deux textures
+        ===> 23/03/2020 OK : modification de World2D::SetMapAddImageLayerAttr et de Map::AddBackGroundLayers en s'appuyant sur les modifications faite pour GEF_Scrolling => ScrollingLayer::Set() permettant l'utilisation de textureAtlas
+        ==> pour les tiles, mettre sur une à deux textures
+        ===> 19/03/2020 : mis sur une texture en 1024 => tile_terrains1024.png
+        ===> mettre sur une autre texture 1024 les textures des rendershapes
+        ====> 19/03/2020 : ok creation du nouveau shader BackShape2DAtlas et utilisation pour Materials/backinnerlayer.xml, Materials/backviewlayer.xml, Materials/backgroundlayer.xml
+        ==> pour les entités et objets
+        ===> 10/03/2020 : en cours : reunir les entités portant de l'equipment et cet equipment dans une meme spritesheet (petit, lizard, skeleton + armures + armes + torche + bullet + casques + bombe + grapin ...)
+        ====> ok ca tient dans une 1024 => 2D/Textures/spritesheet1.png
+        =====> pb epaule armure petit : modification de armurepetit2.scml => GOT::PreLoadObjects() cree les refresourcelist des wearables (armes,armures) à partir de leurs fichiers scml.
+        ======> Il faut que ces SCML contiennent bien l'ensemble des fichiers indispensables à l'affichage du type de wearable et ce dans l'ordre etabli dans le characterMapping SCML.
+        ======> ainsi l'armurepetit2.scml doit intégrer des empty pour ne pas afficher les element d'armure (ceinture1, ceinture2 ...)
+        =======> RAF : ajouter au newskel2.scml un empty dans les animations à l'endroit de la ceinture2 (ce qui permettra d'afficher completement l'armure lizard sur le skel)
+        ==> pour les weathereffets :
+        ===> rain coute 5 batches
+        ====> la rain serait le mieux placer avec les batch de tiles
+        =====> réduction de la taille des sprite et mis dans tile_terrains1024.png
+        =====> réduction à 1 batch
+        ===> cloud coute 6 batches
+        ===> creer une texture avec les nuages+astres+autres effets à venir
+        ====> modifier le code des nuages afin d'utiliser une spritesheet ald d'une image par layer de nuage => ScrollingShape::AddQuadScrolling ou GEF_Scrolling::AddTextureLayer
+        =====> en utilisant ScrollingShape::AddQuadScrolling, creation d'une texture atlas nuages.png contenant les 3 textures de nuages et utilisation du shader BackShape2DAtlas
+        ======> modification des Materials/nuageX.xml
+        ======> creation de Scenes/Textures/nuages.xml permettant de definir la texture sans mipmapping et avec le filtermode en NEAREST pour eviter les Edge Bleeding.
+            (cf. https://gamedev.stackexchange.com/questions/46963/how-to-avoid-texture-bleeding-in-a-texture-atlas)
+        ======> modification de GEF_Scrolling::AddTextureLayer() et ScrollingLayer::Set() pour utiliser des materials plutot que des textures directement.
+        =======> permet d'utiliser les memes materials que ScrollingShape. Le code genere un sprite s'appuyant sur la material.
+        ========> en filtermode NEAREST, les nuages sont trop pixelisés : utilisation du filtermode BILINEAR et ajout de sprite->SetTextureEdgeOffset(1.f) pour eviter les Edge Bleeding du à l'ajout du filtre.
+        ======> pour ScrollingShape : pour le moment laisser en filtermode NEAREST car le mode de déplacement par TextureOffset (cf. ScrollingShape::UpdateSourceBatches()) avec le filtre BILINEAR crée des Edge Bleeding
+        =======> RAF1 voir pour trouver une solution dans le code (il faudrait decouper en x quad en fonction de la valeur d'uv > 1 pour pouvoir supprimer les edges ...)
+        =======> Donc, utiliser plutot GEF_Scrolling pour les nuages (ACTIVE_WEATHEREFFECTS_SCROLLINGSHAPE remplacer par ACTIVE_CLOUDEFFECTS_SCROLLINGSHAPE à laisser par défaut)
+        =======> Correctif du parallax effect dans GEF_Scrolling => RAF dans ScrollingShape
+        =====> pour diminuer le nombre de batch, il faut commonaliser le material et pas seulement la texture.
+        ======> changement de methode => utiliser les spritesheets (ne plus utiliser les material avec shader BackShape2DAtlas qui necessite des parametres et donc mutliplie le nombre de materials necessaire (4 material pour une textureatlas de 4 images))
+        =======> les clouds ne coutent plus que 2 batches (utiliser T en PlayState pour activer/desactiver)
+        =======> les montagnes (DrawableScroller) ne coutent plus que 2 batches (utiliser U en PlayState pour activer/desactiver)
+        =======> RAF2 : pour les ScrollingShape et les RenderShape (concernées toutes les backshapes), utiliser des spritesheets ald des materials afin de réduire le nombre de batchs.
+        ========> 26/03/2020 : A priori, sans passer par un paramshader (donc multiplie le nombre de material), ce n'est pas realisable simplement du à l'incompatibilité des TexturesAtlas avec le TextureRepeat et le TextureOffset
+        =========> il faudrait decouper en x quad comme evoqué ci-dessus dans le RAF1 donc augmenter le nombre de vertex pour simuler le textureRepeat et textureOffset.
+        => clot le 26/03/2020 : nombre de batches divisé par 2 (ref en arena 35 batches version du 09 mars contre 17 batches version du 26 mars)
+
+    ✔ 23/02/2020 : en enlightment, le changement d'alpha des torches et epee arete ne sont pas operantes du au material "DiffLitParticleAlpha"
+        => OK : utiliser le material "DiffLitParticleAlpha2" qui utilise VERTEXCOLOR
+
+    ✔ 02/01/2020 : en Innerview, les lames et les grapins peuvent apparaitre en noir
+        -> verifier le spawn dans ABI_Shooter et ABI_Grapin
+        --> renvoi à GOC_Destroyer::SetViewZ() => les entités n'ayant pas de GOC_Controller ne peuvent pas avoir leur couleur changée.
+        ---> voir pourquoi cette limitation/simplification
+        ----> en supprimant cette limitation ca a l'air OK. voire si ca n'alourdit pas trop les processus notamment avec les biomes.
+
+    ✔ 14/02/2020 : lors d'un respawn ou bien de l'utilisation d'un Portail, les DrawableScroller de BackGround (montagnes etc...) ne se placent pas bien
+        => vu en mode arena (cf DrawableScroller::HandleUpdateFlatMode())
+        => voir si pb en mode world (cf DrawableScroller::HandleUpdateEllipseMode())
+        ==> Les Events WORLD_SETCAMERA et CAMERA_POSITIONCHANGED fusionnent en WORLD_CAMERACHANGED
+        ==> utilisation de l'event dans World2D::UpdateInstant() et World2D::UpdateAll()
+        ====> OK : modification de DrawableScroller::HandleCameraPositionChanged.
+        ==> cf pour GOC_Portal : pb les DrawableScroller sont deplacés avant que le teleporte soit effectuer. cf World2D::GetWorld()->GoToMap et World2D::GetWorld()->GoCameraToDestinationMap()
+        ===> il ne faut pas que les DrawableScroller se mettent à jour entre GOC_Portal::HandleBeginContact() et GOC_Portal::HandleTransferBodies() à cause du deplacement du DrawableScroller::nodeToFollow_
+        ====> creation de DrawableScroller::Pause() à utiliser dans ces 2 méthodes.
+        ====> RAF : terme supprimer DrawableScroller::Pause() et simplement desactiver le suivi des nodes comme dans ViewManager ?
+
+    ✔ 11/02/2020 : Il est genant d'avoir le coffre ou les bombes qui rajoutent de la lumiere alors qu'il fait plein jour.
+        -> Toutes les Light (hormis WeatherManager::sunlight_) doivent suivre la meme regle : activer/desactiver en fonction d'un seuil de luminosité
+        --> le coffre utilise GOC_Animator2D pour allumer ou eteindre son composant Light via AAction_LightOn
+        --> les bombes sont directement allumées par l'activation SetEnabled() du node, leur template AnimatorTemplate_Usable_Tick5 peut etre modifier pour ajouter AAction_LightOn pour le State_Use
+        ---> OK : modification de GOC_Animator2D::LightOn() pour checker GameStatus::luminosity_
+        ----> RAF : pour les bombes avec le changement de viewZ, il faut egalement checker.
+
+    ✔ 11/02/2020 : WeatherManager::sunlight_ avec les plantes semble etre decaler bien que centrer sur GameStatus::cameraNode_
+        => pour le moment, creer un decentrage pour contre-balancer ce decalage
+        ==> meme probleme avec toutes les lights, mettre un decentrage sur un avatar pour tester.
+        ==> le material n'était pas DiffLitParticleAlpha mais DiffLightMapAlpha qui doit créer un décalage sur x
+        ===> OK : utilisation de DiffLitParticleAlpha
+        ===> RAF : verifier DiffLightMapAlpha
+
+    ✔ 11/02/2020 : lors de l'utilisation de la potion, l'animation ne se passe pas correctement
+        -> pb de layer ou dans l'animationtemplate ?
+        => correctif du nom d'animation dans PreLoader.xml "get" devient "get_" suite au correctif pour les animations multiples "auto switchable" (cf commentaire dans GOC_Animator2D_Template::AddAnimationSet)
+        ==> spawner l'objet utilisé dans un layer au dessus du player. cf UISlotPanel::HandleSlotDragEnd
+        ===> dans GOC_Collectable::DropSlotFrom, ajout du SceneEntityInfo::zindex_=1000 pour le changement de orderinlayer via Map::AddEntity()
+        => ok le 13/02/2020
+
+    ✔ 30/12/2019 : RenderCollider ne fonctionnent plus dans la version du 28/12
+        => OK : modification dans Map::GenerateColliders() => ajout return false; ald continue;
+
+    ✔ 14/12/2019 : voir pour afficher les entités des autres viewZ en teinte sombre plutot que de les masquer
+        -> supprimer le Mask : desactivation dans GOC_Destroyer::SetViewZ(), voir s'il est possible d'utiliser le mask lorsque le joueur en exterieur et des entités en underground
+        -> routine qui attribue à chaque entité visible, la teinte en fonction de leur viewZ et du ViewZ courant.
+        --> Obtenir la liste de toutes les entités visibles et appliquer la bonne teinte => World2D::GetVisibleEntities()
+        ---> OK : Modification de GOC_Destroyer::SetViewZ() et ViewManager::SwitchToViewIndex()
+        ----> Ajout du layer THRESHOLDVIEW pour les portes qui ne doivent pas changer de couleurs lors du changement de viewZ
+        ----> Modifier Map::SetVisibleEntities pour appliquer la bonne teinte également. --> OK
+        -----> le player en INNERVIEW, les entities qui sont en FRONTVIEW doivent etre masquer par le decors
+        ------> si switch vers le Innerview changer de layer les Entities vers le BACKACTORVIEW
+        ------> 27/12/2019 - OK : Modification de GameHelpers::ApplyViewZColor()
+        -------> 31/03/2020 : GameHelpers::ApplyViewZColor() devient GameHelpers::ApplyLuminosity
+
+    ✔ 10/04/2018 : creer un gestionnaire WeatherManager comprenant tous les effects (rain, cloud, camerashaker, brouillard, fumée ...)
+        -> 20/12/2019 : Ok ajout WeatherManager avec rain et cloud
+
+    ✔ 09/02/2018 : Rain dans innerview sur le background mode test(AnlWorld)
+        => supprimer la pluie en zone cave sans aucun visuel vers l'exterieur.
+        ==> chaque map doit stocker son état : backState_ (le background est complétement rempli ou bien si une surface existe)
+        ===> si une surface existe, tester si les droplets apparaissent sur des tiles backgrounds, dans ce cas ne pas les faire apparaitre
+        ===> si le background est complétement rempli alors, skip l'update de la pluie
+        => 20/12/2019 OK
+
+    ✔ 18/12/2019 : Pb de décalage de la pluie en mode World
+        -> OK Correctif : GEF_Rain => Droplet::Reset() remplacement de Tan(angle) par une dispersion
+
+    ✔ 17/04/2018 : ajout de scrolling parallax de background exterieur tel que des montagnes etc...
+        => comment s'assurer de la ligne d'horizon ?
+        => comment faire la transition entre les differents backgrounds
+        => les backgrounds changent suivant la zone
+        ==> utilisation du scrollingshape en screenmode comme pour les nuages
+        ===> 1 layer en fond pour commencer BACKSCROLL_1 ou BACKSCROLL_2
+        ===> adapter scrollingshape pour permettre du multi-texturing directionel avec des seuils de déclenchement pour le changement de texture ?
+        ==> 28/08/2018 : premier essai avec DrawableScroller pour les bordures conjuguer avec ScrollingShape (shape=world ellipse) pour les zones du dessous
+        ===> à corriger : pour la meme valeur de parallax, l'effet parallax de ScrollingShape est beaucoup plus rapide que celui DrawableScroller et en sens opposé
+        ====> la valeur du repeat offset a l'effet d'un scale sur le parallax lui-meme
+        =====> correctif appliqué pour les ScrollingShape avec shape (pas pour le cas des screenshape)
+        ======> pour le Material défini récuperation de la taille de la texture en UNIT URHO3D (texture*PIXELSIZE) pour TextureSize, TextureRepeat=1,1
+        ==> la shape world ellipse n'est pas assez destructurée.
+        ===> Pour chaque map, définir une shape s'appuyant sur les points maximum du contour. en cas de défaut de contour, s'appuyer sur le world ellipse.
+        --> 07/11/2019 : reprise de DrawableScroller avec changement du code pour PARALLAX.
+        ---> une valeur de parallax_ de 1 entraine aucun mouvement par rapport à la camera (cas des Background éloignés)
+        ---> une valeur de parallax_ proche de 0 : cas des foreground.
+        ----> A corriger : plus la valeur de parallax_ est faible, les objets étant liés à un mpoint, lorsque la camera affiche une nouvelle map, les objets visibles en background sont des map precedement parcourues.
+            1. Lorsque les maps precedentes ne sont plus visibles, les objets sont retirés de la liste des objets à afficher alors qu'ils doivent etre visibles (cf DrawableScroller::HandleVisibleAreaUpdated)
+            2. Lorsque les maps precedentes sont libérées, ces objets sont effacés alors qu'ils doivent etre visibles (cf Map::Clear, DrawableScroller::RemoveAllObjectsOnMap)
+            3. Lorsque les objets, appartenant à des map non visibles ou dechargées, ne sont plus visibles, ils sont retirés du Vector DrawableScroller::drawableObjects_ et aucun code ne permet de les reafficher
+                cf. DrawableScroller::HandleVisibleAreaUpdated => ce qui est insuffisant dans le cas des objets à faible parallax (faible mouvement / camera)
+        -----> 14/11/2019 : drawablescroller a desormais son propre node. le deplacement des drawableobjets est simplifié puisqu'il suffit de deplacer le node en fonction de la valeur de parallax_.
+        ------> en mode World, les drawablescrollers ne peuvent pas suivre les Y de l'ellipse : plus le parallax est faible et plus il y aura un decalage entre la map des drawableobjects visible et la map visible
+        ------> pour permettre le changement de zone, il faut chercher un nouveau drawableobject des qu'un drawableobject sort du visibleRect,
+                remplacer le drawableobject sortant par le nouveau et le repositionner à droite de l'ecran si sorti à gauche et vise versa. (principe de GEF_Scrolling).
+                le nouveau drawableobject aura la zone de la map courante.
+        -------> DrawableScroller::HandleVisibleAreaUpdated() devient obscolete.
+        ------> pour permettre le suivi des Y, il faut modifier cette coordonnée à chaque déplacement.
+        -------> 19/11/2019 : Ok modification de DrawableScroller::HandleUpdate() qui est scindé en deux Handles spécifiques => DrawableScroller::HandleUpdateFlatMode() et DrawableScroller::HandleUpdateEllipseMode().
+        --------> DrawableScroller::HandleUpdateEllipseMode() met à jour à chaque update la position Y en fonction de X sur l'ellipse ou bien sur le Floor (cf. MapTopography::GetY(float x) ).
+        --------> 05/12/2019 : Ok Lorsque la map est sous l'ellipse, completer par des drawableobjects fixes (foreground 2) de l'ellipse jusqu'au floor de map.
+        --------> 05/12/2019 : le mode ellipse est fonctionnel hormis sur les bords de l'ellipse : faire un clamp des X dans la plage de l'ellipse.
+
+    ✔ 19/09/2018 : ajouter RenderShape (ScrollingShape sans parallax)
+        => OK !
+
+    ✔ 18/09/2018 : faire des test pour desactiver les Objecttiled et les remplacer par les ScrollingShape de Map
+        => desactivation des ObjectTiled avec la directive USE_TILERENDERING (les directives RENDER_OBJECTTILED et RENDER_VIEWBATCHES peuvent etre utilisees si USE_TILERENDERING est actif)
+        ==> permet de desactiver completement les ObjectTiled (remplacement dans Map::Resize() de l'ObjectTiled par l'ObjectSkinned uniquement)
+        ==> les ObjectTiled sont alors remplacer par des RenderShapes
+        ==> MapCollider est scindé en PhysicCollider utilisé pour générer les collisionShapes et RenderCollider utilisé pour générer les RenderShape
+        ==> le remplacement du render d'ObjectTiled par les RenderShapes imposent de se separer du decoupage par chunk des maps
+        => RenderShape Shader terrain : Mixer plusieurs textures
+            s'inspirer du Sample 23-Water pour mixer le terrain (voir Shaders/GLSL/TerrainBlend.glsl + Materials/Terrain.xml + Techniques/TerrainBlend.xml)
+            le shader utilise une texture RGB (3 composants) pour mixer 3 textures (soit 3 type de terrain maximum).
+            on peut encore mixer avec le 4eme composant (alpha), et inclure une quatrieme texture.
+        ==> creation de Urho2DBlend.glsl
+        ===> Utilisation d'une texture atlas plutot que de plusieurs textures
+        ====> probleme d'edge bleeding ou seam : utilisation de GLSL::texelFetch ald GLSL::texture pour eviter ce probleme
+        =====> probleme avec les mipmaps en changeant de zview
+        ======> remplacement dans le fragment shader de GLSL::texelFetch par GLSL::textureGrad qui permet de s'affranchir de la gestion des lod
+        ===> Urho2DBlend scinder en 2 shaders : Terrain2D et Terrain2DAtlas
+        ====> Terrain2D utilise la technique du Blend de 3 textures Terrain => material terrain.xml
+        ====> Terrain2DAtlas reuni 4 textures de terrain dans une seule     => material terrainA.xml
+        =====> utiliser USE_RENDERSHAPE_WITH_TERRAINATLAS pour la version Terrain2DAtlas
+        ====> ces 2 shaders utilisent une WeightMap pour les variations de terrain
+        =====> la texture WeightMap est ajustée aux dimensions d'une Map du World2D par le parametre MapWorldSize (doit être mis à jour en fonction du scale ou de la dimension de carte)
+        ===> Intégration des Decals (BorderTile) dans RenderShape.
+        ====> Option1 : Réaliser un fragment shader unique pour tile de terrain et tiles de bordures : comment switcher de tile en fonction du vertex ? Abandon
+        ====> Option2 : Réaliser un fragment shader spécifique Terrain2DAtlasBorder pour les bordures + ajout d'un batch
+        =====> les Tiles de Bordures sont spécifiés par la tilesheet "Levels/tileset_borderA.xml" qui est intégré au terrainatlas "atlas_arena.xml" (terrainid=4) ...
+               l'ajout de Batch dans RenderShape se fait à l'aide de ShapeBatchInfo(material, borderterrainid=4 (version RenderShapeAtlas) ou =0 (version Blend sans Atlas)
+               cf RenderCollider::CreateRenderShape()
+        ======> OK le 03/10 pour OpenGL 3.0 et 3.0 ES (Desktop et Mobiles)
+        => Gestion des bordures de map
+        ==> 11/10/2018 : AddBorderOnMapBorder() utilise directement les featuredMap et non les contours ou bien les ConnectedMaps
+        => Skipper les Plateforms pour les RenderCollider en Innerview (pas d'effet complementaire sur les plateforms) => OK
+        => Les Plateforms interieures doivent être rendu dans le layer FURNITUREINNER_LAYER.
+        ==> pour cela, ne pas intégrées les plateforms au RenderCollider des Murs.
+        ===> créer un RenderCollider indépendant pour les Plateforms avec le mode PlateformMode
+        ====> OK le 12/10/2018 !
+        => Crash dans le MapStorage en activant les LoadingLists ald des Vector (option USE_LOADINGLISTS), lors de l'usage d'un GOC_Portal
+        ==> comprendre pourquoi et y palier si possible : les loadinglist permettent la gestion conforme du load/unload maps (PushFront/PopFront).
+        ===> ok probleme de boucle sans fin dans MapStorage::UpdateMapsInMemory résolue. USE_LOADINGLISTS peut être déployée.
+        ====> OK le 15/10/2018 !
+
+    ✔ 15/09/2018 : modification de AnimatedSprite2D::UpdateTriggers() permettant de cacher les physicTriggers iso SPRITER.
+
+    ✔ 10/09/2018 : suite à l'ajout du bodycollider, les lames sont bloquées lors d'un tir vers le haut
+        => modification de ABI_Shooter::Use => utilisation de Drawable::GetWorldBoundingBox()
+
+    ✔ 10/09/2018 : Collectable => lors de spawn de Collectable staticSprite, le collider est positionné sur le hotspot.
+        => prendre comme hotspot le centre du sprite
+        ==> ajout de StaticSprite2D::GetDrawRectangle() & StaticSprite2D::GetWorldDrawRectangle()
+        ===> modification de GameHelpers::SetCollectableProperties()
+
+    ✔ 10/09/2018 : BodyExploder => le centre des colliders des parts sont situés au niveau du hotspot; si le hotspot vaut (0.5,0.5) alors le colliders est bien centré sur le sprite
+        => autrement il y a un décalage
+        ==> voir pour décaler en prenant compte du hotspot dans AnimatedSprite2D::GetLocalPositions()
+        ===> modification de la fonction permettant de récupérer le centre du sprite comme position
+        ====> desactiver pour le moment
+        ===> changement de nom AnimatedSprite2D::GetLocalPositions() devient AnimatedSprite2D::GetLocalSpritePositions()
+        ===> sinon mettre les hotspots dans SPRITER toujours à (0.5,0.5)
+
+    ✔ 10/09/2018 : Suite aux modifs BEHAVIOR du 06/09 pour le spawn des bombes, le Vampire cast ses pouvoirs dans la mauvaise direction => probleme de flippingX
+        => dans GOC_Animator2D::SpawnEntity() => ajout de l'orientation par défaut pour la rotation + modification de GameHelpers::SetPhysicProperties()
+        ==> OK le 10/09
+
+    ✔ 05/06/2018 : une seconde WEAPON en slot WEAPON2 ne peut plus être équipée
+        => voir Preloader.xml
+        ==> apparement la category de base "weapons" ne suffit pas : il faut spécifier aussi "swords"
+        ===> la weapon n'est pas active en mapping avec newskel2. a la place c'est le pistolet qui apparait
+        ====> importance de l'ordre dans le fichier SPRITER dans le charactermap WEAPON2 l'arme doit être en premier
+        ===> correctif également apporté à AnimatedSprite2D::SwapSprite();
+        ===> dans SPRITER ne pas oublier de regler le hotspot par defaut pour l'arme
+        ====> OK le 06/06/2018</>
+
+    ✔ 25/05/2018 : retour sur les elements d'armures => skeleton avec armure petit affiche 2 torses (1 sur la ceinture centrale)
+        => 28/05/2018 : OK modification de armurepetit2.scml => suppression du second folder et réduction à 3 items uniquement
+
+    ✔ 22/05/2018 : les casques lizard ne correspondent pas bien avec la tete de newskel2
+        => adaptation des casques
+        => Ne pas oublier après modification des Sprites dans Inkscape puis creation de la SpriteSheet via ShoeBox de modifier la feuille.xml avec les hotspots (FrameX,FrameY)
+        ==> OK !
+
+    ✔ 22/05/2018 : Modifier le nombre d'elements d'armure :
+        => pour petit torse + 2epaules + 2epaules differentes en fonction de l'animation
+        => pour lizard torse + 2epaules + 2ceintures gauche+droite
+        => pour skel torse + 2epaules + 1ceinture centrale
+        ==> le probleme : l'attribution est statique => la ceinture centrale de skel va se retrouver sur lizard aligner sur la ceinture droite
+        ==> l'attribution statique se fait à partir du character map "Armor" (dans l'animatedsprite) ce qui implique une modification du fichier scml pour mettre dans le bon ordre les elements d'armure
+        ===> Solution 1 : il faudrait plutot creer un schéma de montage avec slot
+             l'animation "profil" pourrait servir de schéma comme c'est déjà le cas avec AnimationEquipment (UIC_EquipmentPanel)
+             à cela pret qu'il faut associer chaque element (armure01 sprite2d) à un slot (torse, ...)
+        ===> Solution 2 : ajouter un nouvel element "armurebassin" dans le charactermap "armor" (vide pour "petit" et "lizard", rempli avec armureskel02)
+        ====> OK 22/05/2018 solution temporaire appliquée !
+
+    ✔ 17/05/2018 : Le changement de pivot sur Lizard (sur la ceinture gauche) (pssage de pivot 0.5, 0.5 à un quelconque) => génére un décalage
+        => probleme avec le characterMaps et le changement d'animationSet dans animatedSprite.
+        ==> pas de probleme dans Sample::Urho2DSpriterAnimation avec ce set
+        ===> vérifier dans Frombones lors du changement d'avatar, le bon reset du charactermapping notamment le spriteinfomapping qui garde pour un meme sprite les positions precedement utilisées
+        sur un autre animationset.
+        ===> en desactivant les deltahotspot dans animatedSprite, lizard a de nouveau son armure bien positionnée mais les autres animationset sont décalés (petit avec casque).
+        ====> les deltahostspot sont donc nécessaires
+        ====> les Sprite2D* ne sont pas les même entre la version Slot Collectable et le Sprite2D de l'AnimationSet de l'avatar.
+        =====> En changeant le hotspot de ceinture_01 dans armorlizard.scml pour qu'il soit le meme que dans lizard.scml, tout rentre dans l'ordre pour ce sprite
+        ==> OK le 22/05/2018
+
+    ✔ 24/04/2018 : générer des entités avec des tailles, des charactermaps differentes, voir des teintes differentes
+        => commencer par une variation de taille de 0.8f à 1.2f
+        ==> introduction de scaleVariation dans GOTInfo et ObjectCategory
+        => RAF : utilisation de teintes
+        ==> créer des charactermaps standard (Head1, Head2, Head3, etc...) pour l'ensemble des monstres
+        ===> OK le 03/05/2018 pour skeleton
+        => pb avec les nouveaux set de skeleton avec l'enregistrement dans GOC_Animator2D des AnimInfoTable en Multi-Entities
+        ==> il faut lors de l'enregistrement dans Spriter mettre les animations dans le même ordre pour chaque entity et mettre les animations spécifiques en fin de liste
+        ===> OK le 03/05/2018 : modification de GOC_Animator2D_Template::AddAnimationSet() + ajout GOC_Animator2D::UpdateEntity
+
+    ✔ 10/04/2018 : ajouter les tremblements de terre
+        => GameHelpers::ShakeNode(camera, duration, amplitude)
+        ==> 25/04/2018 : premier test sur la CAMERA non concluant car la camera ne suit plus l'avatar pendant le quake
+        ===> ne pas utiliser l'objectanimation mais un handler sur scene => reprendre et modifier la position de la camera à chaque step
+        ====> ok creation du component GEF_NodeShaker
+
+    ✔ 22/04/2018 : Crash en TestMode en Map(13,-16) AddBackScroller->PolyTriangulate
+        -> analyser la map sans backScroller
+        ==> Gestion des erreurs dans fastpoly2tri.h => MPE_EdgeEventPoints et MPE_PolyTriangulate
+        ===> plus de crash atm
+
+    ✔ 15/04/2018 : Le Grapin collectable ne s'affiche plus. il suffit de le dropper de son inventaire pour reproduire le bug
+        => Pb de BoundingBox AnimatedSprite2D
+        => remplacement par StaticSprite => OK !
+        ==> la rotation exprimé en Quaternion et donnée dans Object\weapons-grapin.xml n'est pas pris en compte
+        ===> 17/04/2018 OK : dans Map::AddEntity => GameHelpers::SetPhysicProperties() => desactivation de la rotation par défaut de 0° provenant du PhysicEntityInfo
+        => voir pourquoi les collectable AnimatedSprite pose pb
+
+    ✔ 07/04/2018 : decalage des griffes chez chapanze
+        => apparu avec le changement de scale (texture plus petite) avec spriter => il doit falloir revoir au niveau d'animatedSprite2d mais d'abord vérifier dans spriter
+        ==> OK 16/04/2018 : juste à resize demi les griffes (ct un oubli)
+
+    ✔ 13/04/2018 : pour les furnitures : pouvoir selectionner au hasard une entité de base
+        => ok, correctif dans AnimatedSprite2D => l'animation etant reseté automatiquement, modification de SetSpriterEntity pour mettre l'animation courant par défaut.
+
+    ✔ 23/03/2018 : dans spriter, après avoir sauvegarder un projet à une autre taille, les tags pivot_x et pivot_y dans les animations disparaissent
+        => ce qui entraine des decalages dans certaines animations (par exemple les flammes arriere de redlord)
+        ==> garder bien l'original pour permettre la recopie de ces tags au besoin sur le nouveau projet (les pivots sont normalisés donc on peut recopier)
+        => voir si une option existe pour éviter ces problèmes
+
+    ✔ 23/03/2018 : ajout dans Urho3d de format de SpriteSheet pour Spriter (json a renommer sjson en sortie de Spriter).
+        => Ce format utilise la rotation à 90° pour gagner en place .attention en utilisant ce format de bien modifier la metadata image en fin de fichier sjson avec le bon repertoire au fichier en l'occurence "Textures/image.png"
+        ==> dans Urho3d le code n'est pas optimale pour les rotations. mais le taf est fait.
+        ==> ne pas oublier de mettre à jour material et objet
+
+    ✔ 20/03/2018 : probleme de "blackedge" qui flip et qui se déplace sur l'écran
+        => voir si il s'agit des nuages
+        => remplacer les GEF_Scrolling par des scrollingShape
+        ==> OK 21/03/2018 : Ajout du ScreenShape Mode dans ScrollingShape : Test en cours
+        ===> 10/04/2018 : aucun probleme de blackedge avec les nouveau ScrollingShape
+
+    ✔ 19/03/2018 : lors de l'ajout/suppression de tiles mettre à jour les backscrollers
+        => OK le 19/03/2018
+
+    ✔ 06/02/2018 : Ajout de ScrollingShape : utile en INNERVIEW pour avoir un background scrollant à l'infini
+
+    ✔ enlightment : en donjon avec lumiere ON, non prise en compte de la couleur des tiles appliquées dans les batches
+        => OK (04/08/2017) : remplacement de technique DiffLitParticleAlpha2 dans les materials, prenant en compte le VERTEXCOLOR
+
+    ✔ Resize Windows : probleme de recentrage vers 0,0,0
+        ==> OK (03/08/2017) : Correctif de Game::ResetScreen, recentrage uniquement dans Game::Start
+
+    ✔ pb layer GEF_Rain : en InnerView les gouttes sont à l'intérieur des murs si Droplet setlayer Droplet != layer-9
+        -> vérifier les layers & viewmask
+        ==> OK, refactoring ViewManager :  la camera utilise les viewMasks, les objets utilisent des layerMasks (1 layer == layermask) et les effects (rain,cloud) utilisent des effectmasks.
+
+    ✔ ajouter des effets lors du changement d'avatar
+        => OK
+
+    ✔ pb griffe chapanze ne se supprime plus (goc_animator, goc_destroyer)
+        => OK : propriété non déclarée GOT_Effect
+
+    ✔ pb character mapping avec GOT_Lizard :
+        -> casque ne s'affiche pas directement, seulement apres le changement d'avatar GOT_Petit
+        -> armure affiche mal celle du GOT_Petit
+        => Correction dans AnimatedSprite2D : swapSprites + hotspot => ajout du deltahotSpot dans SpriteInfo, correction des hotspots des armures à (0.5 0.5),
+            pour les casques hotspot sur les yeux. pour les armures penser à bien modifier les SCML des collectables
+
+
+Notes:
+    - 30/08/2022 : si l'on souhaite ajouter une nouvelle texture dans un LAYERMATERIAL, il faut mettre à jour également le shader fragment avec la bonne quantité de samplers (=> sampler2D samplers[quantité])
+        et pour vulkan recompiler les shaders (bake vulkan shaders)
+
+    - 22/05/2022 : ajout #define DISABLE_SRGB dans Urho3D::Graphics.h.
+
+    - 11/07/2020 : sous Windows il faut obligatoirement activer les WorkerThreads pour eviter le lag lors du Render SortAndUpdateGeometry à chaque UpdateStep
+        => ne résoud pas tout : View::UpdateGeometries() update les threadable dans le WorkQueue et les non-threables dans le main
+        ==> Renderer2D n'est pas Threadable (Renderer2D::GetUpdateGeometryType() == UPDATE_MAIN_THREAD)
+        ===> cf Renderer2D::UpdateGeometry() : lag lorsque trop de vertex ? profiler avec Renderer2DUpdateVertex
+        ====> correctif dans Renderer2D::HandleBeginViewUpdate() : les vertexbuffer étaient systématiquement recréer
+        ====> base à 10000 vertex pour les vertexbuffer de Renderer2D
+        =====> le probleme est maintenant dans Render::Present (cf. Graphics::EndFrame())
+        ====> amelioration de l'update minimap => mise en async
+        ====> l'activation de Vsync limite les lags
+
+    - 30/12/2021 : utiliser l'outil d'automatisation de creation de Textures et SpriteSheets associées necessite
+        -> de faire attention que les equipements mis en place dans les SCML porteurs (petit,lizard,skel) n'aient pas les memes noms que ceux exportés dans equipment.svg
+        -> que les textures hdpi et ldpi contenant les pngs des SCML disposent d'un fichier de config .xml avec dpiscml => exemple <dpiscml ratio="1.5" /> (pour le hdpi)
+        -> <dpi scale="x"/> n'est pas à utiliser dans ce cas (lorsque l'on utilise une spritesheet par resolution dpi ;
+            les textures spritesheets generées par l'outil ne sont pas un simple resize du mdpi - les sprites ont des positions differentes).
+
+            

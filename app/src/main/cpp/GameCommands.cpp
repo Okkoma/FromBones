@@ -35,6 +35,7 @@
 #include "Map.h"
 #include "MapStorage.h"
 #include "MapWorld.h"
+#include "MapColliderGenerator.h"
 #include "MapGeneratorDungeon.h"
 #include "AnlWorldModel.h"
 #include "ObjectPool.h"
@@ -526,6 +527,10 @@ void GameCommands::Launch(Context* context, const String& input)
                 URHO3D_LOGINFOF("No Node id=%u", id);
         }
     }
+    else if (input0 == "tracecollider")
+    {
+        MapColliderGenerator::Get()->ActiveDebugTraceOnce();
+    }
     else if (input0 == "focus")
     {
         if (inputs.Size() == 1|| !ViewManager::Get())
@@ -615,44 +620,50 @@ void GameCommands::Launch(Context* context, const String& input)
             return;
 
         GameLevelMode mode = LVL_NEW;
-        unsigned seed = 0, incseed = 1;
+        unsigned seed = 0, incseed = 0;
 
-        if (input0 == "arena")
+        if (input0 == "new+")
         {
-            mode = LVL_ARENA;
-        }
-        else if (input0 == "test")
-        {
-            mode = LVL_TEST;
-        }
-#ifdef ACTIVE_CREATEMODE
-        else if (input0 == "create")
-        {
-            mode = LVL_CREATE;
-        }
-#endif
-        else if (input0 == "new")
-        {
+            seed = 0;
             mode = LVL_NEW;
-        }
-        else if (input0 == "new+")
-        {
-            mode = LVL_NEW;
-            if (inputs.Size()  > 1)
-                incseed = ToUInt(inputs[1]);
-        }
-        else if (input0 == "change")
-        {
-            mode = LVL_CHANGE;
+            incseed = inputs.Size()  > 1 ? ToUInt(inputs[1]) : 1;
         }
         else
         {
-            return;
-        }
+            if (input0 == "arena")
+            {
+                mode = LVL_ARENA;
+            }
+            else if (input0 == "test")
+            {
+                mode = LVL_TEST;
+            }
+    #ifdef ACTIVE_CREATEMODE
+            else if (input0 == "create")
+            {
+                mode = LVL_CREATE;
+            }
+    #endif
+            else if (input0 == "new")
+            {
+                mode = LVL_NEW;
+                incseed = 1;
+            }
+            else if (input0 == "change")
+            {
+                mode = LVL_CHANGE;
+                incseed = 1;
+            }
 
-        if (inputs.Size() > 1)
-        {
-            seed = ToUInt(inputs[1]);
+            if (inputs.Size() > 1)
+            {
+                seed = ToUInt(inputs[1]);
+                incseed = 0;
+            }
+            else
+            {
+                incseed = 1;
+            }
         }
 
         const String& stateId = GameContext::Get().stateManager_->GetActiveState()->GetStateId();

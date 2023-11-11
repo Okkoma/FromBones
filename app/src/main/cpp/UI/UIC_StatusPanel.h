@@ -38,6 +38,8 @@ public :
     void SetUIFactor(float factor);
 
     virtual void Start(Object* user, Object* feeder=0);
+    virtual void GainFocus();
+    virtual void LoseFocus();
 
     virtual void OnSetVisible();
 
@@ -48,7 +50,6 @@ protected :
     virtual void OnRelease();
 
 private :
-
     void UpdateLife();
     void UpdateMoney();
 
@@ -72,8 +73,8 @@ private :
     void OnCharacterArrowHoverEnd(StringHash eventType, VariantMap& eventData);
     void OnCharacterArrowHovering(StringHash eventType, VariantMap& eventData);
 
+    void OnKey(StringHash eventType, VariantMap& eventData);
     void OnEscapePanel(StringHash eventType, VariantMap& eventData);
-    void OnKeyDown(StringHash eventType, VariantMap& eventData);
 
     WeakPtr<Node> avatar_;
     WeakPtr<UIElement> lifeIconZone;
@@ -83,15 +84,16 @@ private :
     WeakPtr<BorderImage> manaBar;
     WeakPtr<Button> characterButton;
     WeakPtr<UIElement> characterList;
+    WeakPtr<UIPanel> abilityPanel_;
     int avatarIndex_;
     int characterHovering_;
     int characterArrowDirection_;
     int characterSelectIndex_;
     int characterHoveringIndex_;
     Timer* characterArrowTimer_;
-    UIElement* selectedElement_;
-    UIElement* focusedElement_;
-
+    UIElement *selectedElement_, *lastSelectedElement_, *focusedElement_;
+    int selector_, selectordirection_, lastSelector_;
+    IntVector2 statusChildRange_, characterlistChildRange_;
     float uifactor_;
 
     Vector<StringHash> activableCharacters_;

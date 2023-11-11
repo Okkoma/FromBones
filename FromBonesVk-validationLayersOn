@@ -12,6 +12,7 @@ export VK_LAYER_PATH
 echo "VULKAN_SDK=$VULKAN_SDK"
 echo "VULKAN_LIB=$LD_LIBRARY_PATH"
 
-./FromBonesVk22.04
+cd exe/vk
+./FromBonesUbuntu22.04Vk-static
 
 

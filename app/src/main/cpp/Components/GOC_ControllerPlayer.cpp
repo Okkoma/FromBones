@@ -57,8 +57,12 @@ void GOC_PlayerController::SetKeyControls(int controlID)
 
 void GOC_PlayerController::SetJoystickControls(int controlID)
 {
-    buttonsMap_ = &GameContext::Get().buttonsMap_[controlID][0];
+    URHO3D_LOGERRORF("GOC_PlayerController() - SetJoystickControls : controlID=%d ", controlID);
     joystickindex_ = GameContext::Get().joystickIndexes_[controlID];
+    buttonsMap_ = &GameContext::Get().playerState_[controlID].joybuttons[0];
+
+    for (int action=0; action < MAX_NUMACTIONS; action++)
+        GameContext::Get().playerState_[controlID].joybuttons[action] = GameContext::Get().buttonsMap_[joystickindex_][action];
 }
 
 void GOC_PlayerController::SetTouchControls(int screenJoyId)
@@ -68,14 +72,25 @@ void GOC_PlayerController::SetTouchControls(int screenJoyId)
     screenJoystickID = screenJoyId;
 }
 
+
 void GOC_PlayerController::Start()
 {
+    URHO3D_LOGERRORF("GOC_PlayerController() - Start() !");
+
     GOC_Controller::Start();
 
     followPath_ = false;
 
     if (mainController_)
     {
+        if (joystickindex_ != -1)
+        {
+            JoystickState* joystick = GameContext::Get().input_->GetJoystickByIndex(joystickindex_);
+            if (joystick)
+                joystick->Reset();
+        }
+        control_.Reset();
+
 //        URHO3D_LOGINFOF("GOC_PlayerController() - Start : node = %s(%u) mainController_=%s", node_->GetName().CString(), node_->GetID(), mainController_ ? "true" : "false");
         SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_PlayerController, HandleLocalUpdate));
     }
@@ -120,7 +135,7 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     if (!keysMap_)
         return;
 
-    //URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
 
     control_.SetButtons(CTRL_UP, input.GetScancodeDown(keysMap_[ACTION_UP]));
     control_.SetButtons(CTRL_DOWN, input.GetScancodeDown(keysMap_[ACTION_DOWN]));
@@ -130,9 +145,7 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     control_.SetButtons(CTRL_FIRE, input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
     control_.SetButtons(CTRL_FIRE2, input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]));
     control_.SetButtons(CTRL_FIRE3, input.GetScancodePress(keysMap_[ACTION_FIRE3]));
-
-    if (input.GetScancodePress(keysMap_[ACTION_STATUS]))
-        (static_cast<Player*>(GetThinker()))->UpdatePanelFocusUI();
+    control_.SetButtons(CTRL_STATUS, input.GetScancodePress(keysMap_[ACTION_STATUS]));
 }
 
 inline void GOC_PlayerController::UpdateTouchControls(Input& input)
@@ -140,7 +153,7 @@ inline void GOC_PlayerController::UpdateTouchControls(Input& input)
     if (!touchEnabled)
         return;
 
-    //URHO3D_LOGINFOF("GOC_PlayerController() - UpdateTouchControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGINFOF("GOC_PlayerController() - UpdateTouchControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
 
     // use the touches
     if (screenJoystickID == -1)
@@ -200,8 +213,6 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
     if (!joystick)
         return;
 
-    //URHO3D_LOGINFOF("GOC_PlayerController() - UpdateJoystickControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
-
     bool state;
     /*
         SDL_CONTROLLER_BUTTON_A,
@@ -239,6 +250,9 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
 
     // JUMP
     control_.SetButtons(CTRL_JUMP, joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]));
+//    if (joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]))
+//        URHO3D_LOGINFOF("GOC_PlayerController() - UpdateJoystickControls : Node=%s(%u) joystick=%u CTRL_JUMP=%u mappedbutton=%d state=%u !", node_->GetName().CString(), node_->GetID(),
+//                    joystick, CTRL_JUMP, buttonsMap_[ACTION_JUMP], joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]));
 
     // FIRE
     control_.SetButtons(CTRL_FIRE, joystick->GetButtonPress(buttonsMap_[ACTION_FIRE1]));
@@ -248,6 +262,9 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
 
     // FIRE3
     control_.SetButtons(CTRL_FIRE3, joystick->GetButtonPress(buttonsMap_[ACTION_FIRE3]));
+
+    // Focus/Defocus on UI
+    control_.SetButtons(CTRL_STATUS, joystick->GetButtonPress(buttonsMap_[ACTION_STATUS]));
 
     // DIRECTION : UP, DOWN, LEFT, RIGHT
     // TODO : Joystick Binding for all gamecontroller

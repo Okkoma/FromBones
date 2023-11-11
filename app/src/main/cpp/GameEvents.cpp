@@ -57,6 +57,8 @@ void GOE::InitEventTable()
     events_ += Pair<StringHash,String>(StringHash("ControlAction1"), "ControlAction1");
     events_ += Pair<StringHash,String>(StringHash("ControlAction2"), "ControlAction2");
     events_ += Pair<StringHash,String>(StringHash("ControlAction3"), "ControlAction3");
+    events_ += Pair<StringHash,String>(StringHash("ControlActionStatus"), "ControlActionStatus");
+
     events_ += Pair<StringHash,String>(StringHash("ControllerChange"), "ControllerChange");
     events_ += Pair<StringHash,String>(StringHash("ControlAction1Hold"), "ControlAction1Hold");
     events_ += Pair<StringHash,String>(StringHash("ControlAction2Hold"), "ControlAction2Hold");

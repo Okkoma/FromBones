@@ -1982,7 +1982,11 @@ void World2D::Stop()
 #endif
 
     if (GameContext::Get().gameConfig_.fluidEnabled_)
-        node_->GetChild("Fluid")->SetEnabled(false);
+    {
+        Node* nodeFluid = node_->GetChild("Fluid");
+        if (nodeFluid)
+            nodeFluid->SetEnabled(false);
+    }
 
 //    SaveWorld(true);
 

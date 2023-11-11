@@ -107,7 +107,11 @@ void Droplet::Reset()
     // 22/02/2023 : if floorY is above the start y of the droplet don't start it.
     // TODO : problems on map borders because we take only the topography of the current map
     // TODO : => we need a WorldTopography of the visibleMaps (inside World2D)
-    const MapTopography& topo = World2D::GetCurrentMap(viewport_)->GetTopography();
+    Map* map = World2D::GetCurrentMap(viewport_);
+    if (!map)
+        return;
+
+    const MapTopography& topo = map->GetTopography();
     float floory = topo.maporigin_.y_ + topo.GetFloorY(iPos_.x_ - topo.maporigin_.x_);
     if (iPos_.y_ < floory)
     {
@@ -120,8 +124,6 @@ void Droplet::Reset()
     bool innercave = World2D::IsUnderground(viewport_) && layerIndex_ == ViewManager::INNERLAYER_Index;
 //    if (innercave)
 //    {
-//        const MapTopography& topo = World2D::GetCurrentMap(viewport_)->GetTopography();
-//
 //        float floory = topo.maporigin_.y_ + topo.GetFloorY(iPos_.x_ - topo.maporigin_.x_);
 //        if (iPos_.y_ < floory)
 //        {
@@ -440,13 +442,15 @@ void GEF_Rain::HandleUpdate(StringHash eventType, VariantMap& eventData)
             const float ratiointensity = 0.01f;
 #endif
             Map* map = World2D::GetCurrentMap(viewport_);
-            for (unsigned i=0; i < Droplet::hittedTiles_.Size(); i++)
+            if (map)
             {
-                FluidCell* fluidcell = map->GetFluidCellPtr(Droplet::hittedTiles_[i], ViewManager::INNERVIEW_Index);
-                if (fluidcell && fluidcell->type_ != BLOCK)
-                    fluidcell->AddFluid(WATER, ratiointensity * intensity_ * FLUID_MINVALUE);
+                for (unsigned i=0; i < Droplet::hittedTiles_.Size(); i++)
+                {
+                    FluidCell* fluidcell = map->GetFluidCellPtr(Droplet::hittedTiles_[i], ViewManager::INNERVIEW_Index);
+                    if (fluidcell && fluidcell->type_ != BLOCK)
+                        fluidcell->AddFluid(WATER, ratiointensity * intensity_ * FLUID_MINVALUE);
+                }
             }
-
             //        URHO3D_LOGERRORF("GEF_Rain() - HandleUpdate() : Updated in %u/%u msec ... iCount=%u/%u hittedTiles=%u", raintimer_.GetCurrentTime(), raintimer_.GetExpirationTime(), iCount_, Droplet::NUM_DROPLETS, Droplet::hittedTiles_.Size());
             Droplet::hittedTiles_.Clear();
         }

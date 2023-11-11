@@ -23,6 +23,8 @@ public:
     void SetParameters(bool findholes, bool shrink=false, int debugphysic=-1, int debugrender=-1);
     void SetSize(int width, int height, int maxheight);
 
+    void ActiveDebugTraceOnce() { debugTraceOn_ = true; }
+
     void ResetMapGeneration(MapBase* map)
     {
         if (map_ == map) map_ = 0;
@@ -107,6 +109,7 @@ private:
     bool findHoles_, holesfounded_, shrinkContours_;
     int debuglevel_, debuglevelphysic_, debuglevelrender_;
 
+    bool debugTraceOn_;
     static MapColliderGenerator* generator_;
 };
 

@@ -733,6 +733,91 @@ void PlayState::InitLevel(bool init, bool restart)
         if (worldSeed_)
             world_->SetGeneratorSeed(worldSeed_);
 
+#ifdef RANDOMIZE_ARENA
+        if (GameContext::Get().arenaZoneOn_ && !initMode_)
+        {
+            GameRand::SetSeedRand(ALLRAND, worldSeed_);
+
+            // Randomize Map Parameters
+            int rgenseed = GameRand::GetRand(ALLRAND, 65535);
+            int zonetype = GameRand::GetRand(ALLRAND, 100);
+            int defaultmappointx = GameRand::GetRand(ALLRAND, -10, 10);
+            int defaultmappointy = GameRand::GetRand(ALLRAND, -20, -10);
+
+            // Randomize Dungeon Parameters
+            int maxFeatures = 100 + GameRand::GetRand(ALLRAND, 200);
+            int roomprob = 50 + GameRand::GetRand(ALLRAND, 25);
+            int corridorProb = 50 + GameRand::GetRand(ALLRAND, 25);
+            int roomminsize = 3 + GameRand::GetRand(ALLRAND, 3);
+            int roommaxsize = 15 + GameRand::GetRand(ALLRAND, 10);
+            int dungeontype = -1;
+
+            // Randomize Monsters Parameters
+            int basevalue = 0;
+            int numEntityTypes = GameRand::GetRand(ALLRAND, 1, 4);
+
+            // Random World Model
+            world_->SetGeneratorSeed(rgenseed);
+
+            if (zonetype > 50)
+            {
+                world_->SetDefaultMapPoint(IntVector2(defaultmappointx , defaultmappointy));
+                world_->SetAnlWorldModelAttr("anlworldVM-ellipsoid-zone2.xml");
+            }
+            else
+            {
+                world_->SetDefaultMapPoint(IntVector2::ZERO);
+                world_->SetAnlWorldModelAttr(String::EMPTY);
+            }
+
+            // Use Dungeon Map
+            world_->SetMapGeneratorAttr("MapGeneratorDungeon");
+
+            // Set Dungeon Parameters
+            world_->SetMapGeneratorParams(ToString("z:INNERVIEW|i:%d;%d;%d;%d;%d;%d", maxFeatures, roomprob, corridorProb, roomminsize, roommaxsize, dungeontype));
+
+            // Set Monsters Listing
+            String entityList;
+            for (int i=0; i < numEntityTypes; i++)
+            {
+                StringHash got(COT::GetRandomTypeFrom(COT::MONSTERS));
+                entityList += GOT::GetType(got);
+                if (i < numEntityTypes-1 )
+                    entityList += String("|");
+                basevalue += GOT::GetConstInfo(got).defaultvalue_;
+            }
+            IntVector2 quantity;
+            basevalue /= numEntityTypes;
+            if (basevalue <= 20)
+            {
+                quantity.x_ = 15;
+                quantity.y_ = 25;
+            }
+            else if (basevalue <= 100)
+            {
+                quantity.x_ = 10;
+                quantity.y_ = 20;
+            }
+            else if (basevalue <= 500)
+            {
+                quantity.x_ = 5;
+                quantity.y_ = 10;
+            }
+            else
+            {
+                quantity.x_ = 3;
+                quantity.y_ = 5;
+            }
+
+            URHO3D_LOGINFOF("PlayState() - InitLevel : ArenaZone RandomSeed=%d MapPoint=%s Model=%s ...", rgenseed, world_->GetDefaultMapPoint().ToString().CString() , world_->GetAnlWorldModelAttr().CString());
+            URHO3D_LOGINFOF("PlayState() - InitLevel : ArenaZone Dungeon Params=%s ...", world_->GetMapGeneratorParams().CString());
+            URHO3D_LOGINFOF("PlayState() - InitLevel : ArenaZone add %s basevalue=%d qty=%s ...", entityList.CString(), basevalue, quantity.ToString().CString());
+
+            world_->SetGeneratorAuthorizedCategories(entityList);
+            world_->SetGeneratorNumEntities(quantity);
+        }
+#endif
+
         world_->Set(toLoadGame_);
     }
 
@@ -917,75 +1002,6 @@ bool PlayState::CreateScene()
     {
         weather_ = new WeatherManager(context_);
         effects_ = new EffectsManager(context_);
-
-        if (GameContext::Get().arenaZoneOn_ && !initMode_)
-        {
-            // Random World Model
-            world_->SetGeneratorSeed(Random(66536));
-            if (Random(100) > 50)
-            {
-                world_->SetDefaultMapPoint(IntVector2(Random(-10, 10), Random(-20, -10)));
-                world_->SetAnlWorldModelAttr("anlworldVM-ellipsoid-zone2.xml");
-            }
-            else
-            {
-                world_->SetDefaultMapPoint(IntVector2::ZERO);
-                world_->SetAnlWorldModelAttr(String::EMPTY);
-            }
-
-            // Use Dungeon Map
-            world_->SetMapGeneratorAttr("MapGeneratorDungeon");
-
-            // Randomize Dungeon Map Parameters
-            int maxFeatures = 100 + Random(200);
-            int roomprob = 50 + Random(25);
-            int corridorProb = 50 + Random(25);
-            int roomminsize = 3 + Random(3);
-            int roommaxsize = 15 + Random(10);
-            int dungeontype = -1;
-            world_->SetMapGeneratorParams(ToString("z:INNERVIEW|i:%d;%d;%d;%d;%d;%d", maxFeatures, roomprob, corridorProb, roomminsize, roommaxsize, dungeontype));
-
-            // Randomize Monsters
-            String entityList;
-            int basevalue = 0;
-            int numEntityTypes = Random(1, 5);
-            for (int i=0; i < numEntityTypes; i++)
-            {
-                StringHash got(COT::GetRandomTypeFrom(COT::MONSTERS));
-                entityList += GOT::GetType(got);
-                if (i < numEntityTypes-1 )
-                    entityList += String("|");
-                basevalue += GOT::GetConstInfo(got).defaultvalue_;
-            }
-
-            IntVector2 quantity;
-            basevalue /= numEntityTypes;
-            if (basevalue <= 20)
-            {
-                quantity.x_ = 15;
-                quantity.y_ = 25;
-            }
-            else if (basevalue <= 100)
-            {
-                quantity.x_ = 10;
-                quantity.y_ = 20;
-            }
-            else if (basevalue <= 500)
-            {
-                quantity.x_ = 5;
-                quantity.y_ = 10;
-            }
-            else
-            {
-                quantity.x_ = 3;
-                quantity.y_ = 5;
-            }
-
-            URHO3D_LOGINFOF("PlayState() - CreateScene : ArenaZone add %s basevalue=%d qty=%s ...", entityList.CString(), basevalue, quantity.ToString().CString());
-
-            world_->SetGeneratorAuthorizedCategories(entityList);
-            world_->SetGeneratorNumEntities(quantity);
-        }
     }
 
     URHO3D_LOGINFO("PlayState() - CreateScene : OK");
@@ -1402,7 +1418,6 @@ void PlayState::AllocatePlayers()
             localPlayers_[i]->active = true;
         }
     }
-
 }
 
 void PlayState::SetPlayers(bool init, bool restart)
@@ -1424,27 +1439,26 @@ void PlayState::SetPlayers(bool init, bool restart)
     // Set Start Position for all
     GameContext::Get().SetWorldStartPosition();
 
-    unsigned numactiveplayers = 0;
-    WorldMapPosition startposition;
-
-    // Set local player's avatars
-    for (unsigned i=0; i < localPlayers_.Size(); ++i)
+    // Get Active players
+    PODVector<int> localActivePlayersIndexes;
+    for (int i=0; i < localPlayers_.Size(); ++i)
     {
         Player* player = localPlayers_[i];
 
-        if (!player->active)
-        {
-            if (GameContext::Get().playerState_[i].active || restart)
-            {
-                player->active = true;
-            }
-            else
-            {
-                continue;
-            }
-        }
+        if (!player->active && (GameContext::Get().playerState_[i].active || restart))
+            player->active = true;
 
-        numactiveplayers++;
+        if (player->active)
+            localActivePlayersIndexes.Push(i);
+    }
+
+    // Set local player's avatars
+    unsigned numLocalActivePlayers = localActivePlayersIndexes.Size();
+    WorldMapPosition startposition;
+    for (unsigned i=0; i < numLocalActivePlayers; i++)
+    {
+        int playerindex = localActivePlayersIndexes[i];
+        Player* player = localPlayers_[playerindex];
 
         // Set Start Position
 
@@ -1463,26 +1477,21 @@ void PlayState::SetPlayers(bool init, bool restart)
 //        }
 //        else
         {
-            if (!GameContext::Get().arenaZoneOn_ || localPlayers_.Size() == 1)
-            {
+            if (!GameContext::Get().arenaZoneOn_ || localPlayers_.Size() == 1 || !GameContext::Get().gameConfig_.multiviews_)
                 startposition = GameContext::Get().worldStartPosition_;
-            }
             else
-            {
-                bool result = GameContext::Get().GetStartPosition(startposition, clientid+i);
-            }
+                bool result = GameContext::Get().GetStartPosition(startposition, clientid+playerindex);
         }
 
         // Set Players => Player::Set(UIElement* elem, bool missionEnable, unsigned id, const char *name)
-        player->Set(playerStatusZone[i], i==0 && GameContext::Get().enableMissions_, i);
-
+        player->Set(playerStatusZone[playerindex], playerindex==0 && GameContext::Get().enableMissions_, numLocalActivePlayers > 1, playerindex);
         player->SetScene(rootScene_, startposition.position_, startposition.viewZ_, toLoadGame_, init, restart);
 
         // Set Faction
         unsigned faction = GO_Player;
 
         if (GameContext::Get().LocalMode_)
-            faction = GameContext::Get().arenaZoneOn_ ? (i << 8) + GO_Player : GO_Player;
+            faction = GameContext::Get().arenaZoneOn_ ? (playerindex << 8) + GO_Player : GO_Player;
         // always together
 //            faction = GO_Player;
         else
@@ -1500,9 +1509,9 @@ void PlayState::SetPlayers(bool init, bool restart)
 
     SetVisibleUI(false);
 
-    URHO3D_LOGINFOF("PlayState() - SetPlayers ... num active players = %u OK !", numactiveplayers);
+    URHO3D_LOGINFOF("PlayState() - SetPlayers ... num local active players = %u OK !", numLocalActivePlayers);
 
-    if (!numactiveplayers)
+    if (!numLocalActivePlayers)
         startposition = GameContext::Get().worldStartPosition_;
 
 #ifdef ACTIVE_CREATEMODE
@@ -1511,7 +1520,7 @@ void PlayState::SetPlayers(bool init, bool restart)
     const bool editoron = false;
 #endif
     SetViewports(true);
-    if (!numactiveplayers || editoron)
+    if (!numLocalActivePlayers || editoron)
     {
         GameContext::Get().cameraNode_->SetPosition2D(startposition.position_);
         ViewManager::Get()->SwitchToViewZ(startposition.viewZ_);
@@ -1963,6 +1972,9 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
         SetStatus(PLAYSTATE_RUNNING);
         GameContext::Get().AllowUpdate_ = true;
     }
+
+    // 06/11/2023 : Patch pour le Joystick
+//    GameContext::Get().ui_->SetFocusElement(0);
 
 //    OptionState* optionState = (OptionState*)GameContext::Get().stateManager_->GetState("Options");
 //    if (optionState)

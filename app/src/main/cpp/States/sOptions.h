@@ -91,6 +91,7 @@ protected:
     void HandleGenerateWorldMapButton(StringHash eventType, VariantMap& eventData);
 
     // Player Category Handle
+    void HandleMultiViewsChanged(StringHash eventType, VariantMap& eventData);
     void HandleNumPlayersChanged(StringHash eventType, VariantMap& eventData);
     void HandleControlP1Changed(StringHash eventType, VariantMap& eventData);
     void HandleControlP2Changed(StringHash eventType, VariantMap& eventData);

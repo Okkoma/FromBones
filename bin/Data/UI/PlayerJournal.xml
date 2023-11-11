@@ -11,7 +11,7 @@
     <attribute name="Opacity" value="0.8" />
     <attribute name="Focus Mode" value="Focusable" />
     <attribute name="Min Size" value="612 268" />
-	<attribute name="Max Size" value="612 750" />
+    <attribute name="Max Size" value="612 750" />
     <element>
         <attribute name="Layout Mode" value="Horizontal" />
         <attribute name="Layout Spacing" value="4" />
@@ -26,7 +26,7 @@
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Auto Localizable" value="true" />
         </element>
-        <element type="Button" >
+        <element type="Button">
             <attribute name="Name" value="OkButton" />
             <attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
             <attribute name="Sprite Hover" value="icon_close_on" />
@@ -37,7 +37,7 @@
         </element>
     </element>
 
-    <element type="BorderImage" style="EditorDivider" >
+    <element type="BorderImage" style="EditorDivider">
         <attribute name="Min Size" value="600 11" />
         <attribute name="Max Size" value="600 11" />
     </element>
@@ -93,7 +93,7 @@
                 <attribute name="Is Visible" value="false" />
             </element>
         </element>
-        <element type="BorderImage" internal="true" style="none" >
+        <element type="BorderImage" internal="true" style="none">
             <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowEmpty" />
             <attribute name="Pivot" value="0 0" />
             <attribute name="Min Size" value="600 64" />
@@ -113,7 +113,7 @@
         </element>
     </element>
 
-    <element type="BorderImage" style="EditorDivider" >
+    <element type="BorderImage" style="EditorDivider">
         <attribute name="Min Size" value="600 11" />
         <attribute name="Max Size" value="600 11" />
     </element>
@@ -132,7 +132,7 @@
         <attribute name="Auto Localizable" value="true" />
     </element>
 
-    <element type="BorderImage" style="EditorDivider" >
+    <element type="BorderImage" style="EditorDivider">
         <attribute name="Min Size" value="600 11" />
         <attribute name="Max Size" value="600 11" />
     </element>
@@ -143,8 +143,8 @@
         <attribute name="Max Size" value="2000 500" />
         <attribute name="Pivot" value="0 0" />
         <!-- <attribute name="Border" value="0 0 0 0" /> -->
-        <element type="BorderImage" internal="true" style="none" >
-            <attribute name="Tags" >
+        <element type="BorderImage" internal="true" style="none">
+            <attribute name="Tags">
                 <string value="NoScaleY" />
             </attribute>
             <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowEmpty" />
@@ -176,7 +176,7 @@
             </element>
         </element>
         <element type="ScrollBar" internal="true" style="none">
-            <attribute name="Tags" >
+            <attribute name="Tags">
                 <string value="NoScaleY" />
             </attribute>
             <attribute name="Size" value="512 20" />
@@ -203,7 +203,7 @@
             </element>
         </element>
         <element type="ScrollBar" internal="true" style="none">
-            <attribute name="Tags" >
+            <attribute name="Tags">
                 <string value="NoScaleX" />
             </attribute>
             <attribute name="Min Size" value="20 11" />

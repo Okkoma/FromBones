@@ -2118,7 +2118,7 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
 {
     if (!SetDrawableObjects())
     {
-        URHO3D_LOGERRORF("DrawableScroller() - HandleUpdateEllipseMode : SetDrawableObjects NOK currentmap=%s !", World2D::GetCurrentMap(viewport_) ? World2D::GetCurrentMap(viewport_)->GetMapPoint().ToString().CString() : "");
+//        URHO3D_LOGERRORF("DrawableScroller() - HandleUpdateEllipseMode : SetDrawableObjects NOK currentmap=%s !", World2D::GetCurrentMap(viewport_) ? World2D::GetCurrentMap(viewport_)->GetMapPoint().ToString().CString() : "");
         return;
     }
 

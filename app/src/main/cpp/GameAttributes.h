@@ -153,21 +153,21 @@ enum ControlAction
     ACTION_FIRE2,
     ACTION_FIRE3,
     ACTION_STATUS,
-    ACTION_SCENE,
+    ACTION_INTERACT,
     MAX_NUMACTIONS
 };
 
 // Input Key
-const int CTRL_UP     = 1 << ACTION_UP;
-const int CTRL_DOWN   = 1 << ACTION_DOWN;
-const int CTRL_LEFT   = 1 << ACTION_LEFT;
-const int CTRL_RIGHT  = 1 << ACTION_RIGHT;
-const int CTRL_JUMP   = 1 << ACTION_JUMP;
-const int CTRL_FIRE   = 1 << ACTION_FIRE1;
-const int CTRL_FIRE2  = 1 << ACTION_FIRE2;
-const int CTRL_FIRE3  = 1 << ACTION_FIRE3;
-const int CTRL_STATUS = 1 << ACTION_STATUS;
-const int CTRL_SCENE  = 1 << ACTION_SCENE;
+const unsigned CTRL_UP     = 1U << ACTION_UP;
+const unsigned CTRL_DOWN   = 1U << ACTION_DOWN;
+const unsigned CTRL_LEFT   = 1U << ACTION_LEFT;
+const unsigned CTRL_RIGHT  = 1U << ACTION_RIGHT;
+const unsigned CTRL_JUMP   = 1U << ACTION_JUMP;
+const unsigned CTRL_FIRE   = 1U << ACTION_FIRE1;
+const unsigned CTRL_FIRE2  = 1U << ACTION_FIRE2;
+const unsigned CTRL_FIRE3  = 1U << ACTION_FIRE3;
+const unsigned CTRL_STATUS = 1U << ACTION_STATUS;
+const unsigned CTRL_INTERACT = 1U << ACTION_INTERACT;
 
 enum GOTypeProperties
 {

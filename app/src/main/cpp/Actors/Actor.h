@@ -99,6 +99,7 @@ public :
     void SetObjectFile(const String& filename);
     void SetInfo(const ActorInfo& info);
     void SetEnableStats(bool enable);
+    void SetViewZ(int viewZ);
     void SetScene(Scene* scene, const Vector2& position=Vector2::ZERO, int viewZ = 0);
     void SetViewManager(ViewManager* viewManager)
     {
@@ -168,6 +169,10 @@ public :
         return avatar_ ? avatar_->HasTag(tag) : false;
     }
 
+    UIPanel* GetPanel(int idpanel) const;
+    void SetFocusPanel(int idpanel);
+    UIPanel* GetFocusPanel() const;
+
     /// Commands
     void SetFaceTo(Node* interactor);
     void SetEnableShop(bool enable);
@@ -222,7 +227,8 @@ protected:
     SharedPtr<GOC_Abilities> abilities_;
 
     // UI Panels
-    Vector<WeakPtr<UIPanel> > panels_;
+    HashMap<int, WeakPtr<UIPanel> > panels_;
+    WeakPtr<UIPanel> focusPanel_;
 
     Scene* scene_;
     ViewManager* viewManager_;
@@ -242,6 +248,7 @@ private:
 
     static Vector<WeakPtr<Actor> > actors_;
 
+    int viewZ_;
     /// Current Dialogue
     StringHash dialogueFirst_;
     StringHash dialogueName_;

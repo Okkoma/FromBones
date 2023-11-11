@@ -1,13 +1,13 @@
 <elements>
-    <element type="BorderImage" >
+    <element type="BorderImage">
         <attribute name="Texture" value="Texture2D;Textures/UI/UI.png" />
     </element>
-	<element type="NoBorderImage" >
+    <element type="NoBorderImage">
         <attribute name="Texture" value="Texture2D;Textures/UI/UI.png" />
         <attribute name="Size" value="16 16" />
         <attribute name="Image Rect" value="240 0 256 16" />
         <attribute name="Border" value="0 0 0 0" />
-		<attribute name="Pressed Child Offset" value="-1 1" />
+        <attribute name="Pressed Child Offset" value="-1 1" />
     </element>
     <element type="Button" style="BorderImage">
         <attribute name="Size" value="16 16" />
@@ -25,7 +25,8 @@
         <attribute name="Checked Image Offset" value="16 0" />
         <attribute name="Hover Image Offset" value="0 16" />
     </element>
-    <element type="CloseButton" style="Button" auto="false">    <!-- non-auto style is shown explicitly in the Editor's style drop down list for user selection -->
+    <element type="CloseButton" style="Button" auto="false">    <!-- non-auto style is shown explicitly
+        in the Editor's style drop down list for user selection -->
         <attribute name="Min Size" value="16 16" />
         <attribute name="Max Size" value="16 16" />
         <attribute name="Image Rect" value="144 0 160 16" />
@@ -102,7 +103,8 @@
             <attribute name="Layout Border" value="2 4 2 4" />
             <element type="ListView" internal="true">
                 <attribute name="Highlight Mode" value="Always" />
-                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes from default ListView -->
+                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes
+                    from default ListView -->
                     <attribute name="Opacity" value="0" />
                     <attribute name="Clip Border" value="2 0 2 0" />
                 </element>
@@ -121,7 +123,7 @@
         <attribute name="Focus Mode" value="NotFocusable" />
         <element internal="true">
             <attribute name="Vert Alignment" value="Center" />
-            <element type="Text" internal="true" >
+            <element type="Text" internal="true">
             </element>
         </element>
         <element type="Window" internal="true" popup="true">
@@ -196,7 +198,8 @@
                         <attribute name="Is Visible" value="false" />
                     </element>
                 </element>
-                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes from default ListView -->
+                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes
+                    from default ListView -->
                     <attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
                     <attribute name="Focus Mode" value="NotFocusable" />
                     <attribute name="Pivot" value="0 0" />
@@ -205,8 +208,8 @@
                 </element>
             </element>
         </element>
-    </element>       
-    <element type="OptionText" >
+    </element>
+    <element type="OptionText">
         <attribute name="Font" value="Font;Fonts/aby32.xml" />
         <attribute name="Font Size" value="32" />
         <attribute name="Color" value="0.85 0.85 0.85" />
@@ -215,7 +218,7 @@
         <attribute name="Text Alignment" value="Center" />
         <attribute name="Auto Localizable" value="true" />
     </element>
-    <element type="OptionText22" >
+    <element type="OptionText22">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
         <attribute name="Color" value="0.85 0.85 0.85" />
@@ -224,7 +227,7 @@
         <attribute name="Text Alignment" value="Center" />
         <attribute name="Auto Localizable" value="true" />
     </element>
-    <element type="OptionText22_NoL10" >
+    <element type="OptionText22_NoL10">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
         <attribute name="Color" value="0.85 0.85 0.85" />
@@ -233,7 +236,16 @@
         <attribute name="Text Alignment" value="Center" />
         <attribute name="Auto Localizable" value="false" />
     </element>
-    <element type="OptionDropDownSelectorText" >
+    <element type="OptionText16_NoL10">
+        <attribute name="Font" value="Font;Fonts/BlueHighway.ttf" />
+        <attribute name="Font Size" value="16" />
+        <attribute name="Color" value="0.85 0.85 0.85" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Vert Alignment" value="Center" />
+        <attribute name="Text Alignment" value="Center" />
+        <attribute name="Auto Localizable" value="false" />
+    </element>    
+    <element type="OptionDropDownSelectorText">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
         <attribute name="Text Alignment" value="Center" />
@@ -244,7 +256,7 @@
         <attribute name="Is Enabled" value="true" />
         <attribute name="Auto Localizable" value="true" />
     </element>
-    <element type="OptionDropDownSelectorText_NoL10" >
+    <element type="OptionDropDownSelectorText_NoL10">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
         <attribute name="Text Alignment" value="Center" />
@@ -255,7 +267,7 @@
         <attribute name="Is Enabled" value="true" />
         <attribute name="Auto Localizable" value="false" />
     </element>
-    <element type="OptionDropDownSelectorText22_NoL10" >
+    <element type="OptionDropDownSelectorText22_NoL10">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
         <attribute name="Text Alignment" value="Center" />
@@ -269,7 +281,8 @@
     <element type="LineEdit" style="BorderImage">
         <attribute name="Border" value="4 4 4 4" />
         <attribute name="Image Rect" value="64 0 80 16" />
-        <attribute name="Hover Image Offset" value="0 16" />    <!-- Background color of the hover image IS the hover color of LineEdit -->
+        <attribute name="Hover Image Offset" value="0 16" />    <!-- Background color of the hover image
+        IS the hover color of LineEdit -->
         <element type="Text" internal="true">
             <attribute name="Color" value="0.9 1 0.9 1" />
             <attribute name="Selection Color" value="0.3 0.4 0.7 1" />
@@ -280,7 +293,7 @@
             <attribute name="Image Rect" value="12 0 16 16" />
         </element>
     </element>
-    <element type="OptionLineText" style="LineEdit" >
+    <element type="OptionLineText" style="LineEdit">
         <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowSquare" />
         <attribute name="Border" value="4 4 4 4" />
         <attribute name="Pressed Image Offset" value="0 0" />
@@ -303,10 +316,10 @@
             <attribute name="Max Size" value="8 22" />
             <attribute name="Priority" value="1" />
             <attribute name="Horiz Alignment" value="Center" />
-            <attribute name="Vert Alignment" value="Center" />            
-        </element>       
+            <attribute name="Vert Alignment" value="Center" />
+        </element>
     </element>
-    <element type="OptionLineTextNoBorder" style="LineEdit" >
+    <element type="OptionLineTextNoBorder" style="LineEdit">
         <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowEmpty" />
         <attribute name="Border" value="4 4 4 4" />
         <attribute name="Pressed Image Offset" value="0 0" />
@@ -329,10 +342,10 @@
             <attribute name="Max Size" value="8 22" />
             <attribute name="Priority" value="1" />
             <attribute name="Horiz Alignment" value="Center" />
-            <attribute name="Vert Alignment" value="Center" />            
-        </element>       
-    </element>    
-    
+            <attribute name="Vert Alignment" value="Center" />
+        </element>
+    </element>
+
     <element type="OptionEditableDropDownList" style="BorderImage">
         <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowSquare" />
         <attribute name="Border" value="4 4 4 4" />
@@ -343,13 +356,13 @@
         <attribute name="Layout Border" value="4 1 4 1" />
         <attribute name="Vert Alignment" value="Center" />
         <attribute name="Focus Mode" value="NotFocusable" />
-        <attribute name="Editable PlaceHolder" value="true" />          
+        <attribute name="Editable PlaceHolder" value="true" />
         <element internal="true">
             <attribute name="Horiz Alignment" value="Center" />
             <attribute name="Vert Alignment" value="Center" />
-            <element type="LineEdit" style="OptionLineTextNoBorder" internal="true" >
+            <element type="LineEdit" style="OptionLineTextNoBorder" internal="true">
                 <attribute name="Horiz Alignment" value="Center" />
-                <attribute name="Vert Alignment" value="Center" />                
+                <attribute name="Vert Alignment" value="Center" />
             </element>
         </element>
         <element type="Window" internal="true" popup="true">
@@ -424,7 +437,8 @@
                         <attribute name="Is Visible" value="false" />
                     </element>
                 </element>
-                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes from default ListView -->
+                <element type="BorderImage" internal="true">    <!-- Override scroll panel attributes
+                    from default ListView -->
                     <attribute name="Sprite" value="UI/game_equipment.xml@windowframe1" />
                     <attribute name="Focus Mode" value="NotFocusable" />
                     <attribute name="Pivot" value="0 0" />
@@ -433,7 +447,7 @@
                 </element>
             </element>
         </element>
-    </element>  
+    </element>
     <element type="ListView" style="ScrollView">  <!-- Shortcut to copy all the styles from ScrollView -->
         <element type="BorderImage" internal="true">
             <element internal="true">
@@ -443,7 +457,8 @@
     </element>
     <element type="HierarchyListView" style="ListView" auto="false">
         <attribute name="Hierarchy Mode" value="true" />
-        <attribute name="Base Indent" value="1" />  <!-- Allocate space for overlay icon at the first level -->
+        <attribute name="Base Indent" value="1" />  <!-- Allocate space for overlay icon at the first
+        level -->
         <element type="BorderImage" internal="true">
             <element type="HierarchyContainer" internal="true">
                 <attribute name="Layout Mode" value="Vertical" />
@@ -615,7 +630,7 @@
         <attribute name="Border" value="4 4 4 4" />
         <attribute name="Min Size" value="0 11" />
         <attribute name="Max Size" value="2147483647 11" />
-        <attribute name="Tags" >
+        <attribute name="Tags">
             <string value="NoScaleY" />
         </attribute>
     </element>
@@ -680,116 +695,116 @@
         <attribute name="Image Rect" value="50 5 51 6" />
         <attribute name="Border" value="0 0 0 0" />
     </element>
-	<element type="GGOAT_Collector" >
-		<attribute name="Layout Mode" value="Horizontal" />
-		<attribute name="Layout Spacing" value="4" />
+    <element type="GGOAT_Collector">
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="4" />
         <attribute name="Horiz Alignment" value="Center" />
-		<attribute name="Min Size" value="0 80" />
-		<attribute name="Max Size" value="2147483647 80" />
-		<element type="Text">
-			<attribute name="Name" value="Collect" />
-			<attribute name="Text" value="COLLECT" />
+        <attribute name="Min Size" value="0 80" />
+        <attribute name="Max Size" value="2147483647 80" />
+        <element type="Text">
+            <attribute name="Name" value="Collect" />
+            <attribute name="Text" value="COLLECT" />
             <attribute name="Font" value="Font;Fonts/aby32.xml" />
             <attribute name="Font Size" value="32" />
-			<attribute name="Color" value="0.85 0.85 0.85" />
-			<attribute name="Min Size" value="120 80" />
-			<attribute name="Max Size" value="250 80" />
-			<attribute name="Text Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
-            <attribute name="Auto Localizable" value="true" />
-            <attribute name="Tags" >
-                <string value="NoScaleX" />
-            </attribute>
-		</element>
-		<element>
-			<attribute name="Name" value="Item" />
-			<attribute name="Min Size" value="80 80" />
-			<attribute name="Max Size" value="80 80" />
-			<attribute name="Vert Alignment" value="Center" />
-			<element type="BorderImage">
-				<attribute name="Horiz Alignment" value="Center" />
-				<attribute name="Vert Alignment" value="Center" />
-				<element type="Text">
-					<attribute name="Name" value="ElapsedQty" />
-					<attribute name="Text" value="" />
-                    <attribute name="Font" value="Font;Fonts/aby32.xml" />
-    				<attribute name="Font Size" value="32" />
-					<attribute name="Color" value="1 0.3 0.3" />
-					<attribute name="Min Size" value="80 80" />
-					<attribute name="Max Size" value="80 80" />
-					<attribute name="Text Alignment" value="Right" />
-					<attribute name="Vert Alignment" value="Center" />
-				</element>
-			</element>
-		</element>
-		<element type="Text">
-			<attribute name="Name" value="Qty" />
-			<attribute name="Text" value="x Qty" />
-            <attribute name="Font" value="Font;Fonts/aby32.xml" />
-            <attribute name="Font Size" value="32" />
-			<attribute name="Color" value="0.85 0.85 0.85" />
-            <attribute name="Min Size" value="80 80" />
-			<attribute name="Max Size" value="80 80" />
-			<attribute name="Text Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
-		</element>
-	</element>
-	<element type="GGOAT_Killer">
-		<attribute name="Layout Mode" value="Horizontal" />
-		<attribute name="Layout Spacing" value="4" />
-        <attribute name="Horiz Alignment" value="Center" />
-		<attribute name="Min Size" value="0 80" />
-		<attribute name="Max Size" value="2147483647 80" />
-		<element type="Text">
-			<attribute name="Name" value="Kill" />
-			<attribute name="Text" value="KILL" />
-            <attribute name="Font" value="Font;Fonts/aby32.xml" />
-            <attribute name="Font Size" value="32" />
-			<attribute name="Color" value="0.85 0.85 0.85" />
+            <attribute name="Color" value="0.85 0.85 0.85" />
             <attribute name="Min Size" value="120 80" />
-			<attribute name="Max Size" value="250 80" />
-			<attribute name="Text Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
+            <attribute name="Max Size" value="250 80" />
+            <attribute name="Text Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
             <attribute name="Auto Localizable" value="true" />
-            <attribute name="Tags" >
+            <attribute name="Tags">
                 <string value="NoScaleX" />
             </attribute>
-		</element>
-		<element>
-			<attribute name="Name" value="Item" />
-			<attribute name="Min Size" value="80 80" />
-			<attribute name="Max Size" value="80 80" />
-			<attribute name="Horiz Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
-			<element type="BorderImage">
-				<attribute name="Horiz Alignment" value="Center" />
-				<attribute name="Vert Alignment" value="Center" />
-				<element type="Text">
-					<attribute name="Name" value="ElapsedQty" />
-					<attribute name="Text" value="" />
+        </element>
+        <element>
+            <attribute name="Name" value="Item" />
+            <attribute name="Min Size" value="80 80" />
+            <attribute name="Max Size" value="80 80" />
+            <attribute name="Vert Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <element type="Text">
+                    <attribute name="Name" value="ElapsedQty" />
+                    <attribute name="Text" value="" />
                     <attribute name="Font" value="Font;Fonts/aby32.xml" />
-    				<attribute name="Font Size" value="32" />
-					<attribute name="Color" value="1 0.3 0.3" />
-					<attribute name="Min Size" value="80 80" />
-					<attribute name="Max Size" value="80 80" />
-					<attribute name="Text Alignment" value="Right" />
-					<attribute name="Vert Alignment" value="Center" />
-				</element>
-			</element>
-		</element>
-		<element type="Text">
-			<attribute name="Name" value="Qty" />
-			<attribute name="Text" value="x Qty" />
+                    <attribute name="Font Size" value="32" />
+                    <attribute name="Color" value="1 0.3 0.3" />
+                    <attribute name="Min Size" value="80 80" />
+                    <attribute name="Max Size" value="80 80" />
+                    <attribute name="Text Alignment" value="Right" />
+                    <attribute name="Vert Alignment" value="Center" />
+                </element>
+            </element>
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="Qty" />
+            <attribute name="Text" value="x Qty" />
             <attribute name="Font" value="Font;Fonts/aby32.xml" />
             <attribute name="Font Size" value="32" />
-			<attribute name="Color" value="0.85 0.85 0.85" />
+            <attribute name="Color" value="0.85 0.85 0.85" />
             <attribute name="Min Size" value="80 80" />
-			<attribute name="Max Size" value="80 80" />
-			<attribute name="Text Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
-		</element>
-	</element>
-    <element type="QuestButton" >
+            <attribute name="Max Size" value="80 80" />
+            <attribute name="Text Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+        </element>
+    </element>
+    <element type="GGOAT_Killer">
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="4" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Min Size" value="0 80" />
+        <attribute name="Max Size" value="2147483647 80" />
+        <element type="Text">
+            <attribute name="Name" value="Kill" />
+            <attribute name="Text" value="KILL" />
+            <attribute name="Font" value="Font;Fonts/aby32.xml" />
+            <attribute name="Font Size" value="32" />
+            <attribute name="Color" value="0.85 0.85 0.85" />
+            <attribute name="Min Size" value="120 80" />
+            <attribute name="Max Size" value="250 80" />
+            <attribute name="Text Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <attribute name="Auto Localizable" value="true" />
+            <attribute name="Tags">
+                <string value="NoScaleX" />
+            </attribute>
+        </element>
+        <element>
+            <attribute name="Name" value="Item" />
+            <attribute name="Min Size" value="80 80" />
+            <attribute name="Max Size" value="80 80" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <element type="BorderImage">
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <element type="Text">
+                    <attribute name="Name" value="ElapsedQty" />
+                    <attribute name="Text" value="" />
+                    <attribute name="Font" value="Font;Fonts/aby32.xml" />
+                    <attribute name="Font Size" value="32" />
+                    <attribute name="Color" value="1 0.3 0.3" />
+                    <attribute name="Min Size" value="80 80" />
+                    <attribute name="Max Size" value="80 80" />
+                    <attribute name="Text Alignment" value="Right" />
+                    <attribute name="Vert Alignment" value="Center" />
+                </element>
+            </element>
+        </element>
+        <element type="Text">
+            <attribute name="Name" value="Qty" />
+            <attribute name="Text" value="x Qty" />
+            <attribute name="Font" value="Font;Fonts/aby32.xml" />
+            <attribute name="Font Size" value="32" />
+            <attribute name="Color" value="0.85 0.85 0.85" />
+            <attribute name="Min Size" value="80 80" />
+            <attribute name="Max Size" value="80 80" />
+            <attribute name="Text Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+        </element>
+    </element>
+    <element type="QuestButton">
         <attribute name="Sprite" value="UI/game_equipment.xml@UIWindowEmpty" />
         <attribute name="Sprite Hover" value="UIWindowSquare" />
         <attribute name="Border" value="4 4 4 4" />
@@ -797,11 +812,11 @@
         <attribute name="Pressed Child Offset" value="-1 1" />
         <attribute name="Focus Mode" value="Focusable" />
         <attribute name="Layout Mode" value="Horizontal" />
-		<attribute name="Layout Spacing" value="4" />
+        <attribute name="Layout Spacing" value="4" />
         <attribute name="Horiz Alignment" value="Center" />
         <attribute name="Min Size" value="128 64" />
         <attribute name="Max Size" value="128 64" />
-        <element type="Text" >
+        <element type="Text">
             <attribute name="Font" value="Font;Fonts/aby22.xml" />
             <attribute name="Font Size" value="22" />
             <attribute name="Color" value="0.85 0.85 0.85" />
@@ -809,11 +824,11 @@
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Text Alignment" value="Center" />
             <attribute name="Auto Localizable" value="true" />
-            <attribute name="Tags" >
+            <attribute name="Tags">
                 <string value="NoScaleX" />
             </attribute>
         </element>
-	</element>
+    </element>
     <element type="QuestObjective">
         <attribute name="Font" value="Font;Fonts/aby22.xml" />
         <attribute name="Font Size" value="22" />
@@ -825,35 +840,35 @@
         <attribute name="Horiz Alignment" value="Center" />
         <attribute name="Auto Localizable" value="true" />
     </element>
-	<element type="Slot">
-		<element type="BorderImage">
-			<attribute name="Name" value="Image" />
-			<attribute name="Horiz Alignment" value="Center" />
-			<attribute name="Vert Alignment" value="Center" />
-			<element type="Text">
-				<attribute name="Name" value="Qty" />
+    <element type="Slot">
+        <element type="BorderImage">
+            <attribute name="Name" value="Image" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Vert Alignment" value="Center" />
+            <element type="Text">
+                <attribute name="Name" value="Qty" />
                 <attribute name="Font" value="Font;Fonts/aby22.xml" />
-    			<attribute name="Font Size" value="22" />
-				<attribute name="Color" value="0 1 0" />
-				<attribute name="Min Size" value="40 40" />
-				<attribute name="Max Size" value="40 40" />
-				<attribute name="Text Alignment" value="Center" />
-				<attribute name="Horiz Alignment" value="Right" />
-				<attribute name="Vert Alignment" value="Bottom" />
+                <attribute name="Font Size" value="22" />
+                <attribute name="Color" value="0 1 0" />
+                <attribute name="Min Size" value="40 40" />
+                <attribute name="Max Size" value="40 40" />
+                <attribute name="Text Alignment" value="Center" />
+                <attribute name="Horiz Alignment" value="Right" />
+                <attribute name="Vert Alignment" value="Bottom" />
                 <attribute name="Visible" value="false" />
-			</element>
-		</element>
-	</element>
+            </element>
+        </element>
+    </element>
     <element type="Slot60" style="BorderImage">
         <attribute name="Sprite" value="UI/game_equipment.xml@slot120" />
-		<attribute name="Horiz Alignment" value="Center" />
-		<attribute name="Vert Alignment" value="Center" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Vert Alignment" value="Center" />
         <attribute name="Size" value="60 60" />
-	</element>
+    </element>
     <element type="Slot80" style="BorderImage">
         <attribute name="Sprite" value="UI/game_equipment.xml@slot120" />
-		<attribute name="Horiz Alignment" value="Center" />
-		<attribute name="Vert Alignment" value="Center" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Vert Alignment" value="Center" />
         <attribute name="Size" value="80 80" />
-	</element>
+    </element>
 </elements>

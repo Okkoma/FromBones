@@ -500,7 +500,7 @@ int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
     viewportInfos_[viewport].viewZindex_ = viewZindex;
     viewportInfos_[viewport].layerZindex_ = viewZindex == INNERVIEW_Index ? 2 : 4;
 
-//    URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d switch to viewZ=%d viewZindex=%d !", viewport, viewZ, viewZindex);
+    URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d switch to viewZ=%d viewZindex=%d !", viewport, viewZ, viewZindex);
 
     /// Set the camera view mask
 //    unsigned viewportmask = (VIEWPORTSCROLLER_INSIDE_MASK << viewport);

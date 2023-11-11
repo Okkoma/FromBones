@@ -1,0 +1,744 @@
+@IMPORTANT 
+---------------------------------------------------------------------
+01/09/2021 par defaut le net simulateur est activé. 
+NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h 
+ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
+---------------------------------------------------------------------
+
+Todos:
+    ☐ 04/10/2021 : il faut revoir une fois de plus lorsque l'entité attaque, l'animation loop parfois encore cette fois en local. GOC_Animator2D::SetState(), GOC_Animator2D::CheckAnim()
+        -> modif dans GOC_Animator2D::CheckAnim()
+            toujours le meme pb. dur à reproduire : vu uniquement en world. En arena en mettant bcp d'entité, non reproduit.
+
+    ☐ 27/09/2021 : la collecte de collectable sur un client est bien repercuté coté server mais pas vers les autres clients.
+
+    ☐ 20/09/2021 : lors du changement d'ability sur un client, il faut le repercuter coté server autrement le server ne sera pas quelle abilité utilisée dans Player::OnFire2()
+        => 21/09/2021 : Etant donner que le Player::OnFire2() n'est plus utilisé en version Net (coté server), ce cas ne se pose plus.
+        ==> le faire neanmoins, pour assurer d'eventuels cas.
+
+    ☐ 19/09/2021 : snap initial lorsqu'un client se connecte en cours de partie. Ce n'est pas nécessaire en arene. Cela le sera en World networked
+
+    ☐ 29/08/2021 : le reseau est saturé apres plusieurs suicides avec le skeleton lorsque ACTIVE_NETSIMULATELATENCYANDPACKETLOSS est activé
+        => pb avec knet ? comme pour les messages reliables ?
+        => voir pour afficher dans le DebugHud, le nombre d'ObjectControl et ObjectCommand envoyés et reçus.
+        ==> voir pour passer à SlikeNet : integration faite dans la version 1.7 d'Uhro.
+        ===> 31/08/2021 : integration faite avec FromBones : pas d'incidence sur le code de FromBones.
+        ====> Modification de SLikeNet pour activer le Latency Simulator : modification de ReliabilityLayer::ApplyNetworkSimulator et RakPeer::ApplyNetworkSimulator ... inversion de logique => _DEBUG par_RELEASE
+        =====> IMPORTANT : par defaut le net simulateur est activé. NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h la ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
+        ====> apres 3 suicides avec ACTIVE_NETSIMULATELATENCYANDPACKETLOSS, les nouvelles boneparts deviennent instables (elles se déplacent dans tout les sens) puis il y a un certain temps, elles arrivent à leur position
+        =====> en corrigeant GOC_Destroyer::HandleUpdateTime() pour permettre la destruction des bones, il n'y a plus de congestion lors du test.
+        =====> logger les stamps, verifier le nombre de paquets, verifier la gestion de la congestion par SLNet
+        ======> utilisant GameCommands::"netstate" => 25 paquets envoyés par sec => le network etant configuré à 25 fps ; apres plusieurs suicide, le nombre de paquets diminue à 1-2 par sec.
+        ======> utilisant GameCommands::"netlog" pour obtenir le LogStatistics de Connection => le nbBytesPerSec est de 25000KBytes/sec apres le 2eme suicide, la congestion a lieu apres le 3eme suicide, soit environ 35000KBytes/sec => 286MBits/s ce qui est beaucoup
+        =======> en prenant à l'envers à partir de la taille des ObjectControls : 3 suicides pour le client correspond à 3*17Bones*3+1Avatar=52 ObjectControls envoyés vers le serveur = 52 * 72 Bytes = 3744Bytes pour une frame (sans la compression)
+        =======> soit 3744Bytes*25fps=94KBytes/sec ---> on est loin de ce qui est affiché par LogStatistics => erreur dans Connection::SendRemoteEvents() les KB sont des Bytes et pas de KiloBytes
+        ========> en corrigeant/activant ACTIVE_PACKEDOBJECTCONTROL, la taille des objectcontrols passe à 48Bytes, la congestion arrive un peu apres.
+        =========> il faut logger l'envoi des objectControls et des objectCommands par seconde dans GameStatus::"netlog" -> ajouter le code dans GameNetwork::DumpObjectControls()
+        ==========> 1) limiter le nombre de traitement d'objectControls par envoi.
+        ===========> OK : 06/09/2021 -> modification de GameNetwork::HandlePlayServer_NetworkUpdate  GameNetwork::HandlePlayClient_NetworkUpdate() limite l'envoi à MAX_OBJECTCONTROLTOSEND maximum
+        ============> conséquence : plus de sacade coté des autres clients. Il faut donc limiter un maximum les Object controlés par les clients.
+        ==========> 2) les "acks" server->client sont pour le moment des objectcontrols. ils doivent être changer par une structure moins consommatrice de données pour limiter la qté de data à retourner.
+        ============> OK : 06/09/2021 -> modification de ObjectControlInfo (WriteAck et ReadAck) et modification de GameNetwork::HandlePlayClient_ReceiveClientUpdate et modifier GameNetwork::HandlePlayServer_NetworkUpdate pour recevoir et
+             envoyer les acks uniquement dans le cas du retour ACK serveur/client, ajout de GameNetwork::UpdateControlAck().
+        ==========> coté client, il faut eviter d'envoyer trop d'ObjectControl vers le serveur. C'est le serveur qui est dimensionné pour avoir le meilleur debit d'envoi.
+        ==========> 3) apres spawn des part bones ou bien drop d'items et ack du server, il faudrait reaffecter le ownership au server.
+
+    ☐ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate().
+        => si le stamp est toujours le meme pendant Xs alors deconnection du client.
+        ==> 08/09/2021 : avec SLNet, lorsque le server est deconnecté, le temps de deconnection des clients est encore plus long (30sec)
+
+    ☐ 12/08/2021 : les body parts doivent pouvoir être détruites par les differents clients
+        => OK : il suffit de modifier les attributs de ScrapsEmitter dans avatar-newskeleton.xml
+
+    ☐ 11/08/2021 : pb de spawn lors par exemple de l'explosion du skeleton ou bien d'elsarion.
+        => cf GOC_BodyExploder2D, GameNetwork::AddSpawnControl()
+        ==> le spawn multiple au meme instant entraine-t-il le debordement du spawnstamp ?
+        ===> la suppression du check localspawnstamp receivespawnstamp dans GameNetwork::AddSpawnControl() résout ce pb mais il n'y aura plus de synchro de spawnstamp
+        ====> autre solution, modifier GameNetwork::AddSpawnControl() pour admettre le spawn multiple, il faudra pouvoir ajouter la quantité.
+
+    ☐ 09/08/2021 : Adapter GOC_Portal pour accepter les Net_Player
+        => teleporter uniquement les nodes locaux, les autres clients ou serveur s'occupent des autres nodes.
+        ==> RAF : verifier avec les entités montées.
+
+    ☐ 03/07/2021 : suite à la modification du spawning effectuer coté client (le client spawn desormais toujours sans attendre la reponse du serveur),
+        le spawn d'une bombe par exemple coté client fait apparaitre le pb de "snapping" des synchronisation avec le serveur.
+        La bombe revient en arriere est prend la position du serveur avec le double de decalage (puisque latence client->serveur, puis serveur-client).
+        => il faut introduire les concepts de client prediction+server reconciliation et lag compensation pour diminuer les effets de la latence (cf. https://www.gabrielgambetta.com/lag-compensation.html)
+        ==> client prediction necessite de bufferiser les ObjectControls envoyés au serveur. Pour le moment seul le dernier objectcontrol prepared est stocké et seuls les 2 derniers objectcontrol reçus sont stockés.
+        ==> un objet spawné par le client est stocké dans GameNetwork::clientObjectControls_, le server reçoit l'ObjectControlInfo d'une part et d'une autre le spawn lui meme
+        ==> todo : de meme coté serveur ...
+        ==> il faut revoir le stamp client et le stamp serveur.
+        ==> lors du spawn, il faut verifier si l'entity qui spawn appartient à la machine.
+            Si la machine est le server, le nodeid ira dans ObjectControlInfo::serverNodeID_ autrement dans ObjectControlInfo::clientNodeID_
+            Modifier GameNetwork::AddSpawnControl() qui pour le moment spawn avec owner=0(server)
+            Le node spawné hérite le owner du node holder.
+        ==> remplacer ObjectControlInfo::owner_ par clientId_
+        ===> si un etat revient different au client, il doit corriger son etat courant en tenant compte de l'etat recu et l'extrapolant selon la latence.
+        ====> pour le moment, le serveur prend pour argent comptant les informations provenant du client. Il lui faut une méthode pour lutter contre le cheating.
+        =====> par ex : calcul des distances possibles parcourable entre chaque reception. si la distance parcourue est superieure à la distance possible calculée, il y a triche. Sauf si pouvoir de teleportation utilisé biensur.
+        ==> lag compensation va s'occuper des cas ou l'avatar coté client arrive à toucher une cible. Cette cible est à une position passée pour le client possesseur de cette entité.
+            coté client, les animations hurt doivent popper des que l'avatar touche une cible sans attendre l'approbation du serveur mais ne pas etre repetes à la reception des infos serveur. (server reconciliation)
+        ==> vérifier que tout les packets envoyés soit en message soit par ObjectControlInfo soit taggé par un stamp généré par le client emetteur.
+            Le serveur recoit les stamps de chaque client et permet de classer pour chaque client la chronologie des commandes passées.
+
+    ☐ 23/06/2021 : crash si un client meurt et drop son inventaire et qu'un autre client ramasse du stuff
+        
+
+    ☐ 08/06/2021 : en Reseau Arena si mort de l'avatar, faire un repop automatiquement au bout de 5sec (mettre un timer de repop)
+        => modifier PlayState::CheckGameLogic() => GOManager::GetNumActivePlayers() prend en compte les Players et les Net_Players alors qu'il ne faut uniquement que prendre en compte les joueurs locaux pour le mode arena
+        => l'objectif pour gagner pourra être dans un temps imparti (5min/10min...)
+        ==> Tuer le maximum de joueurs
+        ==> ou Obtenir le maximum d'un objet déterminé (exemple des bones)
+
+    ☐ 04/06/2021 : NOTE pour gagner en rapidité, les objets spawnés via GOC_Animator2D::SpawnEntity() n'ont pas tous un ObjectControl (qui permet le controle des etats d'une entité (position,animation...) via le serveur).
+        => par exemple c'est le cas pour les bullets et les boules de feu. Ces objets sont gerés en LOCAL.
+        ==> pour cela il suffit de mettre dans Objects.xml l'attribut "replicateMode":0
+        ==> le spawn s'effectue sur le serveur et les clients de façon local. L'attribut de shoottarget est completé avec ObjectControl::holderinfo_::point1x_,point1y_ via envoi:ABI_AnimShooter::Use() -> reception:GOC_Controller::Update()
+
+    ☐ 22/08/2019 :
+        -> GOC_Inventory : lors du drop d'un player sur un client, mettre à jour l'inventaire coté serveur du joueur
+        --> car sinon impossibilité du GetSlot si l'inventaire coté serveur est plein alors que celui du client non.
+        --> les DPS sont calculés sur le serveur. Donc si l'equipment n'est pas le bon les DPS envoyés vers le Client ne seront pas bons.
+        ==> 02/06/2021 : OK pour le moment ajout de GOC_Inventory::NetServerSetSlot() et modification de GameNetwork::ChangeEquipment()
+        ===> il s'agit que de l'ecrasement d'un slot d'equipment sur le server par le slot du client
+        ====> lors des procedures de chargement d'equipement coté client tel que Player::LoadStuffOnly(), il faut en informer le server qui aura également sauvegarder les inventaires de tous les clients dans ses bases.
+
+    ☐ 17/10/2019 : Crash du serveur lorsque l'avatar server meurt et que le client recupere des obj de l'inventaire dropper.
+        -> Crash Coté Server dans ou après Player::OnServerGetCollectable
+        --> dans Equipment::UpdateAttributes() : la money passe en index=0 ce qui fait planter la procedure qui recherche sur index-1 -> correctif interdit index=0
+        -> Boucle infinie coté client après correctif sur serveur apres Player::OnGetCollectable()
+        --> dans GOC_Collectable::TransferSlotTo() : ajout d'un break en cas ou Slot::TransferTo() retourne une quantity nulle
+        ---> les objets et quantités de money ne sont pas identiques avec ceux de l'inventaire initial du player mort.
+        ----> 18/10/2019 : verifier l'inventaire dropper à la mort du player et verifier la recuperation de chaque collectable.
+
+    ☐ 08/10/2019 : la force d'impact à produire lorsqu'une entité est touché est differente entre le client attaquant et les autres à cause de l'equipment
+        -> voire pour repliquer la valeur de cette force ou bien tout l'equipment.
+
+    ☐ 26/09/2019 : probleme lors du spawn du grapin en reseau. L'ancienne chaine est parfois toujours attachée ...
+        -> Vérifier le code dans GameNetwork::HandleObjectControlHolderChanged()
+
+    ☐ 19/08/2019 : le marchand coté client n'est pas un actor donc ne peut pas intéragir avec le joueur.
+        -> voir pour l'ajout d'actor avec ObjectPool via le network
+
+    ☐ 18/08/2019 : Comment assurer la corrélation entre les numeros d'entités, les maps en mémoires sur l'ensemble des clients connectés avec le serveur
+
+    ☐ CharacterMapping:
+        --> envoyer un RemoteEvent des changements d'equipment ou bien via ObjectControl => OK, en cours
+        --> 19/08/2019 : lors du pop coté clients d'entités à synchroniser avec le serveur, le charactermapping n'est pas communiqué.
+
+    ☐ GOB_MountOn : l'entité portée ne doit pas avoir de mouvement relatif / entité porteuse
+        -> ajouter idparentnode dans ObjectControl ou bien RemoteSendEvent
+
+    ☐ affichage du mauvais avatar pour les seconds joueurs locaux
+    
+    
+Archive:
+
+    ✔ 27/09/2021 : parfois l'animation attack de l'ours est repeté 2x sur un client foreign.
+        => cela pourrait occasionner des problemes si attack avec un spawn d'entité. Ce n'est pas le cas pour power2 de mirubil.
+        ==> verifier AnimatorTemplate_Attacker (utiliser par loup, ours, bitroll, goblin, karotos, lizard, merchant, shuktuk), vu aussi sur l'avatar-lizard
+        ==> verifier si pas de doublon entre l'application du state buttons et application de l'animstate
+        ===> les logs font apparaitre que GOC_Animator2D::ChangeAnimation() est sollicité une fois par GameNetwork::UpdateControl pour le passage au state Attack
+            puis une fois par l'update local en state Idle puis encore par GameNetwork::UpdateControl pour le passage au state Attack une nouvelle fois.
+        ====> il faut pouvoir tester s'il s'agit d'un nouveau changement d'animation. Ou bien simplement la continuité du state courant.
+        =====> stocker le dernier etat appliqué par GameNetwork::UpdateControl() et tester.
+        ======> ne permet plus d'utiliser les animations switchable (tickdelay).
+        =====> il faut mettre un id pour chaque changement d'anim. (un peu comme pour les spawn)
+        ======> si l'anim id reçu est identique au dernier id utilisé alors ne pas changer d'animation.
+        =======> l'affectation de l'anim id doit se faire par GameNetwork::PrepareControl() et dans GOC_Animator2D
+        ========> remplacement de ObjectControl::states_.spawnmode_ par flag_ (bitflag) le bit0 correspondant au spawnmode et le bit1 à l'animation changed
+        ========> modifier ObjectControl::states_.animation_ par unsigned char ObjectControl::states_.animstateindex_ (template animation state index) et unsigned char ObjectControl::states_.animindex_ (animatedsprite (sprite) index)
+        =========> 30/09/2021 : OK modification de GOC_Animator2D::SetStateSilent() et remplacement par GOC_Animator2D::SetNetState().
+        =========> RAF : Tester si le state courant peut etre interrompu par le nouveau state. (attack -> walk normal non possible). Autrement certaines animations seront interrompues avant leur terme.
+        ==========> OK ajout de AnimatorState::CanTransitToState()
+        ===========> 01/09/2021 : OK gestion conforme des SwitchableAnimation notamment.
+
+    ✔ 06/09/2021 : il faut finir les modifications de Spawn des ObjectControls => RAF le grapin avec le holderinfo.
+        => le spawn des bombes se déroule
+        ==> en local avec le clavier GOC_Animator2D => en net => GameNetwork::UpdateControl => ChangeAnimation => spawn par GOC_Animator2D qui utilise alors static Ability::Use(),
+            le principe des SpawnControl est respecté : le spawn d'entity est toujours effectué localement sur chaque client puis à la reception des ObjectControl, la synchronisation des positions, states s'effectue.
+        ==> en local avec la souris Ability::UseAtPoint() => en net il n'y a pas de state transmis qui permet le spawn dans GameNetwork::UpdateControl
+        ===> il peut y avoir un probleme de coherence de spawn (local/net), si changement de l'animation avant le spawn soit coté local, soit coté net.
+        => le spawn des autres abilités (sauf bombe) se déroule
+        ==> en local, utilisation de la souris pour spawner (Player::HandleClic() => Ability::UseAtPoint()) uniquement local non transmise par le net
+        ==> en local, utilisation de la touche action pour spawner (Player::OnFire2() => Ability::Use()) transmis via le net par le state ObjectControl::states_::buttons_ de l'avatar
+        ==> seul le server connait l'abilité active, donc pas de spawn sur les autres clients
+        ===> à la reception de l'ObjectControl, il faudrait realiser le spawn : ajouter ce cas dans GameNetwork::HandlePlayServer_ReceiveUpdate() et GameNetwork::HandlePlayClient_ReceiveServerUpdate() => voir les consequences avec les controllables et les bombes.
+        ===> modification et unification de static Ability::Use() qui est utilisé dans GameNetwork::NetAddEntity() -> World2D::NetSpawnEntity().
+        ====> RAF la lame spawn bien, mais la faction n'est pas la bonne.
+        ====> 17/09/2021 : OK Correctif dans GOC_PhysicsGrapin::HandleRoofCollision() pour eviter la creation d'un autre spawncontrol
+        =====> de client => server OK mais client => server => other client pas de spawn
+        =====> avec un server et deux clients => double spawn des bombes.
+        ======> il s'agit du probleme classique si le principe du SpawnControl n'est pas respecté.
+        =======> si GOC_Animator2D est utilisé pour le spawn, il ne faudrait jamais spawner via GameNetwork::NetAddEntity()
+        ========> Si le mode de spawn utilisé est "Animator" (mode à communiquer dans l'ObjectControl), le code dans GameNetwork::HandlePlayServer_ReceiveUpdate() et GameNetwork::HandlePlayClient_ReceiveServerUpdate() concernant GameNetwork::NetAddEntity() sera skippé.
+        ========> ajout de NetSpawnMode, ajout ObjectControl::states_::spawnMode_, si spawnMode_ = LOCALANDNETSPAWN alors GameNetwork::NetAddEntity() est utilisé.
+        =======> if faut absolument que
+        ========> un client qui spawn un poolnode envoit toujours un ObjectControlInfo dont le serverNodeId_=0
+        ========> le server qui spawn un poolnode envoit toujours un ObjectControlInfo dont le clientNodeId_=0
+        =========> 19/09/2021 : pas mal de correctif, ajout de GameNetwork::NetSpawnControlAlreadyUsed() mis dans GOC_Animator2D::SpawnEntity() qui permet de skipper si une entity est déjà spawnée avant le prochain network update
+            evite le double spawn pour les bombes (les bombes spawnées en local via le controle clavier)
+        ==========> faire la documentation des cas d'utilisations. voir si possibilité de simplification (pour respecter strictement le spawncontrol établi).
+        ==========> le spawn local doit etre respecté à 100% autrement sur les autres clients, lors d'un tir l'entité risque d'etre instancié trop loin de son porteur : le serveur recoit du client les coords et les met à jour avant l'envoi vers les autres clients.
+        ===========> il faut toujours passer par GOC_Animator2D
+        ===> si le changement de button n'est pas reçu car perte de packet, alors Player::OnFire2() ne sera pas appelé et il n'y aura pas spawn.
+        ====> privilègier le NetSpawn permet d'éviter ce probleme. remplacer NETSPAWNONLY à la place de LOCALANDNETSPAWN. Il faut désormais résoudre le probleme de pop trop loin du porteur.
+        =====> lors du GameNetwork::PrepareControl(), il faut skipper la maj du physic s'il s'agit d'un pop initial
+        ======> ajout de ObjectControlInfo::spawninit_ qui permet de skipper la preparation du physique avant l'envoi sur le reseau s'il s'agit du pop du spawn.
+        =======> le pop à position initiale ne fonctionne pas à tout les coups à cause des pertes de packets
+        ========> à la place de ObjectControlInfo::spawninit_ il faut toujours maintenir la position de pop initiale dans ObjectControl
+        =========> 21/09/2021 - OK : utilisation de ObjectControl::holderinfo_::point1x_ et ObjectControl::holderinfo_::point1y_ en position initiale : ajout de ObjectControlInfo::UseInitialPosition() et ObjectControlInfo::CopyPreparedPositionToInitial()
+        =========> sur client foreign, des mouvement sacadés des lames apparaissent apres plusieurs spawn
+        ==========> pour les entites qui n'ont pas de GOC_Controller, ne pas utiliser GameHelpers::SetPhysicProperties() avec le smoothtransform
+        =========> le grapin ne se decroche pas cote client foreigner entrainant une desynchro : cf GameNetwork::UpdateControl() et GOC_PhysicsGrapin
+        ==========> 22/09/2021 - OK : cela arrive quand le RemoveObject de GameNetwork passe avant le lifetime de GOC_Destroyer : ajout dans GOC_PhysicsGrapin::OnSetEnabled() si false alors detachchains et release.
+        =========> sur client foreign, parfois des lames repop en boucle, le grapin n'arrive pas à s'accroche et repop en boucle ...
+        ==========> remettre les logs dans GameNetwork : pb de desactivation des ObjectControlInfo coté server ? voir si y'a pas des doublons d'ObjectControlInfo comme c'est déjà arrivé.
+        ===========> 22/09/2021 - OK : dans GameNetwork::Client_RemoveObject() et GameNetwork::Server_RemoveObject() desactivé tous les ObjectControlInfo avec le bon nodeid (pas seulement le premier trouvé).
+        ============> RAF : pour solutionner définitivement ce probleme, il faudrait implementer un pool d'ObjectControlInfo plutot avec deux listes (active/inactive)... de plus ça limiterai le nombre d'ObjectControlInfo.
+        =====> correctif pour le spawn de bombe via clavier avec GOC_Animator2D : modification de ABIBomb::Use => spawnMode = LOCALSPAWNONLY.
+        =====> encore des pbs de decalage de spawnstamp : entre GOC_Animator->GameNetwork::AddSpawnControl() et GameNetwork::HandlePlayServer_ReceiveUpdate()
+        ======> cela peut arriver si une entity n'a pas pu etre créer du au manque dans un nodepool.
+        =======> supprimer GameNetwork::NetSpawnControlAlreadyUsed() de GOC_Animator2D::SpawnEntity() car plus nécessaire (aucun cas LOCALSPAWNONLY utilisant Player::OnFire2() - cf "network - spawncontrol function callings.txt")
+        ========> toujours des decalages : il faut trouver une compensation qui fonctionne
+        ======> dans certain cas sur server ou foreign client, le grapin ne s'accroche pas alors qu'il l'est coté client spawner.
+        =======> si GameNetwork::UpdateControl() impose une position au grapin avant qu'il ne soit accrocher (avant l'appel de GOC_PhysicsGrapin::HandleRoofCollision()) alors le grapin ne peut plus s'accrocher (se mettre en static).
+        ========> modifier GameHelpers::SetPhysicProperties() qui se fait toujours en initial dans le cas des entités sans SmoothTransform : eviter le changement de position si faible ecart.
+        ========> si il est accroché sur le client spawner, il faut qu'il le soit aussi sur le server et les autres clients. De meme s'il ne s'accroche pas coté client spawner.
+        =========> dans GOC_PhysicsGrapin::AttachOnRoof() il faut integrer le code de GOC_PhysicsGrapin::HandleRoofCollision() en trouvant de plus la collisionshape et le tileindex correspondant au point d'accroche.
+        ==========> OK ajout de World2D::GetCollisionShapeAt() et World2D::GetNearestBlockTile()
+        ==========> il reste le cas ou GameNetwork::UpdateControl() detache la corde en laissant le grapin static accroché et ensuite GameNetwork realiser un RemoveTile(), le grapin reste toujours accroché.
+        ===========> le collisionshape renvoyé dans GOC_PhysicsGrapin::HandleBreakContact() n'est peut-etre pas le meme que GOC_PhysicsGrapin::shapeInContact_.
+        ============> 25/09/2021 - OK : enregistrer une liste de collisionshape de contact lors du World2D::GetCollisionShapeAt() et donc souscrire à ces shapes pour le HandleBreakContact()
+
+    ✔ 26/09/2021 : pb lors du spawn oeuf avec mirubil car l'animation sur les clients foreign peut etre interrompue par GameNetwork::UpdateControl() avant le trigger envoyé par AnimatedSprite2D vers GOC_Animator2D pour le spawn.
+        => cela peut aussi etre le cas pour d'autres spawn d'entité via AnimatedSprite2D -> GOC_Animator2D.
+        ==> il faudrait que ce state ne puisse etre interrompu que par hurt ou dead par exemple.
+        ===> il faut tester dans GameNetwork::UpdateControl() s'il est possible de changer d'un state à un autre
+        ====> il faut tester si le state courant a un event TICKLOOP et si oui s'il est achevé
+        =====> ald faire SetStateSilent, etablir une nouvelle fonction GOC_Animator2D::SetNextStateSilent à utiliser dans GameNetwork::UpdateControl qui va permet le changement d'animation lorsque les conditions le permettent (fin du TICKLOOP ou bien instantanement si pas de tickloop)
+        ======> OK le 27/09/2021 : à verifier.
+
+    ✔ 06/09/2021 : avec SLNet verifier si la synchronisation des clients au lancement fonctionne. Il semble y avoir desormais un decalage.
+        => OK 27/09/2021 : du au packet loose, sans la simultation packet loose c'est parfait. On laisse en etat.
+
+    ✔ 06/09/2021 : avec SLNet les clients n'arrivent pas à se connecter parfois. (à cause du packet loose). Il faut remedier à cela.
+        => cf GameNetwork::HandleSearchServer()
+        ==> OK 27/09/2021 : augmentation du delai de connection au server. NET_DELAYCHECKCONNECTION et NET_DELAYCONNECTSERVER
+
+    ✔ 06/09/2021 : apres plusieurs suicides d'un avatar, l'avatar a des mouvements de plus en plus sacadés sur les autres clients car les informations n'arrivent plus avec le meme fps (il s'agit de l'effet de la limitation du nombre d'objetcontrol par envoi precedement realisé)
+        => il faut compenser ces sacades par une simulation locale du mouvement : dans ce cas il faut que GOC_Move2D::IsPhysicEnable() soit vrai.
+        => les GOC_Move2D::SetPhysicEnable(false) sont commentés.
+        ==> les sacades sont presentes si NET_DEFAULT_LOSTPACKET > 0 avec NET_DEFAULT_UPDATEFPS=20fps
+        ===> il faut verifier si les velocités sont correctes (peut-etre qu'il faut l'impulse à la place) : creer des draw debugs pour les velocités. les velocités sont bien présentes.
+        ==> avec NET_DEFAULT_UPDATEFPS=1fps et NET_DEFAULT_LOSTPACKET=0 montre bien que la simulation physique est activé (l'entité n'est soumise qu'à la gravité)
+        ===> le probleme provient de SmoothTransform. Si il est desactivé la simulation locale se fait (certes avec de mauvais resultat ... à améliorer)
+        ====> modification de Urho3D::SmoothedTransform et GameHelpers::SetPhysicProperties() pour eviter que le smoothing continue sans arret (secousse incessante de l'entité)
+        =====> Toujours des pbs de secousse : voir si c'est du à un pb avec la simulation physique locale (GOC_Move2D) : ACTIVE_NETWORK_LOCALPHYSICSIMULATION_MAINONLY active de la simulation local que pour les maincontroller.
+        ======> Les buttons n'etaient pas setté sur le server si le button=0. Le server utilisait GOC_Controller::Update() en mode non forcé => il faut le forcer.
+        =====> GOC_Move2D::SetPhysicEnable() suppression de l'activation/desactivation du SmoothTransform en fonction du GOC_Move2D::physicsEnable_
+        ==> avec 10fps avec smoothtransform et sans perte de packet, les resultats sont pas mal.
+        ===> avec perte de packet, la simulation va prendre le relai apres le smoothing mais cela donne pas mal de saccades ...
+        ====> activer ACTIVE_NETWORK_LOCALPHYSICSIMULATION_MAINONLY pour ne plus simuler avec les buttons et utiliser la simulation par les velocités GOC_Controller::HandleNetUpdate ACTIVE_NETWORK_LOCALPHYSICSIMULATION_VELOCITY_NONMAIN
+        =====> ne donne pas de bon resultat avec un fps > 5
+        ===> reduction de NET_DEFAULT_SMOOTHTHRESHOLD à 0.001, les saccades sont reduites.
+        ====> desactiver ACTIVE_NETWORK_LOCALPHYSICSIMULATION_BUTTON_MAINONLY (=utilisation de la simulation physique button pour tout les controllers) et desactiver ACTIVE_NETWORK_LOCALPHYSICSIMULATION_VELOCITY_NONMAIN (=ne pas utiliser la simulation locale par les velocités)
+        =====> ajout de la coherence entre velocité et positionnement dans GameHelpers::SetPhysicProperties() pour limiter les saccades : les velocités sont la reference.
+        ======> 14/09/2021 : OK les resultats sont beaucoup moins saccadés avec 15fps et 25% packetloose
+        ======> pour améliorer encore, il faudrait pouvoir lissé le mouvement lorsque les velocités sont discontinues.
+
+    ✔ 01/09/2021 : avec SLNet, les clients crashent lorsque le serveur est déconnecté.
+        ==> voir Connection et Network::Start et Network::Stop et reprendre exactement la meme logique qu'avec Urho3D-kNet.
+        ===> le probleme se situe dans Urho3D::Network::Update() qui a besoin de rakPeer_ or celui-ci est supprimé après l'appel de Urho3D::Network::HandleIncomingPacket() => Urho3D::Network::OnServerDisconnected() => GameNetwork::HandleConnectionStatus() => GameNetwork::StartLocal() => GameNetwork::Stop() => Urho3D::Network::Stop()
+        ====> OK : Patch de Urho3D::Network::Update()
+
+    ✔ 06/09/2021 : pb avec les effets de poussieres sur les Entités qui ne sont pas local du client et qui sont sur passerelles : l'effet dust spawn en permanence.
+        => c'est surement du à la mise à jour des positions en continue.
+        ==> cf GameNetwork::UpdateControl(), ce n'est pas le cas. Sollicitations en continue de GOC_Collide2D::HandleBeginContact et GOC_Collide2D::HandleEndContact(). cf Urho3D
+        ===> RigidBody2D::ApplyWorldTransform() montre que la position varie et fait decrocher l'entité du sol.
+        ===> ce probleme affecte le server puis reimpacte sur les clients
+        ====> faire un essai en mettant le body en awake=false des que le sol est touché.
+        =====> correctif de Urho3D::RigidBody2D::SetAwake() et ajout dans GOC_Collide2D::AddWallContact2D (meilleur choix : on aurait pu le mettre aussi dans GameNetwork::UpdateControl() mais pas exactement equivalent). Toujours des pbs.
+        ======> il s'agissait de la position en y qui fluctue du aux approximation sur les float => il faut garder la position courante en y du node lorsque celui-ci est sur le sol lorsque la difference entre la nouvelle position et la position courante est faible.
+        =======> OK : modification de GameHelpers::SetPhysicProperties()
+
+    ✔ 17/08/2021 : pour solutionner le pb de l'envoi de message en reliable qui ne parviennent pas à destination, il faut tout passer par les ObjectControls
+        => coté client, dans GameNetwork::HandlePlayClient_NetworkUpdate(), en meme temps que d'envoyer le gamestatus, envoyer les infos specifiques à delivrer tel que changetile, inventory etc...
+        ==> ald d'envoyer directement via remoteevents, stocker les events à envoyer dans un buffer avec comme index le timestamp client.
+        ===> structure => HashMap<!unsigned short int, Vector<NetObjectCommand> !> GameNetwork::objectCommands_;
+        ==> le client devra envoyer les events à partir du dernier timerstamp client reçu du serveur et accusé reception du client => short unsigned GameNetwork::lastObjectTimeStamp_
+        ===> à la reception du timestamp pris en compte par le serveur, le client peut supprimer les actions déjà pris en compte par le serveur pour le prochain envoi.
+        => coté serveur, reception du timestamp client, update et renvoi vers le client avec le meme timestamp. de meme le serveur stocke dans un buffer les events à envoyer avec comme index le timestamp serveur
+        ==> la partie delicate est l'envoi à l'ensemble des clients : il va falloir un timestamp serveur et que les clients renvoient le timestamp du serveur à la reception pour prise en compte.
+        ==> le serveur envoi les infos specifiques vers chaque client.
+        ===> les autres clients comparent le nouveau timestamp serveur reçu avec le dernier timestamp server pris en compte et renvoit le timestamp serveur vers le serveur pour prise en compte.
+        ====> le serveur recoit donc deux timestamp, un client et un retour serveur.
+        => à modifier GameNetwork::Server_SendObjectCommand et GameNetwork::Client_SendObjectCommand() pour creer et stocker les NetObjectCommand dans GameNetwork::objectCommands_.
+        ==> 27/08/2021 : pb avec GameNetwork::HandlePlayServer_ReceiveUpdate() lors de la reception/copie coté server d'un ObjectCommand client => ok oublie d'ajouter de newObjectCommands_ = true
+        ===> OK : 29/08/2021 - A Verifier avec toutes les commandes.
+
+    ✔ 15/08/2021 : le changement d'un slot d'equipment sur un client n'est pas pris en compte sur le serveur. (le load equipment ok)
+        => OK : correctif dans la logique de GOC_Inventory::LocalEquipSlotOn()
+        ==> Il faut maintenant solutionner le pb de message reliable qui n'arrive pas à destination
+        => manque l'implementation du remove item
+        ==> OK : modification de GOC_Inventory::NetServerSetSlot permettant de traiter le cas ou le type est nul.
+
+    ✔ 11/08/2021 : pb animation avec hurt
+        => 15/08/2021 : revision de la strategie : la simulation doit etre realisée des 2 cotés clients et server. En local, le State Hurt est appliqué directement => Le state Hurt provenant du network ne doit pas etre appliqué.
+            Cela permet coté joueur d'avoir l'impression d'avoir touché. les dps sont toujours conserver du coté serveur (autoritatif)
+        ==> OK : Modification de GameNetwork::UpdateControl(), Modification de GOC_Life::ReceiveEffectFrom() pour enlever la tempo
+        ===> le pb c'est les equipments qui ne sont pas repliqués (les valeurs de defense et d'attaque ne seront pas les memes entre client owner et les autres clients)
+
+    ✔ 13/08/2021 : pb si le serveur est lancé et que tous les clients ne sont pas connectés
+        => avant les modifications d'aout, il etait possible qu'un nouvel avatar arrivé d'un nouveau connecté (après le spawn des premiers clients), fonctionne bien sur les autres clients (comme sur les MMO)
+        ==> solution 1 : laisser tel quel car cela correspond au fonctionnement de base d'un jeu en arene pvp, il faudrait creer une UI "salle d'attente".
+        ==> solution 2 : remodifier pour avoir le meme comportement avant aout cad type MMO
+        ===> Reserver sur tous les serveurs et clients la meme plage de nodeid pour les avatars des joueurs.
+        ====> par clientid reserver MAX_NUMPLAYERS nodes locaux => nodes à reserver = GameStatus::MAX_NUMPLAYERS*GameStatus::MAX_NUMNETPLAYERS
+        =====> OK : ajout de GameStatus::ReserveAvatarNodes(), modification ClientInfo::CreateAvatarFor & PlayState::SetPlayers() et suppression du code specifique à PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS (plus nécessaire)
+
+    ✔ 09/08/2021 : le suicide (la mort et respawn d'un player) ne fonctionne pas correctement.
+        => à la mort du player, l'animation dead n'est pas joué coté serveur. il n'y a pas de mort de l'avatar chez les autres clients.
+        => la reactivation passe par le changement de gamestatus PLAYSTATE_STARTGAME sur le client et envoi au serveur qui reactive le player, mais le client continue d'envoyer le status
+        ==> voir coté serveur GameNetwork::HandleServer_MessagesFromClient
+        ===> modification mineure dans GameNetwork::HandlePlayClient_ReceiveClientUpdate pour envoyer le gamestatus PLAYSTATE_RUNNING apres reception de la bonne prise en compte par le serveur.
+        ====> encore certains problemes apres repop sur le serveur.
+        ====> lorsque le clic sur la messagebox de repop coté client est fait avant que le serveur n'ait stopper le player, alors repop coté client et du coté serveur le player est stoppé et l'avatar disparait.
+        =====> soit temporiser pour le clic que le serveur ait bien stopper le player.
+        =====> soit modifier pour que le stop player coté serveur soit realiser des que l'avatar meurt (ce qui est plus logique)
+        ======> modifier Player::OnDead(), supprimer l'envoi/reception/accuséreception de gamestatus PLAYSTATE_ENDGAME
+        =======> attendre la fin de l'animation Dead pour stopper le player : modification de GOC_Animator2D::ToDestroy(),
+        ========> GOC_Animator2D::ToDestroy() envoi directement GO_DESTROY -> Player::OnAvatarDestroy() -> GameNetwork::Get()->Server_SetActivePlayer() -> Player::Stop()
+        ========> apres un changement d'avatar vers Petite ou Elsarion, coté serveur le processus ne parvient plus à GOC_Animator2D::ToDestroy()
+        =========> OK : modification de GameNetwork::UpdateControl() pour eviter de passer du STATE_DEAD vers STATE_EXPLODE sinon GOC_Animator2D reste bloquer sur STATE_DEAD et ne peut parvenir à GOC_Animator2D::ToDestroy()
+        =======> l'envoi du gamestate en message reliable (voir aussi pour les changetiles) est parfois tres long voir non realisé (bug coté kNet ?), du coup le respawn du player coté serveur peut aller
+            jusqu'à plusieurs secondes (5-6sec)
+        ========> OK : lorsque le jeu est en PlayState, obtenir le gamestate du client via GameNetwork::HandlePlayServer_ReceiveUpdate()
+
+    ==> 14/08/2021 : apres suicide et respawn, l'avatar du coté des autres clients et server n'a pas les physic colliders actif. Le probleme est regler en changeant d'avatar.
+        => verifier la reactivation sur les autres clients et server.
+        ==> OK : modification de GameHelpers::SetPhysicFlipX() pour ne plus utiliser RigidBody::GetCollisionShapes() qui ne retourne que les shapes actives attachées au body.
+            car dans notre cas GOC_Animator2D::physicFlipX_ doit être remis à false lors de GOC_Animator2D::Stop() et il faut donc utiliser GameHelpers::SetPhysicFlipX() alors que les shapes sont inactives.
+        ===> Elsarion n'apparait pas contrairement aux autres
+        ====> GOC_BodyExploder2D::HandleWaitStateForHide desactive le RigidBody2D et le Drawable2D : il convient de toujours les reactiver
+        =====> les reactiver dans GOC_Destroyer::OnWorldEntityCreate()
+        ======> OK
+
+    ✔ 01/08/2021 : Modification majeure ObjectControl, spawncontrols
+        1) ServerSide : entity local server => objectcontrol.clientid_=0
+           OK => spawn un servernodeid GameNetwork::AddSpawnControl() et n'a pas besoin du retour client d'un clientnodeid
+        2) ClientSide : entity server (ou autre client) sur client => objectcontrol.clientid_=0 || => objectcontrol.clientid_!=clientID_
+           OK => spawn un clientnodeid GameNetwork::AddSpawnControl() et attend le retour server d'un servernodeid (GameNetwork::HandlePlayClient_ReceiveServerUpdate)
+        3) ClientSide : entity local client => objectcontrol.clientid_=clientID_
+            => spawn un clientnodeid GameNetwork::AddSpawnControl() et attend le retour server d'un servernodeid (GameNetwork::HandlePlayClient_ReceiveClientUpdate)
+        4) ServerSide : entity client sur server => objectcontrol.clientid_!=0
+            => spawn un servernodeid GameNetwork::AddSpawnControl() et attend le retour client d'un clientnodeid (GameNetwork::HandlePlayServer_ReceiveUpdate)
+        5) pb de desynchronisation à cause du spawnstamp 
+        => si le serveur ne spawn pas une entity pour une quelconque raison, il faut s'assurer que le spawnstamp coté serveur soit synchrone avec le client.
+        ==> 08/08/2021 : OK : ajout de receivedSpawnStamps_ et localSpawnStamps_ qui permet de maintenir un etat synchone du spawnstamp
+        6) pb avec ObjectControlInfo::active_ et ObjectControl::states_::enable_
+        => revision de la strategie
+        ==> ObjectControlInfo::active_ est true à la creation d'une entity. ObjectControlInfo::active_ est false à sa destruction.
+        ===> aucune reactivation possible via le circuit réseau des ObjectControls
+        ===> pour réactiver il faut envoyer une commande réseau
+        ==> ObjectControl::states_::enable_ s'effectue sur le client maincontroller et est répercuté sur le réseau.
+
+    ✔ 23/06/2021 : avec plusieurs clients, l'ensemble des server/clients se mettent à ralentir lorsque l'un des clients pop un oeuf mirubil.
+        => pas reussi à reproduire ce bug en mode net local, mettre ACTIVE_NETSIMULATELATENCYANDPACKETLOSS on
+        ==> reussi à le reproduire mais non systematiquement,
+        ===> En cas de perte de packet il faut etre sur que coté des autres clients cela popera.
+        ====> l'oeuf mirubil comme tout autre objet replicated est spawné directement sur serveur ou client maincontrolled. (tout au moins pour le spawn via GOC_Animator2D::SpawnEntity)
+        =====> il serait interessant de pouvoir spawner directement sur tout client egalement (mais pose surement le probleme de changement de nodeid). ce serait bien aussi pour GOC_BodyExploder2D et le drop item.
+        =====> 1) tous les clients et le server spawnent tout d'abord en LOCAL
+        ======> sur les clients, les ObjectControl necessitant une replication seront stockés dans la table temporaire clientSpawnControls_
+        ======> sur serveur et clients, ObjectControl::states_.stamp_ est incrementé (voir comment les stocker ? sur l'ObjectControl du parent ?).
+        =====> 2) pour une entity replicated, le server envoie à tous les clients le nodeid attribué ainsi que les infos pour la traçabilité tel que le type d'objet, le node "parent" et l'objectStamp
+        ======> le node "parent" est l'entity qui a spawné le nouvel objet, l'objectStamp est un int permettant de faire la correspondance du nouvel objet entre le serveur et le client.
+        ======> ces infos doivent etre maintenu dans l'ObjectControl
+        ======> le state ObjectControl::states_.idle_ devient ObjectControl::states_.enable_ et ajout de ObjectControl::states_.stamp_, ObjectControl::holderinfo_.id_ sera utilisé pour indiquer le node parent.
+        =======> à la reception d'un ObjectControl server par un client, le client verifie dans clientSpawnControls_.
+        ========> Si l'ObjectControl reçu correspond à une entrée dans clientSpawnControls_ (ObjectControl::states_.stamp_, ObjectControl::holderinfo_.id_)
+        =========> l'entrée est supprimé de clientSpawnControls_ et le lien est établit entre le nodeid server et le nodeid local (evitant le ChangeID). L'entrée est également supprimé lors de la destruction du node.
+        ==========> ajouter clientNodeID_ dans ObjectControlInfo
+        ========> Sinon celui-ci est ignoré.
+
+    ✔ 22/06/2021 : le changeEntity de petite lorsque changement d'avatar durant la nuit n'est effectif que sur le client main et le serveur.
+        => OK : modification de GOC_Animator2D::ChangeEntity (les clients nonmain n'ont pas pas de currentTemplate)
+
+    ✔ 22/06/2021 : apres la mort d'un client et son repop, il ne perd plus de vie
+        => pb coté serveur : au repop les collisionshapes de l'avatar n'ont pas les memes maskbits que celles du pop initial.
+        ==> en changeant de viewZ, il n'y a plus de pb.
+        ===> OK : dans Player::Start() ajout de GOC_Destroyer::UpdateFilterBits()
+        ====> RAF : voir si une autre solution est preferable (mettre dans Actor::Start() ... ou en amont dans GOC_Destroyer ...)
+
+    ✔ 08/06/2021 : utilisation de la potion de soin ne fonctionne pas sur les clients
+        => etant donné que seul le serveur permet la modification du state energie/pdv,
+        ==> dans ce cas, le client doit pouvoir utiliser l'effet immediatement et envoyer au serveur l'utilisation d'un objet
+        ===> la mise à jour du state (pdv dans le cas de la potion), ne reprendra qu'apres envoi d'une confirmation par le serveur. Si le serveur n'envoit pas de confirmation au bout d'un certain délai, la mise à jour sera débloquer.
+        ===> cf UISlotPanel::HandleSlotDragEnd -> GOC_ZoneEffect::HandleContact -> EffectsManager::AddEffectOn -> EffectsManager::ApplyEffectOn -> GOC_Life::ReceiveEffectFrom ... GOC_Controller::Update,
+        ====> dans GOC_ZoneEffect::HandleContact il faut si CLIENTMODE setter une propriété permettant la modification du comportement dans GOC_Life::ReceiveEffectFrom et GOC_Controller::Update et l'envoi d'un event vers le server.
+        =====> de façon générale, tout item retiré de l'inventaire doit faire l'objet d'un event vers server.
+        =====> OK : il reste à initialiser coté serveur l'inventaire en cas de LoadStuffOnly.
+        ======> 17/06/2021 - RAF : dans Player::LoadStuffOnly() obtenir le bon savedPlayerFile_ pour le serveur correspondant au bon player coté Client
+
+    ✔ 22/06/2021 : resoudre le pb de synchronization serveur/clients au lancement du mode arena.
+        => cf PlayState::HandleInitialize, GameNetwork::HandleClient_MessagesFromServer et GameNetwork::HandleServer_MessagesFromClient
+        ==> OK modification de GameNetwork::HandleClient_MessagesFromServer et ajout de GameNetwork::serverGameStatus_ utilisé en mode client.
+
+    ✔ 21/06/2021 : les entity ne subissent plus les degats en regard de la barre de vie.
+        => OK correctif dans GameNetwork::UpdateControl() pour permettre l'update des GOC_Controller meme si idle
+
+    ✔ 08/06/2021 : lorsque le serveur est supprimé, les clients se relancent en mode local mais les avatars des autres clients pop aussi.
+        => sans changer d'avatar sur les clients, il n'y a pas de probleme. Verifier le change avatar coté client.
+        ==> lors du change avatar, l'avatar est detruit. cela provient de GameNetwork::ChangeObjectControlIdleState(ObjectControlInfo& cinfo) si le state est enable=false => send de WORLD_ENTITYDESTROY.
+        ===> Il n'y a alors plus de subscriber pour un nouveau WORLD_ENTITYDESTROY.
+        ===> Correctif OK : ne pas envoyer WORLD_ENTITYDESTROY.
+        ====> pb pour la destruction des Lames et des Bombs : possibilité de laisser activer le LifeTimer de GOC_Destroyer (cf World2D::NetSpawnEntity) => ok pour les Lames mais pas pour les Bombs qui n'ont pas de LifeTimer
+            Les Bombs sont detruites suivant la succession d'Etats state_use -> state_dead -> state_destroy => verifier l'utilisation de GOC_Animator2D::ToDestroy() sur les autres clients.
+        =====> GOC_Animator2D::ToDestroy() OK sur les autres clients.
+        ======> Au bout d'un moment les Bombs ne pop plus sur le serveur et les autres clients => verifier avec une ancienne version => aucun pb avec la version du 31/05,
+        =======> voir si seules les modifications dans GameNetwork::ChangeObjectControlIdleState() ont impactées les bombes.
+        ========> en envoyant le WORLD_ENTITYDESTROY dans GameNetwork::ChangeObjectControlIdleState il n'y a plus de probleme donc dilemme
+        =========> modifier le change avatar et laisser le WORLD_ENTITYDESTROY ?
+        ===========> le state idle ne doit pas etre utilisé pour detruire ... trouver un correctif pour les bombes et enlever le WORLD_ENTITYDESTROY
+        ============> 21/06/2021 : OK à la place du idle, utilisation le totaldpsreceived
+
+    ✔ 14/06/2021 : Apres avoir supprimer le serveur, essayer de spawner des lances => crash
+        => apres suppression du serveur, les clients n'ont plus de network
+        ==> Crash dans GOC_Animator2D::SpawnEntity
+        ===> Correctif OK !
+
+    ✔ 08/06/2021 : Lorsque l'avatar d'un joueur (client) est touché par un monstre, coté serveur l'avatar semble bloqué quelque temps alors que du coté de ce joueur (client), l'avatar répond bien.
+         pendant ce temps de bloquage coté serveur l'avatar se fait taper et perd de la vie.
+        => Test réalisé avec le pop d'un Elsarion par Mirubil et attaque de celui-ci par un joueur.
+        ==> le client gérant la position, il faut verifier ce qui empeche l'update de cette position coté serveur.
+        ===> cf. GOC_Controller::Update(const ObjectControlInfo& info) avec le bloquage pour le STATE_HURT.
+        ====> OK modification de GOC_Controller::Update pour permettre le déplacement.
+
+    ✔ 03/06/2021 : pb de SpawnEntity avec l'Oeuf de Mirubil puis Spawn d'Elsarion
+        ==> verifier les coordonnees de pop d'Elsarion ... il semble être détruit des le spawn (sa position ne serait pas setter ?)
+        ===> OK : correctif dans GameNetwork::ChangeObjectControlIdleState() => priorité au NetSpawnEntity
+        ===> OK : Correctif dans GameNetwork::HandlePlayServer_ReceiveUpdate => creer le bon ObjectControl coté serveur lorsque le spawn d'entité serveur est demandé par un client.
+        ===> OK : durant le World2D::NetSpawnEntity il faut bien mettre GOC_Move2D::SetPhysicEnable() à false pour permettre à l'entité d'être déplacé par les datas provenant du serveur.
+
+    ✔ 03/06/2021 : les Effects et leurs ticks ne semblent pas reproductibles coté clients.
+        => OK : erreur avec angle (NaN value) dans EffectsManager::ApplyEffectOn => si nan mettre angle à 0.f
+        => OK : modification GOC_Life::ReceiveEffectFrom pour permettre aux NetPlayers de s'attaquer.
+
+    ✔ 13/08/2019 : ajouter les modifications de map (WALLBREAKER WALLBUILDER) en reseau
+        => 05/06/2021 : OK ajout de GameNetwork::ChangeTile et NetCommand::CHANGETILE
+        ==> OK : envoi de l'event ObjecCommand(CHANGETILE) dans ABI_WallBreaker et ABI_WallBuilder
+
+    ✔ 03/06/2021 : pb de spawn directionnel avec la lance ou bien le pistolet
+        ==> la lance est REPLICATED : spawné via GameNetwork::ChangeObjectControlIdleState() -> World2D::NetSpawnEntity()
+        ==> la bullet ne l'est pas : spawné via GOC_Animator2D::SpawnEntity()
+        ===> le spawnAngle_ si utilisation de la souris est setté par GOC_Animator2D::SetShootTarget() dans ABI_AnimShooter::Use()
+        ===> cet angle n'est pas transmis par le reseau.
+        ====> voir pour le transmettre via ObjectControl.holderinfo_.point1x_, ObjectControl.holderinfo_.point1y_
+        =====> lors du changement de ObjectControl.states_.animation_ vers STATE_SHOOT, utiliser GOC_Animator2D::SetShootTarget(Vector2(ObjectControl.holderinfo_.point1x_, ObjectControl.holderinfo_.point1y_))
+        ======> Setting de ObjectControl.holderinfo_.point1x_, ObjectControl.holderinfo_.point1y_ dans ABI_AnimShooter::Use().
+        =======> OK pour l'orientation de la lance qui est replicated. RAF le flipX est mauvais si l'angle est sup à 90° et la lance fait des degats au lanceur.
+        ========> voir pour recalquer GOC_Animator2D::SpawnEntity() dans World2D::NetSpawnEntity()
+        =========> OK : correctif dans GameNetwork::PrepareControl() d'une erreur sur l'obtention de la direction via Variant (Float remplacé par Vector2) et modification de World2D::NetSpawnEntity()
+        =======> pour la bullet qui n'est pas replicated ... il faut que GOC_Animator2D prenne en compte (si NetWorked) le Vector2(ObjectControl.holderinfo_.point1x_, ObjectControl.holderinfo_.point1y_) transmis.
+        ========> OK modification de GOC_Controller::Update(const ObjectControlInfo& info) qui met à jour les composants apres reception via le Net de cette donnée.
+        =====> 04/06/2021 : OK la lance set remise en non repliqué (local) afin d'éviter les problemes de collision/stick
+
+    ✔ 03/06/2021 : la pluie n'est pas synchrone => vérifier WeatherManager::SetRainTime()
+        => OK : Remplacer le Random par GameRand
+
+    ✔ 23/10/2019 : l'avatar du server n'apparait pas sur certains clients
+        -> il n'y avait plus de reservation de node pour les avatars et donc un node utilisé pour un particule effect prenait la place du nodeid de l'avatar du server.
+        --> solution1 : reservation des nodes lors du PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS => cela ne fonctionne qu'une fois au chargement !
+        ---> OK : modification de GameNetwork::HandlePlayClient_ReceiveServerUpdate() et les clients auront toujours le SetEnabledServerObjectControls(true)
+        --> solution2 : s'assurer que tous les nodes soit dans des pools (donc numeros deja reservés et alloués)
+        ---> modification des GameHelpers::SpawnParticleEffect et autre pour utiliser des pools.
+
+    ✔ 22/10/2019 : les entity spawné comme le ghost vampire ne sont pas bien flippé. Ceci apparait depuis les modifications apportées coté réseau septembre 2019.
+        => OK : reapplication de l'ancien code anterieur au 26/09/2019 dans GameHelpers::SetPhysicProperties() pour assurer le flipx si direction inf à 0
+        ==> pb de nouveau sur churros, vampire ... cf correctif du 26/09/2019
+        ===> OK : reapplication du code du 26/09/2019 et modification dans GOC_Animator2D::SpawnEntity
+
+    ✔ 23/10/2019 : les bullets ne doivent pas etre controlés via le reseau car trop lent.
+        -> OK : Simplement changer le replicatedmode dans Data/Objects/Objects.json
+
+    ✔ 22/10/2019 : Les bullets ne semblent plus fonctionner en reseau. Les premieres sont bien spawnées.
+        -> OK : le probleme est dans GameNetwork::Server_RemoveObject() qui reset le cinfo.node_
+           ce qui empeche GameNetwork::Server_PrepareObjectControlsMessages() d'envoyer l'objectcontrol sur le reseau.
+
+    ✔ 19/08/2019 : pb d'affichage des equipments (dimension des épées) coté client ou serveur apres un add equipment transmis via le network.
+        -> cf GOC_Inventory::EquipSlotOn(Node* node)
+        --> OK 22/10/2019 : Utiliser pour les slots armes AnimatedSprite2D::SwapSprites(keepProportion=true)
+
+    ✔ 15/10/2019 : lors du pop d'un client, les monstres detruits sur le serveur sont quand meme spawnés.
+        -> pour cela desactiver simplement dans Map::SetEntities_Add la creation des entités dynamiques en ClientMode.
+        --> les entités apparaissent alors en position ZERO et non pas de charactermap appliqué.
+        --> desactiver les entités simplement et attendre le serveur : modifier Map::SetVisibleEntities pour prendre en compte le GameNetwork
+        ---> 16/10/2019 : OK !
+
+    ✔ 15/10/2019 : Mettre les bombes en GO_Pools.
+        -> OK : ajout dans Ability de ABIBomb + modification GOC_Animator2D::SpawnEntity() + ajout de l'ability dans avatar-junkelspil.xml + modif junkelspil.scml pour modifier le Trigger par Entity_ABIBomb ald Entity_Bomb
+
+    ✔ 09/10/2019 : REFACTOR
+        -> reintegrer le code ajouter à URHO3D::Connection dans GameNetwork
+        -> modifier les boucles d'update network : integrer la creation du messages à envoyer directement dans GameNetwork et mettre à disposition ce buffer dans les Connections.
+        -> dissocier les boucles de send et de receive dans GameNetwork
+        --> HandlePlayServer_NetworkUpdate et HandlePlayClient_NetworkUpdate sont lancés avant l'envoi sur le reseau.
+        ---> creer le buffer commun pour tous les clients et ensuite les buffers specifiques par client.
+        --> creer HandlePlayServer_ReceiveUpdate et HandlePlayClient_ReceiveUpdate qui seront lancés après la reception.
+        ---> les controles des entités seront updatés par ces procédures.
+        -> OK le 12/10/2019 : pop des avatars
+        --> RAF : régler les pbs avec Lames et Bombes
+        ---> Lames OK
+        ---> Bombes : modification de HandlePlayServer_ReceiveUpdate pour prendre en compte le changement d'owner d'un objectcontrol.
+            Lorsqu'un objectcontrol est créé/activé sur le serveur, l'owner est 0 (serveur) ou != 0 (client) cf GameNetwork::GetOrCreateServerObjectControl()
+            Lorsqu'un objectcontrol est désactivé, l'owner revient à 0. cf GameNetwork::Server_RemoveObject() et GameNetwork::ChangeObjectControlIdleState()
+            HandlePlayServer_ReceiveUpdate exclut les messages provenant des clients qui ne sont pas propriétaires.
+        ----> Ajout de DISABLECLIENTOBJECTCONTROL pour desactiver coté client un clientObjectControl utiliser par un autre client ou bien un clientObjectControl déjà notify idle sur le serveur.
+            Ce qui permet de reduire le buffer envoyé client-> server
+            Ce message est envoyé par le serveur s'il reçoit pour chaque nodeid
+                -un owner different de celui dejà affecté (Pour changer de propriétaire, l'objectControlInfo doit déjà avoir le owner_ à 0).
+                -un meme owner avec un changement de state vers idle.
+        ----> Cette solution ne permet pas de maintenir 2 clients qui s'approprient un meme nodeid.
+            En effet, si deux clients font spawnés un node de meme ID alors le serveur donne la propriété au client dont le message est arrivé en premier.
+            Ce qui fait que sur le second client, ce node va blitter entre 2 positions. L'une controlée en local et l'autre par le serveur.
+        ----> OK le 13/10/2019 : Garder ce code et passer les bombes en GO_Pools.
+
+    ✔ 09/10/2019 : enquêter sur les messages reliable de knet. Car pas mal de probleme de non reception
+        -> il est possible que la simulation des pertes Network utilisé dans FromBones en activant ACTIVE_NETSIMULATELATENCYANDPACKETLOSS ne soit pas effective à 100% avec kNet
+        -> vérifier les sources Network::SetSimulatedLatency et Network::SetSimulatedPacketLoss
+        --> c'est pourtant gérer via Connection::ConfigureNetworkSimulator et kNet::NetworkSimulator
+
+    ✔ 28/09/2019 : les bombes n'appparaissent pas toujours dans certaines sessions (clients et/ou serveur) et peuvent causées un crash
+        -> pb de viewZ=0, pb dans GameNetwork::HandleObjectControlIdleChanged() ?
+        -> les bombes ne fonctionnent plus
+        --> les bombes sont des objects qui ont un replicated state mais dans ObjectPool a été introduit OBJECTPOOL_LOCALIDSONLY qui force les nodes à toujours etre LOCAL.
+        --> on peut les mettre en local et les objectcontrols feront le restent
+        --> ou bien utiliser un GO_Pool
+        --> ou bien corriger le pb
+        ---> le 07/10/2019 : en gardant le replicatedstate, ajout crucial de la reactivation dans GameNetwork::Client_CommandChangeNodeID
+            autrement comme le node a été enlevé via GameNetwork::Client_CommandRemoveObject, l'objectcontrol est dans l'etat !actived_.
+        ---> voir pour modifier ObjectPoolCategory::ChangeToReplicatedID pour accepter l'option OBJECTPOOL_LOCALIDSONLY
+        -----> ajout de ObjectPool::ChangeToID() qui accepte le changement de node local, modification de Scene::NodeIDChanged()
+            modification de Connection::ProcessSendServerObjectControls() pour supprimer le TransferMessage, qui pose probleme au spawning des bombes
+            modification de Connection::ProcessReceiveClientObjectControls() pour copier l'ObjectControl recu directement dans l'objectControl preparé,
+            ce qui permet d'avoir le type des Controllables.
+        ------> toujours des problemes avec les bombes, verifier que le ChangeToID se déroule correctement, vérifier la chaine avec ObjectPool::Free(Node)
+        -------> cette fois-ci, le serveur genere 2 bombes
+                 la premiere est genéré par GameNetwork::ChangeObjectControlIdleState
+                 la seconde par la commande REQUESTOBJECT
+        --------> 1ere approche : si OBJECTPOOL_LOCALIDSONLY, utiliser GameNetwork::AddObjetControl ald GameNetwork::Client_SendRequestObject dans Map::AddEntity
+        ---------> approche incomplete si le serveur n'a pas de nodeid correspondant disponible
+        ----------> les bombes sont alors ajoutés par le client comme des clientObjects
+                    ce qui cause pb dès qu'un autre client les a utilisés, sur le serveur le owner de l'objectcontrol est affecté à la connection qui l'a utilisé en premier
+                    et sur le premier client l'object control est bien un clientobject.
+                    du coup les autres clients recoivent des clientobjects et des serverobjects avec le meme id generant un un switch permanent de l'etat idle_.
+        -----------> OK 13/10/2019 correctif apporté suit au Refactor , mais ne permettra jamais à plusieurs clients d'utiliser un meme nodeid. => passe en GO_Pools pour les bombes
+
+    ✔ 19/09/2019 : certaines lames restent activées sur les autres clients/serveur
+        --> la lame recoit bien le idle=true et est bien restauré dans le pool mais recoit juste apres un idle=false et est respawnée
+        ---> vérifier le timestamp dans Urho3D::Connection
+        ---> reduction de MAX_DELTASTAMP1 à 16 et MAX_DELTASTAMP2 à 32 dans Connection
+        -> OK
+        --> 07/10/2019 : reapparition du probleme, voir avec l'impact des modifications apportées sur ce probleme
+        ---> aucun impact, le probleme existe déjà sur la version du 19/09. En recompilant sans ACTIVE_NETSIMULATELATENCYANDPACKETLOSS, il n'y a plus de pb.
+            Le pb provient de la perte possible de la commande ERASENODE. Pourquoi ? le message est censé être reliable comme tous les messages d'ailleurs.
+        ----> voir pour se passer completement de cette commande avec uniquement l'envoi du idle_.
+        -----> dans GOC_Destroyer::Destroy() utiliser GameNetwork::Server_RemoveObject sans envoi de netmessage
+        -----> modification de GameNetwork::Server_RemoveObject : mettre l'ObjectControl en SetReadyToSend
+        -----> modification de Connection::ProcessSendServerObjectControls() pour envoyer tous les objectcontrols qui sont readytosend (meme ceux !actived_).
+        ------> exclure de la commande ERASENODE, la connection qui est main pour ce noeud
+        ------> 08/10/2019 : OK ajout du parametre allconnections dans GameNetwork::Server_RemoveObject utilisé pour les players uniquement
+
+    ✔ 28/09/2019 : pb lors de la mort d'un player coté Client : pas de respawn possible.
+        -> 08/10/2019 : il s'agit d'une erreur de creation implicite de "Player" du à l'utilisation de Player::LoadStuffOnly()
+        --> le xml contenant le stuff contient un GOC_Controller de type GO_Player qui envoie au chargement du stuff l'event GOC_CONTROLLERCHANGE
+            GOManager::HandleGOChangeType() l'intercepte et enregistre un nouveau activeplayer non souhaité
+        ---> OK : Ajout en fin de procédure Player::LoadStuffOnly(), d'un kill adéquate (send GOC_LIFEDEAD et GOC_Destroyer::Destroy())
+
+    ✔ 04/10/2019 : modifications ObjectControls
+        -> envoi d'un message ou deux messages (nodes server et retour des nodes du client) plutot que de nombreux messages (1 par node)
+        -> compression ok LZ4
+        --> amelioration possible : un objectcontrol c'est 72bytes + 4bytes pour le nodeid. réduire au max les données à envoyer. si pas de changement garder une version déjà compressée
+            et la renvoyer tel quel.
+
+    ✔ 30/09/2019 : GO_Pools::AddPool() reprend de nouveaux numeros à chaque appel. les numeros ne seront alors plus synchro entre serveur et clients dés qu''un client quitte le mode de jeu et y revient
+        -> OK : Reserver une seule fois et simplement restaurer les pools après chaque session PlayState
+
+    ✔ 28/09/2019 : crash du client en mode arena lorsque celui-ci retourne au mainmenu et revient dans le mode arena
+        -> GameNetwork::PurgeObjects supprime les nodes qui sont des poolnode
+        -> Correctif GameNetwork::HandlePlayServer_NetworkUpdate() reset de allClientsRunning_ et allClientsSynchronized_ permet de relancer un client déjà connecté qui est retourné au mainmenu
+
+    ✔ 26/09/2019 : correctif de l'orientation des lames, correctif de l'orientation de Churros, Vampire ... qui ont une orientation inversé
+        -> OK : ajouter le set de GOA::DIRECTION dans GameNetwork::PrepareControl() et sa prise en compte dans Ability::Use(static)
+        -> OK : suppression du FlipX dans GameHelpers::SetPhysicProperties()
+
+    ✔ 26/09/2019 : Lorsqu'un coup est porté sur un client, GOC_Life::ApplyForceEffect est bien appliqué mais un décalage se produit ensuite en sens inverse de cet effet
+        -> vérifier la force appliquée et son point d'application coté client émetteur et client recepteur.
+        -> le différé de positionnement introduit dans GOC_Controller::Update() n'est pas suffisant.
+        --> Il faut compenser les latences client->serveur->client.
+        ---> OK : ajout int updatedState_, cf GOC_Controller::Update()
+
+    ✔ 13/09/2019 : le grapin sur les clients autre que spawneur n'est pas bon au niveau du lien de la chaine avec l'avatar.
+        --> sur les clients l'avatar "!MainControlled" a un RigidBody STATIC ce qui pose pb pour l'établissement du lien
+        --> mettre les RigidBody en DYNAMIC regle ce probleme (cf GOC_Controller::ChangeAvatar())
+        ---> cela créé des problemes de sacade dans le saut desormais sur les autres clients du à GameHelpers::SetPhysicProperties() qui s'assure qu'il n'y ait pas trop de gap de positionnement reseau.
+        ---> le code dans GameHelpers::SetPhysicProperties() est indispensable pour eviter que l'entité reste bloquée.
+        ---> dans GOC_PhysicsGrapin::AttachOnRoof(), le centre de masse obtenu avec GetBody()->GetWorldCenter() est différent avec des Body de type different (STATIC et DYNAMIC)
+        ---> la contrainte Revolute2D ne semble pas etre créée entre le dernier maillon de la chaine et l'entité à attacher.
+        ----> pour compenser ces pbs, communiquer en plus la position du node et la position du centre de masse pour l'entité à attacher.
+            ---> à réception dans GameNetwork::HandleObjectControlHolderChanged(), setté la position du node et utiliser GOC_PhysicsGrapin::AttachOnRoof(grapin, cm_entité, numlinks)
+        ----> OK, mais la chaine n'est pas tendue. Pb de poids ? l'entité attachée étant un STATIC, la simulation n'applique pas de poids ?
+        -----> avec l'entité en DYNAMIC -> la corde n'est toujours pas tendue ...
+        ------> la simulation n'est pas ok car aucune gravité et force ne s'applique sur les clients avec l'option SetPhysicEnable(false)
+        ------> lorsque attachOnRoof, il faut une simulation complete avec gravité et forces => mettre GOC_Move2D::SetPhysicEnable(true, true),
+                au moment du détachement de la chaine, remettre physicEnable à sa valeur initiale.
+        ------> NOK, surement le resultat des modifications de position via le reseau, voir pour desactiver ces modifications
+        ------> NOK en desactivant les modifications de position et en corrigeant GOC_Controller::Update(const ObjectControlInfo& info) pour appliquer completement les entrées buttons
+        ------> Il manque l'application des forces et velocités appliquées à l'attachedNode juste avant la création de la chaine. Le dynamique initial en somme.
+        -------> 25/09/2019 - OK : Ajout Box2D::SetDynamics() et GetDynamics() et ajout rotation initiale du grapin (ajout float ObjectControl::holderinfo_.rot2_),
+                il n'est plus nécessaire d'activer GOC_Move2D::SetPhysicEnable - l'update des Data dynamics dans GOC_Controller suffit.
+
+    ✔ 20/09/2019 : modifier GOC_Life pour que sur les clients l'animation passe au STATE_HURT dès qu'un coup est porté
+        -> est-ce possible depuis que les clients sont en STATIC body ? -> modif de GOC_Collide2D::HandleBeginContact() pour appliquer la collision en ClientMode
+        --> OK : modification de GOC_Life::ApplyAmountEnergy(), GOC_Life::HandleReceiveEffect() et GOC_Controller::Update() pour eviter l'interruption du STATE_HURT
+        --> la force du coup n'est pas appliquée sur les !maincontrolled, du coup l'animation STATE_HURT apparait puis il y a un differé non souhaitable pour l'application de la force
+        ---> en STATIC BODY aucun force ne peut etre appliquée, soit repasser en DYNAMIC BODY soit simuler de la force par un déplacement
+        ---> OK : les GOC_Controller repasser en DYNAMIC BODY et Modification du GOC_Collider2D::ApplyForceEffect déplacé dans GOC_Life::ApplyForceEffect et utilisation de RigidBody2D::ApplyLinearImpulse() ald RigidBody2D::ApplyForce()
+            + modification de GOC_Controller::Update() pour que le changement de position se réalise une fois le STATE_HURT achevé.
+        ----> pb de bloquage apres saut sous les plateforms avec DYNAMIC.
+        -----> OK : correctif dans Urho3D::PhysicsWorld2D::BeginContact() dans le "One Way Wall" en s'assurant que le point de contact et bien positionner sous le centre du collisionshape de l'entité
+
+    ✔ 16/09/2019 : pb sur le Fly en reseau
+        --> OK : GameHelpers::SetPhysicProperties() était sollicité en permanence lors du Fly - desactivé.
+
+    ✔ 16/09/2019 : pouvoir choisir le type de pool (ObjectPool ou GO_Pool) dans GOT::Register() permettant d'appliquer la poolqty dans GO_Pools::AddPool()
+        -> OK
+
+    ✔ 31/08/2019 : ABILITY_GRAPIN et GOC_PhysicsGrapin en reseau => utiliser le meme principe que ABILITY_SHOOTER
+        -> creer un GOPool pour les chainettes et pour le Grapin.
+        -> utiliser AddObjetControl(node) et voir pour modifier Ability::Use(Node* node, const ObjectControl& control) qui est utiliser par World2D::NetSpawnEntity()
+        --> 13/09/2019 OK : modification d'ObjectControl pour ajouter holderinfo_ + modif Ability, GOC_PhysicsGrapin + Ajout GameNetwork::HandleObjectControlHolderChanged()
+
+    ✔ 03/09/2019 : ping pong infini client->serveur pour la suppression de Lame (GO_Pools) NetSpawné sur le serveur
+        -> coté Serveur : GOC_Destroyer::UpdatePositions() envoit un DIE => qui envoit un netmsg ERASENODE.
+        -> Le Server reçoit encore des ObjectControls sur ce node qui font encore NetSpawné le node et rebelotte pour le DIE.
+        --> le GOC_Destroyer::UpdatePositions() n'est effectif que si le Body est DYNAMIC. Mettre le body en STATIC avant de passer le node en Enabled.
+        ---> OK World2D::NetSpawnEntity ajout de body en STATIC
+        --> Attention : poosibilité d'avoir le même problème avec les players qui sont en Dynamic sur le serveur
+
+    ✔ 12/09/2019 : l'attaque d'un client ne touche pas sa cible lorsque le serveur et le client ne sont pas sur le meme viewZ
+        -> probleme avec le TriggerAttack qui n'est pas déclenché sur le serveur (fonctionne par contre quand sur le meme viewZ)
+        --> il s'agit de la desactivation du rendu des AnimatedSprite2D qui ne sont pas visibles
+        ---> il faut voir pour permettre l'activation des triggers coté serveur dans tous les cas
+        ----> OK : AnimatedSprite2D::UpdateAnimation() patched
+
+    ✔ 03/09/2019 : Ameliorer la synchronisation des clients au lancement du Playstate
+        -> pb avec les timestamp : modification de GameNetwork::HandleServer_MessagesFromClient et ajout de CheckReceivedGameStatus : basé sur les gamestatus plus que sur le timestamp
+        -> modification de la logique dans GameNetwork::HandleServer_MessagesFromClient et GameNetwork::HandlePlayServer_NetworkUpdate
+        -> OK, fonctionne en mode Synchronization des clients et sans synchro (Modifier GameNetwork::needSynchronization_ dans GameNetwork::Reset())
+
+    ✔ 30/08/2019 : les Lames changent de ViewZ automatiquement.
+        -> Ajout à l'objet Lame GOC_Destroyer de l'attribut "World Position Update" = false
+        --> OK : ne met pas à jour le world position ni le viewZ
+
+    ✔ 30/08/2019 : les dps ne sont pas appliqués pour client->serveur->client
+        -> sur le serveur, les body et les trig attack des clients sont en STATIC. Les contact STATICBODY avec STATICBODY ne sont pas permis (cf b2Body::ShouldCollide)
+        --> sur le serveur tous les players doivent avoir des BT_DYNAMIC : Ok correctif dans GOC_Controller::ChangeAvatar
+        ---> sur le serveur, cela engendre des rebonds des entités
+        ----> essai en desactivant les interaction avec GOC_Move2D qui peut appliquer des forces au contacts avec le sol : réactivation de ajout de GOC_Move2D::SetPhysicEnable() mis à false pour les !mainControlled
+        -----> toujours des rebonds : le changement de position tres proche du sol fait-il reagir box2d avec une force de repulsion pour eviter la penetration du DYNAMIC dans un element STATIC ?
+        ------> OK ! dans GOC_Move2D::HandleWallContactBegin() ajout de body->SetAwake(false) permettant de supprimer les forces, impulsions appliquées sur le body durant le contact.
+
+    ✔ 30/08/2019 : les Parts Exploded des GOC_BodyExploder2D n'ont pas les meme dimensions serveur et clients
+        -> pb avec l'Event OBJECTCONTROLIDLECHANGED : les exploded parts sont spawnées via le net avant d'être spawnées via GOC_BodyExploder2D
+        --> solution temporaire GameNetwork::HandleObjectControlIdleChanged() skipper les nodes taggés "UsedAsPart"
+
+    ✔ 19/08/2019 : activer les lames et grapin pour le network
+        -> cf GO_Pool et Abilities
+        --> Strategie d'allocation de nodeid à revoir : les players doivent tous etre simulés sur le serveur.
+            -> les GO_Pools sont alloués et liés à chaque joueur et disposent de leur plages spécifiques d'allocation mais nécessite d'etre alloués sur tous les clients.
+            --> ainsi il est facile de popper sur un client et d'avoir la correspondance des ids sur le serveur et les autres clients.
+            --> il faut s'assurer que les clientid soient bien définis sur tous les clients => ajout de GameNetwork::Server_GetNextClientID() envoi des clientid par remoteevent=NET_GAMESTATUSCHANGED
+            --> On limite à 64/128 ou 256 joueurs et on construit les Pools en fonction de ce nombre max de joueurs => GameStatus::MAX_NUMNETPLAYERS
+            --> le joueur a acces à ses pools en indiquant son clientid => GO_Pools::GetPool(clientid, got).
+            ---> OK
+        --> ABI_Shooter OK pour server vers client
+            --> ajouter le sendevent à GameNetwork::AddServerObjetControl() sinon l'ObjectControlInfo reste inactif lors des utilisations suivantes du node poppé
+            ---> vérifier les états Idle et Active de l'ObjectControlInfo
+            ----> OK avec application du nouveau principe décrit section suivante.
+        --> ABI_Shooter client vers serveur
+            -> modification du net player sur le serveur (ClientInfo::players_) permettant d'utiliser le FIRE2
+            --> GOC_Controller::Update(const ObjectControlInfo& info) recuperation du state buttons_ et sendevent GOC_CONTROLACTION2
+            --> lors du pop d'une lame, Crash du à la corruption du Vector GameNetwork::serverObjectControls_
+            ---> dans GameNetwork::Server_UpdateObjectControls, lors de la boucle sur GameNetwork::serverObjectControls_ l'appel de GOC_Controller::Update() avec le sendevent GOC_CONTROLACTION2 ajoute un element à
+                GameNetwork::serverObjectControls_ => OK : modification du for par un while
+            --> régler la direction du Spawn
+        ---> changement du principe de Spawn : GameNetwork::AddServerObjectControl() devient GameNetwork::AddObjectControl()
+            ----> la variable ObjectControl::idle_ sert à communiquer l'état Spawné via le Network.
+            ----> lorsqu'un changement d'état de cette variable intervient, Connection::ProcessReceiveServerObjectControl() et Connection::ProcessReceiveClientObjectControl() envoient
+                l'Event OBJECTCONTROLIDLECHANGED qui est récupérer par GameNetwork::HandleObjectControlIdleChanged() pour Spawner l'entité ou la détruire.
+            ----> OK !
+        --> RAF : GRAPIN
+
+    ✔ 13/08/2019 : pb avec les bones PreparedMode de GOC_BodyExploder2D => 2 cas : LOCAL et REPLICATED mode
+        -> en LOCAL (creation de nodes LOCAL permise sur le serveur cf. ObjectPool::CreateChildIn() define OBJECTPOOL_LOCALIDSONLY)
+            les Bones sont bien spawnés coté serveur, mais pas coté client : les ids locaux serveur n'arrivent pas à être recréer sur le client
+        --> il n'y a pas besoin de les recreer. le client doit les faire exploser (ils sont déjà preparés).
+        --> il faut assurer une correspondance entre les nodes client et les nodes serveur, les nodesids ne seront presque jamais identiques dans le cas des nodes préparés et surtout avec la gestion en multi-maps
+        ---> OK correspondance assurer : modification de ObjectPoolCategory::GetPoolNode().
+        -> les bodyexploder n'explosent pas sur les clients car ne recoivent pas le totaldps leur permettant d'envoyer l'event GOC_LIFEDEAD
+        --> OK : modification GOC_Controller::PrepareObjectControl()
+        --> les positions des parts ne correspondent pas. Les parts ne sont pas ajoutés à GameNetwork::serverObjectControls_.
+        ---> OK : création de GameNetwork::AddServerObjetControlSilent() pour éviter d'envoyer les events ADD_NODE (les node sont déjà créer coté clients et serveur)
+        -> en REPLICATED, les Bones ne sont pas préparés comme il faut sur le serveur
+        --> RAF !
+
+    ✔ 15/08/2019 : pb avec Scene::NodeIDChanged() pour les childs
+        -> si les nodes sont marqués temporary, ne pas modifier les ids
+        -> les Bullets ont des AnimatedSprite2D qui génére un node "physic" TRIGATTACK.
+        --> OK : les nodes physic sont désormais mis en temporaire pour eviter le changement de ids
+
+    ✔ 15/08/2019 : en mode Client pb de boucle sans fin de add/remove sur les Bullets REPLICATED
+        -> GOC_Destroyer::Destroy() est lancé par le GOC_Destroyer::HandleUpdateTime()
+        --> mettre GOC_Destroyer::SetEnableLifeTimer(false) pour toutes les entités spawnées par GameNetwork::Client_AddServerObject()
+        ---> OK : World2D::SpawnEntity(const ObjectControlInfo&) devient World2D::NetSpawnEntity(ObjectControlInfo& info) et intégre GOC_Destroyer::SetEnableLifeTimer(false)
+
+    ✔ 12/08/2019 - probleme entre serveur et clients, les furnitures spawnés n'ont pas le meme charactermapping ou entityid
+        --> voir Map::SetFurnitures(), MapGenerator::GenerateBiomeFurnitures()
+        ---> OK : modification de MapGenerator::GenerateBiomeFurnitures(), remplacement du Random() par GameRand(OBJRAND)
+            et utilisation du tileindex pour le COT::GetRandomTypeFrom()
+
+    ✔ 11/08/2019 - Reprise de Frombones
+        -> Les entités Non-Maincontrolled auront un RigidBody2D de type BT_STATIC (Sur Client toutes les entités non controlées par le joueur sont Non-Maincontrolled).
+            ca supprime les décrochages du au calcul Physique des BT_DYNAMIC melé aux updates des positions via reseau. Mais il faut modifier GOC_Collider2D concernant les collisions entre entités réseau.
+        --> OK : Appliquer dans GOC_Controller::SetMainController() et GOC_Controller::ChangeAvatar()
+        -> Modifier GOC_Collider2D pour autoriser les collisions avec les BT_STATIC des autres clients.
+        -> au lancement les players sont superposés.
+        --> cf GameNetwork::Server_AllocatePlayers(), ClientInfo::CreateAvatarFor() et GameStatus::SetWorldStartPosition()
+        --> le positionnement initial des players doit etre imposé par le serveur et non pas par les clients.
+        --> OK : modification de PlayState::SetPlayers() en mode ClientMode, recuperer les positions du serveur via GameNetwork::GetClientObjectControl()
+
+    ✔ A solutionner : Purge des Objects inactivés et Reactivation des objects inactivés
+        -> Attention : le reseau envoie des ghosts (persistence)
+        => DesactiveTimer OK !
+
+    ✔ au restart d'un joueur :
+          -> pour les autres clients, ajouter l'effet respawn
+          ==> OK
+
+    ✔ Reconcevoir la creation/suppression des objets en mode réseau :
+        --> pb avec GOC_Collectable : drop et collect
+        --> les nodeid sont attribués par le serveur
+        ---> client demande la creation/suppression au serveur qui le réalise
+        ==> OK, test en cours
+
+        --> appliquer le meme procedé pour la creation/suppression d'avatar ?
+        ==> OK, test en cours
+
+        -> lors du restart, resoudre le respawn du meme avatar, pas de pb coté client
+        --> coté serveur, ne pas regénérer un nouvel avatar
+        --> appliquer le meme procedé que pour les objectpools
+        ==> OK, test à faire
+
+

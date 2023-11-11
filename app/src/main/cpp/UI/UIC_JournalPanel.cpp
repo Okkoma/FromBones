@@ -145,7 +145,7 @@ void UIC_JournalPanel::UpdateSelectedMission()
 
 void UIC_JournalPanel::UpdateSelector()
 {
-    if (!questSelectorZone_)
+    if (!questSelectorZone_ || !manager_)
         return;
 
     const HashMap<StringHash, Mission>& namedmissions = manager_->GetNamedMissions();

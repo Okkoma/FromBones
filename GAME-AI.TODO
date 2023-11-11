@@ -1,0 +1,77 @@
+Todos:
+
+    ☐ 04/10/2021 : il arrive que certaines entités ne bougent pas meme lorsqu'elles se font taper dessus. Il faut alors changer de Map et revenir pour les reveiller.
+        => AIManager surchargé ?
+
+    ☐ 13/07/2020 : avoir la possibilité de changer de viewZ quand c'est possible (lorsque non bloqué par un mur) pour suivre un chemin ou une cible
+
+    ☐ 08/06/2020 : modification de GOC_AIController pour permettre l'update en continue des player CPU
+        => voir pour le double jump.
+
+    ☐ 25/04/2020 : Pb Raignee GOB_FollowAttack
+        => Raignee reste coincé dans les coins.
+        ==> OK decomposer TOUCHWALL et TOUCHROOF sans else if
+        => Raignee reste en FALL lorsque accroché à son fil et au plafond si la target en dans les pieces au dessus
+        ==> OK pour le FALL continue lorsque sur le plafond : ne pas sauté si vel est nulle.
+        => il faut appliquer ce code "Climber" dans GOB_Patrol pour que les Raignee ne restent pas bloquer apres le passage en GOB_Patrol
+
+    ☐ 23/04/2020 : permettre le changement de behavior en suivant des conditions d'activation à définir.
+        => modifier GOC_AIController : ajouter GOC_AIController_Template (commme GOC_Animator2D_Template)
+        ==> 24/04/2020 : solution simplificatrice : ajout dans GOC_AIController de l'attribut XML  "Behavior Target" specifiant quel comportement utilisé lorsqu'une target est détéctée.
+        et de l'attribut XML "Detects Target" pour permettre la detection de target dans la boucle principale d'update (hors des scripts Behavior)
+
+    ☐ 23/04/2020 : le detector renvoit tout objet détécté. Dans le cas de GOB_FollowAttack, il faut pouvoir filtrer et supprimer par exemple les BodyPart et les Items.
+        => ajout de GOC_Detector::SetDetectedCategoriesAttr() attribute XML "Detected Categories"
+
+    ☐ 22/04/2020 : le vol (vampire / Bat) n'est pas maitrisé (trop aleatoire)
+        => l'order STATE_JUMP avec le WaitCallBack (attente de l'event GO_CHANGESTATE=STATE_JUMP ou STATE_FLYDOWN ou STATE_FLYUP) ne permet pas un deplacement fluide vers la target
+            en effet, le GOB_FollowAttack::Update() est skipper et donc l'execution du code permettant le suivi du target (update des buttons CTRL_RIGHT_CTRL_LEFT et maintien du CTRL_JUMP) n'est pas réalisé.
+        ==> dans un premier temps l'on peut reduire MAX_AIWAITCALLBACKDELAY qui est le delay max d'attente avant reset
+        ===> il faut pouvoir executé le code de suivi sans attendre le changement de state.
+        ====> OK : ne pas utiliser l'updateNeed et modification du code de GOB_FollowAttack::Update() pour permettre l'update du suivi en meme temps que l'attente de la realisation d'un order.
+
+    ☐ 05/06/2018 : voir la possibilité d'intégrer des scripts Lua pour les AI Behaviors des mobs
+        => ajouter un attribut "Behavior Script" dans GOC_Controller
+
+    ☐ 11/05/2018 : ajouter le PathFinder pour les AI
+
+    ☐ 08/11/2017 : GOB_Patrol doit anticiper si une chute se présente devant et rebrousser chemin
+
+        => 10/04/2018 : Dialogue System
+        ==> cf Dialogue utilisé pour le marchand
+
+        => 10/04/2018 : Quest System
+        ==> notamment des quetes pour debloquer des nouveaux avatars
+        ===> conjuguer Dialogue avec le Systeme de Missions (cf. UIC_MissionPanel)
+        ===> les missions doivent être proposées par des actors.
+        ====> difficulté principale : généré des quetes cohérentes avec l'environnement généré MapWorld, placer les Actors en fonction de cet environnement
+        =====> Créer un Generator de Quetes et un Manager + UI Panel des quetes acceptées/en cours/finies etc...
+
+    ☐ 10/04/2018 : Cinematics System
+
+    ☐ 10/04/2018 : Commands System
+
+
+Archive:
+
+    ✔ 21/04/2020 : mauvaise gestion de la logique pour la detection et maintien de la target
+        => ajout pour GOB_FollowAttack de AInodeInfos::updateAggressivity gerer dans GOC_AIController::Update()
+
+    ✔ 01/02/2020 : correctif Behavior GOB_Patrol : si blessé se retourne et attaque, ne parvenait pas à attaquer
+        car le subscribe à l'event CHANGEDIRECTION ne pouvait etre realisé car l'update control etait fait avant (donc l'envoi de ChangeDirection aussi via GOC_MOVE2D)
+
+    ✔ 23/12/2019 : le troll saute continuellement
+        => cf GOC_Destroyer::HasWallInFront => la position du troll est toujours dans le sol. son RigidBody2D n'avait pas de mass center setté.
+        ==> OK le 07/01/2020 : ajout dans Objects/Bitroll.xml de <attribute name="Mass Center" value="0.0 0.8" />
+        ==> il est nécessaire de reverifier que tous les objets ont bien un mass center setté
+
+    ✔ 09/05/2018 : modifier les AI Behavior pour permettre l'utilisation des attaques power et shoot
+        ===> utiliser ability. Chaque entity doit avoir une liste d'ability. l'AI change d'ability selon besoin (compteur, accumulation de puissance ...)
+        ====> creer un component porteur des abilities => GOC_Abilities => utilisable directement sur le node par des mob qui n'ont pas d'actor.
+        =====> le 2/06/2018 ajout GOC_Abilities OK ! ajout du mode conditionnel d'activation des abilities ("avoir un pistolet pour pouvoir tirer") + modification GOB_Patrol
+
+    ✔ 10/04/2018 : deallocation Actor => ajout static Actor::RemoveActors()
+        => ne dealloue que les Actors non les Players
+        ==> utilisation dans PlayState::EndScene()
+
+

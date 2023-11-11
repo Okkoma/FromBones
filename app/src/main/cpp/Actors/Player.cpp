@@ -100,19 +100,6 @@
 
 #define XMLMODE
 
-enum Panels
-{
-    STATUSPANEL = 0,
-    BAGPANEL,
-    EQUIPMENTPANEL,
-    CRAFTPANEL,
-    ABILITYPANEL,
-    DIALOGUEPANEL,
-    SHOPPANEL,
-    MISSIONPANEL,
-    MINIMAPPANEL
-};
-
 const char* PanelNames_[] =
 {
     "StatusPanel",
@@ -122,6 +109,7 @@ const char* PanelNames_[] =
     "AbilityPanel",
     "DialoguePanel",
     "ShopPanel",
+    "JournalPanel",
     "MissionPanel",
     "MinimapPanel"
 };
@@ -229,7 +217,7 @@ void Player::SetMissionEnable(bool enable)
     URHO3D_LOGINFOF("Player() - SetMissionEnable : id=%u enable=%s ... OK !", GetID(), missionEnable_ ? "true":"false");
 }
 
-void Player::Set(UIElement* elem, bool missionEnable, unsigned index, const char *name)//, const GOCProfile& profile)
+void Player::Set(UIElement* elem, bool missionEnable, bool multiLocalPlayerMode, unsigned index, const char *name)//, const GOCProfile& profile)
 {
     URHO3D_LOGINFOF("Player() - Set : ... index=%u name=%s ...", index, name);
 
@@ -245,7 +233,7 @@ void Player::Set(UIElement* elem, bool missionEnable, unsigned index, const char
 
     SetEnableStats(true);
 
-    CreateUI(elem);
+    CreateUI(elem, multiLocalPlayerMode);
 
     URHO3D_LOGINFOF("Player() - Set : missionEnable = %s ... OK ! ", missionEnable_ ? "true" : "false");
 }
@@ -474,7 +462,7 @@ void Player::UpdateAvatar(bool forced)
     URHO3D_LOGERRORF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) ...", avatarIndex_, GOT::GetType(type).CString(), type.Value());
 
 //    URHO3D_LOGINFOF("Player() - UpdateAvatar : ... Skip Logs !");
-    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, false);
+//    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, false);
 
     WorldMapPosition initialposition;
     if (avatar_ && gocDestroyer_)
@@ -533,6 +521,7 @@ void Player::UpdateAvatar(bool forced)
         equipment_->SetDirty(true);
     }
 
+    Actor::SetViewZ(initialposition.viewZ_);
     Actor::SetObjectType(type, info_.entityid_);
 
 //    if (avatar_)
@@ -568,8 +557,9 @@ void Player::UpdateAvatar(bool forced)
 
     ResetUI();
 
-    if (panels_.Size() > STATUSPANEL)
-        panels_[STATUSPANEL]->Update();
+    UIPanel* panel = GetPanel(STATUSPANEL);
+    if (panel)
+        panel->Update();
 
     if (avatar_)
     {
@@ -587,7 +577,7 @@ void Player::UpdateAvatar(bool forced)
             equipment_->SetActiveAbility();
     }
 
-    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
+//    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 
     URHO3D_LOGINFOF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) avatar=%s(%u) viewmask=%u ... OK !",
                     avatarIndex_, GOT::GetType(type).CString(), type.Value(), avatar_ ? avatar_->GetName().CString() : "none", avatar_ ? avatar_->GetID() : 0, avatar_ ? avatar_->GetDerivedComponent<AnimatedSprite2D>()->GetViewMask() : 0);
@@ -1399,7 +1389,7 @@ void Player::SaveAll()
 }
 
 
-void Player::CreateUI(UIElement* root)
+void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
 {
     if (GameContext::Get().playerState_[controlID_].controltype == CT_CPU && GameContext::Get().arenaZoneOn_)
         return;
@@ -1432,267 +1422,245 @@ void Player::CreateUI(UIElement* root)
     }
 #endif
 
-    // Status Panel = panel 0
-    if (panels_.Size() < 1)
+    // Create Panels if not exist
+
+    UIPanel* statusPanel = GetPanel(STATUSPANEL);
+    if (!statusPanel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerStatus")+String(GetID()));
-        bool panelsetted = panel != 0;
-        if (!panel)
+        statusPanel = UIPanel::GetPanel(String("PlayerStatus")+String(GetID()));
+        bool panelsetted = statusPanel != 0;
+        if (!statusPanel)
         {
-            // Create Panel
-            panel = new UIC_StatusPanel(context_);
-            panelsetted = panel->Set(String("PlayerStatus")+String(GetID()), "UI/PlayerStatus.xml", uiStatusBar->GetPosition(), uiStatusBar->GetHorizontalAlignment(), VA_TOP, 0.99f);
+            statusPanel = new UIC_StatusPanel(context_);
+            panelsetted = statusPanel->Set(STATUSPANEL, String("PlayerStatus")+String(GetID()), "UI/PlayerStatus.xml", uiStatusBar->GetPosition(), uiStatusBar->GetHorizontalAlignment(), VA_TOP, 0.99f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            panels_.Back()->GetElement()->GetChild("MapButton", true)->SetVisible(controlID_ == 0);
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[STATUSPANEL] = statusPanel;
+            GameHelpers::SetEnableScissor(statusPanel->GetElement(), false);    
         }
     }
 
-    // Bag Panel = panel 1
-    if (panels_.Size() < 2)
+    UIPanel* bagPanel = GetPanel(BAGPANEL);
+    if (!bagPanel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerBag")+String(GetID()));
-        bool panelsetted = panel != 0;
-        if (!panel)
+        bagPanel = UIPanel::GetPanel(String("PlayerBag")+String(GetID()));
+        bool panelsetted = bagPanel != 0;
+        if (!bagPanel)
         {
-            // Create Panel
-            panel = new UIC_BagPanel(context_);
-            IntRect rect = panels_[0]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerBag")+String(GetID()), "UI/PlayerInventory.xml", IntVector2(rect.left_+130, rect.top_+10), uiStatusBar->GetHorizontalAlignment(), VA_TOP, 0.8f);
+            bagPanel = new UIC_BagPanel(context_);
+            IntRect rect = statusPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = bagPanel->Set(BAGPANEL, String("PlayerBag")+String(GetID()), "UI/PlayerInventory.xml", IntVector2(rect.left_+130, rect.top_+10), uiStatusBar->GetHorizontalAlignment(), VA_TOP, 0.8f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[BAGPANEL] = WeakPtr<UIPanel>(bagPanel);
+            GameHelpers::SetEnableScissor(bagPanel->GetElement(), false);
         }
     }
 
-    // Equipment Panel = panel 2
-    if (panels_.Size() < 3)
+    UIPanel* panel = GetPanel(EQUIPMENTPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerEqp")+String(GetID()));
+        panel = UIPanel::GetPanel(String("PlayerEqp")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
-            // Create Panel
             panel = new UIC_EquipmentPanel(context_);
-            IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerEqp")+String(GetID()), "UI/PlayerEquipment.xml", IntVector2(rect.right_+5, rect.top_), HA_LEFT, VA_TOP, 0.8f);
+            IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = panel->Set(EQUIPMENTPANEL, String("PlayerEqp")+String(GetID()), "UI/PlayerEquipment.xml", IntVector2(rect.right_+5, rect.top_), HA_LEFT, VA_TOP, 0.8f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[EQUIPMENTPANEL] = WeakPtr<UIPanel>(panel);
+            GameHelpers::SetEnableScissor(panel->GetElement(), false);
         }
     }
 
-    // Craft Panel = panel 3
-    if (panels_.Size() < 4)
+    panel = GetPanel(CRAFTPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerCraft")+String(GetID()));
+        panel = UIPanel::GetPanel(String("PlayerCraft")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
-            // Create Panel
             panel = new UIC_CraftPanel(context_);
-            IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerCraft")+String(GetID()), "UI/PlayerCraft.xml", IntVector2(rect.left_, rect.bottom_+5), HA_LEFT, VA_TOP, 0.8f);
+            IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = panel->Set(CRAFTPANEL, String("PlayerCraft")+String(GetID()), "UI/PlayerCraft.xml", IntVector2(rect.left_, rect.bottom_+5), HA_LEFT, VA_TOP, 0.8f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[CRAFTPANEL] = WeakPtr<UIPanel>(panel);
+            GameHelpers::SetEnableScissor(panel->GetElement(), false);
         }
     }
-
-    // Ability Panel = panel 4
-    if (panels_.Size() < 5)
+    
+    panel = GetPanel(ABILITYPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerAbi")+String(GetID()));
-        bool panelsetted = panel != 0;
-        if (!panel)
+        String panelname(String("PlayerAbi")+String(GetID()));
+        UIC_AbilityPanel* abilityPanel = static_cast<UIC_AbilityPanel*>(UIPanel::GetPanel(panelname));
+        if (abilityPanel && abilityPanel->IsPopup() != multiLocalPlayerMode) 
         {
-            // Create Panel
-            int width = GetSubsystem<Graphics>()->GetWidth();
-            panel = new UIC_AbilityPanel(context_);
-            panelsetted = panel->Set(String("PlayerAbi")+String(GetID()), "UI/PlayerAbility.xml", IntVector2(-width/6, 0), HA_CENTER, VA_TOP, 0.8f);
-
-            // Set edge offset on each button
-            // TODO : prefere to add border/space in spritesheet
-//            UIElement* slotZone = panel->GetElement()->GetChild("SlotZone", true);
-//            const Vector<SharedPtr<UIElement> >& children = slotZone->GetChildren();
-//            for (Vector<SharedPtr<UIElement> >::ConstIterator it=children.Begin();it!=children.End();++it)
-//            {
-//                Button* button = static_cast<Button*>(it->Get());
-//                if (button)
-//                {
-//                    const int edge = 4;
-//                    IntRect rect = button->GetImageRect();
-//                    rect.top_ += edge;
-//                    button->SetImageRect(rect);
-//                }
-//            }
+            // Recreate the panel if no same mode
+            UIPanel::RemovePanel(abilityPanel);
+            abilityPanel = 0;
+        }        
+        bool panelsetted = abilityPanel != 0;
+        if (!abilityPanel)
+        {
+            abilityPanel = new UIC_AbilityPanel(context_);
+            if (multiLocalPlayerMode)
+            {
+                const IntVector2& parentsize = statusPanel->GetElement()->GetSize();
+                panelsetted = abilityPanel->Set(ABILITYPANEL, panelname, "UI/PlayerAbilityPopup.xml", IntVector2(parentsize.x_, parentsize.y_/2), HA_LEFT, VA_TOP, 0.8f, 
+                                        statusPanel->GetElement()->GetChild(String("AbilitySlot")));
+            }
+            else
+                panelsetted = abilityPanel->Set(ABILITYPANEL, panelname, "UI/PlayerAbility.xml", IntVector2(-GetSubsystem<Graphics>()->GetWidth()/6, 0), HA_CENTER, VA_TOP, 0.8f);
         }
         if (panelsetted)
-            panels_.Push(WeakPtr<UIPanel>(panel));
+        {
+            abilityPanel->SetPopup(multiLocalPlayerMode);
+            panels_[ABILITYPANEL] = WeakPtr<UIPanel>(abilityPanel);
+        }
     }
 
-    // Dialogue Panel = panel 5
-    if (panels_.Size() < 6)
+    panel = GetPanel(DIALOGUEPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerDiag")+String(GetID()));
+        panel = UIPanel::GetPanel(String("PlayerDiag")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
             panel = new UIPanel(context_);
-            panelsetted = panel->Set(String("PlayerDiag")+String(GetID()), "UI/PlayerDialogue.xml", IntVector2::ZERO, HA_CENTER, VA_BOTTOM, 0.8f);
+            panelsetted = panel->Set(DIALOGUEPANEL, String("PlayerDiag")+String(GetID()), "UI/PlayerDialogue.xml", IntVector2::ZERO, HA_CENTER, VA_BOTTOM, 0.8f);
         }
         if (panelsetted)
-        {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-        }
+            panels_[DIALOGUEPANEL] = WeakPtr<UIPanel>(panel);
     }
 
-    // Shop Panel = panel 6
-    if (panels_.Size() < 7)
+    panel = GetPanel(SHOPPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerShop")+String(GetID()));
+        panel = UIPanel::GetPanel(String("PlayerShop")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
-            // Create Panel
             panel = new UIC_ShopPanel(context_);
-            IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerShop")+String(GetID()), "UI/PlayerShop.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
+            IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = panel->Set(SHOPPANEL, String("PlayerShop")+String(GetID()), "UI/PlayerShop.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[SHOPPANEL] = WeakPtr<UIPanel>(panel);
+            GameHelpers::SetEnableScissor(panel->GetElement(), false);
         }
     }
 
-    // Quests Journal Panel
-    if (panels_.Size() < 8)
+    panel = GetPanel(JOURNALPANEL);
+    if (!panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerJournal")+String(GetID()));
+        panel = UIPanel::GetPanel(String("PlayerJournal")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
-            // Create Panel
             panel = new UIC_JournalPanel(context_);
-            IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerJournal")+String(GetID()), "UI/PlayerJournal.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
+            IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = panel->Set(JOURNALPANEL, String("PlayerJournal")+String(GetID()), "UI/PlayerJournal.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
         }
         if (panelsetted)
-        {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-//            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), true);
-        }
+            panels_[JOURNALPANEL] = WeakPtr<UIPanel>(panel);
     }
 
-    // Mission Panel only for Player Human control for the moment = panel 8
-    if (missionEnable_ && panels_.Size() < 9)
+    panel = GetPanel(MISSIONPANEL);
+    if (missionEnable_ && !panel)
     {
-        // Search Registered Panel
-        UIPanel* panel = UIPanel::GetPanel(String("PlayerMis")+String(GetID()));
+        // Mission Panel only for Player Human control
+        panel = UIPanel::GetPanel(String("PlayerMis")+String(GetID()));
         bool panelsetted = panel != 0;
         if (!panel)
         {
-            // Create Panel
             panel = new UIC_MissionPanel(context_);
-            IntRect rect = panels_[0]->GetElement()->GetCombinedScreenRect();
-            panelsetted = panel->Set(String("PlayerMis")+String(GetID()), "UI/PlayerMission.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
+            IntRect rect = statusPanel->GetElement()->GetCombinedScreenRect();
+            panelsetted = panel->Set(MISSIONPANEL, String("PlayerMis")+String(GetID()), "UI/PlayerMission.xml", IntVector2(rect.right_+10, rect.top_), HA_LEFT, VA_TOP, 0.8f);
         }
         if (panelsetted)
         {
-            panels_.Push(WeakPtr<UIPanel>(panel));
-            GameHelpers::SetEnableScissor(panels_.Back()->GetElement(), false);
+            panels_[MISSIONPANEL] = WeakPtr<UIPanel>(panel);
+            GameHelpers::SetEnableScissor(panel->GetElement(), false);
         }
     }
-    else if (!missionEnable_ && panels_.Size() == 9)
+    else if (!missionEnable_ && panel)
     {
-        panels_[8]->UnsubscribeFromEvent(panels_[0]->GetElement()->GetChild("QuestButton", true), E_RELEASED);
-        panels_.Erase(8);
+        panel->UnsubscribeFromEvent(statusPanel->GetElement()->GetChild("QuestButton", true), E_RELEASED);
+        panels_.Erase(MISSIONPANEL);
     }
 
     // Connect Panels/Events
-    unsigned numPanels = panels_.Size();
-    if (numPanels)
+    if (statusPanel)
+        statusPanel->Start(this);
+
+    if (bagPanel)
     {
-        // Status Panel
-        if (numPanels > 0)
+        bagPanel->Start(this, equipment_);
+        bagPanel->SubscribeToEvent(statusPanel->GetElement()->GetChild("BagButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(bagPanel, &UIPanel::OnSwitchVisible));
+    }
+
+    panel = GetPanel(EQUIPMENTPANEL);
+    if (panel)
+    {
+        panel->Start(this, equipment_);
+        panel->SubscribeToEvent(statusPanel->GetElement()->GetChild("EquipButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panel, &UIPanel::OnSwitchVisible));
+    }
+
+    panel = GetPanel(CRAFTPANEL);
+    if (panel)
+    {
+        panel->Start(this, this);
+        panel->SubscribeToEvent(statusPanel->GetElement()->GetChild("CraftButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panel, &UIPanel::OnSwitchVisible));
+    }
+
+    panel = GetPanel(ABILITYPANEL);
+    if (panel)
+        panel->Start(this, this);
+
+    panel = GetPanel(DIALOGUEPANEL);
+    if (panel)
+        panel->Start(this);
+
+    panel = GetPanel(SHOPPANEL);
+    if (panel)
+        panel->Start(this, this);
+
+    panel = GetPanel(JOURNALPANEL);
+    if (panel)
+    {
+        panel->Start(this, missionManager_);
+        panel->SubscribeToEvent(statusPanel->GetElement()->GetChild("QuestButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panel, &UIPanel::OnSwitchVisible));
+    }
+
+    if (missionEnable_)
+    {
+        panel = GetPanel(MISSIONPANEL);
+        if (panel)
         {
-            panels_[0]->Start(this);
-//            panels_[0]->SubscribeToEvent(this, UI_OPENSTATUSPANEL, new Urho3D::EventHandlerImpl<UIPanel>(panels_[0], &UIPanel::OnSwitchVisible));
+            panel->Start(this, missionManager_);
+            panel->SubscribeToEvent(statusPanel->GetElement()->GetChild("QuestButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panel, &UIPanel::OnSwitchVisible));
         }
-        // Bag Panel
-        if (numPanels > 1)
-        {
-            panels_[1]->Start(this, equipment_);
-            panels_[1]->SubscribeToEvent(panels_[0]->GetElement()->GetChild("BagButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panels_[1], &UIPanel::OnSwitchVisible));
-        }
-        // Equipment Panel
-        if (numPanels > 2)
-        {
-            panels_[2]->Start(this, equipment_);
-            panels_[2]->SubscribeToEvent(panels_[0]->GetElement()->GetChild("EquipButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panels_[2], &UIPanel::OnSwitchVisible));
-        }
-        // Craft Panel
-        if (numPanels > 3)
-        {
-            panels_[3]->Start(this, this);
-            panels_[3]->SubscribeToEvent(panels_[0]->GetElement()->GetChild("CraftButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panels_[3], &UIPanel::OnSwitchVisible));
-        }
-        // Ability Panel
-        if (numPanels > 4)
-        {
-            panels_[4]->Start(this, this);
-        }
-        // Dialogue Panel
-        if (numPanels > 5)
-        {
-            panels_[5]->Start(this);
-        }
-        // Shop Panel
-        if (numPanels > 6)
-        {
-            panels_[6]->Start(this, this);
-        }
-        // Journal Panel
-        if (numPanels > 7)
-        {
-            panels_[7]->Start(this, missionManager_);
-            panels_[7]->SubscribeToEvent(panels_[0]->GetElement()->GetChild("QuestButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panels_[7], &UIPanel::OnSwitchVisible));
-        }
-        // Mission Panel
-        if (missionEnable_ && numPanels > 8)
-        {
-            panels_[8]->Start(this, missionManager_);
-            panels_[8]->SubscribeToEvent(panels_[0]->GetElement()->GetChild("QuestButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panels_[8], &UIPanel::OnSwitchVisible));
-        }
+    }
 
 #ifdef HANDLE_MINIMAP
-        Button* mapButton = (Button*) dynamic_cast<Button*>(panels_[0]->GetElement()->GetChild("MapButton", true));
-        if (mapButton && controlID_ == 0)
-        {
-            UIC_MiniMap* minimap = GameContext::Get().cameraNode_->GetOrCreateComponent<UIC_MiniMap>();
-            if (minimap)
-                minimap->AddActivatorButton(mapButton);
-        }
-#endif
+    Button* mapButton = (Button*) dynamic_cast<Button*>(statusPanel->GetElement()->GetChild("MapButton", true));
+    if (mapButton && controlID_ == 0)
+    {
+        UIC_MiniMap* minimap = GameContext::Get().cameraNode_->GetOrCreateComponent<UIC_MiniMap>();
+        if (minimap)
+            minimap->AddActivatorButton(mapButton);
     }
+#endif
+    
+    focusPanel_.Reset();
 
     URHO3D_LOGINFOF("Player() - CreateUI : id=%u ... OK !", GetID());
 }
@@ -1736,11 +1704,9 @@ void Player::ResizeUI()
     uiStatusBar->SetPosition(x, y);
 
     // move ui panels considering the viewport rect
-    UIPanel* panel;
 
-    // Status Panel
-    panel = UIPanel::GetPanel(String("PlayerStatus")+String(GetID()));
-    if (panel)
+    UIPanel* statusPanel = GetPanel(STATUSPANEL);
+    if (statusPanel)
     {
         float adjustfactor;
         if (!GameContext::Get().gameConfig_.touchEnabled_ && !GameContext::Get().gameConfig_.forceTouch_ && GameContext::Get().screenInches_ < 9.f)
@@ -1748,59 +1714,61 @@ void Player::ResizeUI()
         else
             adjustfactor = GameContext::Get().GetAdjustUIFactor();
 
-        static_cast<UIC_StatusPanel*>(panel)->SetUIFactor(adjustfactor);
+        static_cast<UIC_StatusPanel*>(statusPanel)->SetUIFactor(adjustfactor);
 
-        panel->SetPosition(uiStatusBar->GetPosition(), HA_LEFT, VA_TOP);
+        statusPanel->SetPosition(uiStatusBar->GetPosition(), HA_LEFT, VA_TOP);
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... status panel pos=%s size=%s adjustfactor=%F", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString(), GameContext::Get().uiScale_ * adjustfactor);
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... status panel pos=%s size=%s adjustfactor=%F",
+                        GetID(), statusPanel->GetElement()->GetPosition().ToString().CString(), statusPanel->GetElement()->GetSize().ToString().CString(), GameContext::Get().uiScale_ * adjustfactor);
     }
 
-    // Bag Panel = panel 1
-    panel = UIPanel::GetPanel(String("PlayerBag")+String(GetID()));
-    if (panel)
+    UIPanel* bagPanel = GetPanel(BAGPANEL);
+    if (bagPanel)
     {
-        GameHelpers::SetUIScale(panel->GetElement(), IntVector2(328, 294));
+        GameHelpers::SetUIScale(bagPanel->GetElement(), IntVector2(328, 294));
 
-        IntRect rect = panels_[0]->GetElement()->GetCombinedScreenRect();
-        panel->SetPosition(rect.right_+5, rect.top_+10, HA_LEFT, VA_TOP);
-        panel->OnResize();
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... bag panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        IntRect rect = statusPanel->GetElement()->GetCombinedScreenRect();
+        bagPanel->SetPosition(rect.right_+5, rect.top_+10, HA_LEFT, VA_TOP);
+        bagPanel->OnResize();
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... bag panel pos=%s size=%s", GetID(), bagPanel->GetElement()->GetPosition().ToString().CString(), bagPanel->GetElement()->GetSize().ToString().CString());
     }
 
-    // Equipment Panel = panel 2
-    panel = UIPanel::GetPanel(String("PlayerEqp")+String(GetID()));
+    UIPanel* panel = GetPanel(EQUIPMENTPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(272, 394));
 
-        IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
+        IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
         panel->SetPosition(rect.right_+5, rect.top_, HA_LEFT, VA_TOP);
         panel->OnResize();
 
         URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... eqp panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
     }
 
-    // Craft Panel = panel 3
-    panel = UIPanel::GetPanel(String("PlayerCraft")+String(GetID()));
+    panel = GetPanel(CRAFTPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(331, 353));
 
-        IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
+        IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
         panel->SetPosition(rect.left_, rect.bottom_+5, HA_LEFT, VA_TOP);
 
         URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... craft panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
     }
 
-    // Ability Panel = panel 4
-    panel = UIPanel::GetPanel(String("PlayerAbi")+String(GetID()));
+    panel = GetPanel(ABILITYPANEL);
     if (panel)
     {
-        panel->SetPosition(viewportOrigin.x_ + viewportSize.x_ / 3, viewportOrigin.y_ + 5, HA_LEFT, VA_TOP);
+        if (static_cast<UIC_AbilityPanel*>(panel)->IsPopup())
+        {
+            const IntVector2& parentsize = panel->GetElement()->GetParent()->GetSize();
+            panel->SetPosition(IntVector2(parentsize.x_, parentsize.y_/2), HA_LEFT, VA_TOP);
+        }
+        else
+            panel->SetPosition(IntVector2(viewportOrigin.x_ + viewportSize.x_ / 3, viewportOrigin.y_ + 5), HA_LEFT, VA_TOP);
     }
 
-    // Dialogue Panel = panel 5
-    panel = UIPanel::GetPanel(String("PlayerDiag")+String(GetID()));
+    panel = GetPanel(DIALOGUEPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(125, 244));
@@ -1808,20 +1776,18 @@ void Player::ResizeUI()
         panel->SetPosition(0, 0, HA_CENTER, VA_BOTTOM);
     }
 
-    // Shop Panel = panel 6
-    panel = UIPanel::GetPanel(String("PlayerShop")+String(GetID()));
+    panel = GetPanel(SHOPPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(362, 552));
 
-        IntRect rect = panels_[1]->GetElement()->GetCombinedScreenRect();
+        IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
         panel->SetPosition(rect.right_+10, rect.top_, HA_LEFT, VA_TOP);
 
         URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... shop panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
     }
 
-    // Mission Panel
-    panel = UIPanel::GetPanel(String("PlayerMis")+String(GetID()));
+    panel = GetPanel(MISSIONPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(420, 310));
@@ -1832,8 +1798,7 @@ void Player::ResizeUI()
         URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... mission panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
     }
 
-    // Journal Panel = panel 7
-    panel = UIPanel::GetPanel(String("PlayerJournal")+String(GetID()));
+    panel = GetPanel(JOURNALPANEL);
     if (panel)
     {
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(612, 268));
@@ -1845,8 +1810,8 @@ void Player::ResizeUI()
     }
 
     // clamp the panels
-    for (unsigned i=0; i < panels_.Size(); i++)
-        GameHelpers::ClampPositionUIElementToScreen(panels_[i]->GetElement());
+    for (HashMap<int, WeakPtr<UIPanel> >::Iterator it = panels_.Begin(); it != panels_.End(); ++it)
+        GameHelpers::ClampPositionUIElementToScreen(it->second_->GetElement());
 
 #ifdef HANDLE_MINIMAP
     if (controlID_ == 0)
@@ -1870,22 +1835,33 @@ void Player::SetVisibleUI(bool state, bool all)
 
     uiStatusBar->SetVisible(state);
 
-    if (state)
-        UpdatePanelFocusUI();
-
     if (all)
     {
-        for (unsigned i=0; i < panels_.Size(); i++)
+        for (HashMap<int, WeakPtr<UIPanel> >::Iterator it = panels_.Begin(); it != panels_.End(); ++it)
         {
-            panels_[i]->GetElement()->SetEnabled(state);
-            panels_[i]->SetVisible(state);
+            UIPanel* panel = it->second_.Get();
+            panel->GetElement()->SetEnabled(state);
+            panel->SetVisible(state);
         }
     }
 
-    // ability panel
-    if (state)
-        panels_[4]->GetElement()->SetEnabled(state);
-    panels_[4]->SetVisible(state);
+    if (state && !all)
+    {
+        // status panel
+        UIPanel* statusPanel = GetPanel(STATUSPANEL);
+        if (statusPanel && !statusPanel->IsVisible())
+            statusPanel->ToggleVisible();
+
+        // ability panel
+        UIC_AbilityPanel* abilitypanel = static_cast<UIC_AbilityPanel*>(GetPanel(ABILITYPANEL));
+        if (abilitypanel && !abilitypanel->IsPopup())
+        {
+            if (state)
+                abilitypanel->GetElement()->SetEnabled(true);
+            if (!abilitypanel->IsVisible())
+                abilitypanel->ToggleVisible();
+        }
+    }
 
     if (GameContext::Get().gameConfig_.touchEnabled_ && GameContext::Get().gameConfig_.screenJoystick_)
     {
@@ -1901,8 +1877,8 @@ void Player::ResetUI()
     if (!uiStatusBar)
         return;
 
-    for (unsigned i=0; i<panels_.Size(); i++)
-        panels_[i]->Reset();
+    for (HashMap<int, WeakPtr<UIPanel> >::Iterator it = panels_.Begin(); it != panels_.End(); ++it)
+        it->second_->Reset();
 }
 
 void Player::UpdateUI()
@@ -1913,8 +1889,8 @@ void Player::UpdateUI()
     if (!uiStatusBar)
         return;
 
-    for (unsigned i=0; i<panels_.Size(); i++)
-        panels_[i]->Update();
+    for (HashMap<int, WeakPtr<UIPanel> >::Iterator it = panels_.Begin(); it != panels_.End(); ++it)
+        it->second_->Update();
 }
 
 void Player::UpdatePoints(const unsigned& points)
@@ -1931,49 +1907,62 @@ void Player::UpdatePoints(const unsigned& points)
 //    LOGINFOF("Player() - Update Score = %u", score);
 }
 
-void Player::UpdatePanelFocusUI()
+void Player::NextPanelFocus()
 {
-    if (GameContext::Get().playerState_[controlID_].controltype == CT_CPU && GameContext::Get().arenaZoneOn_)
-        return;
-
     if (!panels_.Size())
         return;
 
-    if (currentpanelfocus_ < 0 || currentpanelfocus_ >= panels_.Size())
-        currentpanelfocus_ = 0;
+    if (GameContext::Get().playerState_[controlID_].controltype == CT_CPU && GameContext::Get().arenaZoneOn_)
+        return;
 
-    URHO3D_LOGINFOF("Player() - UpdatePanelFocus :  ID=%d currentpanelfocus=%s(%d) ...", GetID(), PanelNames_[currentpanelfocus_], currentpanelfocus_);
+    // Get the current panel
+    UIPanel* focuspanel = GetFocusPanel();
+    int focuspanelid = focuspanel ? focuspanel->GetPanelId() : -1;
+    URHO3D_LOGINFOF("Player() - NextPanelFocus :  ID=%d currentpanelfocus=%s(%d) ...", GetID(), focuspanelid!=-1 ? PanelNames_[focuspanelid] : "none", focuspanelid);
 
-    if (!panels_[STATUSPANEL]->IsVisible())
+    if (!focuspanel)
     {
-        currentpanelfocus_ = STATUSPANEL;
-
-        GetSubsystem<UI>()->SetFocusElement(panels_[STATUSPANEL]->GetElement());
-        panels_[STATUSPANEL]->ToggleVisible();
+        focuspanelid = STATUSPANEL;
+        focuspanel = GetPanel(focuspanelid);
+        if (!focuspanel->IsVisible())
+            focuspanel->ToggleVisible();
+        focuspanel->GainFocus();       
     }
     else
     {
-        int newfocus = currentpanelfocus_;
+        // Find the next panel to focus
+        bool hasfocus = false;
+        int newfocus = focuspanelid;
         do
         {
-            newfocus = (newfocus+1) % panels_.Size();
-            if (newfocus != currentpanelfocus_)
+            UIPanel* panel = GetPanel(++newfocus);
+            if (panel && panel != focuspanel && panel->IsVisible() && panel->CanFocus())
             {
-                UIPanel* panel = panels_[newfocus];
-                if (panel->IsVisible() && panel->GetElement()->GetFocusMode() == FM_FOCUSABLE && !panel->GetElement()->HasFocus())
-                {
-                    panels_[currentpanelfocus_]->GetElement()->SetFocus(false);
-                    panels_[currentpanelfocus_]->OnSetVisible();
-                    panels_[newfocus]->GetElement()->SetFocus(true);
-                    panels_[newfocus]->OnSetVisible();
-                    currentpanelfocus_ = newfocus;
-                }
+                if (focuspanel)
+                    focuspanel->LoseFocus();
+
+                focuspanelid = newfocus;
+                focuspanel = panel;
+                focuspanel->GainFocus();
+                hasfocus = true;
             }
         }
-        while (newfocus != currentpanelfocus_);
+        while (newfocus != focuspanelid && newfocus < panels_.Size());
+
+        // no find next focus => losefocus
+        if (!hasfocus)
+        {
+            if (focuspanel)
+                focuspanel->LoseFocus();
+            focuspanel = 0;
+            focuspanelid = -1;
+        }
     }
 
-    URHO3D_LOGINFOF("Player() - UpdatePanelFocus :  ID=%d currentpanelfocus=%s(%d) hasfocus=%s... OK !", GetID(), PanelNames_[currentpanelfocus_], currentpanelfocus_, panels_[currentpanelfocus_]->GetElement()->HasFocus() ? "true":"false");
+    SetFocusPanel(focuspanelid);
+
+    URHO3D_LOGINFOF("Player() - NextPanelFocus :  ID=%d currentpanelfocus=%s(%d) hasfocus=%s... OK !", GetID(), 
+                    PanelNames_[focuspanelid], focuspanelid, !focuspanel || !focuspanel->GetElement()->HasFocus() ? "false":"true");
 }
 
 void Player::DebugDrawUI()
@@ -1984,10 +1973,10 @@ void Player::DebugDrawUI()
     if (!uiStatusBar)
         return;
 
-    for (unsigned i=0; i<panels_.Size(); i++)
+    for (HashMap<int, WeakPtr<UIPanel> >::ConstIterator it = panels_.Begin(); it != panels_.End(); ++it)
     {
-        if (panels_[i]->IsVisible())
-            panels_[i]->DebugDraw();
+        if (it->second_->IsVisible())
+            it->second_->DebugDraw();
     }
 }
 
@@ -2086,6 +2075,7 @@ void Player::Start()
     {
         URHO3D_LOGWARNINGF("Player() - Start : player ID=%u NoAvatar => ResetAvatar at position=%s", GetID(), GameContext::Get().playerState_[controlID_].position.ToString().CString());
 
+        Actor::SetViewZ(GameContext::Get().playerState_[controlID_].viewZ);
         ResetAvatar(GameContext::Get().playerState_[controlID_].position);
 
         if (!avatar_)
@@ -2197,6 +2187,7 @@ void Player::StartSubscribers()
         SubscribeToEvent(avatar_, GOC_CONTROLACTION1, URHO3D_HANDLER(Player, OnFire1));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION2, URHO3D_HANDLER(Player, OnFire2));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION3, URHO3D_HANDLER(Player, OnFire3));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTIONSTATUS, URHO3D_HANDLER(Player, OnStatus));
     }
 
     SubscribeToEvent(avatar_, COLLIDEWALLBEGIN, URHO3D_HANDLER(Player, OnCollideWall));
@@ -2274,6 +2265,7 @@ void Player::StopSubscribers()
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION1);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION2);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION3);
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTIONSTATUS);
 
             UnsubscribeFromEvent(avatar_, GO_INVENTORYGET);
         }
@@ -2416,6 +2408,13 @@ void Player::OnFire3(StringHash eventType, VariantMap& eventData)
     }
 }
 
+void Player::OnStatus(StringHash eventType, VariantMap& eventData)
+{
+    if (dirtyPlayer_)
+        return;
+
+    NextPanelFocus();
+}
 
 void Player::OnPostUpdate(StringHash eventType, VariantMap& eventData)
 {
@@ -2456,8 +2455,9 @@ void Player::OnDead(StringHash eventType, VariantMap& eventData)
     {
         URHO3D_LOGINFOF("Player() - OnDead : Avatar Node=%u died ... ", nodeID_);
 
-        if (panels_.Size())
-            panels_[0]->Update();
+        UIPanel* statusPanel = GetPanel(STATUSPANEL);
+        if (statusPanel)
+            statusPanel->Update();
 
         StopSubscribers();
 
@@ -2541,7 +2541,7 @@ void Player::OnGetCollectable(StringHash eventType, VariantMap& eventData)
     URHO3D_LOGINFOF("Player() - OnGetCollectable ... playerID=%u avatar=%s(%u) idslot=%u name=%s qty=%u ... ",
                     GetID(), GetAvatar()->GetName().CString(), GetAvatar()->GetID(), ID_Slot, resourceRef.name_.CString(), qty);
 
-    TransferCollectableToUI(eventData[Go_InventoryGet::GO_POSITION], panels_.Size() ? panels_[0]->GetElement() : 0, ID_Slot, qty, resourceRef);
+    TransferCollectableToUI(eventData[Go_InventoryGet::GO_POSITION], panels_.Size() ? panels_[STATUSPANEL]->GetElement() : 0, ID_Slot, qty, resourceRef);
 
     URHO3D_LOGINFOF("Player() - OnGetCollectable ... OK ! ");
 }

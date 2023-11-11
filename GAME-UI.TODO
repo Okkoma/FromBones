@@ -1,0 +1,289 @@
+Todos:
+    ✔ 10/11/2023 : Permettre le deplacement de l'avatar durant la selection dans l'UI @done(23-11-11 14:20)
+        => pour cela, il faut utiliser le Joystick Hat uniquement pour l'UI avec Joystick Reset
+        ==> OK : creation de static void UIPanel::SetAllowSceneInteraction(bool enable)
+
+    ☐ 10/11/2023 : Parametrer 2 nouvelles touches Prev/Next pour le deplacement dans les panneaux UI.
+
+    ✔ 08/11/2023 : AbilityPanel en Multiplayers local @done(23-11-11 14:20)
+        => en multiplayer sans multiview, pb de position de l'abilitypanel pour chaque joueur car centré en haut et trop gros. il faudrait trouver un autre systeme comme pour la selection des personnages.
+        ==> en mode un joueur garder l'abilityPanel tel quel.
+        ==> en multijoueur la remplacer par une version petite qui poppera au besoin à coté du Panneau de Status. Touche à définir.
+        ===> OK : remplacement de Actor::Vector<WeakPtr UIPanel /> panels_ par un HashMap plus facile d'utilisation pour l'enregistrement nommé de panels
+        ===> dans Player::CreateUI positionner AbilityPanel en fonction. Ajout de la propriété UIC_AbilityPanel::popup_ qui permet d'afficher en mode popup en mode multiplayer.
+        ===> 10/11/2023 : OK en mode multijoueurs, le panel est affiché en popup à coté du Panneau de Status.
+
+    ✔ 08/11/2023 : ajouter une dropdownlist pour l'activation du multiview dans Options/Joueur @done(23-11-11 14:20)
+        => ne pas activer en API Vulkan pour le moment
+        => OK
+
+    ☐ 08/11/2023 : probleme de font pour l'affichage des Touches lors de la configuration des touches clavier dans les Options
+        ✔ ajout de OptionText16_NoL10 qui utilise BlueHighway.ttf qui dispose de tous les caracteres necessaires. @done(23-11-11 14:22)
+        ☐ ça rajoute beaucoup de batch ... à terme mieux modifier les polices "aby32,22.xml..." mais bon le menu Options est lancé en pause ... pas d'impact directe sur les performances en jeu.
+
+    ☐ 07/11/2023 : ajout de la gestion des UIPanel avec le joystick
+        ✔ UISlotPanel::OnKey prend en charge cette gestion avec UIPanel::GetKeyFromEvent(), UIPanel::GainFocus() et Urho3D::UI::SetHandleJoystickEnable @done(23-11-11 14:22)
+        ✔ CraftPanel, ajout de UISlotPanel::endSlotIndex2_ et modification UISlotPanel::OnKey et UISlotPanel::UpdateSlotSelector pour gerer les deux sections differente "Material" et "Tool" @done(23-11-11 14:22)
+            Modification de PlayerCraft.xml autrement le slotSelector se met dans l'entete (passage en Layout Free pour la fenetre principal à l'instar de PlayerInventory.xml)
+        ☐ les dérivés UIPanel restants JournalPanel et MissionPanel : Modifier Start et ajouter un handle OnKey.
+
+    ☐ 30/01/2023 : le jeu ne quitte pas et pas possibilité de revenir en arriere : bloquage du jeu
+        ... lorsque l'avatar meurt et apparition de la messagebox "recommencer", si l'on ouvre les options et que l'on quitte, 
+
+    ☐ 11/11/2022 : les cursors sur UI_WorldMap sous Android ne sont pas affiché => ce qui est normalement puisque pas de curseur lorsque touchEnable_
+        => utiliser E_TOUCHMOVE pour afficher le curseur si sur un element UI. et E_TOUCHEND pour cacher le curseur.
+
+    ☐ 10/11/2022 : Les dialogue du marchand ainsi que le point d'exclamation ne s'affiche pas sans fluidenable.
+        => le LAYERFRONTSHAPES fonctionne en pass "front" qui n'existe pas dans le renderpath utiliser sans fluidenable.
+        ==> mettre les dialogues et les textes associés dans de nouveaux LAYERMATERIAL : LAYERDIALOG et LAYERDIALOGTEXT qui seront en pass "alpha"
+        ==> RAF : Text3D utilise le shader Text, sous vulkan il faudrait utiliser un autre shader qui ecrit sur fragColor2 pour eviter de surcharger Text.
+        ==> lorsque fluidenable, les dialogues sont maintenant sous l'eau (OK) mais aussi sous les decals de la pass "Front" (NOK).
+        ===> ne pas mettre les decals de premier plan en "front" => modification ObjectTiled
+        ==> Au final, les Dialog seront definitivement au premier plan.
+        ===> OK : Creer une pass "Dialog" apres le "Front" modification des 2 RenderPaths et annulation des modifications precedentes.
+
+    ☐ 09/11/2022 : le double-clic sur potions ne fonctionne pas sous RPI4 ?
+        => nonreproductible sous ubuntu avec une resolution plus basse et pleine ecran.
+        ==> voir le double-clic sous RPI si operationel.
+        => fonctionne sous RPI4 CrossCompile. Refaire un essai de compilation sous RPI4 natif.
+        ==> verifier la taille des elements UI qui pourrait se mettre dessus apres resize en "640x480".
+
+    ☐ 05/11/2022 : ajouter la position des Actors dans la MiniMap.
+        => OK : ajouter GO_AI_None dans GO_Entity utilisé dans UIC_MiniMap::PopulatePoints()
+
+    ☐ 19/02/2020 : Ajouter le double-clic dans l'inventaire et dans l'equipement permettant d'utiliser un objet
+        => chaque objet possède une valeur d'usabilité soit une valeur finie (1-255) ou bien infinie (0)
+        ==> à chaque utilisation la valeur (charge) est décrémentée
+        ==> definir les conditions d'activation d'une charge :
+            -> Stock : activable par double-clic dans le BagPanel (utilisation d'une potion),
+            -> Equip : activable par double-clic dans l'EquipmentPanel (torche à enflammer)
+            -> DropIn : activable par drop sur item du BagPanel ou de l'EquipmentPanel (ex: torche enflammée sur item)
+            -> DropOut : activable par drop sur entité de la scene
+        ==> definir les effets d'une charge :
+            -> Type : Vie, Mort, Feu, Eau, Matiere, Vide, Temps
+            -> Quantité, Durée (cf EffectType et EffectCount ?)
+            ex : Potion Soin(type=Vie), Potion Poison(type=Mort), Torche(type=Feu)
+        ==> definir les categories et/ou les types d'objets sur lesquels s'applique l'objet/l'effet
+        ==> ne pas regrouper dans l'inventaire les memes items mais de charges differentes
+        ===> voir pour modifier Slot, GOC_Inventory et GOC_Collectable
+        => 26/05/2022 OK : ajout de UIC_BagPanel::HandleDoubleClic pour les items utilisable du BagPanel.
+
+    ☐ 04/12/2021 : les armures et epees ne se groupent plus dans l'inventaire. Est-ce un comportement voulu ?
+
+    ☐ 12/03/2021 : lorsque ECHAP, il ne faut pas que cela ferme le StatusPanel sans pouvoir le rouvrir autrement qu'en appuyant sur A.
+        => en sortant du Menu en mode PlayState retablir les panneaux qui étaient précédement ouverts.
+        ==> cf UIC_StatusPanel::OnEscapePanel
+        ===> voir pour enregistrer les panneaux precedemment ouverts => modifier UIC_StatusPanel::OnRelease()
+
+    ☐ 18/12/2020 : revoir le mainmenu
+        => remplacer world par "adventure", mettre en deuxieme pierre juste en dessous arena
+        => lorsque "adventure" est cliquée si une sauvegarde existe, afficher le choix entre "continue" et "new" sur les pierres du dessous autrement lancer directement en new.
+
+    ☐ 16/07/2020 : ajout des enemies dans la minimap
+        => pouvoir ajouter les furnitures tel que les portal ou les outils
+        => permettre l'update de la minimap lorsque des tiles sont modifiées
+        ==> ajout de Map::SetMiniMapAt(int x, int y) et de l'event MAP_UPDATE
+
+    ☐ 08/07/2020 : modification de UISlotPanel et de tout ses classes filles
+        => creation de GetFocusSlotId et de OnDragSlotIn à tester
+        ==> lors du drop dans inventaire il faut pouvoir automatiquement regrouper les items de meme category dans le meme slot si la quantity maxi du template le permet.
+        ===> ct le cas dans la précédente iteration.
+        ===> dans UISlotPanel::OnDragSlotIn, utiliser AddCollectableFromSlot avec strictmode=false pour permettre le test des quantity dans le template quelque soit le type enregistré dans le template
+
+    ☐ 11/05/2020 : les panels doivent se repositionner en cas de redimensionnement de la fenetre de jeu
+        => pour le positionnement : Ajout de PlayState::HandleScreenResized() Player::ResizeUI() et GameHelpers::ClampPositionUIElementToScreen()
+        ==> RAF
+
+    ☐ 25/04/2018 : Checker pour les marchands si assez d'argent pour acheter les objets du Player
+
+    ☐ 10/04/2018 : Simplifier l'UISlotPanel::HandleSlotDragEnd() : le code semble lourd mais fonctionne.
+        ==> Modifier "int GOC_Inventory::AddCollectableFromSlot()" pour retourner un tableau des slots remplit ce qui permet de ne pas faire un UpdateSlots mais plutot un sendevent ciblé.
+
+
+Archive:
+
+    ✔ 25/05/2022 : le ScissorTest pour les listviews, console et dropdownlist ne fonctionne pas encore sous VULKAN
+        => voir pour implementer le ScissorTest.
+        ==> 25/05/2022 : OK.
+
+    ✔ 22/03/2021 : UIElement::SetEnableDpiScale() n'est pas nécessaire. A supprimer. la feuille Game_Equipment.xml sera à générer pour chaque resolution dpi. pour le moment mdpi et hdpi sont faites.
+    => les feuille d'UI ont été revue pour s'adapter correctement en hdpi
+        ==> les resultats sont correctes sur mobile 6.52inches.
+        => Game_Equipment.xml est maintenant stocké dans le sous repertoire UI pour chaque résolution dpi.
+
+    ✔ 13/03/2020 : generer la texture et les fichier .xml (fontes et spritesheets) pour le game_ui
+        => y integrer toutes les fontes necessaires
+        => les frames pour windows et boutons, le separator, les etiquettes monstres, les boutons abilities, la barre de vie, l'icone life et money et bouton equip, map, les collectables
+        ==> la dimension des textures sera de base en 1024x1024 pour l'mdpi (160dpi)
+
+            ldpi 	Resources for low-density (ldpi) screens (~120dpi).
+            mdpi 	Resources for medium-density (mdpi) screens (~160dpi). (This is the baseline density.)
+            hdpi 	Resources for high-density (hdpi) screens (~240dpi).
+            xhdpi 	Resources for extra-high-density (xhdpi) screens (~320dpi).
+            xxhdpi 	Resources for extra-extra-high-density (xxhdpi) screens (~480dpi).
+            xxxhdpi Resources for extra-extra-extra-high-density (xxxhdpi) uses (~640dpi).
+
+              768x768 (0.75x) for low-density (ldpi)
+            1024x1024 (1.0x baseline) for medium-density (mdpi)
+            1536x1536 (1.5x) for high-density (hdpi)
+            2048x2048 (2.0x) for extra-high-density (xhdpi)
+            3072x3072 (3.0x) for extra-extra-high-density (xxhdpi)
+            4096x4096 (4.0x) for extra-extra-extra-high-density (xxxhdpi)
+        ===> OK pour ldpi et mdpi
+        ====> 13/04/2021 : pour game_equipment il faut pouvoir indiquer à l'UI le scaling de tous les elements des panneaux qui sont suivant la resolution mdpi.
+        =====> ne fonctionne qu'uniquement pour les SCML.
+        ======> essai d'un UI scaling avec UIElement::SetEnableDpiScale()
+
+    ✔ 11/03/2021 : l'UIC_ShopPanel ne peut être déplacé. Les slots draggés se trouvent derriere ce panel.
+        => OK : Remplacement de panel->SetVisible() par panel->ToggleVisible()
+
+    ✔ 05/12/2020 : pour les devices TouchScreen augmenter de taille le StatusPanel.
+        => Ok : ajout du factor GameStatus::uiTouchScale_ ajouté à GameStatus::uiScale_ lorsque GameStatus::gameConfig_.touchEnabled_ est activé.
+        => OK sur Tablette.
+        ==> A voir sur Mobile.
+
+    ✔ 11/06/2020 : voir dans URHO3D pour gerer le scissor de façon a en profiter seulement lorsque c'est nécessaire (pas de perte inutile de batch)
+        => utiliser UIElement::SetClipChildren(false) pour skipper le scissor lorsque non nécessaire
+        ==> tous les UIElements derivés de Window, ScrollView et LineEdit ont le clipchildren_= true par défaut
+        ===> mettre tous les panels en false
+        ====> OK 12/06/2020 : Creation de GameHelpers::SetEnableScissor(UIElement* elt, bool enable)
+
+    ✔ 09/06/2020 : Modification de Urho3D::DropDownList::OnShowPopup() permettant de ne pas automatiquement redimensionner en hauteur selon le contenu. Permet d'avoir un slider. (utile pour les resolutions)
+        => OK : reactivation du scissor (qui avait été bypasser pour gagner en ui batch)
+
+    ✔ 18/10/2017 : Créer UI Options (Controls/Sound) / Devel Options(DrawDebug/CreateMode)
+        -> 02/01/2020 : cf. SpaceMatch pour reprendre les options
+        --> ajouter option graphique Rendershape
+        --> ajouter option controller ScreenTouch Enable/Disable
+        -> 21/05/2020 : creation de OptionState avec UI fonctionnelle pour les langues
+        ==> parametres à revoir
+        ===> voir pour le nombre de joueur et les controles en priorité
+        ====> ok quelques tests avec plusieurs joueurs local dont des CPU
+        =====> il reste beaucoup de choses à améliorer sur le controle des CPU (ordres à passer etc ...) cf Behavior
+        ====> ensuite voire pour l'audio => OK
+        ====> ensuite voire pour graphics
+        =====> voir pourquoi le changement dans Texture Quality et Texture Filter ne fonctionne pas correctement => OK
+        =====> finir le choix des controller, keyboard, joystick etc...
+        ====> ajout aux resolutions d'une barre de défilement vertical avec un maximum de 5 resolutions affichables
+
+    ✔ 07/05/2020 : ajouter une ui pour le switch rapide de characters
+        => modification de la zone player status
+        ==> ajouter l'image character au centre de la zone
+        ==> creer une interface qui s'affiche avec les autres characters disponibles.
+        ==> OK le 11/05/2020
+        ===> retransferer le code dans UIC_StatusPanel
+        ====> OK creation de UIC_StatusPanel
+        ====> OK le 15/05/2020 transfert du code pour Life, Money et CharacterSlot
+
+    ✔ 04/03/2020 : afin de reduire le nombre de batches coté UI, tous les collectables doivent être reunis dans une/deux textures au demarrage du jeu
+        => Ajout de GameStatus::uiTextures_ et modification de GameHelpers::SetUIElementFrom() permettant de specifier une texture UI preloadée
+        => Modification dans Urho3D::UI::GetBatches() afin de bypasser le scissor adjust
+        => Modification dans Urho3D::UIBatch::Merge() permettant le Dump en continu pour debugguer les batches => il faut specifier UIBatch::dumpBatchMerging_ = true;
+        -> l'inventaire et l'equipement coutent bcp de batches, modifier game_ui.png pour regrouper les cadres, les slots, les croix, les titres de l'inventaire et equipment
+        --> l'inventaire vide coute 5 batches => reduire à 1
+        ==> OK : inventaire vide = 0 batch OK => iso texture UIMAIN
+        --> l'equipment vide coute 5 egalement batches => reduire à 1
+        ==> OK : equipment vide = 0 batch OK => iso texture UIMAIN
+        -> la minimap coute 6 batches, la reduire à 3 Batch maxi (1 batch pour le fond, 1 batch pour les layer, 1 batch pour les points)
+        ==> OK : reduit à 2 batches en mettant le cadre et le point dans UIMAIN + en composant dans une seule texture toutes les images (une par viewid) generees par les Maps.
+        ==> les collectables sont reunies dans la texture UIEQUIPMENT reduisant ainsi le nombre de batch, hormis le texte
+        ===> pour le texte (il ne s'agit que de digit), voir pour mettre dans la meme texture UIEQUIPMENT ces 10 digits
+        ====> OK le 09/03/2020: utilisation de l'appli bmfont pour generer le .png puis recoupe dans gimp pour en faire un sprite inserable dans ShoeBox => la fonte digit22 est integrée à game_equipment.png permettant de reduire les batchs
+        ====> modification de Uho3D::Font et Urho3D::FontFace pour ajouter une texture Custom
+        ====> la font generée par bmfont est composée d'un fichier .fnt et d'un .png : le .fnt est un xml. Changement d'extension .FNT=>.XML et ajout dans ce fichier du tag textureloadingmode qui permet de ne pas generer de TEXTURE
+            puis ajout en manuel de la texture via Font::AddCustomTexture
+        ====> ajout de Slot::UpdateUISprite() qui va prendre le bon sprite dans game_equipment.png (si pb de nom de sprite (pb correlation SCML et UI), utiliser alors le nom de l'objet comme nom de sprite)
+        ====> RAF : ajouter plusieurs taille de cette fonte.
+        ====> RAF : mettre à jour UIC_MissionPanel et UIC_ShopPanel et leur panel associé
+
+    ✔ 05/03/2020 : lors du drop d'items, il arrive parfois que les items soient inclinés voir qu'ils passent meme à travers les murs et disparaissent (alors qu'ils apparaissent bien en dehors des murs...)
+        => analyser ObjectPoolCategory::Resize, ObjectPool::CreateChildIn, Map::AddEntity, GameHelpers::SetPhysicProperties()
+        ==> modification de GameHelpers::SetPhysicProperties() permettant de setter rotation=0
+        ==> OK : correctif de PhysicEntityInfo()
+        ===> Verifier si toujours des chutes/disparitions d'items droppés
+
+    ✔ 04/03/2020 : la potion regen n'affiche pas le bon icone item. cf Slot => GameHelpers::GetSpriteForType() =>
+        => Urho3D::AnimatedSprite2D::SetEntity() ne set pas le sprite, uniquement utiliser dans Urho3D::AnimatedSprite2D::SetAnimationSet()
+        ==> Verifier Slot::Set(), GameHelpers::GetSpriteForType, GOC_Collectable::DropSlotFrom, GameHelpers::SetCollectableProperties(),
+        ===> VOIR pour Reactivation de l'attribut "Sprite" dans AnimatedSprite2D permettant dans les attributs XML de setter le Sprite
+        ====> en reactivant l'Attribut "Sprite", il faut obligatoirement l'ajouter dans tout les Objets Collectable.
+        ====> pb : tout les animatedSprite meme non collectable (hors certains avatars tel que petit, eredot, champanze, lizard, skel) n'apparaissent plus meme en ajoutant l'attribut "Sprite"
+        =====> l'attribut "Sprite" est géré par StaticSprite2D et setté par la suite par StaticSprite2D::SetSprite().
+            le code est spécifique pour StaticSprite2D => notamment utilisation de UpdateMaterial et de sourceBatchDirty_ = true qui pouuraient etre à risque pour AnimatedSprite2D.
+        ======> creation de Setter et Getter pour l'attribut "Sprite" specifiques à AnimatedSprite2D
+        =======> resoud les problemes sauf pour les avatars tel que burros, vampire, rockgolem ... ceux qui n'ont pas d'equipment à priori.
+        ========> tous ces avatars utilisent AnimatedSprite2D::UpdateSourceBatchesSpriter_OneMaterial()
+        =========> OK : correctif dans AnimatedSprite2D::UpdateSourceBatchesSpriter_OneMaterial() pour setter le material si vide à partir de l'AnimationSet
+
+    ✔ 31/10/2019 : lors de la prise d'objet dans l'inventaire ou autre, il n'est pas evident de dropper certains objets dans une case (ex: katana, pistolet)
+        => OK 28/12/2019 : modification UISlotPanel::HandleSlotDragBegin() : ajout SetPivot(0.5f,0.5f)
+
+    ✔ 28/12/2019 : dans l'inventaire (bagpanel), lors du deplacement d'un objet bone sur une part differente de meme type, l'objet disparait au lieu d'etre remis dans son slot d'origine.
+        => OK : modification UISlotPanel::HandleSlotDragEnd() : if (Slot::HaveSameTypes(slot, focusSlot) && slot.sprite_ == focusSlot.sprite_) ald if (Slot::HaveSameTypes(slot, focusSlot)) permettant de tester la part via le sprite
+
+    ✔ 24/08/2018 : l'UIC_MiniMap devient un composant du cameraNode
+        => le player l'active par l'UI
+        => modification majeure du composant permettant un meilleur déplacement (plus de saccades) et ajout des entités
+
+    ✔ 21/08/2018 : bug dans le mainmenu : pb de detection de la zone pour Arena ou Solo
+        => utilisation de MarkDirty() si WorldBoundingBox est NaN
+
+    ✔ 18/07/2018 : réduire le nombre de textures (cursor, icone vie ... à mettre dans gameui.png)
+        => ok, ajout GameHelpers::SetUIElementFrom()
+
+    ✔ 23/04/2018 : vérifier si les valuesToPopulate sont bien tous remplis même si l'inventaire n'est pas complétement vide
+        => OK => création du GOC_Inventory::SetAutoPopulatedSlots() pour les marchands et les coffres
+
+    ✔ 19/04/2018 : les marchands lorsqu'ils meurent perdent leur inventaire. Les ObjectPool doivent régénérer leur inventaire si vide.
+        => correctif dans Player::OnTalkShowResponses() => player n'ayant pas de OnTalkBegin l'actorid n'est pas setté
+        ==>> creer un handle pour le player TalkBegin
+        => correctif dans Actor::OnDead() => ajout du Actor::RemoveActor
+        ==> OK le 21/04/2018
+
+    ✔ 15/04/2018 : UIC_MiniMap ne genere pas la bonne map à l'apparition dans le mode test.
+        => voir s'il s'agit d'un pb de synchro avec les events ?
+        ==> OK correctif dans UIC_MiniMap et Player::UpdateComponents() => ajout d'un GOC_Destroyer::UpdatePositions()
+
+    ✔ 14/04/2018 : suite aux modifications Player/Actor => l'equipment du player pose probleme apres changement de scene (d'arena vers test par exemple)
+        => Modification de la logique UIPanel::Set et du UIPanel::Start
+        => OK !
+
+    ✔ 10/04/2018 : avec 2 marchands avec dialoguemarkers actifs, si le joueur ouvrir un dialogue chez un marchand => desactiver le dialoguemarker des autres interactors potentiels
+        => ok player est desormais bien verouiller avec dialogInteractor affecter des qu'un clic sur un marker
+        ==> autre solution : gerer des listes de marker mais plus lourds et ne permet un bon affichage des markers en mutli-player local
+
+    ✔ 08/04/2018 : Le dialogue n'est plus maintenu lorsque le player change d'avatar
+        => surement les collider2D qui poussent à un TalkEnd.
+        => pb également avec plusieurs marchands
+        ==> le dialogActor_ est un ptr et non pas un ID
+        ===> voir pour remplacer ce ptr par un ptr vers actor plutot que vers node (qui peut changer)
+        ===> OK le 10/04/2018
+
+    ✔ 18/10/2017 : Créer UI pour Marchand
+        => 4/04/2018 : creation de PlayerShop
+        ==> ajouter deux slotzones "shop et basket" drag&drop les items entre celles-ci => OK!
+        ====> tagger dans basket comme achat ... => OK !
+        ==> desactiver le drag&drop to scene => OK !
+        ==> drag&drop d'inventaire ou equipement vers basket uniquement
+        ====> tagger dans basket comme vente ... => OK !
+        ==> calculer si la transaction est accepter par le vendeur
+        => money(vente)+money(player) >= money(achat) dans un premier temps => OK !
+        => on pourrait imaginer que le vendeur fait des efforts et baisse le prix de ces objets de quelques pourcents pour faire la transaction dans le cas ou affinité avec le player
+        ==> 7/04/2018 OK pour le premier jet.
+
+    ✔ 25/10/2017 : Créer le dialogue actor en mode sceneReplicationMode
+        => 25/03/2018 : Creation de DialogueFrame (UI Actor) et de DialogueData (stockage et gestionnaire de dialogues)
+        ==> ajouter l'interface pour modifier les messages lorsqu'une interaction se produit
+        ===> lier à une IA qui dispose de l'acces au dictionnaire de messages
+        ====> DialogueFrame communique avec la classe Actor par Events
+        ==> installation de Wren (language de script) pour interpreter les commandes ou bien voir pour LUAJIT a la place
+        ===> comment compiler et stocker les bytecodes pour utiliser le code compilé plutot que de reinterpreter/compiler le source à chaque commande ?
+        ====> 03/04/2018 : premiers essais sans compile
+
+    ✔ 18/10/2017 : Vérifier l'activation/desactivation du missionmanager lors du changement de gamemode (level->arena | test->level)
+        => OK, modification logic de creation des panels dans Player::CreateUI()
+
+    ✔ 27/03/2018 : les rigidbodies static ne suivent pas le déplacement de leur node
+        => modification de RigidBody2D::ApplyWorldTransform() pour que le body prend la position du node.
+
+

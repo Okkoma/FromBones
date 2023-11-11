@@ -68,11 +68,12 @@ void GOC_Controller::RegisterObject(Context* context)
 
 void GOC_Controller::Start()
 {
-//    URHO3D_LOGINFOF("GOC_Controller() - Start : Type=%d", controlType_);
+    URHO3D_LOGINFOF("GOC_Controller() - Start : Type=%d", controlType_);
     ResetButtons();
     ResetDirection();
 
-    node_->GetDerivedComponent<Drawable2D>()->SetViewMask(-1);
+    // Pourquoi ça ?
+//    node_->GetDerivedComponent<Drawable2D>()->SetViewMask(-1);
 
 #ifdef ACTIVE_NETWORK_LOCALPHYSICSIMULATION_VELOCITY_NONMAIN
     if (!mainController_)
@@ -161,7 +162,7 @@ void GOC_Controller::SetMainController(bool maincontroller)
 
     SetControllerType(controlType_, oldmaincontroller != mainController_);
 
-    if (mainController_ != oldmaincontroller)
+    if (mainController_ != oldmaincontroller && IsEnabledEffective())
     {
         Stop();
 
@@ -294,6 +295,11 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
         {
 //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE3 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
             node_->SendEvent(GOC_CONTROLACTION3);
+        }
+
+        if (control_.IsButtonDown(CTRL_STATUS))
+        {
+            node_->SendEvent(GOC_CONTROLACTIONSTATUS);
         }
     }
 
