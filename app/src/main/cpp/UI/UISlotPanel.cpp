@@ -253,14 +253,14 @@ int UIPanel::GetKeyFromEvent(int controlid, StringHash eventType, VariantMap& ev
             if (eventData[JoystickButtonDown::P_BUTTON].GetInt() == buttonmap[ACTION_INTERACT])
             {
                 scancode = keymap[ACTION_INTERACT];
-            
+
                 if (!allowSceneInteraction_ || buttonmap[ACTION_INTERACT] == buttonmap[ACTION_JUMP])
                     joystick->Reset();
             }
         }
         else if (eventType == E_JOYSTICKHATMOVE && eventData[JoystickHatMove::P_JOYSTICKID].GetInt() == joyid)
         {
-            int axis = eventData[JoystickHatMove::P_HAT].GetInt(); 
+            int axis = eventData[JoystickHatMove::P_HAT].GetInt();
             int position = eventData[JoystickHatMove::P_POSITION].GetInt();
             {
                 if (position == HAT_UP)
@@ -274,19 +274,19 @@ int UIPanel::GetKeyFromEvent(int controlid, StringHash eventType, VariantMap& ev
             }
             if (!allowSceneInteraction_)
                 joystick->Reset();
-        }                
+        }
         else if (!allowSceneInteraction_ && eventType == E_JOYSTICKAXISMOVE && eventData[JoystickAxisMove::P_JOYSTICKID].GetInt() == joyid)
         {
-            int axis = eventData[JoystickAxisMove::P_AXIS].GetInt(); 
+            int axis = eventData[JoystickAxisMove::P_AXIS].GetInt();
             float position = eventData[JoystickAxisMove::P_POSITION].GetFloat();
             if (position > PanelJoystickSensivity_)
                 scancode = keymap[axis == 0 ? ACTION_RIGHT : ACTION_DOWN];
             else if (position < -PanelJoystickSensivity_)
                 scancode = keymap[axis == 0 ? ACTION_LEFT : ACTION_UP];
-            joystick->Reset();               
+            joystick->Reset();
         }
         if (scancode)
-            URHO3D_LOGINFOF("UIPanel() - GetKeyFromEvent : controlid=%d joystickid=%d scancode=%d ...", controlid, joyid, scancode);        
+            URHO3D_LOGINFOF("UIPanel() - GetKeyFromEvent : controlid=%d joystickid=%d scancode=%d ...", controlid, joyid, scancode);
     }
     else if (eventType == E_KEYDOWN)
     {
@@ -539,9 +539,7 @@ void UISlotPanel::OnSetVisible()
         {
             SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(UISlotPanel, OnKey));
             SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(UISlotPanel, OnKey));
-        #ifdef ALLOW_JOYSTICK_AXIS
             SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(UISlotPanel, OnKey));
-        #endif            
         }
 
         selectHalo_ = panel_->GetChild(String("I_Select"), true);
@@ -561,9 +559,7 @@ void UISlotPanel::OnSetVisible()
         {
             UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
             UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
-        #ifdef ALLOW_JOYSTICK_AXIS
             UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
-        #endif                
         }
 
 //        URHO3D_LOGINFOF("UISlotPanel() - OnSetVisible : panel=%s hide selecthalo !", name_.CString());

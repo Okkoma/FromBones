@@ -3,10 +3,8 @@ Todos:
         -> pb de generation de monde
 
     ☐ 13/10/2023 : lorsque l'on monte un mur,
-        .
         *
-        ** <-/> ce bloc n'a pas de collider
-        *
+        ** <- ce bloc n'a pas de collider
         *
         => 16/10/2023 : Patch dans MapColliderGenerator::TraceContours_MooreNeighbor
 
@@ -100,7 +98,7 @@ Todos:
         => la taille scraps en changeant de dpi n'est pas la bonne.
         ==> OK : suppression dans GameHelpers::SpawnScraps() de l'utilisation des Dpi de Texture qui sont dejà pris en compte dans Sprite2D.
 
-    ☐ 20/01/2023 : lors de la generation des colliders (MapColliderGenerator), il arrive que son interruption pour repasser sur une autre map à créer, 
+    ☐ 20/01/2023 : lors de la generation des colliders (MapColliderGenerator), il arrive que son interruption pour repasser sur une autre map à créer,
         puis sa reprise ne permet pas de generer correctement les colliders (cela se voit tres bien avec les rendershapes)
         => il faut pouvoir logger lors de la reprise et s'assurer que les bons etats et buffers sont correctes.
         => correctif dans MapColliderGenerator::GeneratePhysicCollider() et MapColliderGenerator::GenerateRenderCollider()
@@ -576,7 +574,7 @@ Todos:
         ==> RAF : codage du verrou + object "clé"
 
     ☐ Créer une TerrainMap (carte des terrain : argile, terre, sable, pierre)
-        -> l'altitude modifie le type de terrain 
+        -> l'altitude modifie le type de terrain
         --> en forte profondeur : 80% pierre et 20% argile;
         --> en surface faible altitude (lit mer, riviere) : 50% sable, 35% pierre, 15% argile;
         --> en surface moyenne altitude (plaine): 50% terre, 25% argile, 15% pierre, 10% sable;

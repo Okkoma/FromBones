@@ -236,6 +236,7 @@ void GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
 
 // used by GOC_PlayerController::HandleLocalUpdate
 // used by GOC_AIController::HandleUpdate
+// used by GameNetwork::UpdateControl
 bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
 {
     if (!GameContext::Get().physicsWorld_->IsUpdateEnabled())
@@ -255,7 +256,7 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
         }
 
         if (!forceControlUpdate_ && !forceUpdate)
-        return false;
+            return false;
     }
     else
     {
@@ -264,15 +265,18 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
             buttonholdtime_ = 0U;
             node_->SendEvent(GOC_CONTROLACTIONSTOP);
         }
-
-    prevbuttons_ = control_.buttons_;
-    control_.buttons_ = buttons;
-        node_->SetVar(GOA::BUTTONS, buttons);
     }
+    // Patch for GameNetwork to resolve "Ghosting" pb 11/11/2023.
+    if (prevbuttons_ != buttons || forceUpdate)
+    {
+        prevbuttons_ = control_.buttons_;
+        control_.buttons_ = buttons;
+        node_->SetVar(GOA::BUTTONS, buttons);
 
-//    URHO3D_LOGINFOF("GOC_Controller() - Update : buttons(prev)=%u(%u) mainController=%s forceUpdate=%s", control_.buttons_, prevbuttons_, mainController_ ? "true":"false", forceUpdate ? "true":"false");
+        URHO3D_LOGINFOF("GOC_Controller() - Update : buttons(prev)=%u(%u) mainController=%s forceUpdate=%s", control_.buttons_, prevbuttons_, mainController_ ? "true":"false", forceUpdate ? "true":"false");
 
-    node_->SendEvent(GOC_CONTROLUPDATE);
+        node_->SendEvent(GOC_CONTROLUPDATE);
+    }
 
 //    if (control_.IsButtonDown(CTRL_JUMP))
 //        node_->SendEvent(GOC_CONTROLACTION0);

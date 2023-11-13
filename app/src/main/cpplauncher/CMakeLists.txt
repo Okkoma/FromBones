@@ -3,8 +3,18 @@ set (TARGET_NAME FromBones)
 # Define source files
 file (GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp" "*.h")
 
-# Add specific TODO.txt file
-set (SOURCE_FILES "${SOURCE_FILES}" "../../../../TODO.txt")
+# Add TODO files
+set (SOURCE_FILES "${SOURCE_FILES}"
+     "../../../../GAME-AI.TODO"
+     "../../../../GAME-BEHAVIOR.TODO"
+     "../../../../GAME-EDITOR.TODO"
+     "../../../../GAME-GENERAL.TODO"
+     "../../../../GAME-GRAPHICS.TODO"
+     "../../../../GAME-MAPWORLD.TODO"
+     "../../../../GAME-NETWORK.TODO"
+     "../../../../GAME-SOUND.TODO"
+     "../../../../GAME-STORY.TODO"
+     "../../../../GAME-UI.TODO" )
 
 # Add C_FLAGS Compiler c99 idiom => enable "for (int i= ...)" syntax
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")

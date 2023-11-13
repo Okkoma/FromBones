@@ -411,7 +411,7 @@ void Game::Setup()
         config.debugRenderShape_ = false;
     }
 
-    if (!GetExecutableName().Empty())
+    if (engineParameters_["LogName"].GetString().Empty() && !GetExecutableName().Empty())
         engineParameters_["LogName"] = GetFileName(GetExecutableName()) + ".log";
 
     if (config.frameLimiter_)

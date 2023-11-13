@@ -41,6 +41,12 @@ enum
     OBJECTCOMMAND = 2
 };
 
+enum NetSpawnMode
+{
+    LOCALSPAWNONLY = 0,
+    NETSPAWNONLY = 1
+};
+
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
 // IEEE-754 16-bit floating-point format (without infinity): 1-5-10, exp-15, +-131008.0, +-6.1035156E-5, +-5.9604645E-8, 3.311 digits
 float half_to_float(const unsigned short x);
@@ -101,20 +107,13 @@ struct ObjectControl
         float rot2_;
     } holderinfo_; // 1uint + 5float = 24bytes
 
+    void SetAnimationState(const StringHash& state);
     void SetFlagBit(int bit, bool state);
 
-    bool IsEnabled() const
-    {
-        return (states_.flag_ & (1 << OFB_ENABLED)) != 0;
-    }
-    bool HasNetSpawnMode() const
-    {
-        return (states_.flag_ & (1 << OFB_NETSPAWNMODE)) != 0;
-    }
-    bool HasAnimationChanged() const
-    {
-        return (states_.flag_ & (1 << OFB_ANIMATIONCHANGED)) != 0;
-    }
+    bool IsEnabled() const { return (states_.flag_ & (1 << OFB_ENABLED)) != 0; }
+    bool HasNetSpawnMode() const { return (states_.flag_ & (1 << OFB_NETSPAWNMODE)) != 0; }
+    bool HasAnimationChanged() const { return (states_.flag_ & (1 << OFB_ANIMATIONCHANGED)) != 0; }
+    StringHash GetAnimationState() const;
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
     void Pack(PackedObjectControl& packedobject);
@@ -124,10 +123,7 @@ struct ObjectControl
 
 struct ObjectControlInfo
 {
-    ObjectControlInfo() : clientId_(0)
-    {
-        Clear();
-    }
+    ObjectControlInfo() : clientId_(0) { Clear(); }
     ObjectControlInfo(const ObjectControlInfo& c);
 
     void SetActive(bool enable, bool serverobject=true);
@@ -148,10 +144,8 @@ struct ObjectControlInfo
     const ObjectControl& GetPreviousReceivedControl() const;
     ObjectControl& GetReceivedControl();
     ObjectControl& GetPreparedControl();
-    bool IsEnable() const
-    {
-        return GetReceivedControl().IsEnabled();
-    }
+
+    bool IsEnable() const { return GetReceivedControl().IsEnabled(); }
 
     void Read(VectorBuffer& msg);
     void ReadAck(VectorBuffer& msg);
@@ -187,14 +181,8 @@ struct ObjectControlInfo
 struct ObjectCommand
 {
     ObjectCommand() : clientId_(0), stamp_(0) { }
-    ObjectCommand(VectorBuffer& msg)
-    {
-        Read(msg);
-    }
-    ObjectCommand(const ObjectCommand& cmd)
-    {
-        cmd.CopyTo(*this);
-    }
+    ObjectCommand(VectorBuffer& msg) { Read(msg); }
+    ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
     void Read(VectorBuffer& msg);
     void Write(VectorBuffer& msg) const;

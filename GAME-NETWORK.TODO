@@ -6,6 +6,21 @@ ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
 ---------------------------------------------------------------------
 
 Todos:
+    ☐ 13/11/2023 : ne pas mettre les rip stele en mode reseau arena
+    
+    ☐ 13/11/2023 : inventaires et charactermapping 
+        voir si ObjectCommand est operationnel pour envoyer le stuff d'equipement pour mettre à jour les inventaires.
+
+    ✔ 11/11/2023 : pb de ghosting coté client ou serveur lorsque l'avatar distant s'arrete. @done(23-11-13 15:37)
+        reprise du mode reseau apres 2 ans off. ce probleme n'existe pas sur la version 20210925
+        il n'y a pas eu de modification sur Urho3D::Network, ni dans Urho3D::Scene
+        -> ont été ajouté dans ObjectControlInfo : BackupReceivedControl(), GetPreviousReceivedControl() et lastNetChangeCounter_.
+        --> Test1 : integration de l'ancien PackedObjectControl dans la version courante de Frombones => meme pb
+        --> Test2 : integration de la version courante de PackedObjectControl dans la version 20210925 => fonctionne correctement.
+        --> cela ne provient pas de GameNetwork : lorsque l'avatar est immobile et que le serveur reçoit l'ObjectControl la position reçue ne varie pas (Log dans HandlePlayServer_ReceiveUpdate=>UpdateControl).        )
+        -> cela provient du changement dans GOC_Controller::Update puis impact GOC_Move2D qui a physicsEnable_ => si les buttons ne sont pas setté alors GOC_Move2D va appliquer une force dans la direction
+        --> 13/11/2023 : Ok patch dans GOC_Controller::Update.
+
     ☐ 04/10/2021 : il faut revoir une fois de plus lorsque l'entité attaque, l'animation loop parfois encore cette fois en local. GOC_Animator2D::SetState(), GOC_Animator2D::CheckAnim()
         -> modif dans GOC_Animator2D::CheckAnim()
             toujours le meme pb. dur à reproduire : vu uniquement en world. En arena en mettant bcp d'entité, non reproduit.
@@ -226,7 +241,8 @@ Archive:
         => cf GameNetwork::HandleSearchServer()
         ==> OK 27/09/2021 : augmentation du delai de connection au server. NET_DELAYCHECKCONNECTION et NET_DELAYCONNECTSERVER
 
-    ✔ 06/09/2021 : apres plusieurs suicides d'un avatar, l'avatar a des mouvements de plus en plus sacadés sur les autres clients car les informations n'arrivent plus avec le meme fps (il s'agit de l'effet de la limitation du nombre d'objetcontrol par envoi precedement realisé)
+    ✔ 06/09/2021 : apres plusieurs suicides d'un avatar, l'avatar a des mouvements de plus en plus sacadés sur les autres clients car les informations n'arrivent plus avec le meme fps 
+        (il s'agit de l'effet de la limitation du nombre d'objetcontrol par envoi precedement realisé)
         => il faut compenser ces sacades par une simulation locale du mouvement : dans ce cas il faut que GOC_Move2D::IsPhysicEnable() soit vrai.
         => les GOC_Move2D::SetPhysicEnable(false) sont commentés.
         ==> les sacades sont presentes si NET_DEFAULT_LOSTPACKET > 0 avec NET_DEFAULT_UPDATEFPS=20fps

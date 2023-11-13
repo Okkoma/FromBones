@@ -1395,12 +1395,10 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
         return;
 
     uiStatusBar = root;
-
-    URHO3D_LOGINFOF("Player() - CreateUI : id=%u ... uiStatusBar=%u ...", GetID(), uiStatusBar.Get());
-
     if (!uiStatusBar)
         return;
 
+    URHO3D_LOGINFOF("Player() - CreateUI : id=%u ... uiStatusBar=%u ...", GetID(), uiStatusBar.Get());
     ResourceCache* cache = context_->GetSubsystem<ResourceCache>();
 
     // Main Panel
@@ -1437,7 +1435,7 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
         if (panelsetted)
         {
             panels_[STATUSPANEL] = statusPanel;
-            GameHelpers::SetEnableScissor(statusPanel->GetElement(), false);    
+            GameHelpers::SetEnableScissor(statusPanel->GetElement(), false);
         }
     }
 
@@ -1494,18 +1492,18 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
             GameHelpers::SetEnableScissor(panel->GetElement(), false);
         }
     }
-    
+
     panel = GetPanel(ABILITYPANEL);
     if (!panel)
     {
         String panelname(String("PlayerAbi")+String(GetID()));
         UIC_AbilityPanel* abilityPanel = static_cast<UIC_AbilityPanel*>(UIPanel::GetPanel(panelname));
-        if (abilityPanel && abilityPanel->IsPopup() != multiLocalPlayerMode) 
+        if (abilityPanel && abilityPanel->IsPopup() != multiLocalPlayerMode)
         {
             // Recreate the panel if no same mode
             UIPanel::RemovePanel(abilityPanel);
             abilityPanel = 0;
-        }        
+        }
         bool panelsetted = abilityPanel != 0;
         if (!abilityPanel)
         {
@@ -1513,7 +1511,7 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
             if (multiLocalPlayerMode)
             {
                 const IntVector2& parentsize = statusPanel->GetElement()->GetSize();
-                panelsetted = abilityPanel->Set(ABILITYPANEL, panelname, "UI/PlayerAbilityPopup.xml", IntVector2(parentsize.x_, parentsize.y_/2), HA_LEFT, VA_TOP, 0.8f, 
+                panelsetted = abilityPanel->Set(ABILITYPANEL, panelname, "UI/PlayerAbilityPopup.xml", IntVector2(parentsize.x_, parentsize.y_/2), HA_LEFT, VA_TOP, 0.8f,
                                         statusPanel->GetElement()->GetChild(String("AbilitySlot")));
             }
             else
@@ -1659,7 +1657,7 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
             minimap->AddActivatorButton(mapButton);
     }
 #endif
-    
+
     focusPanel_.Reset();
 
     URHO3D_LOGINFOF("Player() - CreateUI : id=%u ... OK !", GetID());
@@ -1926,7 +1924,7 @@ void Player::NextPanelFocus()
         focuspanel = GetPanel(focuspanelid);
         if (!focuspanel->IsVisible())
             focuspanel->ToggleVisible();
-        focuspanel->GainFocus();       
+        focuspanel->GainFocus();
     }
     else
     {
@@ -1961,8 +1959,8 @@ void Player::NextPanelFocus()
 
     SetFocusPanel(focuspanelid);
 
-    URHO3D_LOGINFOF("Player() - NextPanelFocus :  ID=%d currentpanelfocus=%s(%d) hasfocus=%s... OK !", GetID(), 
-                    PanelNames_[focuspanelid], focuspanelid, !focuspanel || !focuspanel->GetElement()->HasFocus() ? "false":"true");
+    URHO3D_LOGINFOF("Player() - NextPanelFocus :  ID=%d currentpanelfocus=%s(%d) hasfocus=%s... OK !", GetID(),
+                    focuspanelid != -1 ? PanelNames_[focuspanelid] : "none", focuspanelid, !focuspanel || !focuspanel->GetElement()->HasFocus() ? "false":"true");
 }
 
 void Player::DebugDrawUI()

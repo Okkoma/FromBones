@@ -603,18 +603,20 @@ void GOC_Move2D::UpdateLineOfSight()
 void GOC_Move2D::Dump() const
 {
     URHO3D_LOGINFOF("GOC_Move2D() - Dump : moveStates_=%u", moveStates_);
-//    DumpPhysics();
 
-    DumpLOS();
+    DumpPhysics();
 
-    DumpFeatures();
+//    DumpLOS();
+
+//    DumpFeatures();
 }
 
 void GOC_Move2D::DumpPhysics() const
 {
     const WorldMapPosition& mapWorldPosition = destroyer_->GetWorldMapPosition();
 
-    URHO3D_LOGINFOF("GOC_Move2D() - DumpPhysics : map=%s pos=%s vZ=%d posInTile=%s(mCenter=%s) vel=%s gravity=%f",
+    URHO3D_LOGINFOF("GOC_Move2D() - DumpPhysics : physicenable=%s mainCtrl=%s map=%s pos=%s vZ=%d posInTile=%s(mCenter=%s) vel=%s gravity=%f",
+                    physicsEnable_ ? "true":"false", controller_->IsMainController() ? "true":"false",
                     mapWorldPosition.mPoint_.ToString().CString(), mapWorldPosition.mPosition_.ToString().CString(), mapWorldPosition.viewZ_,
                     mapWorldPosition.positionInTile_.ToString().CString(),
                     GetComponent<RigidBody2D>()->GetMassCenter().ToString().CString(),

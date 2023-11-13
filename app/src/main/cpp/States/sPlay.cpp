@@ -1973,9 +1973,6 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
         GameContext::Get().AllowUpdate_ = true;
     }
 
-    // 06/11/2023 : Patch pour le Joystick
-//    GameContext::Get().ui_->SetFocusElement(0);
-
 //    OptionState* optionState = (OptionState*)GameContext::Get().stateManager_->GetState("Options");
 //    if (optionState)
 //    {

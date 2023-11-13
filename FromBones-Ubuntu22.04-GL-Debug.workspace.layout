@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_layout_file>
 	<FileVersion major="1" minor="0" />
-	<ActiveProject path="build/Ubuntu22.04Gl/static/debug/FromBones.cbp" />
-	<PreferredTarget name="FromBones" />
+	<ActiveProject path="../../Urho3D/Urho3D/build/Ubuntu22.04Gl/static/debug/Urho3D.cbp" />
 </CodeBlocks_workspace_layout_file>

@@ -660,7 +660,10 @@ UIPanel* Actor::GetPanel(int idpanel) const
 
 void Actor::SetFocusPanel(int idpanel)
 {
-    focusPanel_ = WeakPtr<UIPanel>(GetPanel(idpanel));
+    if (idpanel == -1)
+        focusPanel_.Reset();
+    else
+        focusPanel_ = WeakPtr<UIPanel>(GetPanel(idpanel));
 }
 
 UIPanel* Actor::GetFocusPanel() const
@@ -1020,7 +1023,7 @@ void Actor::ResetAvatar(const Vector2& newposition)
         {
             URHO3D_LOGINFOF("Actor() - ResetAvatar : ... Clone Template=%s on nodeId=%u", GOT::GetType(info_.type_).CString(), avatar_->GetID());
         }
-        else
+        else if (info_.type_)
         {
             avatar_ = World2D::SpawnEntity(info_.type_, info_.entityid_, nodeID_, 0, viewZ_ ? viewZ_ : viewManager_->GetCurrentViewZ(controlID_), PhysicEntityInfo(position.x_, position.y_), SceneEntityInfo());
             URHO3D_LOGINFOF("Actor() - ResetAvatar : ... WorldSpawnEntity type_=%u nodeId_=%u ... ", info_.type_.Value(), nodeID_);

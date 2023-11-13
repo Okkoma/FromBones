@@ -68,9 +68,12 @@ struct ClientInfo
     void StopPlayers();
     void ClearPlayers();
 
+    bool NeedAllocatePlayers() const;
     int GetNumActivePlayers() const;
     Player* GetPlayerFor(Node* node) const;
     bool ContainsObject(Node* node) const;
+
+    void Dump() const;
 
     WeakPtr<Connection> connection_;
 

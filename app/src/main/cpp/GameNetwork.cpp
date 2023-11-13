@@ -76,9 +76,9 @@
 //#define FORCE_LOCALMODE
 
 //#define ACTIVE_NETWORK_DEBUGSERVER_RECEIVE
+//#define ACTIVE_NETWORK_DEBUGSERVER_RECEIVE_ALL
 //#define ACTIVE_NETWORK_DEBUGSERVER_SEND_SERVEROBJECTS
 //#define ACTIVE_NETWORK_DEBUGSERVER_SEND_CLIENTOBJECTS
-//#define ACTIVE_NETWORK_DEBUGSERVER_RECEIVE_ALL
 //#define ACTIVE_NETWORK_DEBUGSERVER_SEND_CLIENTUPDATE
 
 //#define ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE
@@ -276,6 +276,11 @@ void ClientInfo::StopPlayers()
     playersStarted_ = false;
 }
 
+bool ClientInfo::NeedAllocatePlayers() const
+{
+    return requestPlayers_ > players_.Size();
+}
+
 int ClientInfo::GetNumActivePlayers() const
 {
     int numactiveplayers = 0;
@@ -304,7 +309,11 @@ bool ClientInfo::ContainsObject(Node* node) const
 //    return objects_.Contains(node);
 }
 
-
+void ClientInfo::Dump() const
+{
+    URHO3D_LOGINFOF("ClientInfo() - Dump : clientID=%d connection=%u status=%s(%d) playersStarted=%s requestPlayers=%d ... numplayers=%u numobjects=%u ts=%u lts=%u !",
+                    clientID_, connection_.Get(), gameStatusNames[gameStatus_], gameStatus_, playersStarted_?"true":"false" , requestPlayers_, players_.Size(), objects_.Size(), timeStamp_, lastReceivedTimeStamp_);
+}
 
 
 /// GameNetwork
@@ -519,7 +528,7 @@ void GameNetwork::StartLocal()
 
     URHO3D_LOGINFOF("GameNetwork() - LocalMode !");
 
-    AddGraphicMessage(context_, "Local.Mode.", IntVector2(20, -1), REDYELLOW35);
+    AddGraphicMessage(context_, "Local.Mode.", IntVector2(20, -1), REDYELLOW35, 3.f);
 
     // TODO Player respawn in local
     SendEvent(NET_MODECHANGED);
@@ -2760,7 +2769,8 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
             if (clientInfo.requestPlayers_ <= numRequestPlayers)
             {
                 clientInfo.requestPlayers_ = numRequestPlayers;
-                URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d request %d players !", clientInfo.clientID_, numRequestPlayers);
+                URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d request %d players (numactiveplayers=%d) !", clientInfo.clientID_, numRequestPlayers, clientInfo.GetNumActivePlayers());
+                clientInfo.Dump();
             }
         }
 
@@ -2969,12 +2979,13 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
     {
         GOC_Animator2D* gocanimator = node->GetComponent<GOC_Animator2D>();
         AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
-
+        RigidBody2D* rigidbody = node->GetComponent<RigidBody2D>();
         // prepare physics
         objectControl.physics_.positionx_ = node->GetWorldPosition().x_;
         objectControl.physics_.positiony_ = node->GetWorldPosition().y_;
         objectControl.physics_.rotation_  = node->GetRotation2D();
-        node->GetComponent<RigidBody2D>()->GetBody()->GetVelocity(objectControl.physics_.velx_, objectControl.physics_.vely_);
+        if (rigidbody)
+            rigidbody->GetBody()->GetVelocity(objectControl.physics_.velx_, objectControl.physics_.vely_);
         if (controller)
         {
             objectControl.physics_.direction_ = controller->control_.direction_;
@@ -2995,7 +3006,7 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
 
         // prepare states
         objectControl.states_.viewZ_ = (char)node->GetVar(GOA::ONVIEWZ).GetInt();
-
+        
         objectControl.SetFlagBit(OFB_ENABLED, node->IsEnabled());
 
         if (controller)
@@ -3004,7 +3015,7 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
             if (maincontroller)
                 objectControl.states_.buttons_ = controller->control_.buttons_;
 
-            objectControl.states_.animstateindex_ = GOS::GetStateIndex(StringHash(controller->control_.animation_));
+            objectControl.SetAnimationState(StringHash(controller->control_.animation_));
             objectControl.states_.entityid_ = controller->control_.entityid_;
         }
         else
@@ -3012,7 +3023,7 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
             objectControl.states_.type_ = node->GetVar(GOA::GOT).GetUInt();
 
             if (gocanimator)
-                objectControl.states_.animstateindex_ = GOS::GetStateIndex(gocanimator->GetStateValue());
+                objectControl.SetAnimationState(gocanimator->GetStateValue());
 
             if (animatedSprite)
                 objectControl.states_.entityid_ = animatedSprite->GetSpriterEntityIndex();
@@ -3290,7 +3301,11 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
 
         // copy the received to prepared control (get the client stamp for client reconciliation)
         dest.CopyReceivedControlTo(objectControl);
-
+    #ifdef ACTIVE_NETWORK_DEBUGSERVER_RECEIVE
+        URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u stamp=%u prevstamp=%u : check position new=%F,%F prev=%F,%F ...",
+                        node->GetID(), objectControl.states_.stamp_, prevcontrol.states_.stamp_, objectControl.physics_.positionx_,
+                        objectControl.physics_.positiony_, prevcontrol.physics_.positionx_, prevcontrol.physics_.positiony_);
+    #endif
         // check position cheating
 //        if (Abs(objectControl.physics_.positionx_ - prevcontrol.physics_.positionx_) > 1.f ||
 //            Abs(objectControl.physics_.positiony_ - prevcontrol.physics_.positiony_) > 1.f)
@@ -3351,7 +3366,7 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
                     dest.GetPreviousReceivedControl().states_.animversion_ != objectControl.states_.animversion_ ||
                     src.GetReceivedControl().HasAnimationChanged())
             {
-                const StringHash& state = GOS::GetStateFromIndex(objectControl.states_.animstateindex_);
+                StringHash state = objectControl.GetAnimationState();
 
                 // STATE_DEAD
                 if (state.Value() == STATE_DEAD)
@@ -3434,7 +3449,7 @@ void GameNetwork::CleanObjectCommands()
         {
             HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Begin();
             it++;
-            for ( ; it != serverClientInfos_.End(); ++it)
+            for (it; it != serverClientInfos_.End(); ++it)
             {
                 Connection* connection = it->first_;
                 if (!IsNewStamp(connection->GetServerObjCmdAck(), oldestObjectCmdAck))
@@ -3532,7 +3547,11 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
         }
         else if (IsNewStamp(receivedstamp, receivedSpawnStamps_[senderclientid]))
         {
+        #ifdef ACTIVE_NETWORK_DEBUGSERVER_RECEIVE
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : from clientid=%d newsSpawntamp=%u lastSpawnstamp=%u buffersize=%u ...", senderclientid, receivedstamp, receivedSpawnStamps_[senderclientid], buffer.GetBuffer().Size());
+        #endif
             receivedSpawnStamps_[senderclientid] = receivedstamp;
+
         }
         else if (receivedstamp != receivedSpawnStamps_[senderclientid])
         {
@@ -4026,7 +4045,7 @@ unsigned objCtrlSentCounter_ = 0;
 
 void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate ... gameStatus=%d ...", gameStatus_);
+    // URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate ... gameStatus=%s(%d) ...", gameStatusNames[gameStatus_], gameStatus_);
 
     /// Remove players from empty connection
     {
@@ -4057,12 +4076,18 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
                 URHO3D_LOGWARNING("GameNetwork() - HandlePlayServer_NetworkUpdate : allocate players ... noconnection=0 !");
                 continue;
             }
-
+            if (clientInfo.NeedAllocatePlayers())
+            {
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : clientId=%d need server to allocate players ... ", clientInfo.clientID_);
+                needSynchronization_ = true;
+                allClientsSynchronized_ = allClientsRunning_ = false;
+            }
             if (!allClientsRunning_ && clientInfo.gameStatus_ >= PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS && clientInfo.gameStatus_ < PLAYSTATE_RUNNING)
             {
                 // Create Players ids for the connections who dont have the good requestPlayers
                 Server_AllocatePlayers(clientInfo);
                 allClientsRunning_ = allClientsSynchronized_ = false;
+                GameContext::Get().AllowUpdate_ = false;
             }
 #ifdef SCENE_REPLICATION_ENABLE
             else if (clientInfo.gameStatus_ == PLAYSTATE_CLIENT_LOADING_REPLICATEDNODES)

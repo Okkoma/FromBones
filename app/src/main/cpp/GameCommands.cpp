@@ -403,7 +403,7 @@ void GameCommands::Launch(Context* context, const String& input)
             }
         }
     }
-    else if (input0 == "entitymove")
+    else if (input0 == "dumpmove")
     {
         if (inputs.Size() > 1)
         {
@@ -474,6 +474,22 @@ void GameCommands::Launch(Context* context, const String& input)
             if (component)
                 URHO3D_LOGINFOF("Component %s(%u) in node %s(%u)", component->GetTypeName().CString(), id,
                                 component->GetNode()->GetName().CString(), component->GetNode()->GetID());
+            else
+                URHO3D_LOGINFOF("No Component id=%u", id);
+        }
+    }
+    else if (input0 =="componentenable")
+    {
+        if  (inputs.Size() > 1)
+        {
+            unsigned id = ToUInt(inputs[1]);
+            Component* component = GameContext::Get().rootScene_->GetComponent(id);
+            if (component)
+            {
+                component->SetEnabled(!component->IsEnabled());
+                URHO3D_LOGINFOF("Component %s(%u) in node %s(%u) switch to %s", component->GetTypeName().CString(), id,
+                                component->GetNode()->GetName().CString(), component->GetNode()->GetID(), component->IsEnabled() ? "enable":"disable");
+            }
             else
                 URHO3D_LOGINFOF("No Component id=%u", id);
         }

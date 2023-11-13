@@ -44,14 +44,8 @@ const char* netCommandNames[] =
 /// Float Conversion 32bits <=> 16bits
 // IEEE-754 16-bit floating-point format (without infinity): 1-5-10, exp-15, +-131008.0, +-6.1035156E-5, +-5.9604645E-8, 3.311 digits
 
-inline unsigned int as_uint(const float x)
-{
-    return *(unsigned int*)&x;
-}
-inline float as_float(const unsigned int x)
-{
-    return *(float*)&x;
-}
+inline unsigned int as_uint(const float x) { return *(unsigned int*)&x; }
+inline float as_float(const unsigned int x) { return *(float*)&x; }
 
 // from float16 to float32
 float half_to_float(const unsigned short x)
@@ -140,6 +134,15 @@ void ObjectControl::SetFlagBit(int bit, bool state)
         states_.flag_ &= ~flag;
 }
 
+void ObjectControl::SetAnimationState(const StringHash& state)
+{
+    states_.animstateindex_ = GOS::GetStateIndex(state);
+}
+
+StringHash ObjectControl::GetAnimationState() const
+{
+    return GOS::GetStateFromIndex(states_.animstateindex_);
+}
 
 /// ObjectControlInfo
 

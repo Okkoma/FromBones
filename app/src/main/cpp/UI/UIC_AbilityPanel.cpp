@@ -101,7 +101,7 @@ void UIC_AbilityPanel::OnSetVisible()
 
     if (panel_->IsVisible())
     {
-        int controltype = GameContext::Get().playerState_[static_cast<Actor*>(user_)->GetControlID()].controltype;  
+        int controltype = GameContext::Get().playerState_[static_cast<Actor*>(user_)->GetControlID()].controltype;
         if (controltype == CT_KEYBOARD || controltype == CT_JOYSTICK)
         {
             if (panel_->HasFocus())
@@ -117,9 +117,7 @@ void UIC_AbilityPanel::OnSetVisible()
                 {
                     SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
                     SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
-                #ifdef ALLOW_JOYSTICK_AXIS
                     SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(UIC_AbilityPanel, OnKey));
-                #endif
                 }
 
                 UpdateSlotSelector();
@@ -136,11 +134,9 @@ void UIC_AbilityPanel::OnSetVisible()
                 {
                     UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
                     UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
-                #ifdef ALLOW_JOYSTICK_AXIS
                     UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
-                #endif
                 }
-            }            
+            }
         }
     }
     else
@@ -155,11 +151,9 @@ void UIC_AbilityPanel::OnSetVisible()
         {
             UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
             UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
-        #ifdef ALLOW_JOYSTICK_AXIS
             UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
-        #endif
         }
-    }    
+    }
 }
 
 void UIC_AbilityPanel::Clear()
@@ -244,7 +238,7 @@ void UIC_AbilityPanel::UpdateSlotSelector()
 
     selectHalo_->SetVisible(slotselected != 0);
 
-    URHO3D_LOGINFOF("UIC_AbilityPanel() - UpdateSlotSelector : %s ... slotselector_=%d size=%s !", 
+    URHO3D_LOGINFOF("UIC_AbilityPanel() - UpdateSlotSelector : %s ... slotselector_=%d size=%s !",
                     panel_->GetName().CString(), slotselector_, selectHalo_->GetSize().ToString().CString());
 }
 
@@ -385,12 +379,12 @@ void UIC_AbilityPanel::OnKey(StringHash eventType, VariantMap& eventData)
 
     // TODO add an ability selector
     if (scancode == keymap[ACTION_DOWN])
-    {        
+    {
         LoseFocus();
         player->SetFocusPanel(-1);
     }
     else if (scancode == keymap[ACTION_UP])
-    {        
+    {
         LoseFocus();
         if (popup_)
         {
@@ -399,7 +393,7 @@ void UIC_AbilityPanel::OnKey(StringHash eventType, VariantMap& eventData)
         }
         else
             player->SetFocusPanel(-1);
-    }    
+    }
     else if (scancode == keymap[ACTION_LEFT]) // Move Selector to left
     {
         slotselector_ = Clamp(slotselector_-1, 0, (int)holder_->GetAbilities()->GetNumAbilities()-1);

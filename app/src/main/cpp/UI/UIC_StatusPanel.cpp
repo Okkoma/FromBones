@@ -98,7 +98,7 @@ void UIC_StatusPanel::Start(Object* user, Object* feeder)
         characterList->SetVisible(false);
         characterArrowTimer_ = new Timer();
     }
-    
+
     // Get Ability Panel if it's a popup (multiplayers mode)
     abilityPanel_ = player->GetPanel(ABILITYPANEL);
 
@@ -109,7 +109,7 @@ void UIC_StatusPanel::Start(Object* user, Object* feeder)
     // MapButton is disable for the second players so reduce the range
     if (lastbutton && player->GetID() > 1)
     {
-        lastbutton->SetVisible(false);        
+        lastbutton->SetVisible(false);
         statusChildRange_.y_--;
     }
 
@@ -185,9 +185,9 @@ void UIC_StatusPanel::OnSetVisible()
 
                 if (lastSelectedElement_ != panel_)
                     lastSelectedElement_ = panel_;
-                
+
                 lastSelector_ = Clamp(lastSelector_, statusChildRange_.x_, statusChildRange_.y_);
-                
+
                 SelectElement(lastSelectedElement_, panel_->GetChild(lastSelector_), lastSelector_);
 
                 // Allow Selection Access to other UIC with the keyboard Arrows
@@ -199,9 +199,7 @@ void UIC_StatusPanel::OnSetVisible()
                 {
                     SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(UIC_StatusPanel, OnKey));
                     SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(UIC_StatusPanel, OnKey));
-                #ifdef ALLOW_JOYSTICK_AXIS
                     SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(UIC_StatusPanel, OnKey));
-                #endif
                 }
             }
             else
@@ -217,9 +215,7 @@ void UIC_StatusPanel::OnSetVisible()
                 {
                     UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
                     UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
-                #ifdef ALLOW_JOYSTICK_AXIS
                     UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
-                #endif                    
                 }
             }
         }
@@ -245,9 +241,7 @@ void UIC_StatusPanel::OnSetVisible()
         {
             UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
             UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
-        #ifdef ALLOW_JOYSTICK_AXIS
             UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
-        #endif            
         }
 
         SelectElement(0, 0);
@@ -422,7 +416,7 @@ void UIC_StatusPanel::CloseCharacterSelection()
 
     // Hide
     characterList->SetVisible(false);
-    GetSubsystem<UI>()->GetRoot()->AddChild(characterList);
+    GameContext::Get().ui_->GetRoot()->AddChild(characterList);
 //    panel_->SetSize(130 * uifactor_, 130 * uifactor_);
 
     UnsubscribeFromEvent(characterList, E_RELEASED);
@@ -906,7 +900,7 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
             selectordirection_ = -1;
         else if (scancode == keymap[ACTION_UP])
             selectordirection_ = 1;
-        else 
+        else
         {
             if (scancode == keymap[ACTION_INTERACT] && focusedElement_)
                 focusedElement_->SendEvent(E_RELEASED);
@@ -935,14 +929,14 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
         else if (scancode == keymap[ACTION_RIGHT])
             selectordirection_ = 1;
         else
-        {       
+        {
             if (scancode == keymap[ACTION_DOWN] && abilityPanel_ && abilityPanel_->CanFocus()) // Close and Open AbilityPanel
             {
                 CloseCharacterSelection();
-                SelectElement(abilityPanel_->GetElement(), abilityPanel_->GetElement(), 0);             
-                abilityPanel_->GainFocus();  
+                SelectElement(abilityPanel_->GetElement(), abilityPanel_->GetElement(), 0);
+                abilityPanel_->GainFocus();
                 player->SetFocusPanel(ABILITYPANEL);
-            }            
+            }
             else if (scancode == keymap[ACTION_UP] || scancode == keymap[ACTION_DOWN]) // Close and Focus on StatusPanel
             {
                 CloseCharacterSelection();
@@ -952,7 +946,7 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
             {
                 player->ChangeAvatar(GOT::GetControllableIndex(StringHash(focusedElement_->GetChild(0)->GetName())));
                 player->SetFocusPanel(-1);
-                LoseFocus();                
+                LoseFocus();
             }
             return;
         }
@@ -966,7 +960,7 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
             URHO3D_LOGINFOF("UIC_StatusPanel() - OnKey : in characterlist ... arrow (selector=%d dir=%d)", selector_, selectordirection_);
             characterHovering_++;
             OnCharacterArrowHovering(eventType, eventData);
-            characterHovering_--;      
+            characterHovering_--;
         }
         else
         {
