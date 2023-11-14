@@ -6,10 +6,46 @@ ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
 ---------------------------------------------------------------------
 
 Todos:
+    ☐ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte.
+        de façon plus large, tous les états à répliquer.
+        le serveur doit envoyer un snap initial au client qui se connecte.
+            -> cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
+            -> tous les nodes et les states
+        le client recupère le snap et synchronise sa scene
+            -> fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
+            -> supprime, crée et met à jour les nodes avec les bons attributs, états.
+
+    ☐ 14/11/2023 : coté distant, le grapin reste en permanence.
+        ex: spawn coté serveur et destruction -> spawn coté client mais reste.
+        -> il s'agit surement d'un probleme similaire à la collecte au sol de collectable
+        ==> il faut que le serveur envoie une commande de remove object aux clients
+
+    ☐ 14/11/2023 : coté distant, le grapin n'affiche pas toujours la chaine
+        -> il faut envoyer l'etat accroché
+
+    ☐ 13/11/2023 : l'envoi de l'etat allumé éteint des torches/bougies est à faire.
+        via ObjectCommand
+
+    ☐ 13/11/2023 : pouvoir se connecter en tant que serveur ou client sans avatar pour observer
+        permet de realiser des tests distants et verifier la replication
+
+    ✔ 13/11/2023 : les lustres sont répliqués par ObjectControl ce qui ne doit pas être le cas @done(23-11-13 18:28)
+        les furnitures ne sont pour le moment pas répliqués cf MapBase::SetFurnitures il n'y a pas de commande network
+        -> il s'agit de GOC_PhysicRope, qui est utilisé principalement pour le grapin
+        --> modification de GOC_PhysicRope pour qu'il vérifie qu'il ne soit pas dans un node furniture
+
     ☐ 13/11/2023 : ne pas mettre les rip stele en mode reseau arena
-    
-    ☐ 13/11/2023 : inventaires et charactermapping 
+        -> si l'avatar coté serveur meurt, elle ne pope pas au bon endroit coté client (elle pope au dessous de l'avatar client)
+
+    ✔ 13/11/2023 : inventaires et charactermapping ne fonctionnent plus ? @done(23-11-14 10:31)
         voir si ObjectCommand est operationnel pour envoyer le stuff d'equipement pour mettre à jour les inventaires.
+        -> cela fonctionne sur la version 20210925. Recherche du pb!
+        ✔ dans GOC_Inventory::LocalEquipSlotOn le variantmap etait alimenté par des StringHash. Il faut l'alimenter par les Value des StringHash. @done(23-11-13 22:40)
+        ✔ il y a eu un crash après changement d'equipement sur l'avatar du serveur + changement de l'avatar petit qui porte epee flame vers avatar non porteur d'equipement. @done(23-11-14 10:31)
+            inspecter tout les variantmap envoyé par NetCommand et debug du client.
+            le crash provient de GOC_Controller::ChangeAvatar->GameHelpers::CopyAttributes->AnimatedSprite2D::OnSetEnabled->renderedAnimations_[i]->GetNode()->SetEnabled(enabled)
+            -> modifier AnimatedSprite2D pour eviter le crash => difficile. Il faut changer la struct renderedAnimations_ par Vector<WeaktPtr<AnimatedSprite2D> > ...
+            -> OK : ajouter à GameHelpers::CopyAttributes, la methode GOC_Animator2D::UnplugDrawables() ou AnimatedSprite2D::ClearRenderedAnimations().
 
     ✔ 11/11/2023 : pb de ghosting coté client ou serveur lorsque l'avatar distant s'arrete. @done(23-11-13 15:37)
         reprise du mode reseau apres 2 ans off. ce probleme n'existe pas sur la version 20210925
@@ -25,13 +61,14 @@ Todos:
         -> modif dans GOC_Animator2D::CheckAnim()
             toujours le meme pb. dur à reproduire : vu uniquement en world. En arena en mettant bcp d'entité, non reproduit.
 
-    ☐ 27/09/2021 : la collecte de collectable sur un client est bien repercuté coté server mais pas vers les autres clients.
+    ☐ 27/09/2021 : la collecte d'un collectable au sol par un client est bien repercuté coté server mais pas vers les autres clients.
+        -> 14/11/2023 : il faut que le serveur envoie une commande de remove object aux autres clients
 
     ☐ 20/09/2021 : lors du changement d'ability sur un client, il faut le repercuter coté server autrement le server ne sera pas quelle abilité utilisée dans Player::OnFire2()
         => 21/09/2021 : Etant donner que le Player::OnFire2() n'est plus utilisé en version Net (coté server), ce cas ne se pose plus.
         ==> le faire neanmoins, pour assurer d'eventuels cas.
 
-    ☐ 19/09/2021 : snap initial lorsqu'un client se connecte en cours de partie. Ce n'est pas nécessaire en arene. Cela le sera en World networked
+    ✘ 19/09/2021 : snap initial lorsqu'un client se connecte en cours de partie. Ce n'est pas nécessaire en arene. Cela le sera en World networked @cancelled(23-11-14 11:26)
 
     ☐ 29/08/2021 : le reseau est saturé apres plusieurs suicides avec le skeleton lorsque ACTIVE_NETSIMULATELATENCYANDPACKETLOSS est activé
         => pb avec knet ? comme pour les messages reliables ?
@@ -98,17 +135,11 @@ Todos:
 
     ☐ 23/06/2021 : crash si un client meurt et drop son inventaire et qu'un autre client ramasse du stuff
         
-
     ☐ 08/06/2021 : en Reseau Arena si mort de l'avatar, faire un repop automatiquement au bout de 5sec (mettre un timer de repop)
         => modifier PlayState::CheckGameLogic() => GOManager::GetNumActivePlayers() prend en compte les Players et les Net_Players alors qu'il ne faut uniquement que prendre en compte les joueurs locaux pour le mode arena
         => l'objectif pour gagner pourra être dans un temps imparti (5min/10min...)
         ==> Tuer le maximum de joueurs
         ==> ou Obtenir le maximum d'un objet déterminé (exemple des bones)
-
-    ☐ 04/06/2021 : NOTE pour gagner en rapidité, les objets spawnés via GOC_Animator2D::SpawnEntity() n'ont pas tous un ObjectControl (qui permet le controle des etats d'une entité (position,animation...) via le serveur).
-        => par exemple c'est le cas pour les bullets et les boules de feu. Ces objets sont gerés en LOCAL.
-        ==> pour cela il suffit de mettre dans Objects.xml l'attribut "replicateMode":0
-        ==> le spawn s'effectue sur le serveur et les clients de façon local. L'attribut de shoottarget est completé avec ObjectControl::holderinfo_::point1x_,point1y_ via envoi:ABI_AnimShooter::Use() -> reception:GOC_Controller::Update()
 
     ☐ 22/08/2019 :
         -> GOC_Inventory : lors du drop d'un player sur un client, mettre à jour l'inventaire coté serveur du joueur
@@ -116,7 +147,8 @@ Todos:
         --> les DPS sont calculés sur le serveur. Donc si l'equipment n'est pas le bon les DPS envoyés vers le Client ne seront pas bons.
         ==> 02/06/2021 : OK pour le moment ajout de GOC_Inventory::NetServerSetSlot() et modification de GameNetwork::ChangeEquipment()
         ===> il s'agit que de l'ecrasement d'un slot d'equipment sur le server par le slot du client
-        ====> lors des procedures de chargement d'equipement coté client tel que Player::LoadStuffOnly(), il faut en informer le server qui aura également sauvegarder les inventaires de tous les clients dans ses bases.
+        ====> lors des procedures de chargement d'equipement coté client tel que Player::LoadStuffOnly(), 
+            il faut en informer le server qui aura également sauvegarder les inventaires de tous les clients dans ses bases.
 
     ☐ 17/10/2019 : Crash du serveur lorsque l'avatar server meurt et que le client recupere des obj de l'inventaire dropper.
         -> Crash Coté Server dans ou après Player::OnServerGetCollectable
@@ -137,14 +169,14 @@ Todos:
 
     ☐ 18/08/2019 : Comment assurer la corrélation entre les numeros d'entités, les maps en mémoires sur l'ensemble des clients connectés avec le serveur
 
-    ☐ CharacterMapping:
+    ✘ CharacterMapping: @cancelled(23-11-14 11:10)
         --> envoyer un RemoteEvent des changements d'equipment ou bien via ObjectControl => OK, en cours
         --> 19/08/2019 : lors du pop coté clients d'entités à synchroniser avec le serveur, le charactermapping n'est pas communiqué.
 
     ☐ GOB_MountOn : l'entité portée ne doit pas avoir de mouvement relatif / entité porteuse
         -> ajouter idparentnode dans ObjectControl ou bien RemoteSendEvent
 
-    ☐ affichage du mauvais avatar pour les seconds joueurs locaux
+    ✘ affichage du mauvais avatar pour les seconds joueurs locaux @cancelled(23-11-14 11:28)
     
     
 Archive:
@@ -758,3 +790,23 @@ Archive:
         ==> OK, test à faire
 
 
+Notes:
+
+    - 14/11/2023 : NOTE de reprise du mode réseau
+        on distingue les etats qui changent
+            -> en permanence : telle que position, animation => utilise ObjectControl : Cela concerne normalement tous les objets dynamiques (pour le moment pas les furnitures ... cela devrait)
+            -> ponctuellement : telle que lumieres, inventaires => utilise ObjectCommand
+        le choix de ne pas utiliser la replication de scene d'URHO3D est discutable:
+            -> on ne veut pas avoir à envoyer la masse de composants via le réseau.
+            -> ne pas remodifier Urho3D pour les besoins du jeu avec toute la gestion des erreurs etc...
+            -> il faudrait mettre les attributs repliquables pour chaque nouveau composant fait pour le jeu.                    
+        Envoi     : cf GameNetwork::HandlePlayServer_NetworkUpdate, GameNetwork::HandlePlayClient_NetworkUpdate
+        Reception : cf GameNetwork::HandlePlayServer_ReceiveUpdate, HandlePlayClient_ReceiveServerUpdate et HandlePlayClient_ReceiveClientUpdate
+        Ressources/Docs/network.svg est à mettre à jour.            
+
+    - 04/06/2021 : NOTE pour gagner en rapidité, les objets spawnés via GOC_Animator2D::SpawnEntity() n'ont pas tous un ObjectControl 
+        ObjectControl permet le controle des etats d'une entité (position,animation...) via le serveur.
+        par exemple c'est le cas pour les bullets et les boules de feu. Ces objets sont gerés en LOCAL.
+        pour cela il suffit de mettre dans Objects.xml l'attribut "replicateMode":0
+        le spawn s'effectue sur le serveur et les clients de façon local. L'attribut de shoottarget est completé 
+        avec ObjectControl::holderinfo_::point1x_,point1y_ via envoi:ABI_AnimShooter::Use() -> reception:GOC_Controller::Update()

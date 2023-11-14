@@ -395,8 +395,8 @@ String Slot::GetSlotAttr(const Slot& slot)
 
 void Slot::GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty)
 {
-    slotData[Net_ObjectCommand::P_CLIENTOBJECTTYPE] = slot.type_;
-    slotData[Net_ObjectCommand::P_SLOTPARTFROMTYPE] = slot.partfromtype_;
+    slotData[Net_ObjectCommand::P_CLIENTOBJECTTYPE] = slot.type_.Value();
+    slotData[Net_ObjectCommand::P_SLOTPARTFROMTYPE] = slot.partfromtype_.Value();
     slotData[Net_ObjectCommand::P_SLOTQUANTITY] = qty;
     slotData[Net_ObjectCommand::P_SLOTEFFECT] = slot.effect_;
 //    slotData[Net_ObjectCommand::P_SLOTSPRITE] = slot.sprite_ ? slot.sprite_->GetNameHash() : StringHash::ZERO;

@@ -1502,6 +1502,14 @@ bool GOC_Animator2D::PlugDrawables()
     return animatedSprites.Size() != 0;
 }
 
+void GOC_Animator2D::UnplugDrawables()
+{
+    for (unsigned i=0; i < animatedSprites.Size(); i++)
+        animatedSprites[i]->ClearRenderedAnimations();
+    animatedSprites.Clear();
+    animatedSprite.Reset();
+}
+
 void GOC_Animator2D::CheckAttributes()
 {
 //    bool ok = PlugDrawables();

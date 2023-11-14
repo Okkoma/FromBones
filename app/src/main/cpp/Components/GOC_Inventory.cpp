@@ -1501,8 +1501,8 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
         }
         VariantMap& eventData = inventory->GetContext()->GetEventDataMap();
         eventData[Net_ObjectCommand::P_NODEID] = inventory->GetNode()->GetID();
-        eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName();
-        eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE] = hasslot ? slot.type_ : StringHash::ZERO;
+        eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
+        eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE] = hasslot ? slot.type_.Value() : 0;
         eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = idslot;
         inventory->GetNode()->SendEvent(GO_INVENTORYSLOTEQUIP, eventData);
     }
@@ -1510,7 +1510,7 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
 
 void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn ...");
+    URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn ...");
 
     AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
     if (!animatedSprite)
@@ -1525,7 +1525,10 @@ void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
 
     const String& slotname = GOC_Inventory_Template::GetSlotName(inventorytemplatehash, idslot);
     if (slotname.Empty())
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : %s(%u) idslot=%u inventorytemplatehash=%u not find !", node->GetName().CString(), node->GetID(), idslot, inventorytemplatehash);
         return;
+    }
 
     bool special = slotname.StartsWith("Special");
 
@@ -1542,7 +1545,7 @@ void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
             {
                 animatedSprite->SwapSprite(slotname, 0);
                 animatedSprite->ApplyCharacterMap(slotname);
-//                URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
             }
 
             animatedSprite->ResetAnimation();
@@ -1616,7 +1619,7 @@ void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
 //                    animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(String("Special1"));
 //            }
 
-//            URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+            URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
 
             if (!animatedSprite->HasCharacterMap(slotname))
                 return;
@@ -1633,7 +1636,7 @@ void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
     }
     else
     {
-//        URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=No_%s", node->GetName().CString(), node->GetID(), slotname.CString());
+        URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=No_%s", node->GetName().CString(), node->GetID(), slotname.CString());
 
 //        GameHelpers::SetRenderedAnimation(animatedSprite, rmap, StringHash::ZERO);
         if (!special)

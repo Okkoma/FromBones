@@ -44,15 +44,15 @@
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Bitroll" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="Items" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_TreasureChestBoss" /> -->
-			<!-- <attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />  -->			
+			<attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />		
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Bitroll|GOT_Goblin|Elsarion|Items|GOT_TreasureChest" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Vampire|GOT_Sorceress|GOT_Darkren" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Kigrat" />			 -->
 
 			<!-- <attribute name="Map - Num Entities" value="10 15" /> -->
 			
-			<attribute name="Map - Add Objects" value="false" />
-			<attribute name="Map - Add Furnitures" value="false" />
+			<attribute name="Map - Add Objects" value="true" />
+			<attribute name="Map - Add Furnitures" value="true" />
 
 			<attribute name="Map - Ground Level" value="90" />
 			<attribute name="Map - Add Border" value="true" />

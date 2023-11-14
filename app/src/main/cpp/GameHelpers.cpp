@@ -657,6 +657,19 @@ Vector<unsigned> GameHelpers::sRemovableComponentsOnCopyAttributes_;
 
 void GameHelpers::CopyAttributes(Node* source, Node* dest, bool apply, bool removeUnusedComponents)
 {
+    // Important : to avoid pb with AnimatedSprite2D::OnSetEnabled->RenderAnimations (see GAME-NETWORK.TODO 13/11/2023)
+    GOC_Animator2D* animator = dest->GetComponent<GOC_Animator2D>();
+    if (animator)
+    {
+        animator->UnplugDrawables();
+    }
+    else
+    {
+        AnimatedSprite2D* animatedsprite = dest->GetComponent<AnimatedSprite2D>();
+        if (animatedsprite)
+            animatedsprite->ClearRenderedAnimations();
+    }
+
 #ifdef CopyNodeAttributes_ActiveLog_1
     URHO3D_LOGERRORF("GameHelpers() - CopyAttributes : source=%s(%u) to dest=%s(%u) ...", source->GetName().CString(), source->GetID(), dest->GetName().CString(), dest->GetID());
 #endif
@@ -835,6 +848,11 @@ void GameHelpers::CopyAttributes(Node* source, Node* dest, bool apply, bool remo
     }
 
     resolver.Resolve();
+
+    // Important : to avoid pb with AnimatedSprite2D::OnSetEnabled->RenderAnimations (see GAME-NETWORK.TODO 13/11/2023)
+    animator = dest->GetComponent<GOC_Animator2D>();
+    if (animator)
+        dest->GetComponent<GOC_Animator2D>()->PlugDrawables();
 
     if (apply)
         dest->ApplyAttributes();

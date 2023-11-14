@@ -314,6 +314,7 @@ public:
     void ResetState();
 
     bool PlugDrawables();
+    void UnplugDrawables();
     void CheckAttributes();
     virtual void ApplyAttributes();
 

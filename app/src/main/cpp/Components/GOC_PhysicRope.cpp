@@ -386,8 +386,9 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
     if (plateform)
         layer += LAYER_PLATEFORMS;
 
+    bool isfurniture = GOT::GetTypeProperties(got) & GOT_Furniture;
 #ifdef ACTIVE_LAYERMATERIALS
-    Material* material = GameContext::Get().layerMaterials_[(GOT::GetTypeProperties(got) & GOT_Furniture) ? LAYERFURNITURES : LAYERACTORS];
+    Material* material = GameContext::Get().layerMaterials_[isfurniture ? LAYERFURNITURES : LAYERACTORS];
 #endif
 
     unsigned categorybits;
@@ -893,7 +894,9 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
 
         isAttached_ = true;
 
-        if (!GameContext::Get().LocalMode_)
+        bool isfurniture = GOT::GetTypeProperties(node_->GetVar(GOA::GOT).GetStringHash()) & GOT_Furniture;
+
+        if (!GameContext::Get().LocalMode_ && !isfurniture)
         {
             int clientid = node_->GetVar(GOA::CLIENTID).GetInt();
             ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node_->GetID()) : GameNetwork::Get()->GetServerObjectControl(node_->GetID());
