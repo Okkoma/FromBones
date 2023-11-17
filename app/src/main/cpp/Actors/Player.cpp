@@ -378,11 +378,11 @@ void Player::InitAvatar(Scene* root, const Vector2& position, int viewZ)
     if (!avatar_)
         active = false;
 
-#ifdef PLAYER_ACTIVEINITIALSTUFF
-    LoadStuffOnly(true);
-#endif
-
     GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
+
+#ifdef PLAYER_ACTIVEINITIALSTUFF
+    GOC_Inventory::LoadInventory(avatar_, false);
+#endif
 
     URHO3D_LOGINFOF("---------------------------------------------------------");
     URHO3D_LOGINFOF("- Player() - InitAvatar : player ID=%u nodeID=%u active=%s avatarindex=%d position=%s viewZ=%d ... OK!",
@@ -391,17 +391,17 @@ void Player::InitAvatar(Scene* root, const Vector2& position, int viewZ)
     URHO3D_LOGINFOF("---------------------------------------------------------");
 }
 
-void Player::ChangeAvatar(unsigned type, unsigned char entityid, bool instant)
+bool Player::ChangeAvatar(unsigned type, unsigned char entityid, bool instant)
 {
     if (avatar_ && avatar_->GetVar(GOA::ISDEAD).GetBool())
-        return;
+        return false;
 
     int avatarIndex = GOT::GetControllableIndex(StringHash(type));
 
     if (avatarIndex_ != avatarIndex)
     {
         if (avatarIndex == -1)
-            return;
+            return false;
 
         avatarIndex_ = avatarAccumulatorIndex_ = avatarIndex;
         GameContext::Get().playerState_[controlID_].avatar = avatarIndex_;
@@ -410,7 +410,11 @@ void Player::ChangeAvatar(unsigned type, unsigned char entityid, bool instant)
 
         if (instant)
             UpdateAvatar();
+
+        return true;
     }
+
+    return false;
 }
 
 void Player::ChangeAvatar(int avatarIndex, bool instant)
@@ -1169,87 +1173,6 @@ void Player::LoadAvatar(Scene* root)
     nodeTemp->Remove();
 }
 
-void Player::LoadStuffOnly(bool initialstuff)
-{
-    if (!scene_) return;
-
-    if (!avatar_) return;
-
-    URHO3D_LOGINFOF("---------------------------------------------------------");
-    URHO3D_LOGINFOF("Player() - LoadStuffOnly : player ID=%u controlID=%d avatarindex=%d ... ", GetID(), controlID_, avatarIndex_);
-    URHO3D_LOGINFOF("---------------------------------------------------------");
-
-    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, false);
-
-    Node* nodeTemp = scene_->CreateChild("", LOCAL);
-    nodeTemp->SetTemporary(true);
-
-    // TODO : correct this => need to get the server stored player file for the good client player
-    int localid = controlID_;
-    if (GameContext::Get().ServerMode_ && !IsMainController())
-        localid = 0;
-
-    if (initialstuff)
-    {
-        if (!GameHelpers::LoadNodeXML(context_, nodeTemp, "Data/Save/initialstuff.xml", LOCAL))
-        {
-            GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
-            return;
-        }
-    }
-    else if (!GameHelpers::LoadNodeXML(context_, nodeTemp, String(GameContext::Get().gameConfig_.saveDir_ + GameContext::Get().savedPlayerFile_[localid]).CString(), LOCAL))
-    {
-        if (!GameHelpers::LoadNodeXML(context_, nodeTemp, "Data/Save/initialstuff.xml", LOCAL))
-        {
-            GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
-            return;
-        }
-    }
-    nodeTemp->SetTemporary(true);
-
-    GOC_Inventory* inventoryTemp = nodeTemp->GetComponent<GOC_Inventory>();
-    if (inventoryTemp)
-    {
-        inventoryTemp->UnsubscribeFromAllEvents();
-
-        equipment_->Clear();
-        gocInventory->Set(inventoryTemp->Get());
-
-        // Send to server side the order to load the inventory.
-        if (GameContext::Get().ClientMode_)
-        {
-            VariantMap& eventData = context_->GetEventDataMap();
-            eventData[Net_ObjectCommand::P_NODEID] = GetAvatar()->GetID();
-            SendEvent(GO_INVENTORYLOAD, eventData);
-        }
-
-        int entityid = 0;
-        GameHelpers::SetEntityVariation(avatar_->GetComponent<AnimatedSprite2D>(), entityid);
-        equipment_->Update(true);
-
-        UpdateUI();
-    }
-
-    VariantMap& eventData = context_->GetEventDataMap();
-    eventData[GOC_Life_Events::GO_ID] = nodeTemp->GetID();
-    eventData[GOC_Life_Events::GO_KILLER] = 0;
-    eventData[GOC_Life_Events::GO_TYPE] = GO_Player;
-    nodeTemp->SendEvent(GOC_LIFEDEAD, eventData);
-
-    GOC_Destroyer* destroyerTemp = nodeTemp->GetComponent<GOC_Destroyer>();
-    if (destroyerTemp)
-    {
-        destroyerTemp->SetDestroyMode(FREEMEMORY);
-        destroyerTemp->Destroy(0.f);
-    }
-
-    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
-
-    URHO3D_LOGINFOF("---------------------------------------------------------");
-    URHO3D_LOGINFOF("Player() - LoadStuffOnly : player ID=%u avatarindex=%d ... OK !", GetID(), avatarIndex_);
-    URHO3D_LOGINFOF("---------------------------------------------------------");
-}
-
 void Player::LoadState()
 {
     const GameContext::PlayerState& playerstate = GameContext::Get().playerState_[controlID_];
@@ -1277,14 +1200,21 @@ void Player::LoadState()
         if (gocLife)
             gocLife->Set(playerstate.energyLost, playerstate.invulnerability);
 
-        if (gocInventory && GameContext::Get().playerInventory_[controlID_].Size() > 0)
-            gocInventory->Set(GameContext::Get().playerInventory_[controlID_]);
-
-        if (equipment_)
+        if (GameContext::Get().ClientMode_ && GOC_Inventory::IsNetworkInventoryAvailable(avatar_))
         {
-            URHO3D_LOGINFOF("Player() - LoadState : player ID=%u update equipment ...", GetID());
-            equipment_->Update(true);
-            URHO3D_LOGINFOF("Player() - LoadState : player ID=%u update equipment ... OK !", GetID());
+            GOC_Inventory::LoadInventory(avatar_, false);
+        }
+        else
+        {
+            if (gocInventory && GameContext::Get().playerInventory_[controlID_].Size() > 0)
+                gocInventory->Set(GameContext::Get().playerInventory_[controlID_]);
+
+            if (equipment_)
+            {
+                URHO3D_LOGINFOF("Player() - LoadState : player ID=%u update equipment ...", GetID());
+                equipment_->Update(!GameContext::Get().ClientMode_);
+                URHO3D_LOGINFOF("Player() - LoadState : player ID=%u update equipment ... OK !", GetID());
+            }
         }
     }
 }
@@ -2525,7 +2455,7 @@ void Player::OnAvatarDestroy(StringHash eventType, VariantMap& eventData)
 void Player::OnInventoryEmpty(StringHash eventType, VariantMap& eventData)
 {
     equipment_->Clear();
-    equipment_->Update(true);
+    equipment_->Update(!GameContext::Get().ClientMode_);
 
     UpdateUI();
 }

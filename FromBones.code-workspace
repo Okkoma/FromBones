@@ -13,6 +13,7 @@
 			"typeinfo": "cpp"
 		},
 		"cmake.automaticReconfigure": false,
-		"cmake.skipConfigureIfCachePresent": true
+		"cmake.skipConfigureIfCachePresent": true,
+		"cmake.configureOnEdit": false
 	}
 }

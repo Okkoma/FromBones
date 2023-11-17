@@ -153,10 +153,9 @@ public:
     void PurgeObjects();
 
     /// Object Commands
-    void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0);
+    void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
     void RemoveItem(VariantMap& eventData);
     void ChangeEquipment(VariantMap& eventData);
-    void LoadEquipment(VariantMap& eventData);
     bool ChangeTile(VariantMap& eventData);
     void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);
 
@@ -177,7 +176,7 @@ public:
     const ObjectControlInfo* GetObjectControl(unsigned nodeid) const;
     ObjectControlInfo* GetServerObjectControl(unsigned nodeid);
     ObjectControlInfo* GetClientObjectControl(unsigned nodeid);
-    ObjectControlInfo& GetOrCreateServerObjectControl(unsigned servernodeid, unsigned clientnodeid=0, int clientid=0);
+    ObjectControlInfo& GetOrCreateServerObjectControl(unsigned servernodeid, unsigned clientnodeid=0, int clientid=0, Node* node=0);
     ObjectControlInfo* GetOrCreateClientObjectControl(unsigned servernodeid, unsigned clientnodeid=0);
     const Vector<ObjectControlInfo>& GetServerObjectControls() const
     {
@@ -192,11 +191,13 @@ public:
     /// Server Setters
     void Server_SendGameStatus(int status, Connection* specificConnection=0);
     void Server_SendSeedTime(unsigned time);
+    void Server_SendSnap(ClientInfo& clientInfo);
     void Server_RemoveObject(unsigned nodeid, bool sendnetevent=true, bool allconnections=false);
     void Server_PurgeInactiveObjects();
     void Server_SetEnableAllObjects(bool enable);
 
     void Server_AllocatePlayers(ClientInfo& clientInfo);
+    void Server_SendInventories(ClientInfo& clientInfo);
     void Server_SetActivePlayer(Player* player, bool active);
     void Server_SetEnablePlayers(ClientInfo& clientInfo, bool enable);
     void Server_SetEnableAllActiveObjectsToClient(ClientInfo& clientInfo);
@@ -299,6 +300,7 @@ public:
     void UnsubscribeToPlayEvents();
 
     void DumpClientInfos() const;
+    void DumpNetObjects() const;
     void Dump() const;
 
 private:

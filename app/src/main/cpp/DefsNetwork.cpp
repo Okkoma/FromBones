@@ -35,8 +35,9 @@ const char* netCommandNames[] =
     "ADDITEM=5",
     "REMOVEITEM=6",
     "UPDATEEQUIPMENT=7",
-    "LOADINVENTORY=8",
-    "CHANGETILE=9",
+    "SETFULLEQUIPMENT=8",
+    "SETFULLINVENTORY=9",
+    "CHANGETILE=10",
 };
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
@@ -333,6 +334,7 @@ void ObjectCommand::Read(VectorBuffer& msg)
 {
     clientId_ = msg.ReadInt();
     stamp_ = msg.ReadUShort();
+    broadCast_ = msg.ReadBool();
     cmd_ = msg.ReadVariantMap();
 }
 
@@ -341,6 +343,7 @@ void ObjectCommand::Write(VectorBuffer& msg) const
     msg.WriteUByte(OBJECTCOMMAND);
     msg.WriteInt(clientId_);
     msg.WriteUShort(stamp_);
+    msg.WriteBool(broadCast_);
     msg.WriteVariantMap(cmd_);
 }
 
@@ -348,6 +351,12 @@ void ObjectCommand::CopyTo(ObjectCommand& cmd) const
 {
     cmd.clientId_ = clientId_;
     cmd.stamp_ = stamp_;
+    cmd.broadCast_ = broadCast_;
     cmd.cmd_ = cmd_;
 }
 
+void ObjectCommand::Dump() const
+{
+    URHO3D_LOGINFOF("ObjectCommand() - Dump : clientid=%d stamp=%u broadcast=%s !",
+                    clientId_, stamp_, broadCast_?"true":"false");
+}

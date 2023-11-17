@@ -79,7 +79,7 @@ public :
     void SetWorldPosition(const WorldMapPosition& position);
 
     void InitAvatar(Scene* root, const Vector2& position, int viewZ);
-    void ChangeAvatar(unsigned type, unsigned char entityid, bool instant=false);
+    bool ChangeAvatar(unsigned type, unsigned char entityid, bool instant=false);
     void ChangeAvatar(int avatarIndex, bool instant=false);
     void SwitchViewZ(int viewZ=0);
     void MountOn(Node* target);
@@ -104,12 +104,12 @@ public :
     }
 
     void LoadAvatar(Scene* root);
-    void LoadStuffOnly(bool initialstuff=false);
     void LoadState();
     void LoadStateFrom(Node* node);
     void SaveState();
     void SaveAll();
 
+    void UpdateUI();
     void RemoveUI();
     void ResizeUI();
     void SetVisibleUI(bool state, bool all=false);
@@ -172,7 +172,6 @@ protected :
 private :
     void CreateUI(UIElement* root, bool multiLocalPlayerMode);
     void ResetUI();
-    void UpdateUI();
 
     void TransferCollectableToUI(const Variant& varpos, UIElement* dest, unsigned idslot, unsigned qty, const ResourceRef& collectable);
 

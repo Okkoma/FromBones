@@ -30,6 +30,7 @@
 #include "GOC_Collectable.h"
 #include "GOC_Controller.h"
 #include "GOC_ControllerPlayer.h"
+#include "GOC_Destroyer.h"
 #include "Player.h"
 #include "Equipment.h"
 
@@ -641,6 +642,25 @@ VariantVector GOC_Inventory::GetInventoryAttr() const
     }
 
     return value;
+}
+
+
+bool GOC_Inventory::GetSectionSlots(const String& section, VariantVector& set)
+{
+    if (slots_.Size())
+    {
+        Pair<unsigned, unsigned> sectionIndexes = currentTemplate->GetSectionIndexes(section);
+        if (sectionIndexes.first_ <= sectionIndexes.second_)
+        {
+            set.Clear();
+            for (unsigned i = sectionIndexes.first_; i <= sectionIndexes.second_; i++)
+                set.Push(Variant(slots_[i].type_.Value()));
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void GOC_Inventory::SetGiveTriggerEvent(const String& s)
@@ -1340,30 +1360,176 @@ void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
 //    Dump();
 }
 
-static const String EffectFlame("effects_flame");
+HashMap<unsigned int, Node* > GOC_Inventory::clientNodes_;
+HashMap<unsigned int, VariantVector > GOC_Inventory::clientInventories_;
+HashMap<unsigned int, VariantVector > GOC_Inventory::clientEquipmentSets_;
 
-void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, AnimatedSprite2D* animatedSprite, bool netSendMessage)
+void GOC_Inventory::RegisterClientNode(Node* node)
 {
-    const String& slotname = inventory->GetSlotName(idslot);
+    if (!clientNodes_.Contains(node->GetID()))
+    {
+        URHO3D_LOGINFOF("GOC_Inventory() - RegisterClientNode ... %s(%u) ... cached node !", node->GetName().CString(), node->GetID());
+        clientNodes_[node->GetID()] = node;
+    }
+}
 
-    if (slotname.Empty())
+void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
+{
+    if (!node)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... no node !");
         return;
+    }
 
+    URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) ... ", node->GetName().CString(), node->GetID());
+
+    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
+    if (!controller)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) no controller ...", node->GetName().CString(), node->GetID());
+        return;
+    }
+
+    bool process = false;
+
+    Player* player = static_cast<Player*>(controller->GetThinker());
+    GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
+
+    if (GameContext::Get().ClientMode_)
+    {
+        if (player && inventory && IsNetworkInventoryAvailable(node))
+        {
+            // Get Full Inventory
+            URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
+            inventory->SetInventoryAttr(clientInventories_[node->GetID()]);
+            clientInventories_.Erase(node->GetID());
+            process = true;
+        }
+        else if (IsNetworkEquipmentSetAvailable(node))
+        {
+            // Get Full EquipmentSet : will be done in the process block below with NetClientSetEquipment
+            URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientEquipmentSets_ !", node->GetName().CString(), node->GetID());
+            process = true;
+        }
+    }
+    else
+    {
+        // For ServerMode or LocalMode : Get the inventoryFile for the entity
+        String inventoryFilename;
+
+        if (player)
+        {
+            int id = player->IsMainController() ? player->GetControlID() : 0;
+
+            if (GameContext::Get().ServerMode_)
+            {
+                // TODO : Get the account for the player
+                //int accountid = GameNetwork::Get()->GetServerClientInfo(player->GetConnection())->GetAccountID();
+    //            int playerid  = player->GetID();
+    //            id = accountid << 3 + playerid;
+                id = 0;
+            }
+            inventoryFilename = String(GameContext::Get().gameConfig_.saveDir_ + GameContext::Get().savedPlayerFile_[id]);
+        }
+        else if (static_cast<Actor*>(controller->GetThinker()))
+        {
+            // TODO : for actor get an unique actorid ...
+            inventoryFilename = String::EMPTY;
+        }
+
+        // Get the inventory from the inventory file
+        if (!inventoryFilename.Empty())
+        {
+            URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from file=%s !", node->GetName().CString(), node->GetID(), inventoryFilename.CString());
+
+            // Create a temporary node to load inventory to
+            WeakPtr<Node> nodeSrc(GameContext::Get().rootScene_->CreateChild(String::EMPTY, LOCAL));
+            nodeSrc->SetTemporary(true);
+
+            if (!forceInitialStuff)
+            {
+                if (!GameHelpers::LoadNodeXML(node->GetContext(), nodeSrc, inventoryFilename.CString(), LOCAL))
+                    bool loadok = GameHelpers::LoadNodeXML(node->GetContext(), nodeSrc, "Data/Save/initialstuff.xml", LOCAL);
+            }
+            else
+                bool loadok = GameHelpers::LoadNodeXML(node->GetContext(), nodeSrc, "Data/Save/initialstuff.xml", LOCAL);
+
+            GOC_Inventory* inventorySrc = nodeSrc->GetComponent<GOC_Inventory>();
+            if (inventorySrc)
+            {
+                inventorySrc->UnsubscribeFromAllEvents();
+
+                // Copy inventory
+                if (inventory)
+                {
+                    inventory->Set(inventorySrc->Get());
+                    process = true;
+                }
+
+                // Remove the temporary node
+                VariantMap& eventData = node->GetContext()->GetEventDataMap();
+                eventData[GOC_Life_Events::GO_ID] = nodeSrc->GetID();
+                eventData[GOC_Life_Events::GO_KILLER] = 0;
+                eventData[GOC_Life_Events::GO_TYPE] = GO_Player;
+                nodeSrc->SendEvent(GOC_LIFEDEAD, eventData);
+                GOC_Destroyer* destroyer= nodeSrc->GetComponent<GOC_Destroyer>();
+                if (destroyer)
+                {
+                    destroyer->SetDestroyMode(FREEMEMORY);
+                    destroyer->Destroy(0.f);
+                }
+            }
+            else
+                URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) no source ...", node->GetName().CString(), node->GetID());
+
+            if (nodeSrc)
+            {
+                nodeSrc->Remove();
+                nodeSrc.Reset();
+            }
+        }
+    }
+
+    if (process)
+    {
+        // Apply Equipment
+
+        // TODO : entityid ?
+        int entityid = 0;
+        AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
+        GameHelpers::SetEntityVariation(animatedSprite, entityid);
+
+        if (player)
+        {
+            // Add to Equipement
+            player->equipment_->Clear();
+            player->equipment_->Update(false);
+            player->UpdateUI();
+        }
+        else if (GameContext::Get().ClientMode_)
+        {
+            NetClientSetEquipment(node);
+        }
+
+        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) OK !", node->GetName().CString(), node->GetID());
+    }
+    else
+    {
+        URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) not process ...", node->GetName().CString(), node->GetID());
+        RegisterClientNode(node);
+    }
+}
+
+static const String EffectFlame("effects_flame");
+bool GOC_Inventory::SetEquipmentSlot(AnimatedSprite2D* animatedSprite, unsigned idslot, const String& slotname, StringHash slotType, GOC_Inventory* inventory)
+{
+    Node* node = animatedSprite->GetNode();
+    bool animatorToUpdate = false;
     bool special = slotname.StartsWith("Special");
 
-    Node* node = inventory->GetNode();
-    const Slot& slot = inventory->Get()[idslot];
-    bool hasslot = !slot.Empty();
-//
-//    URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn ... Node=%s(%u) slotname=%s slot=%s empty=%s idslot=%u sendnetmess=%s",
-//                    node->GetName().CString(), node->GetID(), slotname.CString(), GOT::GetType(slot.type_).CString(),
-//                    !hasslot ? "true":"false", idslot, netSendMessage?"true":"false");
-
-    bool animatorToUpdate = false;
-
-    if (hasslot)
+    if (slotType != StringHash::ZERO)
     {
-        if (GOT::GetTypeProperties(slot.type_) & GOT_Animation)
+        if (GOT::GetTypeProperties(slotType) & GOT_Animation)
         {
             if (animatedSprite->HasCharacterMap(slotname))
             {
@@ -1374,7 +1540,7 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
             animatedSprite->ResetAnimation();
             animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
 
-            Node* templateNode = GOT::GetObject(slot.type_);
+            Node* templateNode = GOT::GetObject(slotType);
             if (templateNode)
             {
                 AnimatedSprite2D* templateAnimation = templateNode->GetComponent<AnimatedSprite2D>();
@@ -1409,52 +1575,45 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
                                 }
                                 else
                                 {
-                                    URHO3D_LOGERRORF("GOC_Inventory() - EquipSlotOn : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                                    URHO3D_LOGERRORF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
                                 }
                             }
                             else
                             {
-                                URHO3D_LOGERRORF("GOC_Inventory() - EquipSlotOn : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                                URHO3D_LOGERRORF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
                             }
                         }
                     }
                     else
                     {
-                        URHO3D_LOGERRORF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) no renderedanimation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                        URHO3D_LOGERRORF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) no renderedanimation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
                     }
                 }
                 else
                 {
-                    URHO3D_LOGERRORF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) no animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                    URHO3D_LOGERRORF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) no animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
                 }
             }
             else
             {
-//                URHO3D_LOGERRORF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) no templateNode for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+//                URHO3D_LOGERRORF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) no templateNode for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
             }
 
-//            URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) Add rendered animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+//            URHO3D_LOGINFOF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) Add rendered animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
         }
         else
         {
-//            GameHelpers::SetRenderedAnimation(animatedSprite, rmap, StringHash::ZERO);
             if (!special)
             {
                 animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
             }
-//            else
-//            {
-//                bool special2 = (slotname.At(7) == '2');
-//                if (special2 && !inventory->Get()[idslot-1].type_)
-//                    animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(String("Special1"));
-//            }
 
-//            URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) Apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+//            URHO3D_LOGINFOF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) Apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
 
             if (animatedSprite->HasCharacterMap(slotname))
             {
                 PODVector<Sprite2D*> spritesList;
-                Sprite2D::LoadFromResourceRefList(node->GetContext(), GOT::GetResourceList(slot.type_), spritesList);
+                Sprite2D::LoadFromResourceRefList(node->GetContext(), GOT::GetResourceList(slotType), spritesList);
                 // apply a scaled ratio for weapon if the node scale is quite different than the node scale of Petit (petit scale=0.2) (it's the case for chapanze who has a node scale of 1)
                 bool weapon = slotname.StartsWith("Weapon");
 //                if (weapon)
@@ -1468,24 +1627,42 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
     }
     else
     {
-//        URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn : Node=%s(%u) Apply cmap=No_%s", node->GetName().CString(), node->GetID(), slotname.CString());
+//        URHO3D_LOGINFOF("GOC_Inventory() - SetEquipmentSlot : Node=%s(%u) Apply cmap=No_%s", node->GetName().CString(), node->GetID(), slotname.CString());
 
 //        GameHelpers::SetRenderedAnimation(animatedSprite, rmap, StringHash::ZERO);
-        if (!special)
-        {
-            animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
-        }
-        else
+
+        if (special && inventory)
         {
             if (((slotname.At(7) == '1') && !(GOT::GetTypeProperties(inventory->Get()[idslot+1].type_) & GOT_Animation)) ||
                     ((slotname.At(7) == '2') && !(GOT::GetTypeProperties(inventory->Get()[idslot-1].type_) & GOT_Animation)))
                 animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(String("Special1"));
         }
+        else
+        {
+            animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
+        }
 
         animatedSprite->ApplyCharacterMap(String("No_") + slotname);
     }
 
-    if (animatorToUpdate)
+    return animatorToUpdate;
+}
+
+void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, AnimatedSprite2D* animatedSprite, bool netSendMessage)
+{
+    const String& slotname = inventory->GetSlotName(idslot);
+    if (slotname.Empty())
+        return;
+
+    Node* node = inventory->GetNode();
+    const Slot& slot = inventory->Get()[idslot];
+    StringHash slotType = !slot.Empty() ? slot.type_ : StringHash::ZERO;
+//
+//    URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn ... Node=%s(%u) slotname=%s slot=%s empty=%s idslot=%u sendnetmess=%s",
+//                    node->GetName().CString(), node->GetID(), slotname.CString(), GOT::GetType(slot.type_).CString(),
+//                    !hasslot ? "true":"false", idslot, netSendMessage?"true":"false");
+
+    if (SetEquipmentSlot(animatedSprite, idslot, slotname, slotType, inventory))
     {
         GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
         if (animator)
@@ -1494,168 +1671,106 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
 
     if (netSendMessage)
     {
-        if (netSendMessage)
-        {
-            URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn ... Node=%s(%u) send GO_INVENTORYSLOTEQUIP cmap=%s (inventoryTemplate=%s(%u)) !",
-                            node->GetName().CString(), node->GetID(), slotname.CString(), inventory->GetTemplateName().CString(), inventory->GetTemplateHashName().Value());
-        }
+        URHO3D_LOGINFOF("GOC_Inventory() - LocalEquipSlotOn ... Node=%s(%u) send GO_INVENTORYSLOTEQUIP cmap=%s (inventoryTemplate=%s(%u)) !",
+                        node->GetName().CString(), node->GetID(), slotname.CString(), inventory->GetTemplateName().CString(), inventory->GetTemplateHashName().Value());
+
         VariantMap& eventData = inventory->GetContext()->GetEventDataMap();
         eventData[Net_ObjectCommand::P_NODEID] = inventory->GetNode()->GetID();
         eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
-        eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE] = hasslot ? slot.type_.Value() : 0;
+        eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE] = slotType.Value();
         eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = idslot;
         inventory->GetNode()->SendEvent(GO_INVENTORYSLOTEQUIP, eventData);
     }
 }
 
-void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
+void GOC_Inventory::NetClientSetInventory(unsigned nodeid, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn ...");
+    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ...", nodeid);
+
+    if (eventData.Contains(Net_ObjectCommand::P_INVENTORYSLOTS))
+    {
+        // in case no node exists, we save the inventory for later use in GOC_Inventory::LoadInventory
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... save temporary inventory ", nodeid);
+        VariantVector& inventoryslots = clientInventories_[nodeid];
+        inventoryslots = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
+    }
+
+    if (clientNodes_.Contains(nodeid))
+        LoadInventory(clientNodes_[nodeid], false);
+    else
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... no node exists ... inventory saved for later use !", nodeid);    
+}
+
+void GOC_Inventory::NetClientSetEquipment(unsigned nodeid, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ...", nodeid);
+
+    if (eventData.Contains(Net_ObjectCommand::P_INVENTORYSLOTS))
+    {
+        // in case no node exists, we save the equipment for later use in GOC_Inventory::LoadInventory
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ... save equipmentset ", nodeid);
+        VariantVector& equipmentDataSet = clientEquipmentSets_[nodeid];
+        equipmentDataSet = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
+        // add the template inventory hash
+        equipmentDataSet.Push(eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt());
+    }
+
+    if (clientNodes_.Contains(nodeid))
+        NetClientSetEquipment(clientNodes_[nodeid]);
+    else
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ... no node exists ... equipmentset saved for later use !", nodeid);
+}
+
+void GOC_Inventory::NetClientSetEquipment(Node* node)
+{
+    GOC_Inventory::RegisterClientNode(node);
+
+    HashMap<unsigned int, VariantVector>::Iterator it = clientEquipmentSets_.Find(node->GetID());
+    if (it == clientEquipmentSets_.End())
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No EquipmentSet exists !", node->GetName().CString(), node->GetID());
+        return;
+    }
+
+    // get temporary equipment
+    VariantVector& equipmentDataSet = it->second_;
 
     AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
     if (!animatedSprite)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : No AnimatedSprite in Node=%u", node->GetID());
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No AnimatedSprite", node->GetName().CString(), node->GetID());
         return;
     }
-
-    unsigned idslot = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt();
-    unsigned inventorytemplatehash = eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt();
-    StringHash got(eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE].GetUInt());
-
-    const String& slotname = GOC_Inventory_Template::GetSlotName(inventorytemplatehash, idslot);
-    if (slotname.Empty())
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(equipmentDataSet.Back().GetUInt());
+    if (!inventoryTemplate)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : %s(%u) idslot=%u inventorytemplatehash=%u not find !", node->GetName().CString(), node->GetID(), idslot, inventorytemplatehash);
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), equipmentDataSet.Back().GetUInt());
         return;
     }
 
-    bool special = slotname.StartsWith("Special");
+    // get inventory if exists (remote host avatar on client has no inventory)
+    GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
 
-    const StringHash& slotHashName = GOC_Inventory_Template::GetSlotHashName(inventorytemplatehash, idslot);
-
+    // set the Equipement Slots
     bool animatorToUpdate = false;
-
-    bool slotempty = got == StringHash::ZERO;
-    if (!slotempty)
+    Pair<unsigned, unsigned> sectionIndexes = inventoryTemplate->GetSectionIndexes("Equipment");
+    if (sectionIndexes.first_ <= sectionIndexes.second_)
     {
-        if (GOT::GetTypeProperties(got) & GOT_Animation)
+        for (unsigned i=0; i < equipmentDataSet.Size()-1; i++)
         {
-            if (animatedSprite->HasCharacterMap(slotname))
+            unsigned idslot = sectionIndexes.first_ + i;
+            if (idslot > sectionIndexes.second_)
+                break;
+
+            const String& slotname = inventoryTemplate->GetSlotName(idslot);
+            if (slotname.Empty())
             {
-                animatedSprite->SwapSprite(slotname, 0);
-                animatedSprite->ApplyCharacterMap(slotname);
-                URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-            }
-
-            animatedSprite->ResetAnimation();
-            animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
-
-//            GameHelpers::SetRenderedAnimation(animatedSprite, rmap, got);
-
-            Node* templateNode = GOT::GetObject(got);
-            if (!templateNode)
-            {
-                URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) no templateNode for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+                URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) idslot=%u not find !", node->GetName().CString(), node->GetID(), idslot);
                 return;
             }
 
-            AnimatedSprite2D* templateAnimation = templateNode->GetComponent<AnimatedSprite2D>();
-            if (!templateAnimation)
-            {
-                URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) no animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-                return;
-            }
-
-            AnimatedSprite2D* renderedAnimation = animatedSprite->AddRenderedAnimation(special ? String("Special1") : slotname, templateAnimation->GetAnimationSet(), templateAnimation->GetTextureFX());
-            if (!renderedAnimation)
-            {
-                URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) no renderedanimation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-                return;
-            }
-
-            animatorToUpdate = true;
-            renderedAnimation->GetNode()->SetEnabled(true);
-
-            /// si l'equipment a un effet, ajouter à renderedAnimation une renderedAnimationEffect
-            if (templateNode->GetVar(GOA::EFFECTID1) != Variant::EMPTY)
-            {
-                ResourceCache* cache = node->GetContext()->GetSubsystem<ResourceCache>();
-
-                AnimationSet2D* animationEffectSet = cache->GetResource<AnimationSet2D>("2D/" + EffectFlame + ".scml");
-                if (!animationEffectSet)
-                {
-                    URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-                    return;
-                }
-
-                AnimatedSprite2D* renderedAnimationEffect = renderedAnimation->AddRenderedAnimation("Effect", animationEffectSet, templateAnimation->GetTextureFX());
-                if (!renderedAnimationEffect)
-                {
-                    URHO3D_LOGERRORF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) no effect for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-                    return;
-                }
-
-//                Material* effectMaterial = cache->GetResource<Material>("Materials/effects.xml");
-//                if (effectMaterial)
-//                    renderedAnimationEffect->SetCustomMaterial(effectMaterial);
-
-                renderedAnimationEffect->GetNode()->SetEnabled(true);
-            }
-
-//            URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Add rendered animation for cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
+            animatorToUpdate |= GOC_Inventory::SetEquipmentSlot(animatedSprite, idslot, slotname, StringHash(equipmentDataSet[i].GetUInt()), inventory);
         }
-        else
-        {
-//            GameHelpers::SetRenderedAnimation(animatedSprite, rmap, StringHash::ZERO);
-            if (!special)
-            {
-                animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
-            }
-//            else
-//            {
-//                bool special2 = (slotname.At(7) == '2');
-//                if (special2 && !inventory->Get()[idslot-1].type_)
-//                    animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(String("Special1"));
-//            }
-
-            URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=%s", node->GetName().CString(), node->GetID(), slotname.CString());
-
-            if (!animatedSprite->HasCharacterMap(slotname))
-                return;
-
-            PODVector<Sprite2D*> spritesList;
-            Sprite2D::LoadFromResourceRefList(node->GetContext(), GOT::GetResourceList(got), spritesList);
-            // apply a scaled ratio for weapon if the node scale is quite different than the node scale of Petit (petit scale=0.2) (it's the case for chapanze who has a node scale of 1)
-            bool weapon = slotname.StartsWith("Weapon");
-//            if (weapon)
-//                animatedSprite->SetMappingScaleRatio(68.f/240.f);
-            animatedSprite->SwapSprites(slotname, spritesList, weapon);
-            animatedSprite->ResetAnimation();
-        }
-    }
-    else
-    {
-        URHO3D_LOGINFOF("GOC_Inventory() - NetEquipSlotOn : Node=%s(%u) Apply cmap=No_%s", node->GetName().CString(), node->GetID(), slotname.CString());
-
-//        GameHelpers::SetRenderedAnimation(animatedSprite, rmap, StringHash::ZERO);
-        if (!special)
-        {
-            animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(slotname);
-        }
-        else
-        {
-            /*
-            if (inventory)
-            {
-                if (((slotname.At(7) == '1') && !(GOT::GetTypeProperties(inventory->Get()[idslot+1].type_) & GOT_Animation)) ||
-                    ((slotname.At(7) == '2') && !(GOT::GetTypeProperties(inventory->Get()[idslot-1].type_) & GOT_Animation)))
-                    animatorToUpdate |= animatedSprite->RemoveRenderedAnimation(String("Special1"));
-            }
-            */
-        }
-
-        animatedSprite->ApplyCharacterMap(String("No_") + slotname);
     }
 
     if (animatorToUpdate)
@@ -1663,6 +1778,98 @@ void GOC_Inventory::NetEquipSlotOn(Node* node, VariantMap& eventData)
         GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
         if (animator)
             animator->PlugDrawables();
+
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment : %s(%u) equipmentset applied ... OK !");
+    }
+}
+
+void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipmentSlot ...");
+
+    AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
+    if (!animatedSprite)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : No AnimatedSprite in Node=%u", node->GetID());
+        return;
+    }
+
+    const unsigned inventorytemplatehash = eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt();
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(inventorytemplatehash);
+    if (!inventoryTemplate)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), inventorytemplatehash);
+        return;
+    }
+
+    const unsigned idslot = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt();
+    Pair<unsigned, unsigned> equipmentIndexes = inventoryTemplate->GetSectionIndexes("Equipment");
+    if (idslot < equipmentIndexes.first_ || idslot > equipmentIndexes.second_)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) idslot=%u not inside the equipment !", node->GetName().CString(), node->GetID(), idslot);
+        return;
+    }
+
+    const String& slotname = GOC_Inventory_Template::GetSlotName(inventorytemplatehash, idslot);
+    if (slotname.Empty())
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) idslot=%u inventorytemplatehash=%u not find !", node->GetName().CString(), node->GetID(), idslot, inventorytemplatehash);
+        return;
+    }
+
+    StringHash slotType(eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE].GetUInt());
+
+    // Update the clientEquipmentSets_ if exists, if not create one.
+    VariantVector& equipmentDataSet = clientEquipmentSets_[node->GetID()];
+    equipmentDataSet[idslot - equipmentIndexes.first_] = slotType.Value();
+
+    // Update the animation
+    if (SetEquipmentSlot(animatedSprite, idslot, slotname, slotType, 0))
+    {
+        GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
+        if (animator)
+            animator->PlugDrawables();
+    }
+}
+
+void GOC_Inventory::NetServerSetEquipmentSlot(Node* node, VariantMap& eventData)
+{
+    GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
+    if (!inventory)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetServerSetEquipmentSlot : No inventory in Node=%u", node->GetID());
+        return;
+    }
+    AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
+    if (!animatedSprite)
+    {
+        URHO3D_LOGERRORF("GOC_Inventory() - NetServerSetEquipmentSlot : No AnimatedSprite in Node=%u", node->GetID());
+        return;
+    }
+
+    unsigned idslot = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt();
+    StringHash got(eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE].GetUInt());
+
+    // slot inventory update
+    Slot& slot = inventory->GetSlot(idslot);
+    if (!got)
+        slot.Clear();
+    else
+        slot.Set(got, 1);
+
+    slot.uisprite_.Reset();
+    slot.UpdateUISprite();
+
+    // animation update with the inventory on the server
+    LocalEquipSlotOn(inventory, idslot, animatedSprite);
+
+    // update player attributes
+    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
+    if (controller && controller->GetThinker())
+    {
+        Player* player = static_cast<Player*>(controller->GetThinker());
+        if (player && player->equipment_)
+            player->equipment_->UpdateAttributes(idslot);
     }
 }
 
@@ -1719,46 +1926,5 @@ void GOC_Inventory::NetServerRemoveItem(Node* holder, VariantMap& eventData)
         {
             URHO3D_LOGERRORF("GOC_Inventory() - NetServerRemoveItem ... No Node Dropped ... NOK !");
         }
-    }
-}
-
-void GOC_Inventory::NetServerSetSlot(Node* node, VariantMap& eventData)
-{
-    GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
-    if (!inventory)
-    {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetServerSetSlot : No inventory in Node=%u", node->GetID());
-        return;
-    }
-    AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
-    if (!animatedSprite)
-    {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetServerSetSlot : No AnimatedSprite in Node=%u", node->GetID());
-        return;
-    }
-
-    unsigned idslot = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt();
-    StringHash got(eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE].GetUInt());
-
-    // slot inventory update
-    Slot& slot = inventory->GetSlot(idslot);
-    if (!got)
-        slot.Clear();
-    else
-        slot.Set(got, 1);
-
-    slot.uisprite_.Reset();
-    slot.UpdateUISprite();
-
-    // animation update with the inventory on the server
-    LocalEquipSlotOn(inventory, idslot, animatedSprite);
-
-    // update player attributes
-    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
-    if (controller && controller->GetThinker())
-    {
-        Player* player = static_cast<Player*>(controller->GetThinker());
-        if (player && player->equipment_)
-            player->equipment_->UpdateAttributes(idslot);
     }
 }

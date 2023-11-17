@@ -73,7 +73,7 @@ public :
     void SetControllerType(int type, bool force = false);
     void SetMainController(bool state);
 
-    void ChangeAvatar(unsigned type, unsigned char entityid);
+    bool ChangeAvatar(unsigned type, unsigned char entityid);
 
     bool Update(unsigned buttons, bool forceUpdate);
 

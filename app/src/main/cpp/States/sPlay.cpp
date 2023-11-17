@@ -1502,8 +1502,7 @@ void PlayState::SetPlayers(bool init, bool restart)
         if (GameContext::Get().ServerMode_)
         {
             unsigned nodeid = player->GetAvatar()->GetID();
-            ObjectControlInfo& objectControlInfo = GameNetwork::Get()->GetOrCreateServerObjectControl(nodeid, nodeid, 0);
-            objectControlInfo.node_ = player->GetAvatar();
+            ObjectControlInfo& objectControlInfo = GameNetwork::Get()->GetOrCreateServerObjectControl(nodeid, nodeid, 0, player->GetAvatar());
         }
     }
 
@@ -2243,8 +2242,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                         eventData[Net_ObjectCommand::P_TILEINDEX] = wmPosition.tileIndex_;
                         eventData[Net_ObjectCommand::P_TILEMAP] = wmPosition.mPoint_.ToHash();
                         eventData[Net_ObjectCommand::P_TILEVIEW] = wmPosition.viewZIndex_;
-                        GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData);
-//                        GameNetwork::Get()->SendObjectCommand(CHANGETILE, eventData);
+                        GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData, true, GameNetwork::Get()->GetClientID());
                     }
                 }
                 else if (input.GetMouseButtonPress(MOUSEB_MIDDLE) || input.GetKeyPress(KEY_LALT))
@@ -2551,7 +2549,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Tip : Player1 LoadStuff
         if (input.GetKeyPress(KEY_F5))
         {
-            localPlayers_[activeviewport_]->LoadStuffOnly();
+            GOC_Inventory::LoadInventory(localPlayers_[activeviewport_]->GetAvatar(), false);
         }
         // Save Scene
         if (input.GetKeyPress(KEY_F6))

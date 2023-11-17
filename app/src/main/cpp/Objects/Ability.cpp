@@ -517,7 +517,7 @@ Node* ABI_WallBreaker::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
                 eventData[Net_ObjectCommand::P_TILEMAP] = position.mPoint_.ToHash();
                 eventData[Net_ObjectCommand::P_TILEVIEW] = position.viewZIndex_;
                 //            GameNetwork::Get()->SendObjectCommand(CHANGETILE, eventData);
-                GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData);
+                GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData, true, GameNetwork::Get()->GetClientID());
             }
 
             // Earthquake
@@ -594,7 +594,7 @@ Node* ABI_WallBuilder::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
             eventData[Net_ObjectCommand::P_TILEMAP] = position.mPoint_.ToHash();
             eventData[Net_ObjectCommand::P_TILEVIEW] = position.viewZIndex_;
 //            GameNetwork::Get()->SendObjectCommand(CHANGETILE, eventData);
-            GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData);
+            GameNetwork::Get()->PushObjectCommand(CHANGETILE, &eventData, true, GameNetwork::Get()->GetClientID());
         }
 
         URHO3D_LOGINFOF("ABI_WallBuilder() - Use : holder=%s(%u) ... holderpos=%s tilepos=%s position=%s !",

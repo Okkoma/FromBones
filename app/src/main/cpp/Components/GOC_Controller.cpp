@@ -170,16 +170,16 @@ void GOC_Controller::SetMainController(bool maincontroller)
     }
 }
 
-void GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
+bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
 {
     if (thinker_)
     {
-        ((Player*)thinker_)->ChangeAvatar(type, entityid, true);
+        return ((Player*)thinker_)->ChangeAvatar(type, entityid, true);
     }
     else
     {
         if (control_.type_ == type)
-            return;
+            return false;
 
         Node* templateNode = GOT::GetControllableTemplate(StringHash(type));
         if (templateNode && node_->GetNumComponents() >= templateNode->GetNumComponents())
@@ -226,12 +226,16 @@ void GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
 
             // Spawn Effect
             GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], layer, viewmask, position, 0.f, 1.f, true, 1.f, Color::BLUE, LOCAL);
+
+            return true;
         }
         else
             URHO3D_LOGERRORF("GOC_Controller() - ChangeAvatar : nodeid=%u from %s(%u) to type=%s(%u) ... templateNode=%u NOK !",
                              node_->GetID(), GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
                              GOT::GetType(StringHash(type)).CString(), type, templateNode);
     }
+
+    return false;
 }
 
 // used by GOC_PlayerController::HandleLocalUpdate
@@ -273,7 +277,7 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
         control_.buttons_ = buttons;
         node_->SetVar(GOA::BUTTONS, buttons);
 
-        URHO3D_LOGINFOF("GOC_Controller() - Update : buttons(prev)=%u(%u) mainController=%s forceUpdate=%s", control_.buttons_, prevbuttons_, mainController_ ? "true":"false", forceUpdate ? "true":"false");
+//        URHO3D_LOGINFOF("GOC_Controller() - Update : buttons(prev)=%u(%u) mainController=%s forceUpdate=%s", control_.buttons_, prevbuttons_, mainController_ ? "true":"false", forceUpdate ? "true":"false");
 
         node_->SendEvent(GOC_CONTROLUPDATE);
     }

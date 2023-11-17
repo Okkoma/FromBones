@@ -85,6 +85,11 @@ struct GOC_Inventory_Template
         }
         return String::EMPTY;
     }
+    Pair<unsigned, unsigned> GetSectionIndexes(const String& section) const
+    {
+        HashMap<String, Pair<unsigned, unsigned> >::ConstIterator it = sections_.Find(section);
+        return it != sections_.End() ? it->second_ : Pair<unsigned,unsigned>(1,0);
+    }
 
     String name;
     StringHash hashName;
@@ -162,6 +167,7 @@ public :
         return String::EMPTY;
     }
     VariantVector GetInventoryAttr() const;
+    bool GetSectionSlots(const String& section, VariantVector& set);
     const String& GetReceiveTriggerEvent() const;
     const String& GetGiveTriggerEvent() const;
 
@@ -200,19 +206,27 @@ public :
     }
     unsigned GetSectionStartIndex(const String& section) const
     {
-        return currentTemplate->sections_[section].first_;
+        return currentTemplate->GetSectionIndexes(section).first_;
     }
     unsigned GetSectionEndIndex(const String& section) const
     {
-        return currentTemplate->sections_[section].second_;
+        return currentTemplate->GetSectionIndexes(section).second_;
     }
 
     virtual void OnSetEnabled();
 
+    static void RegisterClientNode(Node* node);
+    static bool IsNetworkInventoryAvailable(Node* node) { return clientInventories_.Contains(node->GetID()); }
+    static bool IsNetworkEquipmentSetAvailable(Node* node) { return clientEquipmentSets_.Contains(node->GetID()); }
+    static void LoadInventory(Node* node, bool forceinitialstuff);
+    static bool SetEquipmentSlot(AnimatedSprite2D* animatedSprite, unsigned idslot, const String& slotname, StringHash slotType, GOC_Inventory* inventory=0);
     static void LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, AnimatedSprite2D* animatedSprite, bool netSendMessage=false);
-    static void NetEquipSlotOn(Node* node, VariantMap& eventData);
+    static void NetClientSetEquipmentSlot(Node* node, VariantMap& eventData);
+    static void NetClientSetInventory(unsigned nodeid, VariantMap& eventData);
+    static void NetClientSetEquipment(unsigned nodeid, VariantMap& eventData);
+    static void NetClientSetEquipment(Node* node);
+    static void NetServerSetEquipmentSlot(Node* node, VariantMap& eventData);
     static void NetServerRemoveItem(Node* node, VariantMap& eventData);
-    static void NetServerSetSlot(Node* node, VariantMap& eventData);
 
 protected :
     virtual void OnNodeSet(Node* node);
@@ -222,16 +236,16 @@ private :
     void ApplyTemplateProperties(GOC_Inventory_Template* t);
     void ApplyTemplateToCurrentSlots(bool dropWastedCollectables);
 
-    GOC_Inventory_Template* currentTemplate;
-    bool customTemplate;
-    bool autoSlotsPopulate_;
-
     bool CanSlotAccept(unsigned index, const Slot& slotSrc, unsigned int& freeSpace, bool strictmode=true);
 
     void OnEnableGive(StringHash eventType, VariantMap& eventData);
     void HandleGive(StringHash eventType, VariantMap& eventData);
     void HandleReceive(StringHash eventType, VariantMap& eventData);
     void HandleDrop(StringHash eventType, VariantMap& eventData);
+
+    GOC_Inventory_Template* currentTemplate;
+    bool customTemplate;
+    bool autoSlotsPopulate_;
 
     WeakPtr<Node> nodeGetZone_;
     Vector<Slot> slots_;
@@ -244,4 +258,8 @@ private :
     StringHash enableGiveEvent_, receiveEvent_;
 
     static String tempSectionName_;
+    // for GameNetwork client : saved equipment slots by nodeid;
+    static HashMap<unsigned int, Node* > clientNodes_;
+    static HashMap<unsigned int, VariantVector > clientInventories_;
+    static HashMap<unsigned int, VariantVector > clientEquipmentSets_;
 };

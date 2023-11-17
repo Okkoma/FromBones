@@ -15,6 +15,7 @@
 #include "DefsEffects.h"
 #include "GameAttributes.h"
 #include "GameEvents.h"
+#include "GameContext.h"
 
 #include "GOC_Inventory.h"
 #include "GOC_Attack.h"
@@ -210,7 +211,7 @@ void Equipment::SetHolder(Actor* actor, bool forceUpdate)
 
         if (forceUpdate)
         {
-            Update(true);
+            Update(!GameContext::Get().ClientMode_);
         }
 
         if (holder_)

@@ -24,7 +24,8 @@ enum NetCommand
     ADDITEM,
     REMOVEITEM,
     UPDATEEQUIPMENT,
-    LOADINVENTORY,
+    SETFULLEQUIPMENT,
+    SETFULLINVENTORY,
     CHANGETILE,
 };
 
@@ -180,7 +181,7 @@ struct ObjectControlInfo
 
 struct ObjectCommand
 {
-    ObjectCommand() : clientId_(0), stamp_(0) { }
+    ObjectCommand() : clientId_(0), stamp_(0), broadCast_(true) { }
     ObjectCommand(VectorBuffer& msg) { Read(msg); }
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
@@ -188,7 +189,10 @@ struct ObjectCommand
     void Write(VectorBuffer& msg) const;
     void CopyTo(ObjectCommand& cmd) const;
 
+    void Dump() const;
+
     int clientId_;
     unsigned short int stamp_;
+    bool broadCast_;
     VariantMap cmd_;
 };

@@ -13,3 +13,5 @@
 /exe/*/*.so.*
 /Local
 log.txt
+exe/gl/FromBonesUbuntu22.04Gl-static
+exe/gl/numclients.txt

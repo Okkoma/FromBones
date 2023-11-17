@@ -32,7 +32,7 @@
 #include "GameHelpers.h"
 
 #include "GOC_Inventory.h"
-
+#include "Player.h"
 #include "Equipment.h"
 
 #include "UISlotPanel.h"
@@ -237,7 +237,8 @@ void UIC_EquipmentPanel::UpdateEquipment(unsigned index)
         return;
     }
 
-    equipment_->UpdateCharacter(index, true);
+    Player* player = static_cast<Player*>(user_);
+    equipment_->UpdateCharacter(index, player && player->IsMainController());
     equipment_->UpdateAttributes(index);
 
     UpdateSlot(index, true);

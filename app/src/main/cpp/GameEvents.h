@@ -89,26 +89,27 @@ URHO3D_EVENT(NET_GAMESTATUSCHANGED, Net_GameStatusChanged)
 }
 URHO3D_EVENT(NET_OBJECTCOMMAND, Net_ObjectCommand)
 {
-    URHO3D_PARAM(P_COMMAND, NetCommand);                                     // ServerCommand (Int)
-    URHO3D_PARAM(P_NODEID, NetNodeID);                                             // ServerNodeID (Unsigned)
+    URHO3D_PARAM(P_COMMAND, NetCommand);                                    // ServerCommand (Int)
+    URHO3D_PARAM(P_NODEID, NetNodeID);                                      // ServerNodeID (Unsigned)
     URHO3D_PARAM(P_NODEIDFROM, NetNodeIDFrom);                              // ServerNodeFromID (Unsigned)
-    URHO3D_PARAM(P_NODEPTRFROM, NetNodePtrFrom);                          // Node Ptr From (Pointer)
-    URHO3D_PARAM(P_NODEISENABLED, NetNodeIsEnabled);                       // Bool
-    URHO3D_PARAM(P_CLIENTOBJECTTYPE, ClientObjectType);                   // Unsigned
-    URHO3D_PARAM(P_CLIENTOBJECTENTITYID, ClientObjectEntityID);                   // Unsigned char
-    URHO3D_PARAM(P_CLIENTOBJECTVIEWZ, ClientObjectViewZ);                // Unsigned
-    URHO3D_PARAM(P_CLIENTOBJECTFACTION, ClientObjectFaction);           // Unsigned
-    URHO3D_PARAM(P_CLIENTOBJECTPOSITION, ClientObjectPosition);         // Vector2
-    URHO3D_PARAM(P_CLIENTOBJECTVELOCITY, ClientObjectVelocity);         // Vector2
-    URHO3D_PARAM(P_CLIENTOBJECTDIRECTION, ClientObjectDirection);      // Float
-    URHO3D_PARAM(P_SLOTPARTFROMTYPE, ClientSlotPartFromType);         // uint
-    URHO3D_PARAM(P_SLOTQUANTITY, ClientSlotQuantity);                         // unsigned : Slot Quantity
-    URHO3D_PARAM(P_SLOTEFFECT, ClientSlotEffect);                             // int : Slot Effect
-    URHO3D_PARAM(P_SLOTSPRITE, ClientSlotSprite);                                 // uint : Slot Hash of the sprite
-    URHO3D_PARAM(P_SLOTSCALE, ClientSlotScale);                                   // float : Slot scale x
-    URHO3D_PARAM(P_SLOTCOLOR, ClientSlotColor);                                   // uint : Slot color
-    URHO3D_PARAM(P_INVENTORYTEMPLATE, ClientInventoryTemplate);       // uint : Inventory Template HashName
-    URHO3D_PARAM(P_INVENTORYITEMTYPE, ClientItemType);                     // uint : TYPE of the Item
+    URHO3D_PARAM(P_NODEPTRFROM, NetNodePtrFrom);                            // Node Ptr From (Pointer)
+    URHO3D_PARAM(P_NODEISENABLED, NetNodeIsEnabled);                        // Bool
+    URHO3D_PARAM(P_CLIENTOBJECTTYPE, ClientObjectType);                     // Unsigned
+    URHO3D_PARAM(P_CLIENTOBJECTENTITYID, ClientObjectEntityID);             // Unsigned char
+    URHO3D_PARAM(P_CLIENTOBJECTVIEWZ, ClientObjectViewZ);                   // Unsigned
+    URHO3D_PARAM(P_CLIENTOBJECTFACTION, ClientObjectFaction);               // Unsigned
+    URHO3D_PARAM(P_CLIENTOBJECTPOSITION, ClientObjectPosition);             // Vector2
+    URHO3D_PARAM(P_CLIENTOBJECTVELOCITY, ClientObjectVelocity);             // Vector2
+    URHO3D_PARAM(P_CLIENTOBJECTDIRECTION, ClientObjectDirection);           // Float
+    URHO3D_PARAM(P_SLOTPARTFROMTYPE, ClientSlotPartFromType);               // uint
+    URHO3D_PARAM(P_SLOTQUANTITY, ClientSlotQuantity);                       // unsigned : Slot Quantity
+    URHO3D_PARAM(P_SLOTEFFECT, ClientSlotEffect);                           // int : Slot Effect
+    URHO3D_PARAM(P_SLOTSPRITE, ClientSlotSprite);                           // uint : Slot Hash of the sprite
+    URHO3D_PARAM(P_SLOTSCALE, ClientSlotScale);                             // float : Slot scale x
+    URHO3D_PARAM(P_SLOTCOLOR, ClientSlotColor);                             // uint : Slot color
+    URHO3D_PARAM(P_INVENTORYTEMPLATE, ClientInventoryTemplate);             // uint : Inventory Template HashName
+    URHO3D_PARAM(P_INVENTORYSLOTS, ClientInventorySlots);                   // VariantVector : All the Equipements each entry of the VariantVector is a uint (got)
+    URHO3D_PARAM(P_INVENTORYITEMTYPE, ClientItemType);                      // uint : TYPE of the Item
     URHO3D_PARAM(P_INVENTORYIDSLOT, ClientInventoryIdSlot);                 // uint : ID of the slot
     URHO3D_PARAM(P_INVENTORYDROPITEM, ClientInventoryDropItem);             // int
     URHO3D_PARAM(P_TILEOP, NetTileOp);                                      // uint : Remove(0) or Add(1)
@@ -297,7 +298,6 @@ URHO3D_EVENT(GO_INVENTORYFULL, Go_InventoryFull) { }
 URHO3D_EVENT(GO_INVENTORYRECEIVE, Go_InventoryReceive) { }
 URHO3D_EVENT(GO_INVENTORYGIVE, Go_InventoryGive) { }
 URHO3D_EVENT(GO_INVENTORYSLOTEQUIP, Go_InventorySlotEquip) { }
-URHO3D_EVENT(GO_INVENTORYLOAD, Go_InventoryLoad) { }
 
 /// GOC_Collectable
 /// GO_COLLECTABLEDROP
