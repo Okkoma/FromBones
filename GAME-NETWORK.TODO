@@ -6,46 +6,50 @@ ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
 ---------------------------------------------------------------------
 
 Todos:
-    ☐ 14/11/2023 : ajouter deux modes reseau : arena (synchronisation) et world (pas d'attente)
+    ☐ 17/11/2023 : lorsqu'un avatar est touché avec un effet de feu, l'effet ne spawn pas sur un client distant
 
-    ☐ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte.
-        de façon plus large, tous les états à répliquer.        
+    ☐ 16/11/2023 : snap initial
         le serveur doit envoyer un snap initial au client qui se connecte.
-            -> cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
-            -> tous les nodes et les states
-            --> 16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
+            cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
+            tous les nodes et les states
         le client recupère le snap et synchronise sa scene
-            -> fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
-            -> supprime, crée et met à jour les nodes avec les bons attributs, états.            
+            fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
+            supprime, crée et met à jour les nodes avec les bons attributs, états.        
+        ✔  16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
+
+    ☐ 14/11/2023 : ajouter deux modes reseau : arena (synchronisation) et world (pas d'attente)
+    
+    ✔ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte. @done(23-11-17 16:07)
         les clients ne doivent pas avoir à charger de l'inventaire local, l'ordre doit venir du serveur.
-            ✔ 16/11/2023 : Modification majeure de l'envoi/reception des inventaires : l'event GO_INVENTORYLOAD n'est plus nécessaire @done(23-11-17 11:30)
-                Le serveur envoit les inventaires par PushObjectCommand(SETFULLINVENTORY) pour chaque player d'un client
-                Le serveur envoit les equipments (seulement la section equipment de l'inventaire) par PushObjectCommand(SETFULLEQUIPMENT) à tous les clients autre
-                pour cela ObjectCommand est modifiée pour l'envoi de Command BroadCastée
-                Ajout de GOC_Inventory::LoadInventory (gestion global net/local) qui remplace aussi Player::LoadStuff pour le mode local
-                Ajout de GOC_Inventory::NetClientSetEquipment(node) qui permet sur les clients d'afficher l'equipment des players distants
-                    Après ChangeAvatar sur un client il faut lancer NetClientSetEquipment
-                1. pb si le node n'existe lors de la reception coté client, il faut donc sauvegarder l'inventaire/equipment reçu
-                    ceux ci sont stockés dans GOC_Inventory::clientInventories_ et GOC_Inventory::clientEquipmentSets_
-                    attention ces deux containers contiennet des VariantVectors qui ont des structures differentes
-                        pour GOC_Inventory::clientInventories_ les VariantVector contiennent des String de slots générées cf. GOC_Inventory::GetInventoryAttr (Slot::GetSlotAttr)
-                        pour GOC_Inventory::clientEquipmentSets_ les VariantVector contiennent des UInt cf. GOC_Inventory::GetSectionSlots
-                2. pb dans GOC_Inventory::NetClientSetInventory(uint nodeid) et GOC_Inventory::NetClientSetEquipment(uint nodeid) lors de la verification du node
-                    il y a un pb avec GameContext::Get().rootScene_->GetNode(nodeid) alors que le node est bien créé en amont (la vérification a été faite)
-                    -> création d'un cache des nodes créé précédemment dans GOC_Inventory::clientNodes_ via GOC_Inventory::RegisterClientNode
-                        Processus Client : creation de l'avatar => NetClientSetEquipment(Node*) enregistrement du node via RegisterClientNode
-                                        -> si l'inventaire/equipment a été reçu dans clientInventories_/clientEquipmentSets_, alors on le monte
-                                        -> sinon lors de la reception on utilise NetClientSetEquipment(uint nodeid) qui enregistre l'equipment dans clientEquipmentSets_ 
-                                        --> verifie nodeid dans clientNodes_ et renvoi vers NetClientSetEquipment(clientNodes_[nodeid])
-                    
-            ☐ 17/11/2023 : ObjectCommand broadcast encore un probleme à régler avec cmd.stamp_
-                coté serveur, lors du PushObjectCommand quelle valeur assignée à cmd.stamp puisque 
-                chaque connection à une valeur GetServerObjCmdAck differente : si on veut que le message soit envoyer à chaque client
-                il est nécessaire d'avoir un cmd.stamp_ superieur à la valeur Connection::GetServerObjCmdAck specifique à chaque client
-                un workaround est mis en place dans GameNetwork::HandlePlayServer_NetworkUpdate, mais doit etre supprimer
-                cela doit etre fait dans GameNetwork::PushObjectCommand
-                -> dans ObjectCommand : ajouter un vector pour stocker les valeurs stamp à utiliser pour chaque client
-                    PushObjectCommand gèrera ce tableau.
+        ✔ 16/11/2023 : Modification majeure de l'envoi/reception des inventaires : l'event GO_INVENTORYLOAD n'est plus nécessaire @done(23-11-17 11:30)
+            Le serveur envoit les inventaires par PushObjectCommand(SETFULLINVENTORY) pour chaque player d'un client
+            Le serveur envoit les equipments (seulement la section equipment de l'inventaire) par PushObjectCommand(SETFULLEQUIPMENT) à tous les clients autre
+            pour cela ObjectCommand est modifiée pour l'envoi de Command BroadCastée
+            Ajout de GOC_Inventory::LoadInventory (gestion global net/local) qui remplace aussi Player::LoadStuff pour le mode local
+            Ajout de GOC_Inventory::NetClientSetEquipment(node) qui permet sur les clients d'afficher l'equipment des players distants
+                Après ChangeAvatar sur un client il faut lancer NetClientSetEquipment
+            1. pb si le node n'existe lors de la reception coté client, il faut donc sauvegarder l'inventaire/equipment reçu
+                ceux ci sont stockés dans GOC_Inventory::clientInventories_ et GOC_Inventory::clientEquipmentSets_
+                attention ces deux containers contiennet des VariantVectors qui ont des structures differentes
+                    pour GOC_Inventory::clientInventories_ les VariantVector contiennent des String de slots générées cf. GOC_Inventory::GetInventoryAttr (Slot::GetSlotAttr)
+                    pour GOC_Inventory::clientEquipmentSets_ les VariantVector contiennent des UInt cf. GOC_Inventory::GetSectionSlots
+            2. pb dans GOC_Inventory::NetClientSetInventory(uint nodeid) et GOC_Inventory::NetClientSetEquipment(uint nodeid) lors de la verification du node
+                il y a un pb avec GameContext::Get().rootScene_->GetNode(nodeid) alors que le node est bien créé en amont (la vérification a été faite)
+                création d'un cache des nodes créé précédemment dans GOC_Inventory::clientNodes_ via GOC_Inventory::RegisterClientNode
+                    Processus Client : creation de l'avatar => NetClientSetEquipment(Node*) enregistrement du node via RegisterClientNode
+                                        si l'inventaire/equipment a été reçu dans clientInventories_/clientEquipmentSets_, alors on le monte
+                                        sinon lors de la reception on utilise NetClientSetEquipment(uint nodeid) qui enregistre l'equipment dans clientEquipmentSets_ 
+                                        verifie nodeid dans clientNodes_ et renvoi vers NetClientSetEquipment(clientNodes_[nodeid])
+        ✔ 17/11/2023 : ObjectCommand broadcast encore un probleme à régler avec cmd.stamp_ @done(23-11-17 16:07)
+            coté serveur, lors du PushObjectCommand quelle valeur assignée à cmd.stamp puisque 
+            chaque connection à une valeur GetServerObjCmdAck differente : si on veut que le message soit envoyer à chaque client
+            il est nécessaire d'avoir un cmd.stamp_ superieur à la valeur Connection::GetServerObjCmdAck specifique à chaque client
+            un workaround est mis en place dans GameNetwork::HandlePlayServer_NetworkUpdate, mais doit etre supprimer
+            cela doit etre fait dans GameNetwork::PushObjectCommand
+            dans ObjectCommand : ajout un vector pour stocker les valeurs stamp à utiliser pour chaque client
+                Ok ajout de Vector<unsigned short> ObjectCommand::broadcastStamps_, ObjectCommandSetBroadStamps et modif ObjectCommand::Write
+                modification de GameNetwork::PushObjectCommand et GameNetwork::HandlePlayServer_ReceiveUpdate
+                suppression du workaround et test ok avec activation du define ACTIVE_OBJECTCOMMAND_BROADCASTING
 
     ☐ 14/11/2023 : coté distant, le grapin reste en permanence.
         ex: spawn coté serveur et destruction -> spawn coté client mais reste.

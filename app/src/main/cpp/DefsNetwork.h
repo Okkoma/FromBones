@@ -5,6 +5,7 @@ using namespace Urho3D;
 
 //#define ACTIVE_SHORTHEADEROBJECTCONTROL
 #define ACTIVE_PACKEDOBJECTCONTROL
+#define ACTIVE_OBJECTCOMMAND_BROADCASTING
 
 enum GameNetworkMode
 {
@@ -186,13 +187,24 @@ struct ObjectCommand
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
     void Read(VectorBuffer& msg);
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+    void Write(VectorBuffer& msg, int toclient=0) const;
+#else
     void Write(VectorBuffer& msg) const;
+#endif
     void CopyTo(ObjectCommand& cmd) const;
-
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+    void SetBroadStamps(); // for Server Only
+    unsigned short AddNewBroadCastStamp(Connection* connection);
+#endif
     void Dump() const;
 
     int clientId_;
     unsigned short int stamp_;
     bool broadCast_;
     VariantMap cmd_;
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+    // for Server Only
+    Vector<unsigned short> broadcastStamps_;
+#endif
 };

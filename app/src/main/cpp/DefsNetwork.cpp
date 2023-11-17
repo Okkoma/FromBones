@@ -5,6 +5,9 @@
 #include <Urho3D/Scene/Scene.h>
 
 #include "GameContext.h"
+#include "GameEvents.h"
+#include "GameNetwork.h"
+
 #include "DefsNetwork.h"
 
 const char* gameStatusNames[] =
@@ -338,6 +341,21 @@ void ObjectCommand::Read(VectorBuffer& msg)
     cmd_ = msg.ReadVariantMap();
 }
 
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+void ObjectCommand::Write(VectorBuffer& msg, int toclient) const
+{
+    msg.WriteUByte(OBJECTCOMMAND);
+    msg.WriteInt(clientId_);
+
+    if (broadCast_ && toclient > 0)
+        msg.WriteUShort(broadcastStamps_[toclient]);
+    else
+        msg.WriteUShort(stamp_);
+
+    msg.WriteBool(broadCast_);
+    msg.WriteVariantMap(cmd_);
+}
+#else
 void ObjectCommand::Write(VectorBuffer& msg) const
 {
     msg.WriteUByte(OBJECTCOMMAND);
@@ -346,6 +364,7 @@ void ObjectCommand::Write(VectorBuffer& msg) const
     msg.WriteBool(broadCast_);
     msg.WriteVariantMap(cmd_);
 }
+#endif
 
 void ObjectCommand::CopyTo(ObjectCommand& cmd) const
 {
@@ -355,8 +374,31 @@ void ObjectCommand::CopyTo(ObjectCommand& cmd) const
     cmd.cmd_ = cmd_;
 }
 
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+void ObjectCommand::SetBroadStamps()
+{
+    const HashMap<Connection*, ClientInfo>& serverClientInfos = GameNetwork::Get()->GetServerClientInfos();
+    broadcastStamps_.Resize(serverClientInfos.Size()+1);
+    for (HashMap<Connection*, ClientInfo>::ConstIterator it = serverClientInfos.Begin(); it != serverClientInfos.End(); ++it)
+        if (it->first_)
+            broadcastStamps_[it->second_.clientID_] = it->first_->GetServerObjCmdAck()+1;
+}
+
+unsigned short ObjectCommand::AddNewBroadCastStamp(Connection* connection)
+{
+    ClientInfo* clientInfo = GameNetwork::Get()->GetServerClientInfo(connection);
+    broadcastStamps_.Resize(clientInfo->clientID_+1);
+    unsigned short& stamp = broadcastStamps_[clientInfo->clientID_];
+    stamp = connection->GetServerObjCmdAck()+1;
+    return stamp;
+}
+#endif
+
 void ObjectCommand::Dump() const
 {
-    URHO3D_LOGINFOF("ObjectCommand() - Dump : clientid=%d stamp=%u broadcast=%s !",
-                    clientId_, stamp_, broadCast_?"true":"false");
+    int cmd = cmd_.Find(Net_ObjectCommand::P_COMMAND)->second_.GetInt();
+    unsigned nodeid = cmd_.Find(Net_ObjectCommand::P_NODEID)->second_.GetUInt();
+
+    URHO3D_LOGINFOF("ObjectCommand() - Dump : cmd=%s(%d) nodeid=%u clientid=%d stamp=%u broadcast=%s !",
+                    netCommandNames[cmd], cmd, nodeid, clientId_, stamp_, broadCast_?"true":"false");
 }

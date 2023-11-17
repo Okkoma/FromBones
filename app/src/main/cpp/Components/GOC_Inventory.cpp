@@ -1523,6 +1523,8 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
 static const String EffectFlame("effects_flame");
 bool GOC_Inventory::SetEquipmentSlot(AnimatedSprite2D* animatedSprite, unsigned idslot, const String& slotname, StringHash slotType, GOC_Inventory* inventory)
 {
+    URHO3D_LOGINFOF("GOC_Inventory() - SetEquipmentSlot : idslot=%u slotname=%s ...", idslot, slotname.CString());
+
     Node* node = animatedSprite->GetNode();
     bool animatorToUpdate = false;
     bool special = slotname.StartsWith("Special");
@@ -1698,7 +1700,7 @@ void GOC_Inventory::NetClientSetInventory(unsigned nodeid, VariantMap& eventData
     if (clientNodes_.Contains(nodeid))
         LoadInventory(clientNodes_[nodeid], false);
     else
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... no node exists ... inventory saved for later use !", nodeid);    
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... no node exists ... inventory saved for later use !", nodeid);
 }
 
 void GOC_Inventory::NetClientSetEquipment(unsigned nodeid, VariantMap& eventData)
@@ -1821,7 +1823,11 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
 
     // Update the clientEquipmentSets_ if exists, if not create one.
     VariantVector& equipmentDataSet = clientEquipmentSets_[node->GetID()];
-    equipmentDataSet[idslot - equipmentIndexes.first_] = slotType.Value();
+    unsigned slotindex = idslot - equipmentIndexes.first_;
+    // resize if needed
+    if (equipmentDataSet.Size() <= slotindex)
+        equipmentDataSet.Resize(slotindex+1);
+    equipmentDataSet[slotindex] = slotType.Value();
 
     // Update the animation
     if (SetEquipmentSlot(animatedSprite, idslot, slotname, slotType, 0))
