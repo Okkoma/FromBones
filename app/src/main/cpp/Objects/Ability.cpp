@@ -150,16 +150,9 @@ Node* Ability::Use(const StringHash& got, Node* holder, const PhysicEntityInfo& 
     {
         if (replicatemode)
         {
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true);
             if (cinfo && oinfo)
                 *oinfo = cinfo;
-        }
-
-        if (oinfo && (GameContext::Get().ServerMode_ || node->GetVar(GOA::CLIENTID).GetInt() == GameNetwork::Get()->GetClientID()))
-        {
-            (*oinfo)->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, true);
-//            URHO3D_LOGINFOF("Ability() - Use (static) holder=%s(%u-clientid=%d) node=%s(%u) oinfo spawnmode=NETSPAWN",
-//                    holder ? holder->GetName().CString() : "null", holder ? holder->GetID() : 0, holderclientid, node->GetName().CString(), node->GetID(), *oinfo);
         }
     }
 
@@ -191,9 +184,6 @@ bool Ability::UseAtPoint(const Vector2& position, Node* holder, const StringHash
     ObjectControlInfo* oinfo = 0;
     Node* node = Use(position, &oinfo);
 
-    if (node && !GameContext::Get().LocalMode_ && UseNetworkReplication() && oinfo)
-        oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, true);
-
 //    URHO3D_LOGINFOF("Ability() - UseAtPoint (static) ability=%s holder=%s(%u) pos=%F,%F ... OK !", GetTypeName().CString(),
 //                    holder ? holder->GetName().CString() : "null", holder ? holder->GetID() : 0, position.x_, position.y_);
 
@@ -206,12 +196,6 @@ void Ability::UseAtPoint(const Vector2& wpoint)
     ObjectControlInfo* oinfo = 0;
 
     Node* node = Use(wpoint, &oinfo);
-
-    if (node && !GameContext::Get().LocalMode_ && UseNetworkReplication() && oinfo)
-    {
-        oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, true);
-//        URHO3D_LOGINFOF("Ability() - UseAtPoint wx=%f, wy=%f oinfo spawnmode=NETSPAWN", wpoint.x_, wpoint.y_, oinfo);
-    }
 
 //    URHO3D_LOGINFOF("Ability() - UseAtPoint point=%F,%F ... %s", wpoint.x_, wpoint.y_, node ? "OK !":"NOK !");
 }
@@ -384,7 +368,7 @@ Node* ABI_Grapin::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
 
     if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
     {
-        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_);
+        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, true, true);
         if (oinfo && cinfo)
             *oinfo = cinfo;
     }
@@ -818,16 +802,7 @@ Node* ABIBomb::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
         }
 
         if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
-        {
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_);
-            if (cinfo)
-            {
-                cinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, false);
-//                URHO3D_LOGINFOF("ABIBomb() - Use : dir=%f,%f faction=%u ...oinfo=%u spawnmode=LOCALSPAWN ...", direction.x_, direction.y_, node_->GetVar(GOA::FACTION).GetUInt(), cinfo);
-                if (oinfo)
-                    *oinfo = cinfo;
-            }
-        }
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, true, false);
 
         isInUse_ = false;
     }

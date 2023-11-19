@@ -2300,12 +2300,6 @@ void Player::OnFire2(StringHash eventType, VariantMap& eventData)
 
             ObjectControlInfo* oinfo = 0;
             ability->Use(wpoint, &oinfo);
-
-            if (oinfo)
-            {
-                oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, true);
-                URHO3D_LOGINFOF("Player() - OnFire2 : nodeid=%u spawnmode=NETSPAWN !", avatar_->GetID());
-            }
         }
     }
 }
@@ -2398,12 +2392,15 @@ void Player::OnDead(StringHash eventType, VariantMap& eventData)
             URHO3D_LOGINFOF(" ... Save Position %s viewZ=%d!", position.ToString().CString(), GameContext::Get().playerState_[controlID_].viewZ);
         }
 
-        // Add a Stele
-        Node* stele = World2D::SpawnFurniture(StringHash("GOT_SteleRIP"), position, GetViewZ(), false, false, true);
-        if (stele)
+        if (!GameContext::Get().arenaZoneOn_)
         {
-            GOC_Animator2D* animator = stele->GetComponent<GOC_Animator2D>();
-            animator->SetState(StringHash(STATE_APPEAR));
+            // Add a Stele
+            Node* stele = World2D::SpawnFurniture(StringHash("GOT_SteleRIP"), position, GetViewZ(), false, false, true);
+            if (stele)
+            {
+                GOC_Animator2D* animator = stele->GetComponent<GOC_Animator2D>();
+                animator->SetState(StringHash(STATE_APPEAR));
+            }
         }
 
         SaveState();

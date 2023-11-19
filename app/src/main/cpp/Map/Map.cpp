@@ -5853,9 +5853,9 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
 
     node->SetVar(GOA::FACTION, sceneInfo.faction_);
 
-    if (category && category->HasReplicatedMode())
+    if (category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_)
     {
-        if (id == LOCAL)
+        if (id == LOCAL && !sceneInfo.objectControlInfo_)
         {
             Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
             ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder);

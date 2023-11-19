@@ -3,9 +3,9 @@ Todos:
         -> pb de generation de monde
 
     ☐ 13/10/2023 : lorsque l'on monte un mur,
-        *
-        ** <- ce bloc n'a pas de collider
-        *
+        O
+        OO <- ce bloc n'a pas de collider
+        O
         => 16/10/2023 : Patch dans MapColliderGenerator::TraceContours_MooreNeighbor
 
     ☐ 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.

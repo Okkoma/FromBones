@@ -34,13 +34,14 @@ const char* netCommandNames[] =
     "ERASENODE=1",
     "ENABLENODE=2",
     "ADDNODE=3",
-    "DISABLECLIENTOBJECTCONTROL=4",
-    "ADDITEM=5",
-    "REMOVEITEM=6",
-    "UPDATEEQUIPMENT=7",
-    "SETFULLEQUIPMENT=8",
-    "SETFULLINVENTORY=9",
-    "CHANGETILE=10",
+    "EXPLODENODE=4",
+    "DISABLECLIENTOBJECTCONTROL=5",
+    "TRANSFERITEM=6",
+    "DROPITEM=7",
+    "UPDATEEQUIPMENT=8",
+    "SETFULLEQUIPMENT=9",
+    "SETFULLINVENTORY=10",
+    "CHANGETILE=11",
 };
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
@@ -283,8 +284,8 @@ bool ObjectControlInfo::Write(VectorBuffer& msg)
 
 #ifdef ACTIVE_SHORTHEADEROBJECTCONTROL
     msg.WriteUByte(clientId_);
-    msg.WriteUShort((unsigned short int)(serverNodeID_-FIRST_LOCAL_ID));
-    msg.WriteUShort((unsigned short int)(clientNodeID_-FIRST_LOCAL_ID));
+    msg.WriteUShort((unsigned short int)(serverNodeID_ ? serverNodeID_-FIRST_LOCAL_ID : 0));
+    msg.WriteUShort((unsigned short int)(clientNodeID_ ? clientNodeID_-FIRST_LOCAL_ID : 0));
 #else
     msg.WriteInt(clientId_);
     msg.WriteUInt(serverNodeID_);
@@ -307,8 +308,8 @@ bool ObjectControlInfo::WriteAck(VectorBuffer& msg)
 
 #ifdef ACTIVE_SHORTHEADEROBJECTCONTROL
     msg.WriteUByte(clientId_);
-    msg.WriteUShort((unsigned short int)(serverNodeID_-FIRST_LOCAL_ID));
-    msg.WriteUShort((unsigned short int)(clientNodeID_-FIRST_LOCAL_ID));
+    msg.WriteUShort((unsigned short int)(serverNodeID_ ? serverNodeID_-FIRST_LOCAL_ID : 0));
+    msg.WriteUShort((unsigned short int)(clientNodeID_ ? clientNodeID_-FIRST_LOCAL_ID : 0));
 #else
     msg.WriteInt(clientId_);
     msg.WriteUInt(serverNodeID_);

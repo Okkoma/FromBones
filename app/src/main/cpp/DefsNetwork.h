@@ -3,7 +3,7 @@
 
 using namespace Urho3D;
 
-//#define ACTIVE_SHORTHEADEROBJECTCONTROL
+#define ACTIVE_SHORTHEADEROBJECTCONTROL
 #define ACTIVE_PACKEDOBJECTCONTROL
 #define ACTIVE_OBJECTCOMMAND_BROADCASTING
 
@@ -21,9 +21,10 @@ enum NetCommand
     ERASENODE = 1,
     ENABLENODE,
     ADDNODE,
+    EXPLODENODE,
     DISABLECLIENTOBJECTCONTROL,
-    ADDITEM,
-    REMOVEITEM,
+    TRANSFERITEM,
+    DROPITEM,
     UPDATEEQUIPMENT,
     SETFULLEQUIPMENT,
     SETFULLINVENTORY,
@@ -158,20 +159,15 @@ struct ObjectControlInfo
 
     bool active_;
 
-#ifdef ACTIVE_SHORTHEADEROBJECTCONTROL
-    unsigned char clientId_;
+    unsigned int clientId_;
     unsigned int serverNodeID_, clientNodeID_;
-#else
-    int clientId_;
-    unsigned serverNodeID_, clientNodeID_;
-#endif
+    unsigned int lastNetChangeCounter_;
+
     WeakPtr<Node> node_;
 
     ObjectControl preparedControl_;
     ObjectControl receivedControls_[2];
     List<ObjectControl> sendedControls_;
-    unsigned lastNetChangeCounter_;
-
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
     PackedObjectControl preparedPackedControl_;
     PackedObjectControl receivedPackedControl_;

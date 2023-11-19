@@ -79,8 +79,9 @@ public :
     }
 
     virtual void ApplyAttributes();
-
     virtual void OnSetEnabled();
+
+    void Explode(bool forceNetExplode = false);
 
     void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
 
@@ -98,7 +99,6 @@ private :
     void GenerateNodes(AnimatedSprite2D* animatedSprite);
 
     void UpdatePositions(Node* rootNode);
-    void Explode();
 
     WeakPtr<Node> prepareNode_;
     Vector<WeakPtr<Node> > explodedNodes_;

@@ -2,7 +2,7 @@ Todos:
 
     ☐ 21/02/2023 : partitionnement de l'implementation pour editor shared
         + une libraire FromBonesLib (source dans app/main/cpp)
-        + un Launcher Game (source dans app/main/cpplauncher) 
+        + un Launcher Game (source dans app/main/cpplauncher)
         * GameStatics devient GameContext.
         * ajout de DefsCore.h ajoutant FROMBONES_API pour l'export librairie des classes.
         * pour le moment que certaines classe sont taggés FROMBONES_API.
@@ -15,7 +15,7 @@ Todos:
             il faut modifier manuellement l'extendFor de configurations.debugImplementation et de configurations.releaseImplementation en fonction de l'api graphique souhaitée (soit en Gl soit en Vk).
 
     ☐ 14/01/2022 : sur Android, des modifications sont à faire pour obtenir les versions de gles et permettre de pointer vers le bon rep Shader. (cf Game::Start())
-        patch rapide pour le moment        
+        patch rapide pour le moment
         ✘ si besoin mettre engine-config.xml à la base de l'apk
             ne fonctionne pas !
         ✔ ne pas prendre en compte le sensor gyroscope dans le menu
@@ -28,7 +28,7 @@ Todos:
             OK : utiliser ce ratio en interne dans Sprite2D::GetDrawRectangle() uniquement.
             voir pour aussi modifier Sprite2D::GetRectangle ?
             ✔ sur FromBones BuildChainV2 (new build) - le pb persiste pour les furnitures (ne sont pas sur le bon tile) toujours en hdpi et aussi en mdpi.
-                comparaison entre linux et android de Map::SetFurnitures() (adb logcat -v time Urho3D:E *:S)
+                comparaison entre linux et android de Map::SetFurnitures() ( 'adb logcat -v time Urho3D:E *:S' **)
                 android...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Porte(107529393) ... entityid=255(entry=255)     ... position=64.01 80.65 (tindex=113 tposition=129 129) ...
                 linux  ...SetFurnitures : Map=0 0 ... furnitures_[0] : id=16782356 type=GOT_Porte(107529393) ... entityid=0(entry=4294967295)... position=62.72 79.36 (tindex=113 tposition=-127 -127) .
                 ✔ Verifier EntityData, MapData::AddEntityData(), MapData::UpdateEntityNode()
@@ -36,7 +36,7 @@ Todos:
         ✔ artisanat, n'affiche plus les outils comme il faut.
             correctif dans UIC_CraftPanel::UpdateSlot. pour utiliser Slot::uisprite_.
             Attention Slot::sprite_ peut ne pas correspondre à l'entité. S'il s'agit d'un AnimatedSprite sans attribut "Sprite" alors c'est le premier sprite de la spritesheet qui sera pris par défaut.
-            Dans le cas de l'enclume ou de la marmite, la spritesheet était furnituresdung01.png et le premier sprite de cette spritesheet est l'encadrement d'armoire ... 
+            Dans le cas de l'enclume ou de la marmite, la spritesheet était furnituresdung01.png et le premier sprite de cette spritesheet est l'encadrement d'armoire ...
                 Slot::Set() -> GameHelpers::GetSpriteForType()
         ✔ sur android remettre l'icone du jeu.
         ✔ Crash à cause des missions normalement corrigé
@@ -101,7 +101,7 @@ Archive:
     ✔ 09/11/2023 : Creation CMakePresets.json qui permet de gestion des build (meme chose que mon script Bake homemade)
         permet l'utilisation dans VSCode sans probleme.
         creer tous les presets necessaire. Pour le moment Linux Debug et Release BackEnd GL seulement.
-        
+
     ✔ 30/10/2018 : le preloading des ressources doit commencer pendant le splashState, afficher un icone de chargement
         rendre asynchrone ce preloading
             OK le 04/11/2018

@@ -823,7 +823,7 @@ void GOC_Destroyer::Destroy(float delay, bool reset)
         if (destroyMode_ == DISABLE)
             GameNetwork::Get()->SetEnableObject(false, nodeid);
         else if (GameContext::Get().ServerMode_)
-            GameNetwork::Get()->Server_RemoveObject(nodeid, !node_->isPoolNode_);
+            GameNetwork::Get()->Server_RemoveObject(nodeid);
         else if (GameContext::Get().ClientMode_)
             GameNetwork::Get()->Client_RemoveObject(nodeid);
     }

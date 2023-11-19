@@ -705,8 +705,26 @@ void GOC_BodyExploder2D::UpdatePositions(Node* rootNode)
 //    URHO3D_LOGINFOF("GOC_BodyExploder2D() - UpdatePositions node %s(%u) ... position=%s OK !", node_->GetName().CString(), node_->GetID(), node_->GetWorldPosition().ToString().CString());
 }
 
-void GOC_BodyExploder2D::Explode()
+void GOC_BodyExploder2D::Explode(bool forceNetExplode)
 {
+    if (!GameContext::Get().LocalMode_)
+    {
+        int clientid = node_->GetVar(GOA::CLIENTID).GetInt();
+        if (clientid == GameNetwork::Get()->GetClientID())
+        {
+            // Send Explode to Network
+            VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
+            eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
+            GameNetwork::Get()->PushObjectCommand(EXPLODENODE, &eventData, true, clientid);
+            URHO3D_LOGINFOF("GOC_BodyExploder2D() - Explode : node %s(%u) ... Send Explode to Network ...", node_->GetName().CString(), node_->GetID());
+        }
+        else if (!forceNetExplode)
+        {
+            URHO3D_LOGINFOF("GOC_BodyExploder2D() - Explode : node %s(%u) ... remote node => wait for forceNetExplode ...", node_->GetName().CString(), node_->GetID());
+            return;
+        }
+    }
+
     if (prepared_)
         UpdatePositions(GetComponent<AnimatedSprite2D>()->GetNode());
     else
@@ -746,28 +764,14 @@ void GOC_BodyExploder2D::Explode()
         body->ApplyForce(force, impactPoint_, true);
         body->SetAngularVelocity(force.x_ * force.y_);
 
+        if (!GameContext::Get().LocalMode_)
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, false);
+
 //        StaticSprite2D* staticSprite = explodedNodes_[i]->GetComponent<StaticSprite2D>();
 //
 //        URHO3D_LOGINFOF("GOC_BodyExploder2D() - Explode : Part %u=%s nodeID=%u position=%s wscale=%s enabled=%s parent=%s", i , staticSprite->GetSprite()->GetName().CString(),
 //                        explodedNodes_[i]->GetID(), position.ToString().CString(), node->GetWorldScale2D().ToString().CString(), staticSprite->IsEnabledEffective() ? "true" : "false",
 //                        explodedNodes_[i]->GetParent() ? explodedNodes_[i]->GetParent()->GetName().CString() : "noparent");
-    }
-
-    if (!GameContext::Get().LocalMode_)
-    {
-        GameNetwork& network = *GameNetwork::Get();
-//        GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
-//        bool servermode = !controller || !controller->IsMainController();
-        for (unsigned i=0; i < numExplodedNodes_; ++i)
-        {
-            node = explodedNodes_[i];
-
-            if (!node)
-                continue;
-
-//            network.AddObjetControl(node, true);
-            ObjectControlInfo* cinfo = network.AddSpawnControl(node, node_);
-        }
     }
 
     prepared_ = false;

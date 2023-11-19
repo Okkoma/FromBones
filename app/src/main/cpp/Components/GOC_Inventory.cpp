@@ -1202,8 +1202,17 @@ void GOC_Inventory::OnSetEnabled()
                 SubscribeToEvent(node_, enableGiveEvent_, URHO3D_HANDLER(GOC_Inventory, OnEnableGive));
 
             // Players don't drop
-            if (!node_->GetComponent<GOC_PlayerController>())
-                SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
+            if (GameContext::Get().LocalMode_)
+            {
+                if (!node_->GetComponent<GOC_PlayerController>())
+                    SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
+            }
+            else if (GameContext::Get().ServerMode_)
+            {
+                GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
+                if (controller && (controller->GetControllerType() & (GO_Player & GO_NetPlayer)) == 0)
+                    SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
+            }
 
             if (CheckEmpty())
                 node_->SendEvent(GO_INVENTORYEMPTY);
@@ -1821,13 +1830,17 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
 
     StringHash slotType(eventData[Net_ObjectCommand::P_INVENTORYITEMTYPE].GetUInt());
 
-    // Update the clientEquipmentSets_ if exists, if not create one.
-    VariantVector& equipmentDataSet = clientEquipmentSets_[node->GetID()];
-    unsigned slotindex = idslot - equipmentIndexes.first_;
-    // resize if needed
-    if (equipmentDataSet.Size() <= slotindex)
-        equipmentDataSet.Resize(slotindex+1);
-    equipmentDataSet[slotindex] = slotType.Value();
+    // Update the clientEquipmentSets_ if exists
+    HashMap<unsigned int, VariantVector>::Iterator it = clientEquipmentSets_.Find(node->GetID());
+    if (it != clientEquipmentSets_.End())
+    {
+        VariantVector& equipmentDataSet = it->second_;
+        unsigned slotindex = idslot - equipmentIndexes.first_;
+        // resize if needed
+        if (equipmentDataSet.Size() <= slotindex)
+            equipmentDataSet.Resize(slotindex+1);
+        equipmentDataSet[slotindex] = slotType.Value();
+    }
 
     // Update the animation
     if (SetEquipmentSlot(animatedSprite, idslot, slotname, slotType, 0))

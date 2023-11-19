@@ -784,8 +784,7 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
 
     IntVector2 dragCurrentPosition = IntVector2(eventData["X"].GetInt(), eventData["Y"].GetInt());
     UIElement* focusElement = onKeyDrag_ ? selectSlotByKey_ : GetSubsystem<UI>()->GetElementAt(dragCurrentPosition);
-    Node* fromAvatar = ((Actor*)user_)->GetAvatar();
-    int fromSlotId = slotIndex_;
+    const int fromSlotId = slotIndex_;
     int toSlotId = -1;
 
 //    URHO3D_LOGINFOF("UISlotPanel() - HandleSlotDragEnd : panel=%s position=%d,%d ... focusElt=%s fromSlotId=%d",

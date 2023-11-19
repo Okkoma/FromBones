@@ -1,12 +1,36 @@
-@IMPORTANT 
----------------------------------------------------------------------
-01/09/2021 par defaut le net simulateur est activé. 
-NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h 
-ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
----------------------------------------------------------------------
+@IMPORTANT
+----------------------------------------------------------------------------
+- 01/09/2021 par defaut le net simulateur est activé.
+- NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h
+- ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique_
+----------------------------------------------------------------------------
 
-Todos:
-    ☐ 17/11/2023 : lorsqu'un avatar est touché avec un effet de feu, l'effet ne spawn pas sur un client distant
+Todos:   
+    ☐ 17/11/2023 : modification inventory client et replication sur server
+        ne pas envoyer de commandes aux autres clients seulement au server en utilisant PushObjectCommand(cmd, &eventData, false, clientid)
+        pour ADDINVENTORYITEM (precedemment ADDITEM) probleme pour recuperer le clientID vers lequel on souhaite envoyer la commande.
+        cette info doit être trouvée dans l'eventData durant l'envoi HandlePlayServer_Messages/HandlePlayClient_Messages et durant la reception Server_ApplyObjectCommand/Client_ApplyObjectCommand
+        processus pour ADDINVENTORYITEM =
+            coté server GO_INVENTORYGET->evendata->HandlePlayServer_Messages->PushObjectCommand(ADDINVENTORYITEM, &eventData, false, clientid)
+            coté client HandlePlayClient_ReceiveServerUpdate->ObjectCommand->Client_ApplyObjectCommand(ObjectCommand.cmd_==evendata->ADDINVENTORYITEM)->Client_CommandAddItem(eventData)
+                qui déclenche un check des nodes GIVER et GETTER si ils existent et de leur inventaire.
+        il serait interessant de laisser ADDINVENTORYITEM en ObjectCommand BroadCasté par le serveur (donc clientid=0) et de modifier Client_CommandAddItem pour prendre en compte les clients
+        qui n'ont pas les nodes GIVER et GETTER en main (si pas de controller ou inventaire ou collectable alors pas main). Mais on serait incapable de savoir si l'on doit detruire le collectable
+        GIVER car pas de transfert de slot possible (et c'est au serveur de decider des quantités à transferer).
+        ✔ dans HandlePlayServer_Messages, faire le code pour analyse des GIVER et GETTER et Push du/des messages selon les cas suivants : @done(23-11-18 00:01)
+            on renommera ADDINVENTORYITEM par TRANSFERITEM, Client_CommandAddItem par Client_TransferItem et REMOVEINVENTORYITEM par DROPITEM, RemoveItem par Server_DropItem.
+            si GETTER client/ GIVER serveur ou GETTER serveur/ GIVER client => envoyer TRANSFERITEM avec le clientid.
+            si GETTER client1 / GIVER client2 il faut envoyer deux messages TRANSFERITEM (vers les clients 1 et 2).
+        ☐ Client_TransferItem est à modifier pour traiter ces differents cas.
+        Pour DROP_ITEM
+            envoi client     GO_DROPITEM->eventData->HandlePlayClient_Messages->PushObjectCommand(DROP_ITEM, &eventData, false, clientID_) envoi au serveur uniquement
+            reception server HandlePlayServer_NetworkUpdate->ObjectCommand->Server_ApplyObjectCommand(ObjectCommand.cmd_==evendata->DROP_ITEM)->Server_DropItem(evendata)
+            -> Server_DropItem devient Server_UpdateInventory et doit mettre à jour l'inventaire coté serveur.
+        ☐  Il faut repliquer coté server, le deplacement de slot de l'inventaire client
+            -> ajouter MOVEINVENTORYITEM
+            -> ajouter une ui coté serveur pour verifier les inventaires et equipments des clients.
+
+    ☐ 17/11/2023 : lorsqu'un avatar est touché avec un effet de feu, l'effet ne se produit pas sur un client distant
 
     ☐ 16/11/2023 : snap initial
         le serveur doit envoyer un snap initial au client qui se connecte.
@@ -14,11 +38,11 @@ Todos:
             tous les nodes et les states
         le client recupère le snap et synchronise sa scene
             fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
-            supprime, crée et met à jour les nodes avec les bons attributs, états.        
+            supprime, crée et met à jour les nodes avec les bons attributs, états.
         ✔  16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
 
     ☐ 14/11/2023 : ajouter deux modes reseau : arena (synchronisation) et world (pas d'attente)
-    
+
     ✔ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte. @done(23-11-17 16:07)
         les clients ne doivent pas avoir à charger de l'inventaire local, l'ordre doit venir du serveur.
         ✔ 16/11/2023 : Modification majeure de l'envoi/reception des inventaires : l'event GO_INVENTORYLOAD n'est plus nécessaire @done(23-11-17 11:30)
@@ -38,10 +62,10 @@ Todos:
                 création d'un cache des nodes créé précédemment dans GOC_Inventory::clientNodes_ via GOC_Inventory::RegisterClientNode
                     Processus Client : creation de l'avatar => NetClientSetEquipment(Node*) enregistrement du node via RegisterClientNode
                                         si l'inventaire/equipment a été reçu dans clientInventories_/clientEquipmentSets_, alors on le monte
-                                        sinon lors de la reception on utilise NetClientSetEquipment(uint nodeid) qui enregistre l'equipment dans clientEquipmentSets_ 
+                                        sinon lors de la reception on utilise NetClientSetEquipment(uint nodeid) qui enregistre l'equipment dans clientEquipmentSets_
                                         verifie nodeid dans clientNodes_ et renvoi vers NetClientSetEquipment(clientNodes_[nodeid])
         ✔ 17/11/2023 : ObjectCommand broadcast encore un probleme à régler avec cmd.stamp_ @done(23-11-17 16:07)
-            coté serveur, lors du PushObjectCommand quelle valeur assignée à cmd.stamp puisque 
+            coté serveur, lors du PushObjectCommand quelle valeur assignée à cmd.stamp puisque
             chaque connection à une valeur GetServerObjCmdAck differente : si on veut que le message soit envoyer à chaque client
             il est nécessaire d'avoir un cmd.stamp_ superieur à la valeur Connection::GetServerObjCmdAck specifique à chaque client
             un workaround est mis en place dans GameNetwork::HandlePlayServer_NetworkUpdate, mais doit etre supprimer
@@ -70,7 +94,7 @@ Todos:
         -> il s'agit de GOC_PhysicRope, qui est utilisé principalement pour le grapin
         --> modification de GOC_PhysicRope pour qu'il vérifie qu'il ne soit pas dans un node furniture
 
-    ☐ 13/11/2023 : ne pas mettre les rip stele en mode reseau arena
+    ✔ 13/11/2023 : ne pas mettre les rip stele en mode reseau arena @done(23-11-19 00:37)
         -> si l'avatar coté serveur meurt, elle ne pope pas au bon endroit coté client (elle pope au dessous de l'avatar client)
 
     ✔ 13/11/2023 : inventaires et charactermapping ne fonctionnent plus ? @done(23-11-14 10:31)
@@ -89,7 +113,7 @@ Todos:
         -> ont été ajouté dans ObjectControlInfo : BackupReceivedControl(), GetPreviousReceivedControl() et lastNetChangeCounter_.
         --> Test1 : integration de l'ancien PackedObjectControl dans la version courante de Frombones => meme pb
         --> Test2 : integration de la version courante de PackedObjectControl dans la version 20210925 => fonctionne correctement.
-        --> cela ne provient pas de GameNetwork : lorsque l'avatar est immobile et que le serveur reçoit l'ObjectControl la position reçue ne varie pas (Log dans HandlePlayServer_ReceiveUpdate=>UpdateControl).        )
+        --> cela ne provient pas de GameNetwork : lorsque l'avatar est immobile et que le serveur reçoit l'ObjectControl la position reçue ne varie pas (Log dans HandlePlayServer_ReceiveUpdate=>UpdateControl).
         -> cela provient du changement dans GOC_Controller::Update puis impact GOC_Move2D qui a physicsEnable_ => si les buttons ne sont pas setté alors GOC_Move2D va appliquer une force dans la direction
         --> 13/11/2023 : Ok patch dans GOC_Controller::Update.
 
@@ -97,8 +121,9 @@ Todos:
         -> modif dans GOC_Animator2D::CheckAnim()
             toujours le meme pb. dur à reproduire : vu uniquement en world. En arena en mettant bcp d'entité, non reproduit.
 
-    ☐ 27/09/2021 : la collecte d'un collectable au sol par un client est bien repercuté coté server mais pas vers les autres clients.
+    ✔ 27/09/2021 : la collecte d'un collectable au sol par un client est bien repercuté coté server mais pas vers les autres clients. @done(23-11-18 17:27)
         -> 14/11/2023 : il faut que le serveur envoie une commande de remove object aux autres clients
+        -> 17/11/2023 : OK correctif dans GOC_Destroyer::Destroy
 
     ☐ 20/09/2021 : lors du changement d'ability sur un client, il faut le repercuter coté server autrement le server ne sera pas quelle abilité utilisée dans Player::OnFire2()
         => 21/09/2021 : Etant donner que le Player::OnFire2() n'est plus utilisé en version Net (coté server), ce cas ne se pose plus.
@@ -112,7 +137,7 @@ Todos:
         ==> voir pour passer à SlikeNet : integration faite dans la version 1.7 d'Uhro.
         ===> 31/08/2021 : integration faite avec FromBones : pas d'incidence sur le code de FromBones.
         ====> Modification de SLikeNet pour activer le Latency Simulator : modification de ReliabilityLayer::ApplyNetworkSimulator et RakPeer::ApplyNetworkSimulator ... inversion de logique => _DEBUG par_RELEASE
-        =====> IMPORTANT : par defaut le net simulateur est activé. NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h la ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
+        =====> IMPORTANT : par defaut le net simulateur est activé. NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h la ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique._
         ====> apres 3 suicides avec ACTIVE_NETSIMULATELATENCYANDPACKETLOSS, les nouvelles boneparts deviennent instables (elles se déplacent dans tout les sens) puis il y a un certain temps, elles arrivent à leur position
         =====> en corrigeant GOC_Destroyer::HandleUpdateTime() pour permettre la destruction des bones, il n'y a plus de congestion lors du test.
         =====> logger les stamps, verifier le nombre de paquets, verifier la gestion de la congestion par SLNet
@@ -130,6 +155,8 @@ Todos:
              envoyer les acks uniquement dans le cas du retour ACK serveur/client, ajout de GameNetwork::UpdateControlAck().
         ==========> coté client, il faut eviter d'envoyer trop d'ObjectControl vers le serveur. C'est le serveur qui est dimensionné pour avoir le meilleur debit d'envoi.
         ==========> 3) apres spawn des part bones ou bien drop d'items et ack du server, il faudrait reaffecter le ownership au server.
+        ☐ 19/11/2023 : voir si ce n'est pas la mort d'un avatar qui pose pb.
+            apparement les composants physic2D ne sont plus actifs.
 
     ☐ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate().
         => si le stamp est toujours le meme pendant Xs alors deconnection du client.
@@ -142,7 +169,15 @@ Todos:
         => cf GOC_BodyExploder2D, GameNetwork::AddSpawnControl()
         ==> le spawn multiple au meme instant entraine-t-il le debordement du spawnstamp ?
         ===> la suppression du check localspawnstamp receivespawnstamp dans GameNetwork::AddSpawnControl() résout ce pb mais il n'y aura plus de synchro de spawnstamp
-        ====> autre solution, modifier GameNetwork::AddSpawnControl() pour admettre le spawn multiple, il faudra pouvoir ajouter la quantité.
+        ✔ 19/11/2023 : cela semble impacter tout le netspawning : à priori c'est du au spawnstamp @done(23-11-19 16:18)
+            l'interet de GOC_BodyExploder2D est de preparer les nodes explosés. Il faut donc garder le principe lors du netspawn. si l'on utilise Net SpawnControl, cela perd tout son interet.
+            il faut donc envoyer une command Explode avec le spawnstamp de depart et utiliser GOC_BodyExploder2D (mais ne pas utiliser le NetSpawnEntity).
+            => ajout de NetCommand EXPLODENODE et GameNetwork::Explode(EventData)
+            ==> le spawn semble ok sur le serveur + 2 clients
+        ☐ 19/11/2023 : il faut maintenant voir pour la gestion spawnstamp.
+            => mettre à jour network.svg
+            => communiquer le spawnstamp lors de l'envoi de la NetCommand ?
+        ☐ 19/11/2023 : lors de la mort du skeleton et repop, ça lag pas mal sur les autres clients 
 
     ☐ 09/08/2021 : Adapter GOC_Portal pour accepter les Net_Player
         => teleporter uniquement les nodes locaux, les autres clients ou serveur s'occupent des autres nodes.
@@ -169,22 +204,23 @@ Todos:
         ==> vérifier que tout les packets envoyés soit en message soit par ObjectControlInfo soit taggé par un stamp généré par le client emetteur.
             Le serveur recoit les stamps de chaque client et permet de classer pour chaque client la chronologie des commandes passées.
 
-    ☐ 23/06/2021 : crash si un client meurt et drop son inventaire et qu'un autre client ramasse du stuff
-        
+    ✘ 23/06/2021 : crash si un client meurt et drop son inventaire et qu'un autre client ramasse du stuff @cancelled(23-11-19 00:39)
+
     ☐ 08/06/2021 : en Reseau Arena si mort de l'avatar, faire un repop automatiquement au bout de 5sec (mettre un timer de repop)
         => modifier PlayState::CheckGameLogic() => GOManager::GetNumActivePlayers() prend en compte les Players et les Net_Players alors qu'il ne faut uniquement que prendre en compte les joueurs locaux pour le mode arena
         => l'objectif pour gagner pourra être dans un temps imparti (5min/10min...)
         ==> Tuer le maximum de joueurs
         ==> ou Obtenir le maximum d'un objet déterminé (exemple des bones)
 
-    ☐ 22/08/2019 :
+    ✔ 22/08/2019 : @done(23-11-18 17:29)
         -> GOC_Inventory : lors du drop d'un player sur un client, mettre à jour l'inventaire coté serveur du joueur
         --> car sinon impossibilité du GetSlot si l'inventaire coté serveur est plein alors que celui du client non.
         --> les DPS sont calculés sur le serveur. Donc si l'equipment n'est pas le bon les DPS envoyés vers le Client ne seront pas bons.
         ==> 02/06/2021 : OK pour le moment ajout de GOC_Inventory::NetServerSetSlot() et modification de GameNetwork::ChangeEquipment()
         ===> il s'agit que de l'ecrasement d'un slot d'equipment sur le server par le slot du client
-        ====> lors des procedures de chargement d'equipement coté client tel que Player::LoadStuffOnly(), 
+        ====> lors des procedures de chargement d'equipement coté client tel que Player::LoadStuffOnly(),
             il faut en informer le server qui aura également sauvegarder les inventaires de tous les clients dans ses bases.
+        ====> OK depuis 17/11/2023
 
     ☐ 17/10/2019 : Crash du serveur lorsque l'avatar server meurt et que le client recupere des obj de l'inventaire dropper.
         -> Crash Coté Server dans ou après Player::OnServerGetCollectable
@@ -213,8 +249,8 @@ Todos:
         -> ajouter idparentnode dans ObjectControl ou bien RemoteSendEvent
 
     ✘ affichage du mauvais avatar pour les seconds joueurs locaux @cancelled(23-11-14 11:28)
-    
-    
+
+
 Archive:
 
     ✔ 27/09/2021 : parfois l'animation attack de l'ours est repeté 2x sur un client foreign.
@@ -309,7 +345,7 @@ Archive:
         => cf GameNetwork::HandleSearchServer()
         ==> OK 27/09/2021 : augmentation du delai de connection au server. NET_DELAYCHECKCONNECTION et NET_DELAYCONNECTSERVER
 
-    ✔ 06/09/2021 : apres plusieurs suicides d'un avatar, l'avatar a des mouvements de plus en plus sacadés sur les autres clients car les informations n'arrivent plus avec le meme fps 
+    ✔ 06/09/2021 : apres plusieurs suicides d'un avatar, l'avatar a des mouvements de plus en plus sacadés sur les autres clients car les informations n'arrivent plus avec le meme fps
         (il s'agit de l'effet de la limitation du nombre d'objetcontrol par envoi precedement realisé)
         => il faut compenser ces sacades par une simulation locale du mouvement : dans ce cas il faut que GOC_Move2D::IsPhysicEnable() soit vrai.
         => les GOC_Move2D::SetPhysicEnable(false) sont commentés.
@@ -417,7 +453,7 @@ Archive:
             => spawn un clientnodeid GameNetwork::AddSpawnControl() et attend le retour server d'un servernodeid (GameNetwork::HandlePlayClient_ReceiveClientUpdate)
         4) ServerSide : entity client sur server => objectcontrol.clientid_!=0
             => spawn un servernodeid GameNetwork::AddSpawnControl() et attend le retour client d'un clientnodeid (GameNetwork::HandlePlayServer_ReceiveUpdate)
-        5) pb de desynchronisation à cause du spawnstamp 
+        5) pb de desynchronisation à cause du spawnstamp
         => si le serveur ne spawn pas une entity pour une quelconque raison, il faut s'assurer que le spawnstamp coté serveur soit synchrone avec le client.
         ==> 08/08/2021 : OK : ajout de receivedSpawnStamps_ et localSpawnStamps_ qui permet de maintenir un etat synchone du spawnstamp
         6) pb avec ObjectControlInfo::active_ et ObjectControl::states_::enable_
@@ -835,14 +871,14 @@ Notes:
         le choix de ne pas utiliser la replication de scene d'URHO3D est discutable:
             -> on ne veut pas avoir à envoyer la masse de composants via le réseau.
             -> ne pas remodifier Urho3D pour les besoins du jeu avec toute la gestion des erreurs etc...
-            -> il faudrait mettre les attributs repliquables pour chaque nouveau composant fait pour le jeu.                    
+            -> il faudrait mettre les attributs repliquables pour chaque nouveau composant fait pour le jeu.
         Envoi     : cf GameNetwork::HandlePlayServer_NetworkUpdate, GameNetwork::HandlePlayClient_NetworkUpdate
         Reception : cf GameNetwork::HandlePlayServer_ReceiveUpdate, HandlePlayClient_ReceiveServerUpdate et HandlePlayClient_ReceiveClientUpdate
-        Ressources/Docs/network.svg est à mettre à jour.            
+        Ressources/Docs/network.svg est à mettre à jour.
 
-    - 04/06/2021 : NOTE pour gagner en rapidité, les objets spawnés via GOC_Animator2D::SpawnEntity() n'ont pas tous un ObjectControl 
+    - 04/06/2021 : NOTE pour gagner en rapidité, les objets spawnés via GOC_Animator2D::SpawnEntity() n'ont pas tous un ObjectControl
         ObjectControl permet le controle des etats d'une entité (position,animation...) via le serveur.
         par exemple c'est le cas pour les bullets et les boules de feu. Ces objets sont gerés en LOCAL.
         pour cela il suffit de mettre dans Objects.xml l'attribut "replicateMode":0
-        le spawn s'effectue sur le serveur et les clients de façon local. L'attribut de shoottarget est completé 
+        le spawn s'effectue sur le serveur et les clients de façon local. L'attribut de shoottarget est completé
         avec ObjectControl::holderinfo_::point1x_,point1y_ via envoi:ABI_AnimShooter::Use() -> reception:GOC_Controller::Update()

@@ -1261,6 +1261,7 @@ Node* World2D::NetSpawnEntity(ObjectControlInfo& info, Node* holder, VariantMap*
         scinfo.faction_ = holder ? (holder->GetVar(GOA::NOCHILDFACTION).GetBool() ? 0 : holder->GetVar(GOA::FACTION).GetUInt()) : 0;
 //        scinfo.zindex_ = ;
         scinfo.clientId_ = info.clientId_;
+        scinfo.objectControlInfo_ = &info;
         node = SpawnEntity(got, (int)control.states_.entityid_, info.serverNodeID_, info.serverNodeID_, control.states_.viewZ_, *((PhysicEntityInfo*) &control.physics_), scinfo, slotData);
 
 //        URHO3D_LOGINFOF("World2D() - NetSpawnEntity : Node=%s(%u) spawned dir=%f rot=%f velx=%f... OK !",

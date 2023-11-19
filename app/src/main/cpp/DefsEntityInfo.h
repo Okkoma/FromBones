@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ShortIntVector2.h"
+#include "DefsNetwork.h"
 
 namespace Urho3D
 {
@@ -100,7 +101,7 @@ struct SceneEntityInfo
     Node* attachNode_;
     int clientId_;
     EquipmentList* equipment_;
-
+    ObjectControlInfo* objectControlInfo_;
     Node* ownerNode_;
     static const SceneEntityInfo EMPTY;
 };
