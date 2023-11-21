@@ -219,6 +219,8 @@ void PlayState::Begin()
     scene_ = 0;
     activeviewport_ = 0;
 
+    GOC_Inventory::ClearCache();
+
     goManager = new GOManager(context_);
 //    if (!GameContext::Get().ClientMode_)
     {
@@ -1872,6 +1874,7 @@ void PlayState::HandleInitialize(StringHash eventType, VariantMap& eventData)
         {
             // Allow Receive ObjectControl from server only at this moment
             GameNetwork::Get()->SetEnabledServerObjectControls(GameNetwork::Get()->GetConnection(), true);
+            GameNetwork::Get()->GetConnection()->SynchronizeObjectCommands();
         }
     }
 }

@@ -848,8 +848,8 @@ void ObjectMaped::HandleSet(StringHash eventType, VariantMap& eventData)
             nodeFurniture_->GetChildren(children);
             for (unsigned i=0; i < children.Size(); i++)
             {
-                GameHelpers::UpdateLayering(children[i]);
                 children[i]->SetEnabledRecursive(enabled_);
+                GameHelpers::UpdateLayering(children[i]);
             }
 
             nodeFurniture_->SetEnabled(enabled_);
@@ -1040,8 +1040,8 @@ void ObjectMaped::OnSetEnabled()
         nodeFurniture_->GetChildren(children);
         for (unsigned i=0; i < children.Size(); i++)
         {
-            GameHelpers::UpdateLayering(children[i]);
             children[i]->SetEnabledRecursive(enabled_);
+            GameHelpers::UpdateLayering(children[i]);
         }
 
         nodeFurniture_->SetEnabled(enabled_);

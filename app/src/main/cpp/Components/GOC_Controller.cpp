@@ -220,6 +220,10 @@ bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
             node_->SetEnabled(true);
 //            SetEnableObjectControl(true);
 
+            Light* light = node_->GetComponent<Light>();
+            if (light)
+                light->SetEnabled(false);
+
             node_->ApplyAttributes();
 
             node_->AddTag("Player");

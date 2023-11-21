@@ -765,7 +765,7 @@ void GOC_BodyExploder2D::Explode(bool forceNetExplode)
         body->SetAngularVelocity(force.x_ * force.y_);
 
         if (!GameContext::Get().LocalMode_)
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, false);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, node_, true, false);
 
 //        StaticSprite2D* staticSprite = explodedNodes_[i]->GetComponent<StaticSprite2D>();
 //

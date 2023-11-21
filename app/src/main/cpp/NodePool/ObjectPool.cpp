@@ -833,8 +833,11 @@ ObjectPoolCategory* ObjectPool::GetCategory(const StringHash& got)
 
 Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* parent, unsigned id, int viewZ, const NodeAttributes* nodeAttr, bool applyAttr, ObjectPoolCategory** retcategory, bool outsidePool)
 {
-    if (got == StringHash::ZERO)
+    if (!got.Value())
+    {
+        URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=0 !");
         return 0;
+    }
 
     ObjectPoolCategory* category = 0;
 
@@ -892,7 +895,7 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
         }
         else
         {
-//			URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=%s(%u) entityid=%d ... no more node !", GOT::GetType(got).CString(), got.Value(), entityid);
+			URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=%s(%u) entityid=%d ... no more node !", GOT::GetType(got).CString(), got.Value(), entityid);
             return 0;
         }
     }

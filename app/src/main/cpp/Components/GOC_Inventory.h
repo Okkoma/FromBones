@@ -215,6 +215,7 @@ public :
 
     virtual void OnSetEnabled();
 
+    static void ClearCache();
     static void RegisterClientNode(Node* node);
     static bool IsNetworkInventoryAvailable(Node* node) { return clientInventories_.Contains(node->GetID()); }
     static bool IsNetworkEquipmentSetAvailable(Node* node) { return clientEquipmentSets_.Contains(node->GetID()); }

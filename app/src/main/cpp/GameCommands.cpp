@@ -184,6 +184,11 @@ void GameCommands::Launch(Context* context, const String& input)
             GameNetwork::Get()->Dump();
         }
     }
+    else if (inputLower == "netsync")
+    {
+        if (GameContext::Get().ClientMode_)
+            GameNetwork::Get()->GetConnection()->SynchronizeObjectCommands();
+    }
     else if (inputLower == "netlog")
     {
         if (GameNetwork::Get())

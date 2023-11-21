@@ -219,13 +219,14 @@ void GOC_StaticRope::AttachOnRoof()
                 attached_ = true;
 
                 node_->SetVar(GOA::ONVIEWZ, viewZ);
-                GameHelpers::UpdateLayering(node_);
 
+                ropeDrawable_->GetNode()->SetEnabled(true);
+
+                GameHelpers::UpdateLayering(node_);
                 ropeDrawable_->SetLayer2(IntVector2(viewZ + LAYER_ACTOR - 1, -1));
                 ropeDrawable_->SetViewMask(ViewManager::GetLayerMask(viewZ));
 
                 ropeDrawable_->GetNode()->AddListener(this);
-                ropeDrawable_->GetNode()->SetEnabled(true);
 
                 ropeDrawable_->ForceUpdateBatches();
 

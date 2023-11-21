@@ -1208,7 +1208,7 @@ void GOC_Inventory::OnSetEnabled()
                     SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
             }
             else if (GameContext::Get().ServerMode_)
-            {
+            {                
                 GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
                 if (controller && (controller->GetControllerType() & (GO_Player & GO_NetPlayer)) == 0)
                     SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
@@ -1372,6 +1372,13 @@ void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
 HashMap<unsigned int, Node* > GOC_Inventory::clientNodes_;
 HashMap<unsigned int, VariantVector > GOC_Inventory::clientInventories_;
 HashMap<unsigned int, VariantVector > GOC_Inventory::clientEquipmentSets_;
+
+void GOC_Inventory::ClearCache()
+{
+    clientNodes_.Clear();
+    clientInventories_.Clear();
+    clientEquipmentSets_.Clear();
+}
 
 void GOC_Inventory::RegisterClientNode(Node* node)
 {

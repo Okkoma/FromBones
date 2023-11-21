@@ -158,6 +158,7 @@ struct ObjectControlInfo
     void Dump() const;
 
     bool active_;
+    bool prepared_;
 
     unsigned int clientId_;
     unsigned int serverNodeID_, clientNodeID_;

@@ -69,6 +69,7 @@
 		<attribute name="Shape Type" value="1" />
 		<attribute name="Hide Original Body" value="true" />
 		<attribute name="Parts Life Time" value="20" />
+		<attribute name="Use Scraps Emitter" value="true" />
 		<attribute name="Centered Initial Impulse" value="100" />
 		<attribute name="Prepare Nodes" value="false" />
 	</component>

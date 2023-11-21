@@ -74,9 +74,9 @@
 
 #include "DefsFluids.h"
 #include "DefsColliders.h"
-#include "DefsNetwork.h"
 
 #include "GameContext.h"
+#include "GameNetwork.h"
 #include "GameOptions.h"
 #include "GameAttributes.h"
 #include "GameEvents.h"
@@ -2008,6 +2008,13 @@ bool GameHelpers::SetLightActivation(Node* node, int viewport)
         if (varlight != Variant::EMPTY)
             enlightstate = enlightstate && varlight.GetBool();
 
+        if (GameContext::Get().ClientMode_)
+        {
+            int clientid = node->GetVar(GOA::CLIENTID).GetInt();
+            if (clientid && clientid != GameNetwork::Get()->GetClientID())
+                enlightstate = false;
+        }
+
         state = enlightstate;
 
         if (GameContext::Get().gameConfig_.fluidEnabled_)
@@ -2073,7 +2080,8 @@ bool GameHelpers::SetLightActivation(Player* player)
         return false;
     }
 
-    bool enlight = GameContext::Get().gameConfig_.enlightScene_ && (GameContext::Get().luminosity_ < ENLIGHTTHRESHOLD || player->GetViewZ() == INNERVIEW);
+    bool localplayer = GameContext::Get().LocalMode_ || player->IsMainController();// player->clientID_ == GameNetwork::Get()->GetClientID();
+    bool enlight = localplayer && GameContext::Get().gameConfig_.enlightScene_ && (GameContext::Get().luminosity_ < ENLIGHTTHRESHOLD || player->GetViewZ() == INNERVIEW);
     URHO3D_LOGERRORF("GameHelpers() - SetLightActivation : player=%d numlights=%u lit=%s !", player->GetID(), lights.Size(), enlight ? "true":"false");
 
     for (PODVector<Light*>::ConstIterator it=lights.Begin(); it != lights.End(); ++it)

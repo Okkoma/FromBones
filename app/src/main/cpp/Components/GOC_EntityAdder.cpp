@@ -158,14 +158,14 @@ void GOC_EntityAdder::UpdateAttributes()
                 if (destroyer)
                     node->SendEvent(WORLD_ENTITYCREATE);
 
-                GameHelpers::UpdateLayering(node);
-
 //                URHO3D_LOGINFOF("GOC_EntityAdder() - UpdateAttributes : %s(%u) position=%s Adds Entity=%s(%u) position=%s ...",
 //								 node_->GetName().CString(), node_->GetID(), node_->GetWorldPosition2D().ToString().CString(),
 //								 node->GetName().CString(), node->GetID(), node->GetWorldPosition2D().ToString().CString());
 
                 if (!staticEntity)
                     node->SetEnabledRecursive(true);
+
+                GameHelpers::UpdateLayering(node);
             }
         }
 

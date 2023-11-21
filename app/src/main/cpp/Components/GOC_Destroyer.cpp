@@ -140,7 +140,10 @@ void GOC_Destroyer::Reset(bool toActive)
             // force recalculate batches (prevent clipping during reapparition)
             Drawable2D* drawable = node_->GetDerivedComponent<Drawable2D>();
             if (drawable)
+            {
+                drawable->SetEnabled(true);
                 drawable->ForceUpdateBatches();
+            }
         }
     }
     else
@@ -631,7 +634,7 @@ void GOC_Destroyer::OnSetEnabled()
     GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
 
     // Active Colliders
-//    if (!GameContext::Get().ClientMode_ || (controller && controller->IsMainController()))
+    body_->SetEnabled(node_->IsEnabled());
     body_->SetAwake(node_->IsEnabled());
 
     if (node_->IsEnabled())
@@ -727,7 +730,7 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
 
     // always reactive drawable (GOC_BodyExploder2D case)
     Drawable2D* drawable = node_->GetDerivedComponent<Drawable2D>();
-    if (drawable)
+    if (drawable && !drawable->IsEnabled())
         drawable->SetEnabled(true);
 
 //    URHO3D_LOGERRORF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) PASS 1 test position=%s nodepos=%s viewZ=%d ... ",
@@ -815,8 +818,8 @@ void GOC_Destroyer::Destroy(float delay, bool reset)
 
     unsigned nodeid = node_->GetID();
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - Destroy : id=%u ... enabled_=%s delay=%f mode=%s ...",
-//                                    nodeid, enabled_ ? "true" : "false", delay, RemoveStateNames[destroyMode_]);
+    URHO3D_LOGINFOF("GOC_Destroyer() - Destroy : id=%u ... enabled_=%s delay=%f mode=%s ...",
+                                    nodeid, enabled_ ? "true" : "false", delay, RemoveStateNames[destroyMode_]);
 
     if (!GameContext::Get().LocalMode_ && body_)
     {

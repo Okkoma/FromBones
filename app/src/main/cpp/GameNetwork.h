@@ -172,7 +172,7 @@ public:
     void NetSpawnEntity(unsigned refnodeid, const ObjectControlInfo& inforef, ObjectControlInfo*& oinfo);
 
     /// Object Controls
-    void NetAddEntity(ObjectControlInfo& info, Node* holder=0, VariantMap* eventData=0, bool enable=true);
+    bool NetAddEntity(ObjectControlInfo& info, Node* holder=0, VariantMap* eventData=0, bool enable=true);
     ObjectControlInfo* GetObjectControl(unsigned nodeid);
     const ObjectControlInfo* GetObjectControl(unsigned nodeid) const;
     ObjectControlInfo* GetServerObjectControl(unsigned nodeid);

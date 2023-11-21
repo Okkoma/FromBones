@@ -6040,10 +6040,9 @@ bool Map::SetEntities_Load(HiresTimer* timer)
                 ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0);
 
             node->ApplyAttributes();
+            node->SetEnabledRecursive(mapvisible);
 
             GameHelpers::UpdateLayering(node);
-
-            node->SetEnabledRecursive(mapvisible);
 
             // force update batch for staticsprite
             StaticSprite2D* sprite = node->GetComponent<StaticSprite2D>();

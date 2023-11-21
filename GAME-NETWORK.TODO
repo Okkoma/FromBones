@@ -6,6 +6,73 @@
 ----------------------------------------------------------------------------
 
 Todos:   
+    ✔ 21/11/2023 : lors d'un retour au menu pour un client et retour en jeu, le changement d'equipment n'est plus repercuté sur le serveur ni sur les autres clients @done(23-11-21 15:38)
+        coté client lors de la reconnexion, il y a Reset de ObjCmdAck
+            Client LOG
+            [Tue Nov 21 14:27:24 2023] ERROR: GameNetwork() - PushObjectCommand : clientid=2(from:2) stamp=1(0) broadcast=true cmd=UPDATEEQUIPMENT=8 nodeid=16777278 !
+            [Tue Nov 21 14:27:24 2023] INFO: Equipment() - UpdateAttributes index=1 ...
+            [Tue Nov 21 14:27:24 2023] INFO: Equipment() - UpdateAttributes index=1 ... OK !
+            [Tue Nov 21 14:27:24 2023] INFO: Equipment() - GetEquipmentValue : index=1 attribut=GOA_Life(3913190914) item=LargeSwordFlame => return Variant type=3
+            [Tue Nov 21 14:27:24 2023] ERROR: GameHelpers() - SetUIElementFrom : elt= sprite=effect4(692837b0) texture=69075010
+            [Tue Nov 21 14:27:24 2023] INFO: GameNetwork() - CleanObjectCommands : clean ObjectCommand[2081012256] clientid=2 cmd=UPDATEEQUIPMENT=8 cmdstamp=1 oldestObjectCmdAck=1 ... OK !
+            => la commande est nettoyée avant d'etre envoyée.
+        => sur le client synchroniser ClientObjCmdAck, ClientObjCmd avec le serveur.
+        ==> OK : ajout de Connection::SynchronizeObjectCommands() a utilisé au lancement de partie coté client.
+
+    ✔ 20/11/2023 : lorsque l'on deconnecte tous les clients et le serveur d'une partie et que l'on relance une nouvelle partie crash sur clients @done(23-11-20 16:03)
+        sur le client, NetClientSetEquipment va crasher à cause de clientNodes_ qui n'a pas été effacé.
+        => en fin de partie, nettoyer GOC_Inventory
+        ==> Ok : ajout de GOC_Inventory::ClearCache()
+
+    ✔ 20/11/2023 : lors du lancement d'une partie arena les avatars client distant poppent avant les joueurs locaux @done(23-11-20 19:34)
+        voir le processus de NetSpawning, si le node est enable directement.
+        => provient de HandlePlayClient_ReceiveServerUpdate dans l'utilisation de allowHotAcces_ qui force ensuite ObjectControl::SetEnable(true) qui rend le node enable.
+        ==> allowHotAcces_ reste à faire, suppression de ObjectControl::SetEnable(true) dans cette partie de code de HandlePlayClient_ReceiveServerUpdate
+        ==> allowHotAcces_ ne doit etre actif que si tous les clients sont running. ne pas activer pour le moment
+
+    ✔ 20/11/2023 : la deconnection d'un client ne fait pas disparaitre l'avatar chez les autres clients @done(23-11-21 13:55)
+        pour le serveur ca fonctionne
+        => les ObjectControls sur le serveur sont peut-etre desactivé des la deconnection et ne sont plus transmis vers les autres clients ?
+        ==> dans ce cas, il faut envoyer un ordre PushObjectCommand(ERASENODE, broadcast, clientid)
+        ==> c'est le cas, mais il y a un pb de ObjCmdAck ...
+            Server LOG
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - HandlePlayServer_NetworkUpdate : send ObjectCommand cmd=ERASENODE=1 for nodeid=16777278 to specific clientid=1 broadcast=true cmdclientid=2 cmdstamp=5 serverObjCmdAck=4 test=true...
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - HandlePlayServer_NetworkUpdate : send ObjectCommand cmd=ERASENODE=1 for nodeid=16777278 to specific clientid=1 broadcast=true cmdclientid=2 cmdstamp=5 serverObjCmd=4 serverObjCmdAck=4 !
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - HandlePlayServer_NetworkUpdate : send ObjectCommand cmd=ERASENODE=1 for nodeid=16777278 to specific clientid=1 broadcast=true cmdclientid=2 cmdstamp=5 serverObjCmdAck=5 test=false...
+            ==> le premiere commande passe, ensuite boucle resend perpetuelle pour cette commande.
+            Client LOG
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : receive ObjectCommand cmd=ERASENODE=1 for nodeid=16777278 broadcast=true cmdclientid=2 cmdstamp=5 serverObjCmdAck=4 test=true...
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=2 cmdstamp=5 serverObjCmdAck=4 ...
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(ERASENODE=1) nodeid=16777278 ...
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - Client_CommandRemoveObject : node=16777278 ...
+            [Mon Nov 20 21:43:06 2023] INFO: GOC_Destroyer() - Destroy : id=16777278 ... enabled_=true delay=0.100000001490116 mode=DISABLE ...
+            [Mon Nov 20 21:43:06 2023] INFO: GOC_Destroyer() - OnSetEnabled : node=avatar(16777278) !maincontroller => keep update position !
+            [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - Client_CommandRemoveObject : serverObjectControl id=16777278 inactived oldenable=0 enable=0 !
+            ==> pas d'autres reception apres ça                
+        ===> surement un pb dans GameNetwork::CleanObjectCommands() coté server.
+        ===> HandlePlayServer_ReceiveUpdate applique et renvoit les ObjectCommand si broadcast. Le serveur ne recoit que les ObjectCommand des clients qui emettent leur propre broadcast.
+        ===> les autres clients envoient leur retour de reception dans Connection::serverObjCmdAck_ coté server
+        ===> le serveur nettoie les ObjectCommand qui restent à envoyer en comparant les ObjCmdAck en prenant le plus vieux => oldestObjectCmdAck
+        ====> 21/11/2023 : dans GameNetwork::CleanObjectCommands(), il ne faut pas compter dans la recherche de oldestObjectCmdAck les ObjCmdAck provenant des clients hors partie.
+        =====> Ok 
+
+    ☐ 20/11/2023 : la pluie apparait sur le serveur, un autre client mais pas le dernier
+
+    ✔ 20/11/2023 : probleme de Lights lorsque plusieurs avatars due aux limitations d'URHO3D @done(23-11-20 14:41)
+        on doit avoir le meme probleme en multiplayers local
+        => il n'y a pas de pb coté serveur car les lights sont deja desactiver pour les avatar client
+        ==> faire la meme chose coté client lors du spawn des avatars distants.
+        ===> modification de GameNetwork::Client_AddServerControllable
+        ====> ne fonctionne pas,
+            à la reactivation, il doit y avoir un node->SetEnabledRecursive(true) qui active la light.
+            ou bien il s'agit de GameHelpers::SetLightActivation(Node* node) qui ne gere pas les clientids.
+            mettre les SetEnabledRecursive() avant GameHelpers::UpdateLayering et modifier SetLightActivation pour prendre en compte GOA::CLIENTID.
+            => ne fonctionne pas, Desactivation de Light dans GOC_Controller::ChangeAvatar ==> OK !
+
+    ☐ 19/11/2023 : Le drop de slot BodyPart tel que les bones ou les elsapart crée un sprite non définie pour le collectable
+        ce qui resulte en un rect bleu à l'ecran ou du blinking
+        => c'est le probleme de NetSpawnEntity qui est incapable de gerer les Slots BodyPart.
+
     ☐ 17/11/2023 : modification inventory client et replication sur server
         ne pas envoyer de commandes aux autres clients seulement au server en utilisant PushObjectCommand(cmd, &eventData, false, clientid)
         pour ADDINVENTORYITEM (precedemment ADDITEM) probleme pour recuperer le clientID vers lequel on souhaite envoyer la commande.
@@ -35,7 +102,7 @@ Todos:
     ☐ 16/11/2023 : snap initial
         le serveur doit envoyer un snap initial au client qui se connecte.
             cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
-            tous les nodes et les states
+            tous les nodes et les states : ex: l'etat des coffres(plein, vide), l'etat des lights(allumé,eteint)
         le client recupère le snap et synchronise sa scene
             fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
             supprime, crée et met à jour les nodes avec les bons attributs, états.
@@ -125,7 +192,7 @@ Todos:
         -> 14/11/2023 : il faut que le serveur envoie une commande de remove object aux autres clients
         -> 17/11/2023 : OK correctif dans GOC_Destroyer::Destroy
 
-    ☐ 20/09/2021 : lors du changement d'ability sur un client, il faut le repercuter coté server autrement le server ne sera pas quelle abilité utilisée dans Player::OnFire2()
+    ✘ 20/09/2021 : lors du changement d'ability sur un client, il faut le repercuter coté server autrement le server ne sera pas quelle abilité utilisée dans Player::OnFire2() @cancelled(23-11-19 21:55)
         => 21/09/2021 : Etant donner que le Player::OnFire2() n'est plus utilisé en version Net (coté server), ce cas ne se pose plus.
         ==> le faire neanmoins, pour assurer d'eventuels cas.
 
@@ -155,15 +222,14 @@ Todos:
              envoyer les acks uniquement dans le cas du retour ACK serveur/client, ajout de GameNetwork::UpdateControlAck().
         ==========> coté client, il faut eviter d'envoyer trop d'ObjectControl vers le serveur. C'est le serveur qui est dimensionné pour avoir le meilleur debit d'envoi.
         ==========> 3) apres spawn des part bones ou bien drop d'items et ack du server, il faudrait reaffecter le ownership au server.
-        ☐ 19/11/2023 : voir si ce n'est pas la mort d'un avatar qui pose pb.
-            apparement les composants physic2D ne sont plus actifs.
 
     ☐ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate().
         => si le stamp est toujours le meme pendant Xs alors deconnection du client.
         ==> 08/09/2021 : avec SLNet, lorsque le server est deconnecté, le temps de deconnection des clients est encore plus long (30sec)
 
-    ☐ 12/08/2021 : les body parts doivent pouvoir être détruites par les differents clients
+    ✔ 12/08/2021 : les body parts doivent pouvoir être détruites par les differents clients @done(23-11-19 21:52)
         => OK : il suffit de modifier les attributs de ScrapsEmitter dans avatar-newskeleton.xml
+        => Resolu par les modifications dans GOC_BodyExploder2D et GameNetwork (NetCommand EXPLODENODE)
 
     ☐ 11/08/2021 : pb de spawn lors par exemple de l'explosion du skeleton ou bien d'elsarion.
         => cf GOC_BodyExploder2D, GameNetwork::AddSpawnControl()
@@ -177,7 +243,11 @@ Todos:
         ☐ 19/11/2023 : il faut maintenant voir pour la gestion spawnstamp.
             => mettre à jour network.svg
             => communiquer le spawnstamp lors de l'envoi de la NetCommand ?
-        ☐ 19/11/2023 : lors de la mort du skeleton et repop, ça lag pas mal sur les autres clients 
+        ✔ 19/11/2023 : lors de la mort du skeleton et repop, le mouvement du skeleton est saccadé sur les autres clients @done(23-11-20 11:56)
+            apparement les composants physic2D ne sont plus actifs.
+            en effet lors de la mort du skeleton, GOC_BodyExploder desactive le RigidBody qu'il faut donc reactiver au repop coté client distant
+            => GameNetwork::UpdateControl()->GOC_Destroyer::Reset(true)->GOC_Destroyer::OnSetEnabled() -> ajout de la reactivation du rigidbody
+            ==> Cela ameliore mais ne semble pas resoudre completement les saccades : il faut logger les ObjectControls. => close => cf todo 29/08/2021
 
     ☐ 09/08/2021 : Adapter GOC_Portal pour accepter les Net_Player
         => teleporter uniquement les nodes locaux, les autres clients ou serveur s'occupent des autres nodes.
@@ -222,13 +292,14 @@ Todos:
             il faut en informer le server qui aura également sauvegarder les inventaires de tous les clients dans ses bases.
         ====> OK depuis 17/11/2023
 
-    ☐ 17/10/2019 : Crash du serveur lorsque l'avatar server meurt et que le client recupere des obj de l'inventaire dropper.
+    ✔ 17/10/2019 : Crash du serveur lorsque l'avatar server meurt et que le client recupere des obj de l'inventaire dropper. @done(23-11-20 22:38)
         -> Crash Coté Server dans ou après Player::OnServerGetCollectable
         --> dans Equipment::UpdateAttributes() : la money passe en index=0 ce qui fait planter la procedure qui recherche sur index-1 -> correctif interdit index=0
         -> Boucle infinie coté client après correctif sur serveur apres Player::OnGetCollectable()
         --> dans GOC_Collectable::TransferSlotTo() : ajout d'un break en cas ou Slot::TransferTo() retourne une quantity nulle
         ---> les objets et quantités de money ne sont pas identiques avec ceux de l'inventaire initial du player mort.
         ----> 18/10/2019 : verifier l'inventaire dropper à la mort du player et verifier la recuperation de chaque collectable.
+        -> 20/11/2023 : le server ne crash plus.
 
     ☐ 08/10/2019 : la force d'impact à produire lorsqu'une entité est touché est differente entre le client attaquant et les autres à cause de l'equipment
         -> voire pour repliquer la valeur de cette force ou bien tout l'equipment.

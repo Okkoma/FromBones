@@ -160,7 +160,7 @@ ObjectControlInfo::ObjectControlInfo(const ObjectControlInfo& c)
 
 void ObjectControlInfo::Clear()
 {
-    active_= false;
+    active_= prepared_ = false;
     serverNodeID_ = clientNodeID_ = 0;
     memset(receivedControls_, 0, 2 * sizeof(ObjectControl));
     memset(&preparedControl_, 0, sizeof(ObjectControl));
@@ -379,10 +379,13 @@ void ObjectCommand::CopyTo(ObjectCommand& cmd) const
 void ObjectCommand::SetBroadStamps()
 {
     const HashMap<Connection*, ClientInfo>& serverClientInfos = GameNetwork::Get()->GetServerClientInfos();
-    broadcastStamps_.Resize(serverClientInfos.Size()+1);
     for (HashMap<Connection*, ClientInfo>::ConstIterator it = serverClientInfos.Begin(); it != serverClientInfos.End(); ++it)
         if (it->first_)
+        {
+            if (broadcastStamps_.Size() <= it->second_.clientID_)
+                broadcastStamps_.Resize(it->second_.clientID_+1);
             broadcastStamps_[it->second_.clientID_] = it->first_->GetServerObjCmdAck()+1;
+        }
 }
 
 unsigned short ObjectCommand::AddNewBroadCastStamp(Connection* connection)
