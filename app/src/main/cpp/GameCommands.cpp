@@ -272,15 +272,17 @@ void GameCommands::Launch(Context* context, const String& input)
     }
     else if (input0 == "dumpbody")
     {
-        if (GameContext::Get().stateManager_)
-        {
-            unsigned id = ToUInt(inputs[1]);
+        unsigned id = ToUInt(inputs[1]);
 
-            if (GameContext::Get().rootScene_->GetNode(id))
-                GameContext::Get().rootScene_->GetNode(id)->GetComponent<RigidBody2D>()->GetBody()->Dump();
-            else
-                ((RigidBody2D*)GameContext::Get().rootScene_->GetComponent(id))->GetBody()->Dump();
-        }
+        if (GameContext::Get().rootScene_->GetNode(id))
+            GameContext::Get().rootScene_->GetNode(id)->GetComponent<RigidBody2D>()->GetBody()->Dump();
+        else
+            ((RigidBody2D*)GameContext::Get().rootScene_->GetComponent(id))->GetBody()->Dump();
+    }
+    else if (input0 == "dumprbody")
+    {
+        unsigned id = ToUInt(inputs[1]);
+        GameHelpers::DumpRigidBody(GameContext::Get().rootScene_->GetNode(id));
     }
     else if (input0 == "dumpcmaps")
     {

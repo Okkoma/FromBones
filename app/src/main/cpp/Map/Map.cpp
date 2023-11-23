@@ -5762,7 +5762,8 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
     bool physicOk = GameHelpers::SetPhysicProperties(node, physicInfo, true);
     GOC_Destroyer* gocDestroyer = node->GetComponent<GOC_Destroyer>();
 
-//    URHO3D_LOGERRORF("Map() - AddEntity : mPoint=%s type=%s(%u) spawn at %s ...", GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value(), node->GetWorldPosition2D().ToString().CString());
+//    URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s type=%s(%u) spawn at %s slotdata=%u ...",
+//             GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value(), node->GetWorldPosition2D().ToString().CString(), slotData);
 
     // Never Spawn in a Wall
     if (gocDestroyer)
@@ -5853,18 +5854,19 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
 
     node->SetVar(GOA::FACTION, sceneInfo.faction_);
 
-    if (category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_)
+    bool netusage = category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_;
+    if (netusage)
     {
         if (id == LOCAL && !sceneInfo.objectControlInfo_)
         {
             Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
         }
     }
 
-//    URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d ... OK !",
-//                    GetMapPoint().ToString().CString(), id, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
-//                    viewZ, sceneInfo.zindex_);
+    // URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d netusage=%s... OK !",
+    //                 GetMapPoint().ToString().CString(), id, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
+    //                 viewZ, sceneInfo.zindex_, netusage ? "true":"false");
 
 //    mapData_->AddEntityData(node);
 
@@ -6037,7 +6039,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
             }
 
             if (category && category->HasReplicatedMode())
-                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0);
+                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true);
 
             node->ApplyAttributes();
             node->SetEnabledRecursive(mapvisible);
@@ -6168,7 +6170,7 @@ bool Map::SetEntities_Add(HiresTimer* timer)
                 controller->SetMainController(GameContext::Get().ClientMode_ ? false : true);
 
             if (category && category->HasReplicatedMode())
-                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0);
+                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true);
 
             node->SetEnabledRecursive(mapvisible);
 

@@ -1087,7 +1087,7 @@ void Actor::ResetAvatar(const Vector2& newposition)
 
     if (GameContext::Get().ServerMode_)
     {
-        ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(avatar_, avatar_, false);
+        ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(avatar_, avatar_, false, false);
         oinfo->clientId_ = GameNetwork::Get()->GetClientID(connection_.Get());
     }
 

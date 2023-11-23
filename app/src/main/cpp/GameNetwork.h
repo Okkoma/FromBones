@@ -156,6 +156,7 @@ public:
     void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
     void ExplodeNode(VariantMap& eventData);
     void Server_UpdateInventory(int cmd, VariantMap& eventData);
+    void Client_SpawnItem(VariantMap& eventData);
     void ChangeEquipment(VariantMap& eventData);
     bool ChangeTile(VariantMap& eventData);
     void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);
@@ -166,7 +167,7 @@ public:
     unsigned char GetSpawnStamp(unsigned spawnID) const;
     ObjectControlInfo* GetSpawnControl(int clientid, unsigned spawnid) const;
     bool NetSpawnControlAlreadyUsed(int clientid, unsigned char spawnstamp=0) const;
-    ObjectControlInfo* AddSpawnControl(Node* node, Node* holder=0, bool enable=true, bool allowNetSpawn=true);
+    ObjectControlInfo* AddSpawnControl(Node* node, Node* holder=0, bool forceServer= false, bool enable=true, bool allowNetSpawn=true);
     void RemoveSpawnControl(int clientid, unsigned spawnid);
     void LinkSpawnControl(int clientid, unsigned spawnid, unsigned servernodeid, unsigned clientnodeid, ObjectControlInfo* oinfo);
     void NetSpawnEntity(unsigned refnodeid, const ObjectControlInfo& inforef, ObjectControlInfo*& oinfo);
@@ -340,7 +341,8 @@ private:
 
     /// Client commands from server
     void Client_CommandAddObject(VariantMap& eventData);
-    void Client_CommandRemoveObject(VariantMap& eventData);
+    void Client_CommandEnableObject(VariantMap& eventData);
+    void Client_CommandRemoveObject(VariantMap& eventData, bool skipIfNotDead=false);
     void Client_DisableObjectControl(VariantMap& eventData);
     void Client_TransferItem(VariantMap& eventData);
     void Client_ApplyObjectCommand(VariantMap& eventData);

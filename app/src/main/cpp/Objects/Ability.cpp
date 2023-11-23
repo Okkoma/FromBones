@@ -150,7 +150,7 @@ Node* Ability::Use(const StringHash& got, Node* holder, const PhysicEntityInfo& 
     {
         if (replicatemode)
         {
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, false, true, true);
             if (cinfo && oinfo)
                 *oinfo = cinfo;
         }
@@ -368,7 +368,7 @@ Node* ABI_Grapin::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
 
     if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
     {
-        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, true, true);
+        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, false, true, true);
         if (oinfo && cinfo)
             *oinfo = cinfo;
     }
@@ -689,7 +689,7 @@ Node* ABI_Shooter::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
 
         if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
         {
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, false, true, true);
             if (oinfo && cinfo)
                 *oinfo = cinfo;
         }
@@ -802,7 +802,7 @@ Node* ABIBomb::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
         }
 
         if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, true, false);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, false, true, false);
 
         isInUse_ = false;
     }

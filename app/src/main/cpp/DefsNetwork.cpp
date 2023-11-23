@@ -38,10 +38,11 @@ const char* netCommandNames[] =
     "DISABLECLIENTOBJECTCONTROL=5",
     "TRANSFERITEM=6",
     "DROPITEM=7",
-    "UPDATEEQUIPMENT=8",
-    "SETFULLEQUIPMENT=9",
-    "SETFULLINVENTORY=10",
-    "CHANGETILE=11",
+    "SETITEM=8",
+    "UPDATEEQUIPMENT=9",
+    "SETFULLEQUIPMENT=10",
+    "SETFULLINVENTORY=11",
+    "CHANGETILE=12",
 };
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
@@ -327,8 +328,8 @@ bool ObjectControlInfo::WriteAck(VectorBuffer& msg)
 
 void ObjectControlInfo::Dump() const
 {
-    URHO3D_LOGINFOF("ObjectControlInfo() - Dump : clientid=%u nodeid=(%u,%u) node=%s(%u) active=%s !",
-                    clientId_, serverNodeID_, clientNodeID_, node_ ? node_->GetName().CString() : "NA", node_ ? node_->GetID() : 0, active_?"true":"false");
+    URHO3D_LOGINFOF("ObjectControlInfo() - Dump : ptr=%u clientid=%u nodeid=(%u,%u) node=%s(%u) active=%s !",
+                    this, clientId_, serverNodeID_, clientNodeID_, node_ ? node_->GetName().CString() : "NA", node_ ? node_->GetID() : 0, active_?"true":"false");
 }
 
 

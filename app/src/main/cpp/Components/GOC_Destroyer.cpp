@@ -127,6 +127,7 @@ void GOC_Destroyer::Reset(bool toActive)
 
     if (toActive)
     {
+        node_->RemoveVar(GOA::DESTROYING);
         if (!enabled_)
         {
             SubscribeToEvent(node_, WORLD_ENTITYCREATE, URHO3D_HANDLER(GOC_Destroyer, OnWorldEntityCreate));
@@ -203,6 +204,11 @@ void GOC_Destroyer::SetEnableLifeNotifier(bool enable)
 void GOC_Destroyer::SetEnableUnstuck(bool enable)
 {
     checkUnstuck_ = enable;
+}
+
+void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
+{
+    worldUpdatePosition_ = enable;
 }
 
 void GOC_Destroyer::CheckLifeTime()
@@ -818,8 +824,8 @@ void GOC_Destroyer::Destroy(float delay, bool reset)
 
     unsigned nodeid = node_->GetID();
 
-    URHO3D_LOGINFOF("GOC_Destroyer() - Destroy : id=%u ... enabled_=%s delay=%f mode=%s ...",
-                                    nodeid, enabled_ ? "true" : "false", delay, RemoveStateNames[destroyMode_]);
+    URHO3D_LOGINFOF("GOC_Destroyer() - Destroy : node=%s(%u) ... enabled_=%s delay=%f mode=%s ...",
+                                    node_->GetName().CString(), nodeid, enabled_ ? "true" : "false", delay, RemoveStateNames[destroyMode_]);
 
     if (!GameContext::Get().LocalMode_ && body_)
     {
@@ -1586,7 +1592,7 @@ bool GOC_Destroyer::GetUpdatedWorldPosition2D(Vector2& position)
 
 void GOC_Destroyer::UpdatePositions(ChangeMapMode mode)
 {
-    bool state = UpdatePositions(context_->GetEventDataMap(), mode);
+    bool state = UpdatePositions(context_->GetEventDataMap(false), mode);
 }
 
 //static Vector2 sTempPosition_;
@@ -1604,7 +1610,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         URHO3D_LOGERRORF("GOC_Destroyer() - UpdatePositions : node=%s(%u) NaN position Value (Enabled=%s) => Destroy !",
                          node_->GetName().CString(), node_->GetID(), node_->IsEnabled() ? "true":"false");
 
-        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap());
+        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap(false));
 //        node_->SendEvent(WORLD_ENTITYDESTROY);
         return false;
     }
@@ -1630,7 +1636,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         URHO3D_LOGERRORF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s not in WorldBounds=%s => Destroy !",
                          node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString(), World2D::GetWorldFloatBounds().ToString().CString());
 
-        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap());
+        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap(false));
 
 //        node_->SendEvent(WORLD_ENTITYDESTROY);
         return false;
@@ -1910,7 +1916,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
                     {
                         URHO3D_LOGWARNINGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s can't unstuck => destroy !",
                                            node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString());
-                        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap());
+                        OnWorldEntityDestroy(WORLD_ENTITYDESTROY, context_->GetEventDataMap(false));
                         return false;
                     }
                 }

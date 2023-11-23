@@ -227,7 +227,7 @@ public :
     static void NetClientSetEquipment(unsigned nodeid, VariantMap& eventData);
     static void NetClientSetEquipment(Node* node);
     static void NetServerSetEquipmentSlot(Node* node, VariantMap& eventData);
-    static void NetServerRemoveItem(Node* node, VariantMap& eventData);
+    static void NetServerDropItem(Node* node, VariantMap& eventData);
 
 protected :
     virtual void OnNodeSet(Node* node);

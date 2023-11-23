@@ -111,7 +111,7 @@ URHO3D_EVENT(NET_OBJECTCOMMAND, Net_ObjectCommand)
     URHO3D_PARAM(P_INVENTORYSLOTS, ClientInventorySlots);                   // VariantVector : All the Equipements each entry of the VariantVector is a uint (got)
     URHO3D_PARAM(P_INVENTORYITEMTYPE, ClientItemType);                      // uint : TYPE of the Item
     URHO3D_PARAM(P_INVENTORYIDSLOT, ClientInventoryIdSlot);                 // uint : ID of the slot
-    URHO3D_PARAM(P_INVENTORYDROPITEM, ClientInventoryDropItem);             // int
+    URHO3D_PARAM(P_INVENTORYDROPMODE, ClientInventoryDropMode);             // int : Drop Mode
     URHO3D_PARAM(P_TILEOP, NetTileOp);                                      // uint : Remove(0) or Add(1)
     URHO3D_PARAM(P_TILEINDEX, NetTileIndex);                                // uint : TileIndex
     URHO3D_PARAM(P_TILEMAP, NetTileMap);                                    // uint : hash of shortIntVector2
@@ -298,6 +298,7 @@ URHO3D_EVENT(GO_INVENTORYFULL, Go_InventoryFull) { }
 URHO3D_EVENT(GO_INVENTORYRECEIVE, Go_InventoryReceive) { }
 URHO3D_EVENT(GO_INVENTORYGIVE, Go_InventoryGive) { }
 URHO3D_EVENT(GO_INVENTORYSLOTEQUIP, Go_InventorySlotEquip) { }
+URHO3D_EVENT(GO_INVENTORYSLOTSET, Go_InventorySlotSet) { }
 
 /// GOC_Collectable
 /// GO_COLLECTABLEDROP
@@ -311,6 +312,7 @@ URHO3D_EVENT(GO_COLLECTABLEDROP, Go_CollectableDrop)
 URHO3D_EVENT(GO_DROPITEM, Go_DropItem) { }
 URHO3D_EVENT(GO_USEITEM, Go_UseItem) { }
 URHO3D_EVENT(GO_USEITEMEND, Go_UseItemEnd) { }
+
 /// Player, Equipment
 URHO3D_EVENT(GO_NODESCHANGED, Go_NodesChanged) { }
 URHO3D_EVENT(GO_EQUIPMENTUPDATED, Go_EquipmentUpdated) { }

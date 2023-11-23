@@ -492,7 +492,7 @@ void OptionState::OpenFrame()
     uioptionsframe_->SetVisible(true);
     uioptionsframe_->SetEnabled(true);
 
-    HandleScreenResized(StringHash::ZERO, context_->GetEventDataMap());
+    HandleScreenResized(StringHash::ZERO, context_->GetEventDataMap(false));
 
     if (applybutton_)
         applybutton_->SetVisible(false);

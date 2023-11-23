@@ -875,19 +875,26 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
         useon = drawable && drawable->GetWorldBoundingBox().IsInside(itemWorldPosition) != OUTSIDE;
     }
 
+    Node* node = 0;
+
+    // Note : Never Use context_->GetEventDataMap() Here
+    // Because if we get it, this EventData will be cleared in next step (inside Map::AddEntity) and we need to keep
+    // the content of the evendata for use in GO_DROPITEM with the slotdata inside it.
+
+    VariantMap eventData;
+
     /// Use the item on holder (DropOn Mode)
     if (useon)
     {
         /// Drop an item
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, 1);
-        if (!node)
-            return -1;
-
-        // Apply Effect
-        GOC_ZoneEffect* itemEffect = node->GetComponent<GOC_ZoneEffect>();
-        if (itemEffect)
+        slotqty = 1U;
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        if (node)
         {
-            itemEffect->UseEffectOn(holderNode_->GetID());
+            // Apply Effect
+            GOC_ZoneEffect* itemEffect = node->GetComponent<GOC_ZoneEffect>();
+            if (itemEffect)
+                itemEffect->UseEffectOn(holderNode_->GetID());
 
             // Item don't fall/move
             RigidBody2D* itemBody = node->GetComponent<RigidBody2D>();
@@ -895,7 +902,6 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
                 itemBody->SetEnabled(false);
 
             dropmode = 1;
-
             URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop and use item=%s on holder !", GOT::GetType(type).CString());
         }
     }
@@ -903,44 +909,42 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     else if (useout)
     {
         /// Drop an item
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, 1);
-        if (!node)
-            return -1;
-
-        GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
-        if (animator)
+        slotqty = 1U;
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        if (node)
         {
-            if (!animator->GetTemplateName().StartsWith("AnimatorTemplate_Usable"))
-                animator->SetTemplateName("AnimatorTemplate_Usable");
+            GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
+            if (animator)
+            {
+                if (!animator->GetTemplateName().StartsWith("AnimatorTemplate_Usable"))
+                    animator->SetTemplateName("AnimatorTemplate_Usable");
+            }
+            //node->GetComponent<GOC_Collectable>()->SetEnabled(false);
+            node->SendEvent(GO_USEITEM);
+            dropmode = 2;
+            URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop and use item=%s !", GOT::GetType(type).CString());
         }
-        //node->GetComponent<GOC_Collectable>()->SetEnabled(false);
-        node->SendEvent(GO_USEITEM);
-
-        dropmode = 2;
-
-        URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop and use item=%s !", GOT::GetType(type).CString());
     }
     /// Just drop
     else if (allowdrop)
     {
         /// Drop items
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty);
-        if (!node)
-            return -1;
-
-        dropmode = 0;
-
-        URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop item=%s!", GOT::GetType(type).CString());
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        if (node)
+        {
+            dropmode = 0;
+            URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop item=%s!", GOT::GetType(type).CString());
+        }
     }
 
     /// Send Network event
-    if (GameContext::Get().ClientMode_ && dropmode != -1)
+    if (!GameContext::Get().LocalMode_ && dropmode != -1 && node)
     {
-        VariantMap& eventData = context_->GetEventDataMap();
-        eventData[Net_ObjectCommand::P_NODEID] = holderNode_->GetID();
-        eventData[Net_ObjectCommand::P_SLOTQUANTITY] = dropmode == 0 ? slotqty : 1U;
+        eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+        eventData[Net_ObjectCommand::P_NODEIDFROM] = holderNode_->GetID();
+        eventData[Net_ObjectCommand::P_SLOTQUANTITY] = slotqty;
         eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = fromSlotId;
-        eventData[Net_ObjectCommand::P_INVENTORYDROPITEM] = dropmode;
+        eventData[Net_ObjectCommand::P_INVENTORYDROPMODE] = dropmode;
         SendEvent(GO_DROPITEM, eventData);
     }
 

@@ -6,6 +6,11 @@
 ----------------------------------------------------------------------------
 
 Todos:   
+
+    ☐ 22/11/2023 : mettre à jour network.svg
+        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
+        Mettre des cas d'usage précis
+
     ✔ 21/11/2023 : lors d'un retour au menu pour un client et retour en jeu, le changement d'equipment n'est plus repercuté sur le serveur ni sur les autres clients @done(23-11-21 15:38)
         coté client lors de la reconnexion, il y a Reset de ObjCmdAck
             Client LOG
@@ -69,11 +74,14 @@ Todos:
             mettre les SetEnabledRecursive() avant GameHelpers::UpdateLayering et modifier SetLightActivation pour prendre en compte GOA::CLIENTID.
             => ne fonctionne pas, Desactivation de Light dans GOC_Controller::ChangeAvatar ==> OK !
 
-    ☐ 19/11/2023 : Le drop de slot BodyPart tel que les bones ou les elsapart crée un sprite non définie pour le collectable
+    ✔ 19/11/2023 : Le drop de slot BodyPart tel que les bones ou les elsapart crée un sprite non définie pour le collectable @done(23-11-22 15:46)
         ce qui resulte en un rect bleu à l'ecran ou du blinking
         => c'est le probleme de NetSpawnEntity qui est incapable de gerer les Slots BodyPart.
+        ==> il faut ajouter VariantMap* slotData ... qui n'est pas transmis via ObjectControl
+        ==> via ObjectCommand DROPITEM ?
+        ===> réglé avec la modification de GOC_Collectable::DropSlotFrom et GOC_Inventory::NetServerDropItem qui permet un spawn avec slot
 
-    ☐ 17/11/2023 : modification inventory client et replication sur server
+    ✔ 17/11/2023 : modification inventory client et replication sur server @done(23-11-23 10:27)
         ne pas envoyer de commandes aux autres clients seulement au server en utilisant PushObjectCommand(cmd, &eventData, false, clientid)
         pour ADDINVENTORYITEM (precedemment ADDITEM) probleme pour recuperer le clientID vers lequel on souhaite envoyer la commande.
         cette info doit être trouvée dans l'eventData durant l'envoi HandlePlayServer_Messages/HandlePlayClient_Messages et durant la reception Server_ApplyObjectCommand/Client_ApplyObjectCommand
@@ -84,18 +92,77 @@ Todos:
         il serait interessant de laisser ADDINVENTORYITEM en ObjectCommand BroadCasté par le serveur (donc clientid=0) et de modifier Client_CommandAddItem pour prendre en compte les clients
         qui n'ont pas les nodes GIVER et GETTER en main (si pas de controller ou inventaire ou collectable alors pas main). Mais on serait incapable de savoir si l'on doit detruire le collectable
         GIVER car pas de transfert de slot possible (et c'est au serveur de decider des quantités à transferer).
-        ✔ dans HandlePlayServer_Messages, faire le code pour analyse des GIVER et GETTER et Push du/des messages selon les cas suivants : @done(23-11-18 00:01)
-            on renommera ADDINVENTORYITEM par TRANSFERITEM, Client_CommandAddItem par Client_TransferItem et REMOVEINVENTORYITEM par DROPITEM, RemoveItem par Server_DropItem.
-            si GETTER client/ GIVER serveur ou GETTER serveur/ GIVER client => envoyer TRANSFERITEM avec le clientid.
-            si GETTER client1 / GIVER client2 il faut envoyer deux messages TRANSFERITEM (vers les clients 1 et 2).
-        ☐ Client_TransferItem est à modifier pour traiter ces differents cas.
-        Pour DROP_ITEM
-            envoi client     GO_DROPITEM->eventData->HandlePlayClient_Messages->PushObjectCommand(DROP_ITEM, &eventData, false, clientID_) envoi au serveur uniquement
-            reception server HandlePlayServer_NetworkUpdate->ObjectCommand->Server_ApplyObjectCommand(ObjectCommand.cmd_==evendata->DROP_ITEM)->Server_DropItem(evendata)
-            -> Server_DropItem devient Server_UpdateInventory et doit mettre à jour l'inventaire coté serveur.
-        ☐  Il faut repliquer coté server, le deplacement de slot de l'inventaire client
-            -> ajouter MOVEINVENTORYITEM
-            -> ajouter une ui coté serveur pour verifier les inventaires et equipments des clients.
+        ✔ TRANSFERITEM
+            dans HandlePlayServer_Messages, faire le code pour analyse des GIVER et GETTER et Push du/des messages selon les cas suivants
+            on renommera ADDINVENTORYITEM par TRANSFERITEM, Client_CommandAddItem par Client_TransferItem et REMOVEINVENTORYITEM par DROPITEM, RemoveItem par Server_UpdateInventory.
+            TRANSFERITEM permet au serveur d'envoyer au(x) client(s) concerné(s) les slots transféré.
+                si GETTER client/ GIVER serveur ou GETTER serveur/ GIVER client => envoyer TRANSFERITEM avec le clientid.
+                si GETTER client1 / GIVER client2 il faut envoyer deux messages TRANSFERITEM (vers les clients 1 et 2).
+        ✔ DROPITEM @done(23-11-23 10:27)
+            envoi client     GO_DROPITEM->eventData->HandlePlayClient_Messages->PushObjectCommand(DROPITEM, &eventData, false, clientID_) envoi au serveur uniquement
+            reception server HandlePlayServer_NetworkUpdate->ObjectCommand->Server_ApplyObjectCommand(ObjectCommand.cmd_==evendata->DROPITEM)->Server_UpdateInventory(evendata)
+            -> Server_UpdateInventory doit mettre à jour l'inventaire coté serveur.
+            ==> 22/11/2023 : Server_UpdateInventory utilise désormais GOC_Inventory::NetServerDropItem qui met à jour l'inventaire mais spawn aussi l'item si il s'agit d'un drop au sol
+            ✔ étant donner que le client a déjà spawné de son coté, il faut vérifier que le SpawnControl fonctionne correctement (il faut faire comme GOC_BodyExploder) @done(23-11-23 10:27)
+                ils ne sont pas liés : si l'avatar serveur prend l'item spawné coté serveur, l'item coté client n'est pas detruit.
+                le GameNetwork::AddSpawnControl() inclut dans Map::AddEntity lancé via GameNetwork::Client_SpawnItem ne se lance pas ?
+                => Map::AddEntity ne lance AddSpawnControl que si le nodeid = LOCAL.
+                il faut pouvoir transformer un clientObject en un serverObject.
+                pour commencer tous les Drop Client doivent etre des objets serveur.
+                => il faut revoir AddSpawnControl pour indiquer le clientid au lieu de prendre le cliendid de l'holdernode
+                ==> ok ajout de bool forceserver dans les parametres d'entree
+                    il y a une affectation d'un nouveau ObjectControlInfo coté client dans le cas d'un changement du changement d'holderid mais pas coté serveur
+                    LOG CLIENT
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ... 
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=1975052248 srvnodeid=0 cltnodeid=16781278 holderptr=2483405888(nodeid=16777270,clientid=0) spawnstamp=12 !
+                    ....
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ... 
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=1975052640 srvnodeid=0 cltnodeid=16781278 holderptr=2484569936(nodeid=16777274,clientid=0) spawnstamp=13 !
+                    LOG SERVER
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ... 
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3839142176 srvnodeid=16781278 cltnodeid=0 holderptr=17704784(nodeid=16777270,clientid=0) spawnstamp=12 !
+                    ....
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ... 
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3839142176 srvnodeid=16781278 cltnodeid=0 holderptr=25107040(nodeid=16777274,clientid=0) spawnstamp=13 !
+                =>  ne pas oublier que le ObjectControlInfo::SetActive() va effacer l'un des deux nodeids en fonction si c'est la machine est server ou client.
+                    dans notre cas la machine est client, et AddSpawnControl cherche dans les serverObjectControls le servernodeid mais il est effacé (car desactivé),
+                    donc un nouveau objectcontrolinfo est créé (ce que l'on ne veut pas)
+                    correctif : l'obtention du ObjectControlInfo doit etre faite en verifiant les deux nodeids (servernodeid, clientnodeid), si l'un des deux correspond on prend l'objectcontrol.                    
+            ✔ Drop Server => Replication Client, lorsque le server drop un item de qty 2, le client le ramasse mais c'est une qty 1. @done(23-11-22 15:39)
+                verifier que Client_TransferItem a la bonne quantity recue.
+                il s'agit du spawn qui est ecrasé par un NetSpawnEntity ordonné par ObjectControl.
+                    LOG Client
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - NetAddEntity : got=PirateGun(1491916807) ... serverNodeID=16781278 clientNodeID=16781278 ...
+                    [Wed Nov 22 13:03:00 2023] INFO: GameHelpers() - SetCollectableProperties : got=PirateGun(1491916807) sprite=223184016 qty=1 ispart=false
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - NetAddEntity : got=PirateGun(1491916807) ... node=PirateGun(16781278) enable=true !
+                    [Wed Nov 22 13:03:00 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 node=PirateGun(16781278) ... pos=18.59,15.98 spawnid=16777274(holderid=16777274,spawnstamp=1) ...  oinfo=227528136 holderptr=732549440(nodeid=16777274,clientid=1) !
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : try ObjectCommand cmd=DROPITEM=7 for nodeid=16781278 broadcast=true cmdclientid=0 cmdstamp=6 serverObjCmdAck=5 test=true...
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=0 cmdstamp=6 serverObjCmdAck=5 ... OK !
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(DROPITEM=7) nodeid=16781278 ...
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - SpawnObject : got=PirateGun nodeid=16781278 holder=avatar(16777270) ...
+                    [Wed Nov 22 13:03:00 2023] INFO: GameHelpers() - SetCollectableProperties : got=PirateGun(1491916807) sprite=223184016 qty=2 ispart=false
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - SpawnObject : Node=PirateGun(16781278) spawned ... OK !
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - NetAddEntity : got=PirateGun(1491916807) ... serverNodeID=16781278 clientNodeID=0 ...
+                    [Wed Nov 22 13:03:00 2023] INFO: GameHelpers() - SetCollectableProperties : got=PirateGun(1491916807) sprite=223184016 qty=1 ispart=false
+                    [Wed Nov 22 13:03:00 2023] INFO: GameNetwork() - NetAddEntity : got=PirateGun(1491916807) ... node=PirateGun(16781278) enable=true !
+                    [Wed Nov 22 13:03:00 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 node=PirateGun(16781278) ... pos=17.95,15.98 spawnid=184549430(holderid=16777270,spawnstamp=11) ... new oinfo=227140040 holderptr=230931408(nodeid=16777270,clientid=0) !
+                    ==> plusieurs NetSpawnEntity polluantes arrivent ... une avant et une autre après le SpawnObject
+                il faut pouvoir indiquer le netspawnmode dans Map::AddEntity
+                    ajout de skipNetSpawn_ dans SceneInfo : par defaut on autorise le netspawn
+                    ajout de SceneInfo::skipNetSpawn_ = true dans GOC_Collectable::DropSlotFrom qui n'autorisera jamais de netspawn.
+                NOTE IMPORTANTE : si l'on appelle Context::GetEventDataMap() attention car lors de la creation de Node Urho3D va aussi l'appeler écrasant son contenu (cf Node::AddChild)...
+                c'est le cas lorsque l'on fait appelle à ObjectPool::CreateChild() par exemple qui est appelé par Map::AddEntity() <= World::SpawnEntity()
+                donc on ne peut garder son contenu, il faudra utiliser une autre VariantMap. C'est ce qui est fait dans GOC_Collectable::DropSlotFrom() pour slotData qui aurait été effacé dans Map::AddEntity
+                lors du ObjectPool::CreateChild() et donc avant d'arriver à la ligne de GameHelpers::SetCollectableProperties().
+        ✔ SETITEM @done(23-11-22 18:44)
+            permet au client d'envoyer au serveur tout modification dans l'inventaire. Et ainsi mettre à jour l'inventaire coté serveur.
+            il ne doit pas interferer avec le UPDATEEQUIPMENT
+            via UISlotPanel envoyer à GameNetwork un event de modification d'inventaire ? ou bien directement dans GOC_Inventory ce qui est plus logique
+            il faudra faire attention à DROPITEM qui est deja envoyer.
+            comment gerer le shop ou le craft ?
+            ajout de GO_INVENTORYSLOTSET à mettre en place pour le bagpanel
+            on utilisera Slot::GetSlotData() et Slot::SetSlotData() : pas tres performant mais bon on verra apres.
+            => mis en place dans UIC_BagPanel::UpdateSlot si Client.
 
     ☐ 17/11/2023 : lorsqu'un avatar est touché avec un effet de feu, l'effet ne se produit pas sur un client distant
 
@@ -108,7 +175,7 @@ Todos:
             supprime, crée et met à jour les nodes avec les bons attributs, états.
         ✔  16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
 
-    ☐ 14/11/2023 : ajouter deux modes reseau : arena (synchronisation) et world (pas d'attente)
+    ☐ 14/11/2023 : ajouter deux modes reseau : arena (salle d'attente, redirection vers une partie en attente, synchronisation des autres clients, lancement) et world (pas d'attente)
 
     ✔ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte. @done(23-11-17 16:07)
         les clients ne doivent pas avoir à charger de l'inventaire local, l'ordre doit venir du serveur.
@@ -142,10 +209,11 @@ Todos:
                 modification de GameNetwork::PushObjectCommand et GameNetwork::HandlePlayServer_ReceiveUpdate
                 suppression du workaround et test ok avec activation du define ACTIVE_OBJECTCOMMAND_BROADCASTING
 
-    ☐ 14/11/2023 : coté distant, le grapin reste en permanence.
+    ✔ 14/11/2023 : coté distant, le grapin reste en permanence. @done(23-11-23 18:13)
         ex: spawn coté serveur et destruction -> spawn coté client mais reste.
         -> il s'agit surement d'un probleme similaire à la collecte au sol de collectable
         ==> il faut que le serveur envoie une commande de remove object aux clients
+        => Resolu suite à la resolution du 23/11/2023 DROPITEM sur la synchro serveur/client des ObjectControl via AddSpawnControl
 
     ☐ 14/11/2023 : coté distant, le grapin n'affiche pas toujours la chaine
         -> il faut envoyer l'etat accroché
@@ -198,7 +266,7 @@ Todos:
 
     ✘ 19/09/2021 : snap initial lorsqu'un client se connecte en cours de partie. Ce n'est pas nécessaire en arene. Cela le sera en World networked @cancelled(23-11-14 11:26)
 
-    ☐ 29/08/2021 : le reseau est saturé apres plusieurs suicides avec le skeleton lorsque ACTIVE_NETSIMULATELATENCYANDPACKETLOSS est activé
+    ✔ 29/08/2021 : le reseau est saturé apres plusieurs suicides avec le skeleton @done(23-11-23 18:10)
         => pb avec knet ? comme pour les messages reliables ?
         => voir pour afficher dans le DebugHud, le nombre d'ObjectControl et ObjectCommand envoyés et reçus.
         ==> voir pour passer à SlikeNet : integration faite dans la version 1.7 d'Uhro.
@@ -222,6 +290,34 @@ Todos:
              envoyer les acks uniquement dans le cas du retour ACK serveur/client, ajout de GameNetwork::UpdateControlAck().
         ==========> coté client, il faut eviter d'envoyer trop d'ObjectControl vers le serveur. C'est le serveur qui est dimensionné pour avoir le meilleur debit d'envoi.
         ==========> 3) apres spawn des part bones ou bien drop d'items et ack du server, il faudrait reaffecter le ownership au server.
+        => 23/11/2023 : il ne s'agit pas de congestion, c'est lié au BodyExploder uniquement
+            il s'agit des composants physiques (Rigidbody et CollisionBox) qui sont désactivés après la seconde mort ...
+            il y a aussi une variable non reconnue aussi
+            LOG CLIENT NON MAIN
+                [Thu Nov 23 11:38:12 2023] INFO: GameHelpers() - DumpNode : avatar(16777278) ...
+                ...
+                [Thu Nov 23 11:38:12 2023] INFO:  => Var (726139502) type=Bool value=false
+                ...
+            => il s'agit de GOA_Destroying qui n'etait pas enregistré.
+            ==> cette var doit etre supprimé au respawn.
+            sur les clients distants les nodes sont reactivés cf UpdateControl
+            => Le probleme reside dans la non-desactivation du node au moment de la notification de la mort de l'avatar car celui-ci n'est déjà plus dans la map
+            LOG CLIENT NON MAIN 1ere mort
+                [Thu Nov 23 14:32:05 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(ENABLENODE=2) nodeid=16777278 ...
+                [Thu Nov 23 14:32:05 2023] INFO: GOC_Destroyer() - Destroy : node=avatar(16777278) ... enabled_=true delay=0.100000001490116 mode=DISABLE ...
+                [Thu Nov 23 14:32:05 2023] INFO: GOC_Destroyer() - OnSetEnabled : node=avatar(16777278) !maincontroller => keep update position !
+                [Thu Nov 23 14:32:05 2023] INFO: GOC_Collide2D() - OnSetEnabled : avatar(16777278) ... scene=2603929264 enable=0 body=2729263248 shapes=0
+                à la premiere mort, GOC_BodyExploder a desactiver le RigidBody au moment de l'explosion puis, 
+                GOC_Collide2D::HandleDead desactive la CollisionShape qui n'a pas de contact Bottom (c'est le CollisionBox de corps)
+                Le Node est bien desactivé
+            LOG CLIENT NON MAIN 2eme mort
+                [Thu Nov 23 14:35:08 2023] WARNING: World2D() - HandleObjectDestroy : GO DESTROY node=avatar(16777278) no entity in mpoint=0 0 !!!
+                [Thu Nov 23 14:35:09 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : try ObjectCommand cmd=ENABLENODE=2 for nodeid=16777278 broadcast=true cmdclientid=0 cmdstamp=11 serverObjCmdAck=10 test=true...
+                [Thu Nov 23 14:35:09 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=0 cmdstamp=11 serverObjCmdAck=10 ... OK !
+                [Thu Nov 23 14:35:09 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(ENABLENODE=2) nodeid=16777278 ...
+                Le cycle est rompu à partir de là
+            ==> ENABLENODE envoyer par le server n'est pas bon dans ce cas : creation de Client_CommandEnableObject qui va tester si le node est mort et le retirer proprement avec WORLD_ENTITYDESTROY et destroyer->Reset(false)
+            ===> il y a eu ensuite un pb de desactivation des physics (body,shapes) resolu en modifiant l'ordre d'activation des composants dans GameNetwork::UpdateControl
 
     ☐ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate().
         => si le stamp est toujours le meme pendant Xs alors deconnection du client.
@@ -231,7 +327,7 @@ Todos:
         => OK : il suffit de modifier les attributs de ScrapsEmitter dans avatar-newskeleton.xml
         => Resolu par les modifications dans GOC_BodyExploder2D et GameNetwork (NetCommand EXPLODENODE)
 
-    ☐ 11/08/2021 : pb de spawn lors par exemple de l'explosion du skeleton ou bien d'elsarion.
+    ✔ 11/08/2021 : pb de spawn lors par exemple de l'explosion du skeleton ou bien d'elsarion. @done(23-11-23 11:51)
         => cf GOC_BodyExploder2D, GameNetwork::AddSpawnControl()
         ==> le spawn multiple au meme instant entraine-t-il le debordement du spawnstamp ?
         ===> la suppression du check localspawnstamp receivespawnstamp dans GameNetwork::AddSpawnControl() résout ce pb mais il n'y aura plus de synchro de spawnstamp
@@ -240,9 +336,6 @@ Todos:
             il faut donc envoyer une command Explode avec le spawnstamp de depart et utiliser GOC_BodyExploder2D (mais ne pas utiliser le NetSpawnEntity).
             => ajout de NetCommand EXPLODENODE et GameNetwork::Explode(EventData)
             ==> le spawn semble ok sur le serveur + 2 clients
-        ☐ 19/11/2023 : il faut maintenant voir pour la gestion spawnstamp.
-            => mettre à jour network.svg
-            => communiquer le spawnstamp lors de l'envoi de la NetCommand ?
         ✔ 19/11/2023 : lors de la mort du skeleton et repop, le mouvement du skeleton est saccadé sur les autres clients @done(23-11-20 11:56)
             apparement les composants physic2D ne sont plus actifs.
             en effet lors de la mort du skeleton, GOC_BodyExploder desactive le RigidBody qu'il faut donc reactiver au repop coté client distant
@@ -934,6 +1027,11 @@ Archive:
 
 
 Notes:
+    - 22/11/2023 : si l'on appelle Context::GetEventDataMap() attention car lors de la creation de Node Urho3D va aussi l'appeler écrasant son contenu (cf Node::AddChild)...
+        c'est le cas lorsque l'on fait appelle à ObjectPool::CreateChild() par exemple qui est appelé par Map::AddEntity() <= World::SpawnEntity()
+        donc si on veut garder le contenu, il faudra utiliser une autre VariantMap. C'est ce qui est fait dans GOC_Collectable::DropSlotFrom() pour slotData qui aurait été effacé dans Map::AddEntity
+        lors du ObjectPool::CreateChild() et donc avant d'arriver à la ligne de GameHelpers::SetCollectableProperties() si on avait utilisé une VariantMap du Context.
+        (ref : 17/11/2023 : modification inventory)
 
     - 14/11/2023 : NOTE de reprise du mode réseau
         on distingue les etats qui changent

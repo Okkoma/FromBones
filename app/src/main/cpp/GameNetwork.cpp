@@ -811,6 +811,8 @@ void GameNetwork::SetEnableObject(bool enable, ObjectControlInfo& controlInfo, N
 
 void GameNetwork::SetEnableObject(bool enable, unsigned nodeid, bool forceactivation)
 {
+    if (nodeid < 2)
+        return;
 //    URHO3D_LOGINFOF("GameNetwork() - SetEnableObject : node=%u enable=%s ...", nodeid, enable ? "true":"false");
 
     // set state "enable" server Object Control
@@ -957,13 +959,19 @@ void GameNetwork::ExplodeNode(VariantMap& eventData)
 
 void GameNetwork::Server_UpdateInventory(int cmd, VariantMap& eventData)
 {
-    const unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
-    Node* holder = GameContext::Get().rootScene_->GetNode(nodeid);
+    const unsigned holderid = eventData[Net_ObjectCommand::P_NODEIDFROM].GetUInt();
+    Node* holder = holderid ? GameContext::Get().rootScene_->GetNode(holderid) : 0;
     if (!holder)
     {
-        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : no holder=%u !", nodeid);
+        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : no holder=%u !", holderid);
         return;
     }
+    GOC_Inventory* inventory = holder->GetComponent<GOC_Inventory>();
+    if (!inventory)
+    {
+        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : holder=%s(%u) no inventory !", holder->GetName().CString(), holder->GetID());
+        return;
+     }
 
     if (cmd == DROPITEM)
     {
@@ -971,29 +979,103 @@ void GameNetwork::Server_UpdateInventory(int cmd, VariantMap& eventData)
         //   if dropmode == 0 (allowdrop) that also create an Entity (who has surely an ObjectControl with spawncontrol ?)
         // Server receives a DropItem command with : nodeid of the holder, the idslot to drop, the dropmode
         //   check the qty and set the inventory on server side
-        GOC_Inventory* inventory = holder->GetComponent<GOC_Inventory>();
-        if (!inventory)
-        {
-            URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : holder=%s(%u) no inventory !", holder->GetName().CString(), holder->GetID());
-            return;
-        }
+        GOC_Inventory::NetServerDropItem(holder, eventData);
 
-        // Remove item from inventory
-        const unsigned qty = eventData[Net_ObjectCommand::P_SLOTQUANTITY].GetUInt();
-        const int slotid   = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetInt();
-        const int dropmode = eventData[Net_ObjectCommand::P_INVENTORYDROPITEM].GetInt();
+        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : holder=%s(%u) DROPITEM !", holder->GetName().CString(), holder->GetID());
+    }
+    else if (cmd == SETITEM)
+    {
+        const unsigned idslot = eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt();
+        StringHash got(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
 
-        // TODO : if dropmode > 0 Use Item
-        if (dropmode > 0)
-        {
+        // slot inventory update
+        Slot::SetSlotData(inventory->GetSlot(idslot), eventData);
 
-        }
+        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : holder=%s(%u) SETITEM idslot=%u got=%s!", holder->GetName().CString(), holder->GetID(), idslot, GOT::GetType(got).CString());
 
-        inventory->RemoveCollectableFromSlot(slotid, qty);
+//        inventory->Dump();
+    }
+}
 
-        URHO3D_LOGERRORF("GameNetwork() - Server_UpdateInventory : holder=%s(%u) DROPITEM slotid=%d qty=%d dropmode=%d !", holder->GetName().CString(), holder->GetID(), slotid, qty, dropmode);
+void GameNetwork::Client_SpawnItem(VariantMap& eventData)
+{
+    unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
+    unsigned holderid = eventData[Net_ObjectCommand::P_NODEIDFROM].GetUInt();
+    StringHash got(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
+    Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
+
+    URHO3D_LOGINFOF("GameNetwork() - Client_SpawnItem : got=%s nodeid=%u holder=%s(%u) ...",
+                    GOT::GetType(got).CString(), nodeid, holder ? holder->GetName().CString() : "null", holderid);
+
+    PhysicEntityInfo physicInfo;
+    if (holder)
+        GameHelpers::GetDropPoint(holder, physicInfo.positionx_, physicInfo.positiony_);
+
+    SceneEntityInfo sceneinfo;
+    sceneinfo.zindex_ = 1000;
+    sceneinfo.clientId_ = 0;
+    sceneinfo.skipNetSpawn_ = true;
+
+    int viewZ = holder ? ViewManager::GetNearViewZ(holder->GetVar(GOA::ONVIEWZ).GetInt(), 0) : FRONTVIEW;
+
+    Node* node = World2D::SpawnEntity(got, 0, LOCAL, holder ? holder->GetID() : 0, viewZ, physicInfo, sceneinfo, &eventData);
+    if (node)
+        URHO3D_LOGINFOF("GameNetwork() - Client_SpawnItem : Node=%s(%u) spawned ... OK !", node->GetName().CString(), node->GetID());
+    else
+        URHO3D_LOGERRORF("GameNetwork() - Client_SpawnItem : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
+}
+
+void GameNetwork::Client_TransferItem(VariantMap& eventData)
+{
+    URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : Dump eventData ...");
+    GameHelpers::DumpVariantMap(eventData);
+
+    // TODO : verifier si les ClientID pour nodeGiver et nodeGetter
+    // TODO :
+    Node* nodeGiver = GameContext::Get().rootScene_->GetNode(eventData[Go_InventoryGet::GO_GIVER].GetUInt());
+    if (!nodeGiver)
+    {
+        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodegiver=0 !");
+        return;
     }
 
+    Node* nodeGetter = GameContext::Get().rootScene_->GetNode(eventData[Go_InventoryGet::GO_GETTER].GetUInt());
+    if (!nodeGetter)
+    {
+        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodegetter=0 !");
+        return;
+    }
+
+    unsigned int qty = eventData[Go_InventoryGet::GO_QUANTITY].GetUInt();
+    if (!qty)
+    {
+        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodeid=%u ... qty=0 !", nodeGetter->GetID());
+        return;
+    }
+
+    GOC_Inventory* inventory = nodeGiver->GetComponent<GOC_Inventory>();
+    if (inventory)
+    {
+        inventory->TransferSlotTo(eventData[Go_InventoryGet::GO_IDSLOTSRC].GetUInt(), nodeGetter, qty);
+//        bool ok = inventory->CheckEmpty();
+        URHO3D_LOGINFOF("GameNetwork() - Client_TransferItem : inventory giver transferslot qty=%u ...", qty);
+        return;
+    }
+
+    GOC_Collectable* collectable = nodeGiver->GetComponent<GOC_Collectable>();
+    if (collectable)
+    {
+//        GameHelpers::DumpVariantMap(eventData);
+
+        GOC_Collectable::TransferSlotTo(collectable->Get(), nodeGiver, nodeGetter, Variant(nodeGiver->GetWorldPosition()), qty);
+        URHO3D_LOGINFOF("GameNetwork() - Client_TransferItem : collectable giver transferslot qty=%u ...", qty);
+        bool ok = collectable->CheckEmpty();
+    }
+    else
+    {
+        URHO3D_LOGERRORF("GameNetwork() - Client_TransferItem : no collectable or inventory on the giver ...");
+        GameHelpers::DumpNode(nodeGiver);
+    }
 }
 
 void GameNetwork::ChangeEquipment(VariantMap& eventData)
@@ -1094,10 +1176,22 @@ void GameNetwork::Client_CommandAddObject(VariantMap& eventData)
     }
 }
 
-void GameNetwork::Client_CommandRemoveObject(VariantMap& eventData)
+void GameNetwork::Client_CommandEnableObject(VariantMap& eventData)
+{
+    if (eventData[Net_ObjectCommand::P_NODEISENABLED].GetBool())
+    {
+        SetEnableObject(true, eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+    }
+    else
+    {
+        URHO3D_LOGINFOF("GameNetwork() - Client_CommandEnableObject : enable=false node=%u ...", eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+        Client_CommandRemoveObject(eventData, true);
+    }
+}
+
+void GameNetwork::Client_CommandRemoveObject(VariantMap& eventData, bool skipIfNotDead)
 {
     unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
-
     if (nodeid < 2)
         return;
 
@@ -1114,7 +1208,13 @@ void GameNetwork::Client_CommandRemoveObject(VariantMap& eventData)
 
                 if (it->node_)
                 {
+                    if (skipIfNotDead && !it->node_->GetVar(GOA::ISDEAD).GetBool())
+                        continue;
+
                     it->node_->SendEvent(WORLD_ENTITYDESTROY);
+                    GOC_Destroyer* destroyer = it->node_->GetComponent<GOC_Destroyer>();
+                    if (destroyer)
+                        destroyer->Reset(false);
                 }
             }
 
@@ -1141,7 +1241,13 @@ void GameNetwork::Client_CommandRemoveObject(VariantMap& eventData)
 
                 if (it->node_)
                 {
+                    if (skipIfNotDead && !it->node_->GetVar(GOA::ISDEAD).GetBool())
+                        continue;
+
                     it->node_->SendEvent(WORLD_ENTITYDESTROY);
+                    GOC_Destroyer* destroyer = it->node_->GetComponent<GOC_Destroyer>();
+                    if (destroyer)
+                        destroyer->Reset(false);
                 }
             }
 
@@ -1171,50 +1277,6 @@ void GameNetwork::Client_DisableObjectControl(VariantMap& eventData)
         URHO3D_LOGERRORF("GameNetwork() - Client_DisableObjectControl : unsatisfied requirements for clientObjectControl nodeid=%u !", id);
 }
 
-void GameNetwork::Client_TransferItem(VariantMap& eventData)
-{
-    // TODO : verifier si les ClientID pour nodeGiver et nodeGetter
-    // TODO :
-    Node* nodeGiver = GameContext::Get().rootScene_->GetNode(eventData[Go_InventoryGet::GO_GIVER].GetUInt());
-    if (!nodeGiver)
-    {
-        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodegiver=0 !");
-        return;
-    }
-
-    Node* nodeGetter = GameContext::Get().rootScene_->GetNode(eventData[Go_InventoryGet::GO_GETTER].GetUInt());
-    if (!nodeGetter)
-    {
-        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodegetter=0 !");
-        return;
-    }
-
-    unsigned int qty = eventData[Go_InventoryGet::GO_QUANTITY].GetUInt();
-    if (!qty)
-    {
-        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodeid=%u ... qty=0 !", nodeGetter->GetID());
-        return;
-    }
-
-    GOC_Inventory* inventory = nodeGiver->GetComponent<GOC_Inventory>();
-    if (inventory)
-    {
-        inventory->TransferSlotTo(eventData[Go_InventoryGet::GO_IDSLOTSRC].GetUInt(), nodeGetter, qty);
-//        bool ok = inventory->CheckEmpty();
-        return;
-    }
-
-    GOC_Collectable* collectable = nodeGiver->GetComponent<GOC_Collectable>();
-    if (collectable)
-    {
-//        GameHelpers::DumpVariantMap(eventData);
-
-        GOC_Collectable::TransferSlotTo(collectable->Get(), nodeGiver, nodeGetter, Variant(nodeGiver->GetWorldPosition()), qty);
-        bool ok = collectable->CheckEmpty();
-    }
-}
-
-
 void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
@@ -1230,6 +1292,7 @@ void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
         ExplodeNode(eventData);
         break;
     case DROPITEM:
+    case SETITEM:
         Server_UpdateInventory(cmd, eventData);
         break;
     case UPDATEEQUIPMENT:
@@ -1244,8 +1307,6 @@ void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
 void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
-    int nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
-
     URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) nodeid=%u ...", netCommandNames[cmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
 
     switch (cmd)
@@ -1254,9 +1315,7 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         Client_CommandRemoveObject(eventData);
         break;
     case ENABLENODE:
-        if (eventData[Net_ObjectCommand::P_NODEISENABLED].GetBool())
-            SetEnableObject(true, nodeid);
-//        SetEnableObject(eventData[Net_ObjectCommand::P_NODEISENABLED].GetBool(), eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+        Client_CommandEnableObject(eventData);
         break;
     case ADDNODE:
         Client_CommandAddObject(eventData);
@@ -1267,6 +1326,9 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
     case DISABLECLIENTOBJECTCONTROL:
         Client_DisableObjectControl(eventData);
         break;
+    case DROPITEM:
+        Client_SpawnItem(eventData);
+        break;
     case TRANSFERITEM:
         Client_TransferItem(eventData);
         break;
@@ -1274,17 +1336,17 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         ChangeEquipment(eventData);
         break;
     case SETFULLEQUIPMENT:
-        GOC_Inventory::NetClientSetEquipment(nodeid, eventData);
+        GOC_Inventory::NetClientSetEquipment(eventData[Net_ObjectCommand::P_NODEID].GetUInt(), eventData);
         break;
     case SETFULLINVENTORY:
-        GOC_Inventory::NetClientSetInventory(nodeid, eventData);
+        GOC_Inventory::NetClientSetInventory(eventData[Net_ObjectCommand::P_NODEID].GetUInt(), eventData);
         break;
     case CHANGETILE:
         bool ok = ChangeTile(eventData);
         break;
     }
 
-//    URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) for nodeid=%u ... OK !", netCommandNames[cmd], nodeid);
+//    URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) for nodeid=%u ... OK !", netCommandNames[cmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
 }
 
 
@@ -1334,20 +1396,25 @@ bool GameNetwork::NetSpawnControlAlreadyUsed(int clientid, unsigned char localst
     return localstamp > receivedstamp;
 }
 
-ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool enable, bool allowNetSpawn)
+ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool server, bool enable, bool allowNetSpawn)
 {
     if (GameContext::Get().LocalMode_)
         return 0;
 
     if (!node && !holder)
+    {
+        URHO3D_LOGERRORF("GameNetwork() - AddSpawnControl : node=%s(%u) holder=%s(%u) error !",
+                        node ? node->GetName().CString() : "null", node ? node->GetID() : 0,
+                        holder ? holder->GetName().CString() : "null", holder ? holder->GetID() : 0);
         return 0;
+    }
 
     unsigned holderid = 0;
     int holderclientid = 0;
     if (holder)
     {
         holderid = holder->GetID();
-        holderclientid = holder->GetVar(GOA::CLIENTID).GetInt();
+        holderclientid = server ? 0 : holder->GetVar(GOA::CLIENTID).GetInt();
     }
 
     unsigned nodeid = node ? node->GetID() : holderid;
@@ -1390,42 +1457,55 @@ ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool e
         return oinfo;
     }
 
-    oinfo = 0;
-
-    const bool isLocal = holderclientid == clientID_;
-    const bool isClientSpawn = holderclientid && isLocal;
-
-    Vector<ObjectControlInfo>& objectControls = isClientSpawn ? clientObjectControls_ : serverObjectControls_;
-
     // check if an objectControl is already available in ObjectControls Storage
-    for (unsigned i=0; i < objectControls.Size(); i++)
+    const bool isClientControl = clientID_ > 0 && holderclientid == clientID_;
+    bool newinfo;
+    if (isClientControl)
     {
-        ObjectControlInfo& info = objectControls[i];
-        if (!info.active_)
+        for (unsigned i=0; i < clientObjectControls_.Size(); i++)
         {
-            if ((isClientSpawn && info.clientNodeID_ == nodeid) || (!isClientSpawn && info.serverNodeID_ == nodeid))
+            ObjectControlInfo& info = clientObjectControls_[i];
+            if (!info.active_ && info.clientNodeID_ == nodeid)
             {
                 oinfo = &info;
                 break;
             }
         }
+        newinfo = !oinfo;
+        // create a new ObjectControlInfo
+        if (newinfo)
+        {
+            clientObjectControls_.Resize(clientObjectControls_.Size()+1);
+            oinfo = &clientObjectControls_.Back();
+        }
     }
-
-    bool newinfo = false;
-
-    // create a new ObjectControlInfo
-    if (!oinfo)
+    else
     {
-        objectControls.Resize(objectControls.Size()+1);
-        oinfo = &objectControls.Back();
-        newinfo = true;
+        for (unsigned i=0; i < serverObjectControls_.Size(); i++)
+        {
+            ObjectControlInfo& info = serverObjectControls_[i];
+            if (!info.active_ && (info.serverNodeID_ == nodeid || info.clientNodeID_ == nodeid))
+            {
+                oinfo = &info;
+                break;
+            }
+        }
+        newinfo = !oinfo;
+        // create a new ObjectControlInfo
+        if (newinfo)
+        {
+            serverObjectControls_.Resize(serverObjectControls_.Size()+1);
+            oinfo = &serverObjectControls_.Back();
+        }
     }
 
+    // Register in SpawnControls
     spawnControls_[holderclientid][spawnid] = oinfo;
 
+    // Set the Objectinfo
     oinfo->clientId_ = holderclientid;
     oinfo->node_ = node;
-
+    oinfo->active_ = true;
     if (clientMode_)
     {
         oinfo->clientNodeID_ = nodeid;
@@ -1437,22 +1517,22 @@ ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool e
         oinfo->clientNodeID_ = 0;
     }
 
-    oinfo->SetActive(true, serverMode_);
-
-    if (enable)
-        oinfo->SetEnable(enable);
-
     PrepareControl(*oinfo);
-
     oinfo->GetPreparedControl().states_.spawnid_ = spawnid;
     oinfo->GetPreparedControl().states_.stamp_ = 0;
     oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, allowNetSpawn);
 
+    if (enable)
+        oinfo->SetEnable(enable);
+
     // set the initial position that will be used by GameNetwork::NetSpawnEntity
     oinfo->CopyPreparedPositionToInitial();
 
-    URHO3D_LOGINFOF("GameNetwork() - AddSpawnControl : clientid=%d node=%s(%u) ... spawnid=%u(holderid=%u,spawnstamp=%u) ... %s oinfo=%u servernodeid=%u clientnodeid=%u holderptr=%u(nodeid=%u,clientid=%d) spawnstamp=%u !",
-                    clientID_, node ? node->GetName().CString() : "null", nodeid, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), newinfo ? "new":"", oinfo, oinfo->serverNodeID_, oinfo->clientNodeID_, holder, holderid, holderclientid, spawnstamp);
+    URHO3D_LOGINFOF("GameNetwork() - AddSpawnControl : %s node=%s(%u) ... spawnid=%u(holderid=%u,spawnstamp=%u) ... ",
+                    isClientControl ? "ClientControl" : "ServerControl", node ? node->GetName().CString() : "null", nodeid, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
+    URHO3D_LOGINFOF("GameNetwork() - AddSpawnControl : ... %s oinfo=%u srvnodeid=%u cltnodeid=%u holderptr=%u(nodeid=%u,clientid=%d) spawnstamp=%u !",
+                    newinfo ? "new":"", oinfo, oinfo->serverNodeID_, oinfo->clientNodeID_, holder, holderid, holderclientid, spawnstamp);
+
     return oinfo;
 }
 
@@ -1496,11 +1576,11 @@ void GameNetwork::LinkSpawnControl(int clientid, unsigned spawnid, unsigned serv
         change = true;
     }
 
-//    if (change)
-//    {
-//        URHO3D_LOGINFOF("GameNetwork() - LinkSpawnControl : object from clientid=%d spawnid=%u links serverNodeID_=%u clientNodeID_=%u changed=%s !",
-//                        oinfo->clientId_, spawnid, oinfo->serverNodeID_, oinfo->clientNodeID_, change?"true":"false");
-//    }
+    if (change)
+    {
+        URHO3D_LOGINFOF("GameNetwork() - LinkSpawnControl : oinfo=%u from clientid=%d spawnid=%u links serverNodeID_=%u clientNodeID_=%u !",
+                        oinfo, oinfo->clientId_, spawnid, oinfo->serverNodeID_, oinfo->clientNodeID_);
+    }
 }
 
 void GameNetwork::NetSpawnEntity(unsigned netnodeid, const ObjectControlInfo& refinfo, ObjectControlInfo*& oinfo)
@@ -1735,7 +1815,7 @@ void GameNetwork::Server_RemoveObject(unsigned nodeid, bool sendnetevent, bool a
         {
             sServerEventData_.Clear();
             sServerEventData_[Net_ObjectCommand::P_NODEID] = nodeid;
-            PushObjectCommand(ERASENODE, 0, true, cinfo.clientId_);
+            PushObjectCommand(ERASENODE, 0, true, 0);
 //            Server_SendObjectCommand(ERASENODE, 0, 0, allconnections ? 0 : GetConnection(cinfo.clientId_));
         }
 
@@ -2606,7 +2686,6 @@ const ObjectControlInfo* GameNetwork::GetObjectControl(unsigned nodeid) const
         if (it->clientNodeID_ == nodeid)
             return &(*it);
     }
-
     for (Vector<ObjectControlInfo>::ConstIterator it = serverObjectControls_.Begin(); it != serverObjectControls_.End(); ++it)
     {
         if (it->serverNodeID_ == nodeid)
@@ -2706,6 +2785,7 @@ void GameNetwork::Server_SubscribeToPlayEvents()
 //    SubscribeToEvent(NET_OBJECTCOMMAND, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_INVENTORYGET, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_INVENTORYSLOTEQUIP, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
+    SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
 
     SubscribeToEvent(E_NETWORKUPDATE, URHO3D_HANDLER(GameNetwork, HandlePlayServer_NetworkUpdate));
     SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_ReceiveUpdate));
@@ -2736,7 +2816,9 @@ void GameNetwork::Client_SubscribeToPlayEvents()
     URHO3D_LOGINFOF("GameNetwork() - Client_SubscribeToPlayEvents !");
 
     SubscribeToEvent(NET_SERVERSEEDTIME, URHO3D_HANDLER(GameNetwork, HandlePlayClient_MessagesFromServer));
+
     SubscribeToEvent(GO_INVENTORYSLOTEQUIP, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
+    SubscribeToEvent(GO_INVENTORYSLOTSET, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
     SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
 
     SubscribeToEvent(E_NETWORKUPDATE, URHO3D_HANDLER(GameNetwork, HandlePlayClient_NetworkUpdate));
@@ -2760,10 +2842,13 @@ void GameNetwork::Client_UnsubscribeToPlayEvents()
     URHO3D_LOGINFOF("GameNetwork() - Client_UnsubscribeToPlayEvents !");
     UnsubscribeFromEvent(NET_SERVERSEEDTIME);
     UnsubscribeFromEvent(NET_OBJECTCOMMAND);
+
     UnsubscribeFromEvent(GO_INVENTORYSLOTEQUIP);
+    UnsubscribeFromEvent(GO_INVENTORYSLOTSET);
     UnsubscribeFromEvent(GO_DROPITEM);
 
     UnsubscribeFromEvent(E_NETWORKUPDATE);
+
     UnsubscribeFromEvent(SERVEROBJECTCONTROLSRECEIVED);
     UnsubscribeFromEvent(CLIENTOBJECTCONTROLSRECEIVED);
 
@@ -2991,6 +3076,9 @@ void GameNetwork::HandlePlayServer_Messages(StringHash eventType, VariantMap& ev
 
     else if (eventType == GO_INVENTORYSLOTEQUIP)
         SendChangeEquipment(eventType, eventData);
+
+    else if (eventType == GO_DROPITEM)
+        PushObjectCommand(DROPITEM, &eventData, true, 0);
 }
 
 
@@ -3113,8 +3201,11 @@ void GameNetwork::HandlePlayClient_Messages(StringHash eventType, VariantMap& ev
     if (eventType == GO_INVENTORYSLOTEQUIP)
         SendChangeEquipment(eventType, eventData);
 
+    else if (eventType == GO_INVENTORYSLOTSET)
+        PushObjectCommand(SETITEM, &eventData, false, clientID_); // only to server
+
     else if (eventType == GO_DROPITEM)
-        PushObjectCommand(DROPITEM, &eventData, false, clientID_);
+        PushObjectCommand(DROPITEM, &eventData, true, clientID_);
 }
 
 
@@ -3421,6 +3512,9 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
                 RemoveSpawnControl(dest.clientId_, src.GetReceivedControl().states_.spawnid_);
 
             node->SendEvent(WORLD_ENTITYDESTROY);
+            GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
+            if (destroyer)
+                destroyer->Reset(false);
         }
 
 //        URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u ... no enable !", node->GetID());
@@ -3436,13 +3530,16 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
         if (goclife)
             goclife->Reset();
 
-        node->ApplyAttributes();
-
-        SetEnableObject(true, dest, node);
-
         GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
         if (destroyer)
+        {
+            destroyer->SetEnablePositionUpdate(false);
+            destroyer->SetEnableUnstuck(false);
             destroyer->Reset(true);
+        }
+
+        node->ApplyAttributes();
+        SetEnableObject(true, dest, node);
 
         node->SendEvent(WORLD_ENTITYCREATE);
 
@@ -3831,7 +3928,6 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
                                 senderclientid, servernodeid, clientnodeid, oinfo, oinfo ? oinfo->active_ : 0, sDumpObject_.IsEnable(),
                                 sDumpObject_.GetReceivedControl().HasNetSpawnMode() ?"true":"false", spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
-
                 // net spawn mode allowed ?
                 if (sDumpObject_.GetReceivedControl().HasNetSpawnMode())
                 {
@@ -3880,8 +3976,8 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
 
             if (oinfo->active_ && oinfo->clientId_ != senderclientid)
             {
-                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u with nodeclientid=%d != senderclientid=%d !",
-                                 senderclientid, servernodeid, clientnodeid, oinfo->clientId_, senderclientid);
+                // URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u with nodeclientid=%d != senderclientid=%d !",
+                //                  senderclientid, servernodeid, clientnodeid, oinfo->clientId_, senderclientid);
                 continue;
             }
 

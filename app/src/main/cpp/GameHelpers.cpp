@@ -4972,7 +4972,7 @@ void GameHelpers::DumpNode(unsigned id, bool withcomponentattr, bool rtt)
         const Vector<SharedPtr<Component> >& components = node->GetComponents();
         for (unsigned i=0; i < components.Size(); i++)
         {
-            URHO3D_LOGINFOF(" => Component %s(%u) enabled=%s", components[i]->GetTypeName().CString(), components[i]->GetID(), components[i]->IsEnabled() ? "true" : "false");
+            URHO3D_LOGINFOF(" => Component ptr=%u %s(%u) enabled=%s", components[i].Get(), components[i]->GetTypeName().CString(), components[i]->GetID(), components[i]->IsEnabled() ? "true" : "false");
             if (components[i]->IsInstanceOf<Drawable2D>())
             {
                 Drawable2D* drawable = (Drawable2D*) components[i].Get();
@@ -4981,7 +4981,7 @@ void GameHelpers::DumpNode(unsigned id, bool withcomponentattr, bool rtt)
         }
         const Vector<SharedPtr<Node> >& children = node ->GetChildren();
         for (unsigned i=0; i < children.Size(); i++)
-            URHO3D_LOGINFOF(" => Child %s(%u)", children[i]->GetName().CString(), children[i]->GetID());
+            URHO3D_LOGINFOF(" => Child %s(%u) enabled=%s", children[i]->GetName().CString(), children[i]->GetID(), children[i]->IsEnabled() ? "true" : "false");
     }
     else
     {
@@ -4992,7 +4992,7 @@ void GameHelpers::DumpNode(unsigned id, bool withcomponentattr, bool rtt)
 
         for (unsigned i=0; i < components.Size(); i++)
         {
-            URHO3D_LOGINFOF(" => Component %s(%u)", components[i]->GetTypeName().CString(), components[i]->GetID());
+            URHO3D_LOGINFOF(" => Component ptr=%u %s(%u) enabled=%s", components[i].Get(), components[i]->GetTypeName().CString(), components[i]->GetID(), components[i]->IsEnabled() ? "true" : "false");
             Component* component = components[i];
             if (component)
             {
@@ -5016,7 +5016,7 @@ void GameHelpers::DumpNode(unsigned id, bool withcomponentattr, bool rtt)
         }
         const Vector<SharedPtr<Node> >& children = node ->GetChildren();
         for (unsigned i=0; i < children.Size(); i++)
-            URHO3D_LOGINFOF(" => Child %s(%u)", children[i]->GetName().CString(), children[i]->GetID());
+            URHO3D_LOGINFOF(" => Child %s(%u) enabled=%s", children[i]->GetName().CString(), children[i]->GetID(), children[i]->IsEnabled() ? "true" : "false");
     }
     URHO3D_LOGINFO("GameHelpers() - DumpNode : ---------------");
 }
@@ -5327,6 +5327,23 @@ void GameHelpers::DumpVertices(const PODVector<Vector2>& vertices)
         str.AppendWithFormat("v[%d]=%F,%F ", i, vertices[i].x_, vertices[i].y_);
 
     URHO3D_LOGINFOF("GameHelpers() - DumpVertices : num=%u values=%s", vertices.Size(), str.CString());
+}
+
+void GameHelpers::DumpRigidBody(Node* node)
+{
+    if (!node)
+        return;
+
+    RigidBody2D* rbody = node->GetComponent<RigidBody2D>();
+    if (!rbody)
+        return;
+
+    const Vector<WeakPtr<CollisionShape2D> >& shapes = rbody->GetCollisionsShapes();
+
+    URHO3D_LOGINFOF("GameHelpers() - DumpRigidBody : %s(%u) rbodyptr=%u enable=%s type=%u numshapes=%u", node->GetName().CString(), node->GetID(),
+                     rbody, rbody->IsEnabled() ? "true":"false", (int)rbody->GetBodyType(), shapes.Size());
+
+    rbody->GetBody()->Dump();
 }
 
 /// Graphic Dump

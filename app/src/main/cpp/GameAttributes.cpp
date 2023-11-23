@@ -43,7 +43,7 @@ const StringHash GOA::INFLUID           = StringHash("GOA_InFluid");
 const StringHash GOA::ONTILE            = StringHash("GOA_OnTile");
 const StringHash GOA::ONVIEWZ           = StringHash("GOA_OnViewZ");
 
-const StringHash GOA::KEEPVISIBLE            = StringHash("GOA_KeepVisible");
+const StringHash GOA::KEEPVISIBLE       = StringHash("GOA_KeepVisible");
 const StringHash GOA::LAYERALIGNMENT    = StringHash("GOA_LayerAlignement");
 const StringHash GOA::PLATEFORM         = StringHash("GOA_PlateForm");
 const StringHash GOA::BULLET            = StringHash("GOA_Bullet");
@@ -126,10 +126,8 @@ void GOA::InitAttributeTable()
     Register("GOA_LayerAlignement");
     Register("GOA_Plateform");
     Register("GOA_Bullet");
-//    Register("GOA_State");
     Register("GOA_Direction");
     Register("GOA_LightState");
-//    Register("GOA_AvatarIndex");
 
     Register("GOA_MoveState");
     Register("GOA_KeepDirection");
@@ -137,8 +135,9 @@ void GOA::InitAttributeTable()
 
     Register("GOA_IsMountedOn");
     Register("GOA_OnGround");
-    Register("GOA_IsDead");
 
+    Register("GOA_IsDead");
+    Register("GOA_Destroying");
     Register("GOA_Life");
     Register("GOA_Death");
     Register("GOA_Fire");
@@ -147,10 +146,16 @@ void GOA::InitAttributeTable()
     Register("GOA_EffectID3");
 
     Register("GOA_Ability");
+
     Register("GOA_OnControl");
+
     Register("GOA_Faction");
+    Register("GOA_NoChildFaction");
+
     Register("GOA_TypeCtrl");
     Register("GOA_Buttons");
+
+    Register("GOA_PanelID");
 
     Register("GOA_GGOAT");
     Register("GGOAT_Collector");

@@ -901,7 +901,7 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
             int clientid = node_->GetVar(GOA::CLIENTID).GetInt();
             ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node_->GetID()) : GameNetwork::Get()->GetServerObjectControl(node_->GetID());
             if (!oinfo)
-                oinfo = GameNetwork::Get()->AddSpawnControl(node_, attachedNode_);
+                oinfo = GameNetwork::Get()->AddSpawnControl(node_, attachedNode_, model_ != RM_ThrowableRope);
             if (oinfo)
             {
                 ObjectControl& control = oinfo->GetPreparedControl();

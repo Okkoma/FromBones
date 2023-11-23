@@ -69,9 +69,17 @@ void UIC_BagPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSub
     const Slot& slot = inventory_->GetSlot(index);
 
     UIElement* uiSlot = static_cast<UIElement*>(slotZone_->GetChild(String("Bag_" + String(index-startSlotIndex_+1)), true));
-
     if (!uiSlot)
         return;
+
+    if (GameContext::Get().ClientMode_ && updateButtons)
+    {
+        VariantMap& eventData = context_->GetEventDataMap();
+        eventData[Net_ObjectCommand::P_NODEIDFROM] = inventory_->GetNode()->GetID();
+        eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = index;
+        Slot::GetSlotData(slot, eventData);
+        SendEvent(GO_INVENTORYSLOTSET, eventData);
+    }
 
     if (!slot.quantity_)
     {

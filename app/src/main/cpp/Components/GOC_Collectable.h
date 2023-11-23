@@ -31,8 +31,7 @@ public :
     void Set();
 
     static void TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nodeGetter, const Variant& position, unsigned int quantity=QTY_MAX);
-    static Node* DropSlotFrom(Node* owner, Slot& slot, unsigned int qty=QTY_MAX);
-//        void TransferSlotTo(Node *node);
+    static Node* DropSlotFrom(Node* owner, Slot& slot, unsigned int qty=QTY_MAX, VariantMap* slotdata=0);
 
     bool Empty() const;
     bool CheckEmpty();
@@ -66,6 +65,8 @@ private :
     Slot slot_;
     Vector<StringHash> catchers_;
     bool selfDestroy_, wallCollide_;
+
+    static VariantMap tempSlotData_;
 };
 
 

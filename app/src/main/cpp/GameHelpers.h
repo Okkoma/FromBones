@@ -246,6 +246,7 @@ public:
     template< typename U, typename T > static String DumpHashMap(const HashMap<U, T>& hashmap);
     template< typename T > static void DumpData(const T* data, int markpattern, int n,  ...);
     static void DumpVertices(const PODVector<Vector2>& vertice);
+    static void DumpRigidBody(Node* node);
 
     static void DrawDebugRect(const Rect& rect, DebugRenderer* debugRenderer, bool depthTest=false, const Color& color=Color::WHITE);
     static void DrawDebugUIRect(const IntRect& rect, const Color& color=Color::WHITE, bool filled=false);

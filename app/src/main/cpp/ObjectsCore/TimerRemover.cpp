@@ -112,7 +112,7 @@ void TimerRemover::Start(Node* object, float delay, RemoveState state, float del
     if (startok_)
     {
         timer_ = 0.1f;
-        Stop(context_->GetEventDataMap());
+        Stop(context_->GetEventDataMap(false));
     }
     else
     {

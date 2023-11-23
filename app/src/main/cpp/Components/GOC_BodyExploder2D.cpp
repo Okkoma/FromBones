@@ -287,7 +287,6 @@ bool GOC_BodyExploder2D::SetStateToExplode(AnimatedSprite2D* animatedSprite, Str
     String deadAnim;
     int animIndex;
 
-    AnimationSet2D* animSet2D = animatedSprite->GetAnimationSet();
     if (gocAnimator)
     {
         deadAnim = gocAnimator->GetAnimInfo(STATE_EXPLODE).animName;
@@ -295,6 +294,7 @@ bool GOC_BodyExploder2D::SetStateToExplode(AnimatedSprite2D* animatedSprite, Str
     }
     else
     {
+        AnimationSet2D* animSet2D = animatedSprite->GetAnimationSet();
         animIndex = animSet2D->GetNumAnimations()-1;
         deadAnim = animSet2D->GetAnimation(animIndex);
     }
@@ -647,8 +647,6 @@ void GOC_BodyExploder2D::SetExplodedNodesComponents()
 //            position = node->GetWorldPosition2D();
 //            URHO3D_LOGINFOF("GOC_BodyExploder2D() - SetExplodedNodesComponents : node=%s(%u) partnodeid=%u parent=%u(%u) position=%s ... ",
 //                            node_->GetName().CString(), node_->GetID(), node->GetID(), node->GetParent() ? node->GetParent()->GetID() : 0, prepareNode_->GetID(), position.ToString().CString());
-
-
         }
     }
 
@@ -765,7 +763,7 @@ void GOC_BodyExploder2D::Explode(bool forceNetExplode)
         body->SetAngularVelocity(force.x_ * force.y_);
 
         if (!GameContext::Get().LocalMode_)
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, node_, true, false);
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, node_, true, true, false);
 
 //        StaticSprite2D* staticSprite = explodedNodes_[i]->GetComponent<StaticSprite2D>();
 //

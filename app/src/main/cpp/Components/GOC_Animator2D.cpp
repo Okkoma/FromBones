@@ -1399,7 +1399,7 @@ void GOC_Animator2D::Start()
             {
                 URHO3D_LOGERRORF("GOC_Animator2D() - Start : Node=%s(%u) ... On Weather Event=%s(%u) ...",node_->GetName().CString(), node_->GetID(), GOE::GetEventName(event).CString(), event.Value());
                 AnimatorForcedSender = Sender_All;
-                OnEventActions(event, context_->GetEventDataMap());
+                OnEventActions(event, context_->GetEventDataMap(false));
                 AnimatorForcedSender = -1;
             }
         }
@@ -2796,7 +2796,7 @@ void GOC_Animator2D::ChangeEntity(const VariantMap& param)
     GameHelpers::SetEntityVariation(animatedSprite, entityid);
 
     if (currentTemplate)
-        FindNextState(context_->GetEventDataMap());
+        FindNextState(context_->GetEventDataMap(false));
 
     node_->SendEvent(CHARACTERUPDATED);
 }

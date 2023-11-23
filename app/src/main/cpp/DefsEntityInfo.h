@@ -98,6 +98,7 @@ struct SceneEntityInfo
     int zindex_;
     unsigned faction_;
     bool deferredAdd_;
+    bool skipNetSpawn_;
     Node* attachNode_;
     int clientId_;
     EquipmentList* equipment_;

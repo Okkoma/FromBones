@@ -68,7 +68,8 @@ struct Slot
 
     static bool SetSlotAttr(const String& value, Slot& slot);
     static String GetSlotAttr(const Slot& slot);
-    static void GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty);
+    static void SetSlotData(Slot& slot, VariantMap& slotData);
+    static void GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty=QTY_MAX);
     static bool HaveSameTypes(const Slot& slot1, const Slot& slot2)
     {
         return slot1.type_ == slot2.type_ && slot1.partfromtype_ == slot2.partfromtype_;

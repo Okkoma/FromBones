@@ -51,6 +51,7 @@ public :
     void SetEnableLifeTimer(bool enable);
     void SetEnableLifeNotifier(bool enable);
     void SetEnableUnstuck(bool enable);
+    void SetEnablePositionUpdate(bool enable);
     void CheckLifeTime();
 
     /// for Pool of Object

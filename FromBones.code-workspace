@@ -10,7 +10,10 @@
 	"settings": {
 		"files.associations": {
 			"*.txt": "c",
-			"typeinfo": "cpp"
+			"typeinfo": "cpp",
+			"__node_handle": "cpp",
+			"system_error": "cpp",
+			"__locale": "cpp"
 		},
 		"cmake.automaticReconfigure": false,
 		"cmake.skipConfigureIfCachePresent": true,

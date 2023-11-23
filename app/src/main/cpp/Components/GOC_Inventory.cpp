@@ -1208,7 +1208,7 @@ void GOC_Inventory::OnSetEnabled()
                     SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
             }
             else if (GameContext::Get().ServerMode_)
-            {                
+            {
                 GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
                 if (controller && (controller->GetControllerType() & (GO_Player & GO_NetPlayer)) == 0)
                     SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
@@ -1899,58 +1899,79 @@ void GOC_Inventory::NetServerSetEquipmentSlot(Node* node, VariantMap& eventData)
     }
 }
 
-void GOC_Inventory::NetServerRemoveItem(Node* holder, VariantMap& eventData)
+void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
 {
     GOC_Inventory* inventory = holder->GetComponent<GOC_Inventory>();
     if (!inventory)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetServerRemoveItem : No inventory in Node=%u", holder->GetID());
+        URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : No inventory in Node=%u", holder->GetID());
         return;
     }
 
-    int dropmode = eventData[Net_ObjectCommand::P_INVENTORYDROPITEM].GetInt();
-    unsigned int removedqty = eventData[Net_ObjectCommand::P_SLOTQUANTITY].GetUInt();
+    int dropmode = eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt();
+    unsigned int qty = eventData[Net_ObjectCommand::P_SLOTQUANTITY].GetUInt();
 
-    URHO3D_LOGINFOF("GOC_Inventory() - NetServerRemoveItem ... holder=%s(%u) dropmode=%d qtyremoved=%u",
-                    holder->GetName().CString(), holder->GetID(), dropmode, removedqty);
+    URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem ... holder=%s(%u) dropmode=%d qty=%u ...",
+                    holder->GetName().CString(), holder->GetID(), dropmode, qty);
 
-    if (dropmode > -1 && removedqty > 0)
+    if (qty == 0)
+        return;
+
+    Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
+
+    /// Just drop
+    if (dropmode == 0)
     {
-        Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
-
-        /// drop item
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, removedqty);
-
+        /// Drop items
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, qty);
         if (node)
         {
-            /// Use item (DropOn Mode)1U
-            if (dropmode == 1)
-            {
-                // Apply Effect
-                GOC_ZoneEffect* itemEffect = node->GetComponent<GOC_ZoneEffect>();
-                if (itemEffect)
-                {
-                    itemEffect->UseEffectOn(holder->GetID());
-
-                    // Item don't fall/move
-                    RigidBody2D* itemBody = node->GetComponent<RigidBody2D>();
-                    if (itemBody)
-                        itemBody->SetEnabled(false);
-                }
-            }
-            /// Use item (DropOut Mode)
-            else if (dropmode == 2)
-            {
-                node->GetComponent<GOC_Animator2D>()->SetTemplateName("AnimatorTemplate_Usable");
-                node->GetComponent<GOC_Collectable>()->SetEnabled(false);
-                node->SendEvent(GO_USEITEM);
-            }
-
-            URHO3D_LOGINFOF("GOC_Inventory() - NetServerRemoveItem ... OK !");
+            dropmode = 0;
+            URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop node=%s(%u) item=%s qty=%u !", 
+                            node->GetName().CString(), node->GetID(), GOT::GetType(slot.type_).CString(), qty);
         }
         else
+            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=%u", GOT::GetType(slot.type_).CString(), qty);
+    }
+    /// Use the item on holder (DropOn Mode)
+    else if (dropmode == 1)
+    {
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, 1U);
+        if (node)
         {
-            URHO3D_LOGERRORF("GOC_Inventory() - NetServerRemoveItem ... No Node Dropped ... NOK !");
+            // Apply Effect
+            GOC_ZoneEffect* itemEffect = node->GetComponent<GOC_ZoneEffect>();
+            if (itemEffect)
+                itemEffect->UseEffectOn(holder->GetID());
+
+            // Item don't fall/move
+            RigidBody2D* itemBody = node->GetComponent<RigidBody2D>();
+            if (itemBody)
+                itemBody->SetEnabled(false);
+
+            URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop and use item=%s on holder !", GOT::GetType(slot.type_).CString());
         }
+        else
+            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());        
+    }
+    /// Use item (DropOut Mode)
+    else if (dropmode == 2)
+    {
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, 1U);
+        if (node)
+        {
+            GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
+            if (animator)
+            {
+                if (!animator->GetTemplateName().StartsWith("AnimatorTemplate_Usable"))
+                    animator->SetTemplateName("AnimatorTemplate_Usable");
+            }
+
+            node->SendEvent(GO_USEITEM);
+
+            URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop and use item=%s !", GOT::GetType(slot.type_).CString());
+        }
+        else
+            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());        
     }
 }

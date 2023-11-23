@@ -56,10 +56,10 @@ GOC_Collide2D::~GOC_Collide2D()
 
 void GOC_Collide2D::OnSetEnabled()
 {
-#ifdef DUMP_DEBUG_MAPCOLLIDEUPDATE
+//#ifdef DUMP_DEBUG_MAPCOLLIDEUPDATE
     URHO3D_LOGINFOF("GOC_Collide2D() - OnSetEnabled : %s(%u) ... scene=%u enable=%u body=%u shapes=%u",
                     node_->GetName().CString(), node_->GetID(), GetScene(), IsEnabledEffective(), body, body->GetCollisionsShapes().Size());
-#endif
+//#endif
 
     if (GetScene() && IsEnabledEffective() && body && body->GetCollisionsShapes().Size())
     {

@@ -238,7 +238,9 @@ void GOC_Collectable::TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nod
 //                                nodeGiver ? nodeGiver->GetName().CString() : "FromManager", nodeGiver ? nodeGiver->GetID() : 0, nodeGetter->GetName().CString(), nodeGetter->GetID());
 }
 
-Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty)
+VariantMap GOC_Collectable::tempSlotData_;
+
+Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty, VariantMap* slotData)
 {
     if (!slot.Empty())
     {
@@ -251,36 +253,41 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty)
         }
 
         PhysicEntityInfo physicInfo;
-
         GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
 
         if (qty > slot.quantity_)
             qty = slot.quantity_;
 
-//        URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d ...", GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt());
+       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d ...", GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt());
 
-        VariantMap slotData;
-        Slot::GetSlotData(slot, slotData, qty);
+        if (!slotData)
+            slotData = &tempSlotData_;
+
+        Slot::GetSlotData(slot, *slotData, qty);
 
         SceneEntityInfo sceneinfo;
+        sceneinfo.skipNetSpawn_ = true;
         sceneinfo.zindex_ = 1000;
 
         int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt(), 0);
 
-        Node* node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, &slotData);
+        Node* node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
         if (!node)
         {
             URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
             return 0;
         }
 
-//        URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) nodeid=%u qty=%u !", GOT::GetType(got).CString(), got.Value(), node->GetID(), qty);
+       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) nodeid=%u qty=%u ... OK !", GOT::GetType(got).CString(), got.Value(), node->GetID(), qty);
 
         // send DROP for updating player states, if need
-        VariantMap& eventData = owner->GetContext()->GetEventDataMap();
-        eventData[Go_CollectableDrop::GO_TYPE] = got.Value();
-        eventData[Go_CollectableDrop::GO_QUANTITY] = qty;
-        owner->SendEvent(GO_COLLECTABLEDROP, eventData);
+        if (owner)
+        {
+            VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
+            eventData[Go_CollectableDrop::GO_TYPE] = got.Value();
+            eventData[Go_CollectableDrop::GO_QUANTITY] = qty;
+            owner->SendEvent(GO_COLLECTABLEDROP, eventData);
+        }
 
         // remove quantity from slot
         if (slot.quantity_ > qty)

@@ -393,14 +393,36 @@ String Slot::GetSlotAttr(const Slot& slot)
     return value;
 }
 
+void Slot::SetSlotData(Slot& slot, VariantMap& slotData)
+{
+    StringHash got(slotData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
+    const unsigned int qty = slotData[Net_ObjectCommand::P_SLOTQUANTITY].GetUInt();
+    if (got.Value() && qty)
+    {
+        slot.type_ = got;
+        slot.partfromtype_ = StringHash(slotData[Net_ObjectCommand::P_SLOTPARTFROMTYPE].GetUInt());
+        slot.quantity_ = qty;
+        slot.effect_ = slotData[Net_ObjectCommand::P_SLOTEFFECT].GetInt();
+        const ResourceRef& rref = slotData[Net_ObjectCommand::P_SLOTSPRITE].GetResourceRef();
+        if (rref != Variant::emptyResourceRef)
+            slot.sprite_ = Sprite2D::LoadFromResourceRef(GameContext::Get().context_, rref);
+        slot.scale_ = slotData[Net_ObjectCommand::P_SLOTSCALE].GetVector3();
+        slot.color_ = slotData[Net_ObjectCommand::P_SLOTCOLOR].GetColor();
+        slot.UpdateUISprite();
+    }
+    else
+        slot.Clear();
+}
+
 void Slot::GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty)
 {
     slotData[Net_ObjectCommand::P_CLIENTOBJECTTYPE] = slot.type_.Value();
     slotData[Net_ObjectCommand::P_SLOTPARTFROMTYPE] = slot.partfromtype_.Value();
-    slotData[Net_ObjectCommand::P_SLOTQUANTITY] = qty;
+    slotData[Net_ObjectCommand::P_SLOTQUANTITY] = qty == QTY_MAX ? slot.quantity_ : qty;
     slotData[Net_ObjectCommand::P_SLOTEFFECT] = slot.effect_;
 //    slotData[Net_ObjectCommand::P_SLOTSPRITE] = slot.sprite_ ? slot.sprite_->GetNameHash() : StringHash::ZERO;
-    slotData[Net_ObjectCommand::P_SLOTSPRITE] = Sprite2D::SaveToResourceRef(slot.sprite_.Get());
+    if (slot.sprite_)
+        slotData[Net_ObjectCommand::P_SLOTSPRITE] = Sprite2D::SaveToResourceRef(slot.sprite_.Get());
     slotData[Net_ObjectCommand::P_SLOTSCALE] = slot.scale_;
     slotData[Net_ObjectCommand::P_SLOTCOLOR] = slot.color_;
 }
