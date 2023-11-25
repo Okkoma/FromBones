@@ -68,10 +68,10 @@ struct PackedObjectControl
 
     struct
     {
-        unsigned short totalDpsReceived_;
         unsigned int type_, spawnid_, buttons_;
         unsigned char entityid_, animstateindex_, animversion_;
         unsigned char viewZ_, flag_, stamp_;
+        unsigned short totalDpsReceived_;
     } states_; // 3uint + 1short + 6bytes = 3*4 + 2 + 6 = 20bytes
 
     struct
@@ -97,10 +97,10 @@ struct ObjectControl
 
     struct
     {
-        float totalDpsReceived_;
         unsigned int type_, spawnid_, buttons_;
         unsigned char entityid_, animstateindex_, animversion_;
         unsigned char viewZ_, flag_, stamp_;
+        float totalDpsReceived_;
     } states_; // 1float + 3uint + 6bytes = 4*4 + 6 = 22bytes
 
     struct
@@ -158,22 +158,22 @@ struct ObjectControlInfo
 
     void Dump() const;
 
-    bool active_;
-    bool prepared_;
-
+    bool active_, prepared_;
     unsigned int clientId_;
     unsigned int serverNodeID_, clientNodeID_;
     unsigned int lastNetChangeCounter_;
 
-    WeakPtr<Node> node_;
-
-    ObjectControl preparedControl_;
-    ObjectControl receivedControls_[2];
-    List<ObjectControl> sendedControls_;
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
+    bool packed_;
     PackedObjectControl preparedPackedControl_;
     PackedObjectControl receivedPackedControl_;
 #endif
+
+    ObjectControl preparedControl_;
+    ObjectControl receivedControls_[2];
+
+    WeakPtr<Node> node_;
+    List<ObjectControl> sendedControls_;
 
     static const ObjectControlInfo EMPTY;
 };

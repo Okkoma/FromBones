@@ -49,7 +49,7 @@
 		<attribute name="Type" value="Fly" />
 	</component>
 	<component type="GOC_Animator2D" >
-		<attribute name="Template" value="AnimatorTemplate_FlyAttacker" />
+		<attribute name="Template" value="AnimatorTemplate_FlyAttackerJ" />
 		<attribute name="State" value="State_Default_Air" />
 		<attribute name="Auto Switch Animations" value="false" />
 	</component>

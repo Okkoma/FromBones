@@ -325,6 +325,16 @@
 			<!-- <attribute name="New Event" value="name:SPRITER_Entity | applyToStates:State_Attack | action:AAction_SpawnEntity" />			 -->
 		<attribute name="Register Template" value="AnimatorTemplate_FlyAttacker" />
 		<attribute name="Define Template" value="AnimatorTemplate_Flyer" />
+			<attribute name="New State" value="name:State_Attack | animKeyWords:attack;claw | tick:0.6" />
+			<attribute name="New Event" value="name:ControlAction1 | applyToStates:State_Default_Air;State_FlyUp;State_FlyDown | nextState:State_Attack" />
+			<attribute name="New Event" value="name:AEvent_StartLoop | applyToStates:State_Attack | action:AAction_ChangeAnim" />
+			<attribute name="New Event" value="name:AEvent_TickLoop | applyToStates:State_Attack | action:AAction_CheckAnim" />
+			<attribute name="New Event" value="name:AEvent_EndLoop | applyToStates:State_Attack | action:AAction_FindState" />
+			<attribute name="New Event" value="name:GOC_Life_Decrease | applyToStates:State_Attack | nextState:State_Hurt" />
+			<attribute name="New Event" value="name:GOC_Life_Dead | applyToStates:State_Attack | nextState:State_Dead" />
+			<!-- <attribute name="New Event" value="name:SPRITER_Entity | applyToStates:State_Attack | action:AAction_SpawnEntity" />			 -->
+		<attribute name="Register Template" value="AnimatorTemplate_FlyAttackerJ" />
+		<attribute name="Define Template" value="AnimatorTemplate_Flyer" />
 			<attribute name="New State" value="name:State_Attack | animKeyWords:attack;claw | tick:0.4" />
 			<attribute name="New State" value="name:State_Power1 | animKeyWords:power01| tick:2" />
 			<attribute name="New Event" value="name:ControlAction1 | applyToStates:State_Default_Air;State_FlyUp;State_FlyDown | nextState:State_Attack" />

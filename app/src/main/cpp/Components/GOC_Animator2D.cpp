@@ -696,7 +696,8 @@ GOC_Animator2D::GOC_Animator2D(Context* context) :
     physicFlipX_(false),
     followOwnerY_(false),
     alignment_(0),
-    forceAnimVersion_(-1)
+    forceAnimVersion_(-1),
+    spawnEntityMode_(SPAWNENTITY_ALWAYS)
 {
     eventActions_.Resize(NumEventSenderType);
 }
@@ -1279,6 +1280,12 @@ void GOC_Animator2D::SetNetState(const StringHash& state, unsigned animVersion, 
     if (statechanged)
         ApplyNewStateAction();
 }
+
+void GOC_Animator2D::SetSpawnEntityMode(int mode)
+{
+    spawnEntityMode_ = mode;
+}
+
 
 bool GOC_Animator2D::HasAnimationForState(unsigned state) const
 {
@@ -2948,9 +2955,17 @@ void GOC_Animator2D::SpawnParticule(const VariantMap& param)
 static PhysicEntityInfo sPhysicInfo_;
 static SceneEntityInfo sSceneInfo_;
 
+
 void GOC_Animator2D::SpawnEntity(const VariantMap& param)
 {
 //    URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) ...", node_->GetName().CString(), node_->GetID());
+
+    if (spawnEntityMode_ != SPAWNENTITY_ALWAYS)
+    {
+        if (spawnEntityMode_ == SPAWNENTITY_SKIPONCE)
+            spawnEntityMode_ = SPAWNENTITY_ALWAYS;
+        return;
+    }
 
     const EventTriggerInfo& triggerInfo = animatedSprite->GetEventTriggerInfo();
 
@@ -2978,7 +2993,7 @@ void GOC_Animator2D::SpawnEntity(const VariantMap& param)
     Ability* ability = abilities_ ? abilities_->GetAbility(triggerInfo.type_) : 0;
     if (ability)
     {
-//        URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) Try to use ability for spawning entity=%s ...", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString());
+        URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) Try to use ability for spawning entity=%s ...", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString());
 
         node = ability->Use(node_->GetWorldPosition2D() + Vector2(GetDirection().x_ * GetDefaultOrientationAttr(), 0.f));
         if (!node)
@@ -3052,7 +3067,7 @@ void GOC_Animator2D::SpawnEntity(const VariantMap& param)
         const GOTInfo& gotinfo = GOT::GetConstInfo(triggerInfo.type_);
         if (gotinfo.pooltype_ == GOT_GOPool)
         {
-//            URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) ... Try to use static ability for spawning entity=%s ...", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString());
+            URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) ... Try to use static ability for spawning entity=%s ...", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString());
             node = Ability::Use(triggerInfo.type_, node_, sPhysicInfo_, gotinfo.replicatedMode_);
         }
         else
@@ -3062,7 +3077,7 @@ void GOC_Animator2D::SpawnEntity(const VariantMap& param)
             sSceneInfo_.zindex_ = triggerInfo.zindex_;
             sSceneInfo_.ownerNode_ = node_;
 
-//            URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) Try to spawn entity=%s entityid=%u ... dirx=%f rot=%f faction=%u", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString(), triggerInfo.entityid_, GetDirection().x_, sSceneInfo_.faction_);
+            URHO3D_LOGINFOF("GOC_Animator2D() - SpawnEntity : Node=%s(%u) Try to spawn entity=%s entityid=%u ... dirx=%f rot=%f faction=%u", node_->GetName().CString(), node_->GetID(), GOT::GetType(triggerInfo.type_).CString(), triggerInfo.entityid_, GetDirection().x_, sSceneInfo_.faction_);
             node = World2D::SpawnEntity(triggerInfo.type_, triggerInfo.entityid_ | SetEntityFlag, 0, node_->GetID(), node_->GetVar(GOA::ONVIEWZ).GetInt(), sPhysicInfo_, sSceneInfo_);
         }
 

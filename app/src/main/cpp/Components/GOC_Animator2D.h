@@ -33,6 +33,14 @@ enum EventSenderType
     Sender_All,
     NumEventSenderType
 };
+
+enum SpawnEntityMode
+{
+    SPAWNENTITY_ALWAYS = 0,
+    SPAWNENTITY_SKIPONCE,
+    SPAWNENTITY_NEVER
+};
+
 struct AnimInfo
 {
     AnimInfo() : animIndex(0), animLength(0.f) { }
@@ -214,6 +222,8 @@ public:
     void SetNetState(const StringHash& state, unsigned animindex, bool forcechange);
     void SetEventActions(const String& eventactions);
     void SetOwner(Node* node);
+
+    void SetSpawnEntityMode(int mode);
 
     void MoveLayer(int layerinc, bool alldrawables=true);
 
@@ -425,11 +435,12 @@ private :
 
     unsigned lastOnMove;
     unsigned lastAction;
-    int alignment_;
     unsigned currentStateIndex;
-    int forceAnimVersion_;
     unsigned netChangeCounter_;
+    int alignment_;
     int toDisappearCounter_;
+    int forceAnimVersion_;
+    int spawnEntityMode_;
 
     // animation Info Indexes for currentStateIndex
     Vector<int> animInfoIndexes_;

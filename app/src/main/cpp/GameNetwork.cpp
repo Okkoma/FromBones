@@ -1446,82 +1446,79 @@ ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool s
             spawnstamp = 1;
     }
 
-    unsigned spawnid = GetSpawnID(holderid, spawnstamp);
+    const unsigned spawnid = GetSpawnID(holderid, spawnstamp);
+    const bool isClientControl = clientID_ > 0 && holderclientid == clientID_;
+    bool newinfo = false;
 
     // check if an objectControl is already available in spawnControls_
     ObjectControlInfo* oinfo = GetSpawnControl(holderclientid, spawnid);
-    if (oinfo)
+    if (!oinfo)
     {
-        URHO3D_LOGINFOF("GameNetwork() - AddSpawnControl : clientid=%d node=%s(%u) ... spawnid=%u(holderid=%u,spawnstamp=%u) ... oinfo=%u holderptr=%u(nodeid=%u,clientid=%d) spawnstamp=%u !",
-                        clientID_, node ? node->GetName().CString() : "null", nodeid, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), oinfo, holder, holderid, holderclientid, spawnstamp);
-        return oinfo;
-    }
-
-    // check if an objectControl is already available in ObjectControls Storage
-    const bool isClientControl = clientID_ > 0 && holderclientid == clientID_;
-    bool newinfo;
-    if (isClientControl)
-    {
-        for (unsigned i=0; i < clientObjectControls_.Size(); i++)
+        // check if an objectControl is already available in ObjectControls Storage
+        if (isClientControl)
         {
-            ObjectControlInfo& info = clientObjectControls_[i];
-            if (!info.active_ && info.clientNodeID_ == nodeid)
+            for (unsigned i=0; i < clientObjectControls_.Size(); i++)
             {
-                oinfo = &info;
-                break;
+                ObjectControlInfo& info = clientObjectControls_[i];
+                if (!info.active_ && info.clientNodeID_ == nodeid)
+                {
+                    oinfo = &info;
+                    break;
+                }
+            }
+            newinfo = !oinfo;
+            // create a new ObjectControlInfo
+            if (newinfo)
+            {
+                clientObjectControls_.Resize(clientObjectControls_.Size()+1);
+                oinfo = &clientObjectControls_.Back();
             }
         }
-        newinfo = !oinfo;
-        // create a new ObjectControlInfo
-        if (newinfo)
+        else
         {
-            clientObjectControls_.Resize(clientObjectControls_.Size()+1);
-            oinfo = &clientObjectControls_.Back();
-        }
-    }
-    else
-    {
-        for (unsigned i=0; i < serverObjectControls_.Size(); i++)
-        {
-            ObjectControlInfo& info = serverObjectControls_[i];
-            if (!info.active_ && (info.serverNodeID_ == nodeid || info.clientNodeID_ == nodeid))
+            for (unsigned i=0; i < serverObjectControls_.Size(); i++)
             {
-                oinfo = &info;
-                break;
+                ObjectControlInfo& info = serverObjectControls_[i];
+                if (!info.active_ && (info.serverNodeID_ == nodeid || info.clientNodeID_ == nodeid))
+                {
+                    oinfo = &info;
+                    break;
+                }
+            }
+            newinfo = !oinfo;
+            // create a new ObjectControlInfo
+            if (newinfo)
+            {
+                serverObjectControls_.Resize(serverObjectControls_.Size()+1);
+                oinfo = &serverObjectControls_.Back();
             }
         }
-        newinfo = !oinfo;
-        // create a new ObjectControlInfo
-        if (newinfo)
+
+        // Register in SpawnControls
+        spawnControls_[holderclientid][spawnid] = oinfo;
+
+        // Set the Objectinfo
+        oinfo->clientId_ = holderclientid;
+        oinfo->node_ = node;
+
+        if (clientMode_)
         {
-            serverObjectControls_.Resize(serverObjectControls_.Size()+1);
-            oinfo = &serverObjectControls_.Back();
+            oinfo->clientNodeID_ = nodeid;
+            oinfo->serverNodeID_ = 0;
+        }
+        else
+        {
+            oinfo->serverNodeID_ = nodeid;
+            oinfo->clientNodeID_ = 0;
         }
     }
 
-    // Register in SpawnControls
-    spawnControls_[holderclientid][spawnid] = oinfo;
-
-    // Set the Objectinfo
-    oinfo->clientId_ = holderclientid;
-    oinfo->node_ = node;
-    oinfo->active_ = true;
-    if (clientMode_)
-    {
-        oinfo->clientNodeID_ = nodeid;
-        oinfo->serverNodeID_ = 0;
-    }
-    else
-    {
-        oinfo->serverNodeID_ = nodeid;
-        oinfo->clientNodeID_ = 0;
-    }
-
+    oinfo->prepared_ = false;
     PrepareControl(*oinfo);
     oinfo->GetPreparedControl().states_.spawnid_ = spawnid;
     oinfo->GetPreparedControl().states_.stamp_ = 0;
     oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, allowNetSpawn);
-
+    oinfo->active_ = true;
     if (enable)
         oinfo->SetEnable(enable);
 
@@ -1585,10 +1582,11 @@ void GameNetwork::LinkSpawnControl(int clientid, unsigned spawnid, unsigned serv
 
 void GameNetwork::NetSpawnEntity(unsigned netnodeid, const ObjectControlInfo& refinfo, ObjectControlInfo*& oinfo)
 {
-    unsigned spawnid = refinfo.GetReceivedControl().states_.spawnid_;
-    unsigned holderid = GetSpawnHolder(spawnid);
+    const unsigned spawnid = refinfo.GetReceivedControl().states_.spawnid_;
+    const unsigned holderid = GetSpawnHolder(spawnid);
 
-//    URHO3D_LOGERRORF("GameNetwork() - NetSpawnEntity : clientid=%d ... spawnid=%u(holderid=%u,spawnstamp=%u) ...", clientID_, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
+    URHO3D_LOGERRORF("GameNetwork() - NetSpawnEntity : clientid=%d ... spawnid=%u(holderid=%u,spawnstamp=%u) posreceived=%F,%F...",
+                     clientID_, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), refinfo.GetReceivedControl().holderinfo_.point1x_, refinfo.GetReceivedControl().holderinfo_.point1y_);
 
     int holderclientid = 0;
     Node* holder = 0;
@@ -3320,7 +3318,7 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
     }
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
-    objectControl.Pack(info.preparedPackedControl_);
+    info.packed_ = false;
 #endif
 
     info.prepared_ = true;
@@ -3914,7 +3912,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
                 continue;
             }
 
-            unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
+            const unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
             bool setposition = true;
 
             // no servernodeid received => check if a node has been spawned for this spawnid
@@ -4138,7 +4136,7 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
                 continue;
 
             ObjectControlInfo* oinfo = 0;
-            unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
+            const unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
             bool setposition = true;
 
             // check for avatar nodeid
@@ -4154,6 +4152,8 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
                 // check if a node has been spawned for this spawnid
                 oinfo = GetSpawnControl(nodeclientid, spawnid);
 
+                const bool spawncontrol = oinfo != 0;
+
                 // no spawncontrol, get the current server object control for the server nodeid
                 if (!oinfo)
                     oinfo = GetServerObjectControl(servernodeid);
@@ -4163,20 +4163,15 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
                 {
                     if (sDumpObject_.GetReceivedControl().HasNetSpawnMode() && sDumpObject_.IsEnable())
                     {
-//                        if (!avatarnode)
-//                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) ... spawn entity ...",
-//                                        clientID_, nodeclientid, servernodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
+//                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) spawncontrol=%s ... spawn entity ...",
+//                                        clientID_, nodeclientid, servernodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), spawncontrol?"true":"false");
+
+                        //assert(!(servernodeid >= 16792822 && servernodeid <= 16792836 && spawncontrol == true));
 
                         // entity to instantiate
                         NetSpawnEntity(servernodeid, sDumpObject_, oinfo);
                         setposition = false;
                     }
-//                    else
-//                    {
-//                        if (!avatarnode)
-//                        URHO3D_LOGERRORF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) ... no spawn entity allowed ...",
-//                                        clientID_, nodeclientid, servernodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
-//                    }
                 }
 
                 if (oinfo && oinfo->node_)
@@ -4328,7 +4323,7 @@ void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, Var
             if (servernodeid < 2)
                 continue;
 
-            unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
+            const unsigned spawnid = sDumpObject_.GetReceivedControl().states_.spawnid_;
 
             if (GameContext::Get().IsAvatarNodeID(servernodeid, clientID_))
             {
@@ -4567,8 +4562,10 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
         if (objectControlInfo.clientId_ == 0)
         {
 #ifdef ACTIVE_NETWORK_DEBUGSERVER_SEND_SERVEROBJECTS
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : server send object servernodeid=%s(%u) clientnodeid=%u to all clients !",
-                            objectControlInfo.node_ ? objectControlInfo.node_->GetName().CString() : "null", objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_);
+            const unsigned spawnid = objectControlInfo.GetPreparedControl().states_.spawnid_;
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : server send object servernodeid=%s(%u) clientnodeid=%u spawnid=%u(holderid=%u, spawnstamp=%u) to all clients !",
+                            objectControlInfo.node_ ? objectControlInfo.node_->GetName().CString() : "null", objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_,
+                            spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
 #ifdef ACTIVE_NETWORK_LOGSTATS
             unsigned lastbuffersize = preparedServerMessageBuffer_.GetBuffer().Size();

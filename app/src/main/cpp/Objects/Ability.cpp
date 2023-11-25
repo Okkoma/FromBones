@@ -134,6 +134,16 @@ Node* Ability::Use(const StringHash& got, Node* holder, const PhysicEntityInfo& 
         node->GetComponent<RigidBody2D>()->SetLinearVelocity(node->GetDirection().ToVector2() * GRAPIN_VEL);
     }
 
+    if (holder && got == ABIBomb::GetTypeStatic())
+    {
+        GOC_Animator2D* holderAnimator = holder->GetComponent<GOC_Animator2D>();
+        if (holderAnimator)
+        {
+            holderAnimator->SetSpawnEntityMode(SPAWNENTITY_SKIPONCE);
+            holderAnimator->SetNetState(StringHash(STATE_ATTACK), 0, true);
+        }
+    }
+
     node->SetVar(GOA::ONVIEWZ, holder ? holder->GetVar(GOA::ONVIEWZ).GetInt() : viewZ);
 
     node->SendEvent(WORLD_ENTITYCREATE);
@@ -142,9 +152,9 @@ Node* Ability::Use(const StringHash& got, Node* holder, const PhysicEntityInfo& 
 
     const Vector2& pos = node->GetWorldPosition2D();
 
-    URHO3D_LOGINFOF("Ability() - Use (static) holder=%s(%u-clientid=%d) node=%s(%u) faction=%u pos=%F,%F dir=%F rot=%F",
+    URHO3D_LOGINFOF("Ability() - Use (static) holder=%s(%u-clientid=%d) node=%s(%u) faction=%u pos=%F,%F dir=%F rot=%F mode=%s",
                     holder ? holder->GetName().CString() : "null", holder ? holder->GetID() : 0, holderclientid, node->GetName().CString(), node->GetID(),
-                    node->GetVar(GOA::FACTION).GetUInt(), pos.x_, pos.y_, physics.direction_, physics.rotation_);
+                    node->GetVar(GOA::FACTION).GetUInt(), pos.x_, pos.y_, physics.direction_, physics.rotation_, replicatemode ? "replicate":"local");
 
     if (!GameContext::Get().LocalMode_)
     {
@@ -802,7 +812,11 @@ Node* ABIBomb::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
         }
 
         if (!GameContext::Get().LocalMode_ && UseNetworkReplication())
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, false, true, false);
+        {
+            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node_, holder_, false, true, true);
+            if (oinfo && cinfo)
+                *oinfo = cinfo;
+        }
 
         isInUse_ = false;
     }

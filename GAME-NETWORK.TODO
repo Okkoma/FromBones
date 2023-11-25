@@ -7,6 +7,70 @@
 
 Todos:   
 
+    ✔ 23/11/2023 : pb de desynchro des lames, des bombes etc... suite au derniere modification sur AddSpawnControl (DROPITEM-23/11/2023) @done(23-11-24 17:42)
+        cf GOC_Destroyer::Destroy->Server_RemoveObject(node) qui était Server_RemoveObject(node,!node->isPoolNode_)
+        cf Map::AddEntity->AddSpawnControl qui force le spawn en servercontrolled : dans le cas des lames et des bombes cela ne passe normalement pas par ici mais par Ability::Use
+        LOG SERVER avatar main apres 15 spawn
+            [Fri Nov 24 12:37:57 2023] INFO: Player() - HandleClic : ID=1 at 421 716
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792836) ... spawnid=419430454(holderid=16777270,spawnstamp=25) ... 
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=2336413104 srvnodeid=16792836 cltnodeid=0 holderptr=2809938768(nodeid=16777270,clientid=0) spawnstamp=25 !
+            [Fri Nov 24 12:37:57 2023] INFO: ABI_Shooter() - Use : pos=12.27,14.44 dir=-0.98,0.18 faction=1 viewZ=100
+            [Fri Nov 24 12:37:59 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792836) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
+            [Fri Nov 24 12:37:59 2023] ERROR: GameNetwork() - PushObjectCommand : clientid=0(from:0) stamp=18(0) broadcast=true cmd=ERASENODE=1 nodeid=16792836 !
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - Server_RemoveObject : servernodeid=16792836 oinfo=2336413104 active=false clientnodeid=0 ... OK !
+            ...
+            [Fri Nov 24 12:38:07 2023] INFO: Player() - HandleClic : ID=1 at 894 239
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792822) ... spawnid=436207670(holderid=16777270,spawnstamp=26) ... 
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=2336407616 srvnodeid=16792822 cltnodeid=0 holderptr=2809938768(nodeid=16777270,clientid=0) spawnstamp=26 !
+            [Fri Nov 24 12:38:07 2023] INFO: ABI_Shooter() - Use : pos=9.94,14.67 dir=-0.09,1.00 faction=1 viewZ=100
+            [Fri Nov 24 12:38:09 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792822) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
+            [Fri Nov 24 12:38:09 2023] ERROR: GameNetwork() - PushObjectCommand : clientid=0(from:0) stamp=19(0) broadcast=true cmd=ERASENODE=1 nodeid=16792822 !
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - Server_RemoveObject : servernodeid=16792822 oinfo=2336407616 active=false clientnodeid=0 ... OK !
+        LOG CLIENT 
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=1 nodeclientid=0 servernodeid=16792836 oinfo=0 spawnid=419430454(holder=16777270,stamp=25) spawncontrol=false ... spawn entity ...
+            [Fri Nov 24 12:37:57 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 ... spawnid=419430454(holderid=16777270,spawnstamp=25) posreceived=12.27,14.45...
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - NetAddEntity : got=ABI_Shooter(3976370133) ... serverNodeID=16792836 clientNodeID=0 ...
+            [Fri Nov 24 12:37:57 2023] INFO: Ability() - Use (static) holder=avatar(16777270-clientid=0) node=TA(16792836) faction=1 pos=12.27,14.45 dir=0.00 rot=-10.47 mode=local
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - NetAddEntity : got=ABI_Shooter(3976370133) ... node=TA(16792836) enable=true !
+            [Fri Nov 24 12:37:57 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 node=TA(16792836) ... pos=12.27,14.45 spawnid=419430454(holderid=16777270,spawnstamp=25) ... new oinfo=2329577960 holderptr=2844529248(nodeid=16777270,clientid=0) !
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - LinkSpawnControl : oinfo=2329577960 from clientid=0 spawnid=419430454 links serverNodeID_=16792836 clientNodeID_=16792836 !
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : try ObjectCommand cmd=ERASENODE=1 for nodeid=16792836 broadcast=true cmdclientid=0 cmdstamp=18 serverObjCmdAck=17 test=true...
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=0 cmdstamp=18 serverObjCmdAck=17 ... OK !
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(ERASENODE=1) nodeid=16792836 ...
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - Client_CommandRemoveObject : node=16792836 ...
+            [Fri Nov 24 12:37:59 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792836) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
+            [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - Client_CommandRemoveObject : serverObjectControl id=16792836 inactived oldenable=1 enable=0 !
+            ...
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=1 nodeclientid=0 servernodeid=16792822 oinfo=2329572472 spawnid=184549430(holder=16777270,stamp=11) spawncontrol=true ... spawn entity ...
+            [Fri Nov 24 12:38:07 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 ... spawnid=184549430(holderid=16777270,spawnstamp=11) posreceived=12.27,14.44...
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - NetAddEntity : got=ABI_Shooter(3976370133) ... serverNodeID=16792822 clientNodeID=16792822 ...
+            [Fri Nov 24 12:38:07 2023] INFO: Ability() - Use (static) holder=avatar(16777270-clientid=0) node=TA(16792822) faction=1 pos=12.27,14.44 dir=0.00 rot=-8.38 mode=local
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - NetAddEntity : got=ABI_Shooter(3976370133) ... node=TA(16792822) enable=true !
+            [Fri Nov 24 12:38:07 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 node=TA(16792822) ... pos=12.27,14.44 spawnid=184549430(holderid=16777270,spawnstamp=11) ...  oinfo=2329572472 holderptr=2844529248(nodeid=16777270,clientid=0) !
+            [Fri Nov 24 12:38:09 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792822) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : try ObjectCommand cmd=ERASENODE=1 for nodeid=16792822 broadcast=true cmdclientid=0 cmdstamp=19 serverObjCmdAck=18 test=true...
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=0 cmdstamp=19 serverObjCmdAck=18 ... OK !
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(ERASENODE=1) nodeid=16792822 ...
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - Client_CommandRemoveObject : node=16792822 ...
+            [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - Client_CommandRemoveObject : serverObjectControl id=16792822 inactived oldenable=1 enable=0 !
+        1ere remarque : il n'est pas necessaire que le serveur envoit ERASENODE pour les objects qui ont un temps de vie fixé. (Lame, Bombe etc...)
+        2eme remarque : la consommation en objectcontrol va etre importante, il faut penser à un pool d'objectcontrol.
+        sur les lames (15 lames de qty de pool), pb de position,rotation lors du spawn apres les 15 premieres lame ... cela reprend la position des premiers pop
+            il n'y a pas le meme spawnid, le spawnstamp different. juste avant la 16 lame spawné cela se passe bien. 
+            le server reutilise un ObjectControlInfo mais avec spawnstamp changé => le client reprend un ObjectControlInfo dans spawnControls_
+            => cela vient de la reception, en desactivant ACTIVE_PACKEDOBJECTCONTROL, on retrouve le bon spawnid.
+            ==> correctif pour s'assurer que le control est bien packé (faire le Pack dans Write).
+        pour les Bombes, le probleme provient de l'animation qui va lancer parfois plusieurs bombes sur le main mais pas sur les remotes.
+            => il se crée un décalage de spawnstamp : le spawnstamp est pris localement. Il n'y aura pas de synchro faite
+            ==> des essais ont du etre fait (je me rappelle plus trop) avec localStamps_ et receivedStamps_ mais cela ne marchera pas avec les spawnstamp qui sont spécifiquement lié à un holderid.
+            => la correction de synchro est faite pour junkelspil en modifiant le tick. l'animation spawn l'entityBomb vers 400 et l'animation fait 600. 
+                pour eviter la repetition de spawn mettre le tick à 0.6. prise d'un nouveau animatortemplate FlyAttackerJ.
+            => pour le spawn avec le clic souris, il y a toujours pb de spawn (avec la touche attaque pas de pb) coté remote
+            ==> le clic n'est pas envoyer coté remote
+            ===> le remote doit recevoir le changement de state ainsi que la direction de spawn. 
+                il faut AddSpawnControl comme les lames (NetSpawnAllow=true) avec changement d'animation en STATE_ATTACK et intterdiction pour GOC_Animator de spawner une bombe dans ce cas.
+            ====> OK : ajout de GOC_Animator2D::SetSpawnEntityMode(), et modification de Ability::Use(static) => ajout holder->SetSpawnEntityMode(SPAWNENTITY_SKIPONCE).
+                
     ☐ 22/11/2023 : mettre à jour network.svg
         Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
         Mettre des cas d'usage précis

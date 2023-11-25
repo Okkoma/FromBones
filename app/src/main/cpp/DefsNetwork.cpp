@@ -82,7 +82,6 @@ void ObjectControl::Pack(PackedObjectControl& packedobject)
     packedobject.physics_.rotation_ = float_to_half(physics_.rotation_);
     packedobject.physics_.direction_ = float_to_half(physics_.direction_);
 
-    packedobject.states_.totalDpsReceived_ = float_to_half(states_.totalDpsReceived_);
     packedobject.states_.type_ = states_.type_;
     packedobject.states_.spawnid_ = states_.spawnid_;
     packedobject.states_.buttons_ = states_.buttons_;
@@ -92,6 +91,7 @@ void ObjectControl::Pack(PackedObjectControl& packedobject)
     packedobject.states_.viewZ_ = states_.viewZ_;
     packedobject.states_.flag_ = states_.flag_;
     packedobject.states_.stamp_ = states_.stamp_;
+    packedobject.states_.totalDpsReceived_ = float_to_half(states_.totalDpsReceived_);
 
     packedobject.holderinfo_.id_ = holderinfo_.id_;
     packedobject.holderinfo_.point1x_ = float_to_half(holderinfo_.point1x_);
@@ -110,7 +110,6 @@ void ObjectControl::Unpack(const PackedObjectControl& packedobject)
     physics_.rotation_ = half_to_float(packedobject.physics_.rotation_);
     physics_.direction_ = half_to_float(packedobject.physics_.direction_);
 
-    states_.totalDpsReceived_ = half_to_float(packedobject.states_.totalDpsReceived_);
     states_.type_ = packedobject.states_.type_ ;
     states_.spawnid_ = packedobject.states_.spawnid_;
     states_.buttons_ = packedobject.states_.buttons_;
@@ -120,6 +119,7 @@ void ObjectControl::Unpack(const PackedObjectControl& packedobject)
     states_.viewZ_ = packedobject.states_.viewZ_;
     states_.flag_ = packedobject.states_.flag_;
     states_.stamp_ = packedobject.states_.stamp_;
+    states_.totalDpsReceived_ = half_to_float(packedobject.states_.totalDpsReceived_);
 
     holderinfo_.id_ = packedobject.holderinfo_.id_;
     holderinfo_.point1x_ = half_to_float(packedobject.holderinfo_.point1x_);
@@ -162,6 +162,9 @@ ObjectControlInfo::ObjectControlInfo(const ObjectControlInfo& c)
 void ObjectControlInfo::Clear()
 {
     active_= prepared_ = false;
+#ifdef ACTIVE_PACKEDOBJECTCONTROL
+    packed_ = false;
+#endif
     serverNodeID_ = clientNodeID_ = 0;
     memset(receivedControls_, 0, 2 * sizeof(ObjectControl));
     memset(&preparedControl_, 0, sizeof(ObjectControl));
@@ -294,6 +297,11 @@ bool ObjectControlInfo::Write(VectorBuffer& msg)
 #endif
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
+    if (!packed_)
+    {
+        preparedControl_.Pack(preparedPackedControl_);
+        packed_ = true;
+    }
     msg.Write(&preparedPackedControl_, sizeof(PackedObjectControl));
 #else
     msg.Write(&preparedControl_, sizeof(ObjectControl));
@@ -395,6 +403,7 @@ unsigned short ObjectCommand::AddNewBroadCastStamp(Connection* connection)
     broadcastStamps_.Resize(clientInfo->clientID_+1);
     unsigned short& stamp = broadcastStamps_[clientInfo->clientID_];
     stamp = connection->GetServerObjCmdAck()+1;
+
     return stamp;
 }
 #endif
