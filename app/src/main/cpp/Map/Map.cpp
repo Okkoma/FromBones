@@ -1236,6 +1236,14 @@ void MapBase::SetTile(FeatureType feat, int x, int y, int viewZ, Tile** removedt
     URHO3D_LOGINFOF("MapBase() - SetTile : map=%s x=%d y=%d z=%d viewid=%s(%d) oldfeat=%s(%u) newfeat=%s(%u) ... OK !",
                     GetMapPoint().ToString().CString(), x, y, viewZ, ViewManager::GetViewName(viewid).CString(), viewid, MapFeatureType::GetName(oldfeat), oldfeat, MapFeatureType::GetName(featref), featref);
 #endif
+
+    tileModifiersDirty_ = true;
+}
+
+void MapBase::SetTiles(const PODVector<TileModifier>& tileModifiers)
+{
+    for (PODVector<TileModifier>::ConstIterator it = tileModifiers.Begin(); it != tileModifiers.End(); ++it)
+        SetTile(it->feat_, it->x_, it->y_, it->z_);
 }
 
 void MapBase::SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tileIndexes)
@@ -1530,7 +1538,7 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
     return true;
 }
 
-bool MapBase::SetTileModifiers(HiresTimer* timer, const long long& delay)
+bool MapBase::SetTileModifiers(const PODVector<TileModifier>& tileModifiers, HiresTimer* timer, long long delay)
 {
     // skip if in unavailable states
     if (GetStatus() > Available)
@@ -1543,9 +1551,7 @@ bool MapBase::SetTileModifiers(HiresTimer* timer, const long long& delay)
 
     if (mcount1 == 0)
     {
-        if (!CopyTileModifiersToCache(timer))
-            return false;
-
+        SetCachedTileModifiers(tileModifiers);
         if (!cacheTileModifiers_.Size())
         {
             URHO3D_LOGWARNINGF("MapBase() - SetTileModifiers : map=%s NoModifiers Setted !", GetMapPoint().ToString().CString());
@@ -1614,28 +1620,15 @@ bool MapBase::SetTileModifiers(HiresTimer* timer, const long long& delay)
 
 /// Mapdata Updaters
 
-// copy from MapData to Cached TileModifiers
-bool MapBase::CopyTileModifiersToCache(HiresTimer* timer)
+void MapBase::SetCachedTileModifiers(const PODVector<TileModifier>& tileModifiers)
 {
-    if (!mapData_)
-        return true;
-
     cacheTileModifiers_.Clear();
-
-    const Vector<TileModifier>& modifiers = mapData_->tilesModifiers_;
-    for (Vector<TileModifier>::ConstIterator it=modifiers.Begin(); it!=modifiers.End(); ++it)
+    for (PODVector<TileModifier>::ConstIterator it=tileModifiers.Begin(); it!=tileModifiers.End(); ++it)
         cacheTileModifiers_.Push(*it);
-
-    return true;
 }
 
-// copy from Cached TileModifiers to MapData
-bool MapBase::CopyTileModifiersToMapData(HiresTimer* timer)
+void MapBase::GetCachedTileModifiers(PODVector<TileModifier>& tileModifiers)
 {
-    if (!mapData_)
-        return true;
-
-    Vector<TileModifier>& tileModifiers = mapData_->tilesModifiers_;
     tileModifiers.Clear();
 
     if (tileModifiers.Capacity() < cacheTileModifiers_.Size())
@@ -1643,8 +1636,6 @@ bool MapBase::CopyTileModifiersToMapData(HiresTimer* timer)
 
     for (List<TileModifier>::ConstIterator it=cacheTileModifiers_.Begin(); it != cacheTileModifiers_.End(); ++it)
         tileModifiers.Push(*it);
-
-    return true;
 }
 
 bool MapBase::UpdateMapData(HiresTimer* timer)
@@ -1661,8 +1652,7 @@ bool MapBase::UpdateMapData(HiresTimer* timer)
     }
     if (mcount == 1)
     {
-        if (!CopyTileModifiersToMapData(timer))
-            return false;
+        GetCachedTileModifiers(mapData_->tilesModifiers_);
 
         GetMapCounter(MAP_FUNC2) = 0;
         mcount++;
@@ -4305,6 +4295,8 @@ void Map::Init()
     mapData_ = 0;
 
     cacheTileModifiers_.Clear();
+
+    tileModifiersDirty_ = entitiesDirty_ = false;
 
     SetSerializable(false);
 }

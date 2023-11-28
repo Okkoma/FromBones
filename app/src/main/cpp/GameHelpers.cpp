@@ -2876,8 +2876,8 @@ int GameHelpers::RemoveTile(const WorldMapPosition& position, bool addeffects, b
                 if (CheckForDoorPlacement(map, viewid, wpos, dooratleft))
                 {
                     EntityData entitydata;
-                    //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, char tilepositionx=0, char tilepositiony_=0, char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
-                    entitydata.Set(GOT::GetIndex(COT::GetTypeFrom(DUNGEONTHRESHOLD, 0)), wpos.tileIndex_, dooratleft ? 127 : -127, -127, -1, THRESHOLDVIEW, false, !dooratleft, false);
+                    //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, char tilepositionx=0, char tilepositiony_=0, unsigned char sstype=0, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
+                    entitydata.Set(GOT::GetIndex(COT::GetTypeFrom(DUNGEONTHRESHOLD, 0)), wpos.tileIndex_, dooratleft ? 127 : -127, -127, 0, THRESHOLDVIEW, false, !dooratleft, false);
                     Node* node = map->AddFurniture(entitydata);
                 }
             }

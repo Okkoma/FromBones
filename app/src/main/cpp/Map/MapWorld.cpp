@@ -640,6 +640,8 @@ void World2D::Set(bool load)
 {
     URHO3D_LOGINFOF("World2D() - Set ...");
 
+    worldObjectState_.stamp_ = 0U;
+
     // Sanitate wPoint, Register info_ if need or get new worldInfo
     worldPoint_ = MapStorage::CheckWorld2DPoint(context_, worldPoint_, info_);
 
@@ -1376,6 +1378,120 @@ Actor* World2D::SpawnActor(unsigned actorid, const Vector2& position, int viewZ)
         URHO3D_LOGINFOF("World2D() - SpawnActor : no actor with actorid=%u !", actorid);
 
     return actor;
+}
+
+
+/// Network World Objects
+
+const unsigned NumNetObjectsByMap = 2U;
+
+void World2D::SetNetWorldObjects(const VariantVector& objects)
+{
+    if (!objects.Size())
+    {
+        URHO3D_LOGERRORF("World2D() - SetNetWorldObjects ... no objects received !");
+        return;
+    }
+
+    VariantVector::ConstIterator it = objects.Begin();
+
+    // Get the stamp and check if new
+    unsigned short stamp = it->GetUInt();
+
+    if (!GameNetwork::CheckNewStamp<unsigned short>(stamp, worldObjectState_.stamp_, STAMP_MAXDELTASHORT))
+    {
+        URHO3D_LOGERRORF("World2D() - SetNetWorldObjects ... stamp received=%u (current=%u) not new !", stamp, worldObjectState_.stamp_);
+        return;
+    }
+
+    worldObjectState_.stamp_ = stamp;
+    it++;
+
+    while (it != objects.End())
+    {
+        // MapPoint
+        ShortIntVector2 mpoint(it->GetUInt());
+        it++;
+
+        Map* map = GetMapAt(mpoint);
+
+        // TileModifiers : use PODVector placement
+        map->SetTiles(PODVector<TileModifier>(it->GetBuffer(), true));
+        it++;
+
+        // Entities
+//        {
+//            const PODVector<unsigned char>& buf = varvector[2].GetBuffer();
+//            numentities = buf.Size() / sizeof(EntityData);
+//        }
+
+        URHO3D_LOGINFOF("World2D() - SetNetWorldObjects ... map=%s ... OK !", mpoint.ToString().CString());
+    }
+}
+
+const VariantVector& World2D::GetNetWorldObjects()
+{
+    PrepareNetWorldObjects();
+    return worldObjectState_.datas_;
+}
+
+void World2D::PrepareNetWorldObjects()
+{
+    const HashMap<ShortIntVector2, Map* >& maps = mapStorage_->GetMapsInMemory();
+    if (!maps.Size())
+    {
+        URHO3D_LOGERRORF("World2D() - PrepareNetWorldObjects ... no map in memory !");
+        return;
+    }
+
+    bool change = false;
+
+    // Check for a change
+    for (HashMap<ShortIntVector2, Map* >::ConstIterator it = maps.Begin(); it != maps.End(); ++it)
+    {
+        if (it->second_->IsTileModifiersDirty() || it->second_->IsEntitiesDirty())
+        {
+            change = true;
+            break;
+        }
+    }
+
+    // if any change occurs, do a new snapshot of the world objects
+    if (change)
+    {
+        worldObjectState_.datas_.Resize(NumNetObjectsByMap*maps.Size() + 1);
+
+        // Push the stamp
+        worldObjectState_.stamp_++;
+        worldObjectState_.datas_[0] = Variant((unsigned)worldObjectState_.stamp_);
+
+        URHO3D_LOGINFOF("World2D() - PrepareNetWorldObjects ... stamp=%u", worldObjectState_.stamp_);
+
+        PODVector<TileModifier> tileModifiers;
+        unsigned i = 1;
+        for (HashMap<ShortIntVector2, Map* >::ConstIterator it = maps.Begin(); it != maps.End(); ++it, i+=NumNetObjectsByMap)
+        {
+            Map* map = it->second_;
+
+            // set MapPoint
+            worldObjectState_.datas_[i] = Variant(it->first_.ToHash());
+
+            // TileModifiers
+            map->GetCachedTileModifiers(tileModifiers);
+            worldObjectState_.datas_[i+1].SetBuffer(tileModifiers.Buffer(), tileModifiers.Size() * sizeof(TileModifier));
+            map->SetTileModifiersDirty(false);
+
+            // TODO : Entities
+            map->SetEntitiesDirty(false);
+            // Push All Modified EntityData
+            //static HashMap<ShortIntVector2, MapEntityInfo > mapEntities_;
+            //static HashMap<ShortIntVector2, MapFurnitureLocation> mapFurnitures_;
+        }
+    }
+    else
+    {
+        URHO3D_LOGINFOF("World2D() - PrepareNetWorldObjects ... no change !");
+    }
 }
 
 
@@ -3510,7 +3626,10 @@ void World2D::DumpEntitiesInMemory() const
     URHO3D_LOGINFOF("World2D() - DumpEntitiesInMemory : NumMapsInMemory=%u", maps.Size());
 
     for (HashMap<ShortIntVector2, Map* >::ConstIterator it=maps.Begin(); it!=maps.End(); ++it)
+    {
         DumpNodeList(GetEntities(it->first_), String("Map " + it->first_.ToString()) + " " + (it->second_->IsEffectiveVisible() ? "shown":"hidden"));
+        it->second_->GetMapData()->Dump();
+    }
 }
 
 void World2D::DumpMapsInMemory() const

@@ -7,6 +7,30 @@
 
 Todos:   
 
+    ☐ Server Graphics
+        pouvoir choisir si on demarre avec un avatar ou pas. Par defaut aucun.
+        lorsque la partie est finie (un seul survivant, ou bien temps écoulé (calcul des points), ou bien flag rapporté en fonction du mod de jeu),
+        envoi du message de fin de partie à l'ensemble des clients.
+
+    ☐ Server Headless
+        L'engine n'aura plus les sous systeme Graphics et Renderer
+        Suppression de l'UI, Sound, Input, Renderer2D
+        quels impacts sur les composants de jeux utilisant Renderer2D, Renderer et Graphics.
+        il ne doit rester que GameNetwork et PlayState (à modifier - aucun spawn de joueur locaux)
+
+    ☐ 28/11/2023 : Pb ObjectCommand avec activation de NetSimulator
+        s'assurer que les ObjectCommands qui n'ont pas été reçu sont bien renvoyés
+        il faut créer une pile d'ObjectCommands à envoyer.
+        on doit pouvoir gérer
+            un vector des ObjectCommands préparés et taggés par stamp
+            un vector des stamps reçus (ack)
+            un vector des stamps manquants attendus
+            les ObjectCommands préparés et envoyés dont le stamp est bien reçu peuvent être supprimées sinon doivent être réenvoyés.
+            les ObjectCommands reçus et non taggés "InOrder" peuvent être executés.
+            les ObjectCommands reçus et taggés "InOrder" sont executé quand ils arrivent en tête de séquence. la Tete de sequence correspond au stampAck qui est envoyé vers l'emetteur pour l'informer de la reception
+            ce stamp ack est envoyé tant que le stamp reçu est égal à celui-ci
+            si le stamp reçu est nouveau par rapport au stamp ack, le stamp ack est incrémenté jusqu'au prochain trou dans la séquence. et les ObjectCommands sont alors executés jusqu'à cette nouvelle Tete.            
+
     ✔ 23/11/2023 : pb de desynchro des lames, des bombes etc... suite au derniere modification sur AddSpawnControl (DROPITEM-23/11/2023) @done(23-11-24 17:42)
         cf GOC_Destroyer::Destroy->Server_RemoveObject(node) qui était Server_RemoveObject(node,!node->isPoolNode_)
         cf Map::AddEntity->AddSpawnControl qui force le spawn en servercontrolled : dans le cas des lames et des bombes cela ne passe normalement pas par ici mais par Ability::Use
@@ -74,6 +98,7 @@ Todos:
     ☐ 22/11/2023 : mettre à jour network.svg
         Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
         Mettre des cas d'usage précis
+        voir pour la synchronisation des spawnstamp
 
     ✔ 21/11/2023 : lors d'un retour au menu pour un client et retour en jeu, le changement d'equipment n'est plus repercuté sur le serveur ni sur les autres clients @done(23-11-21 15:38)
         coté client lors de la reconnexion, il y a Reset de ObjCmdAck
@@ -125,7 +150,9 @@ Todos:
         ====> 21/11/2023 : dans GameNetwork::CleanObjectCommands(), il ne faut pas compter dans la recherche de oldestObjectCmdAck les ObjCmdAck provenant des clients hors partie.
         =====> Ok 
 
-    ☐ 20/11/2023 : la pluie apparait sur le serveur, un autre client mais pas le dernier
+    ✔ 20/11/2023 : la pluie apparait sur le serveur, un autre client mais pas le dernier @done(23-11-27 11:07)
+        ajouter la synchronisation du temps au snap initial.
+        => ok ajout de NetObjCommand::SETWEATHER et de WeatherManager::SetNetWorldInfos et GameNetwork::Server_SendWeatherInfos
 
     ✔ 20/11/2023 : probleme de Lights lorsque plusieurs avatars due aux limitations d'URHO3D @done(23-11-20 14:41)
         on doit avoir le meme probleme en multiplayers local
@@ -232,14 +259,20 @@ Todos:
 
     ☐ 16/11/2023 : snap initial
         le serveur doit envoyer un snap initial au client qui se connecte.
-            cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
-            tous les nodes et les states : ex: l'etat des coffres(plein, vide), l'etat des lights(allumé,eteint)
+            cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS            
+            tous les nodes ajoutés/retirés et les states : ex: l'etat des coffres(plein, vide), l'etat des lights(allumé,eteint)
+            => il faut tracer dans World2D les ajout/suppression de nodes.
         le client recupère le snap et synchronise sa scene
             fait le tri sur les nodes déjà existants, ceux à supprimer et ceux à créer.
             supprime, crée et met à jour les nodes avec les bons attributs, états.
-        ✔  16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
-
+        ✔ 16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
+        ✔ 23/11/2023 : ajout de Weather => GameNetwork::Server_SendWeatherInfos @done(23-11-28 15:04)
+        ✔ 28/11/2023 : ajout des TileModifiers => GameNetwork::Server_SendWorldObjects @done(23-11-28 15:04)
+        ☐ ajout des entities
+            
     ☐ 14/11/2023 : ajouter deux modes reseau : arena (salle d'attente, redirection vers une partie en attente, synchronisation des autres clients, lancement) et world (pas d'attente)
+        avec le NetSimulator activé, pour le moment il y a un probleme pour mode reseau sans attente, car en arena si on lance un serveur et un client en playstate. Puis on ajoute un second client et playstate
+        alors le second client n'a pas la synchro du snap initial, ni les equipments ...
 
     ✔ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte. @done(23-11-17 16:07)
         les clients ne doivent pas avoir à charger de l'inventaire local, l'ordre doit venir du serveur.
@@ -273,14 +306,19 @@ Todos:
                 modification de GameNetwork::PushObjectCommand et GameNetwork::HandlePlayServer_ReceiveUpdate
                 suppression du workaround et test ok avec activation du define ACTIVE_OBJECTCOMMAND_BROADCASTING
 
-    ✔ 14/11/2023 : coté distant, le grapin reste en permanence. @done(23-11-23 18:13)
+    ✔ 14/11/2023 : coté distant, le grapin reste en permanence. @done(23-11-25 20:45)
         ex: spawn coté serveur et destruction -> spawn coté client mais reste.
         -> il s'agit surement d'un probleme similaire à la collecte au sol de collectable
         ==> il faut que le serveur envoie une commande de remove object aux clients
-        => Resolu suite à la resolution du 23/11/2023 DROPITEM sur la synchro serveur/client des ObjectControl via AddSpawnControl
+        => Resolu suite à la resolution du 23/11/2023 DROPITEM sur la synchro serveur/client des ObjectControl via AddSpawnControl        
+        25/11/2023 : Le grapin qui n'est pas encore accroché, ne s'efface pas coté remote
+        => OK : Modification de GOC_PhysicRope::Release() => 3eme etat holderinfo_.id_ = M_MAX_UNSIGNED, modif GameNetwork::UpdateControl()
 
-    ☐ 14/11/2023 : coté distant, le grapin n'affiche pas toujours la chaine
-        -> il faut envoyer l'etat accroché
+    ✔ 14/11/2023 : coté distant, le grapin n'affiche pas toujours la chaine @done(23-11-26 16:13)
+        -> l'etat attaché est defini lorsque le holderinfo.id_ est different de 0. cf GameNetwork::UpdateControl()
+            le probleme survient du à l'approximation faite dans le packing de l'objectcontrol.
+            GOC_PhysicRope::CreateRope n'est pas en mesure de créer la chaine si deltay >= 0.
+            ajout d'un seuil superieur et ne pas utiliser le holder->GetWorlMassCenter() mais GetWorldPosition2D()
 
     ☐ 13/11/2023 : l'envoi de l'etat allumé éteint des torches/bougies est à faire.
         via ObjectCommand
@@ -383,7 +421,7 @@ Todos:
             ==> ENABLENODE envoyer par le server n'est pas bon dans ce cas : creation de Client_CommandEnableObject qui va tester si le node est mort et le retirer proprement avec WORLD_ENTITYDESTROY et destroyer->Reset(false)
             ===> il y a eu ensuite un pb de desactivation des physics (body,shapes) resolu en modifiant l'ordre d'activation des composants dans GameNetwork::UpdateControl
 
-    ☐ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate().
+    ✘ 14/08/2021 : pour ameliorer le temps de deconnection d'un client, le serveur pourrait controler la reception du stamp dans GameNetwork::HandlePlayServer_ReceiveUpdate(). @cancelled(23-11-27 08:51)
         => si le stamp est toujours le meme pendant Xs alors deconnection du client.
         ==> 08/09/2021 : avec SLNet, lorsque le server est deconnecté, le temps de deconnection des clients est encore plus long (30sec)
 
@@ -461,7 +499,7 @@ Todos:
     ☐ 08/10/2019 : la force d'impact à produire lorsqu'une entité est touché est differente entre le client attaquant et les autres à cause de l'equipment
         -> voire pour repliquer la valeur de cette force ou bien tout l'equipment.
 
-    ☐ 26/09/2019 : probleme lors du spawn du grapin en reseau. L'ancienne chaine est parfois toujours attachée ...
+    ✘ 26/09/2019 : probleme lors du spawn du grapin en reseau. L'ancienne chaine est parfois toujours attachée ... @cancelled(23-11-26 16:13)
         -> Vérifier le code dans GameNetwork::HandleObjectControlHolderChanged()
 
     ☐ 19/08/2019 : le marchand coté client n'est pas un actor donc ne peut pas intéragir avec le joueur.

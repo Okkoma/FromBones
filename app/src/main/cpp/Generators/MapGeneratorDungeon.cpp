@@ -455,8 +455,8 @@ void MapGeneratorDungeon::GenerateFurnitures(MapGeneratorStatus& genStatus)
             // random door entity
             furnitures_.Resize(furnitures_.Size()+1);
             EntityData& entitydata = furnitures_.Back();
-            //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, signed char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
-            entitydata.Set(GOT::GetIndex(got), tileindex, outsideAtLeft ? 127 : -127, -127, -1, THRESHOLDVIEW, false, !outsideAtLeft, false);
+            //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, unsigned char sstype=0, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
+            entitydata.Set(GOT::GetIndex(got), tileindex, outsideAtLeft ? 127 : -127, -127, 0, THRESHOLDVIEW, false, !outsideAtLeft, false);
 
 //            URHO3D_LOGERRORF("-> place a %s : entitydata=%s !", GOT::GetType(got).CString(), entitydata.Dump().CString());
 
@@ -535,8 +535,8 @@ void MapGeneratorDungeon::GenerateFurnitures(MapGeneratorStatus& genStatus)
 
                         furnitures_.Resize(furnitures_.Size()+1);
                         EntityData& entitydata = furnitures_.Back();
-                        //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, signed char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
-                        entitydata.Set(GOT::GetIndex(got), tileindex, Random.Get(-127, 127), roomobjectinfos.requirement_->finalCellAlign_, -GOT::GetConstInfo(got).entityVariation_ ? -1 : 0,
+                        //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, unsigned char sstype=0, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
+                        entitydata.Set(GOT::GetIndex(got), tileindex, Random.Get(-127, 127), roomobjectinfos.requirement_->finalCellAlign_, GOT::GetConstInfo(got).entityVariation_ ? 255 : 0,
                                        INNERVIEW, false, (gotprops & GOT_Flippable) ? newcoord.x_ > room.center_.x_ : false, false);
 
                         roomfurnitures++;
@@ -607,8 +607,8 @@ void MapGeneratorDungeon::GenerateFurnitures(MapGeneratorStatus& genStatus)
 
                         furnitures_.Resize(furnitures_.Size()+1);
                         EntityData& entitydata = furnitures_.Back();
-                        //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, signed char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
-                        entitydata.Set(GOT::GetIndex(got), tileindex, 110, roomobjectinfos.requirement_->finalCellAlign_, -GOT::GetConstInfo(got).entityVariation_ ? -1 : 0, INNERVIEW, false, false, false);
+                        //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, unsigned char sstype=0, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
+                        entitydata.Set(GOT::GetIndex(got), tileindex, 110, roomobjectinfos.requirement_->finalCellAlign_, GOT::GetConstInfo(got).entityVariation_ ? 255 : 0, INNERVIEW, false, false, false);
 
                         roomfurnitures++;
                         objectqtys[iobject]++;

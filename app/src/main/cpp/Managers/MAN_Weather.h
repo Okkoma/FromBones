@@ -74,6 +74,10 @@ public :
         return weatherviewdatas_[viewport].cloudintensity_;
     }
 
+    // Net usage
+    void SetNetWorldInfos(const VariantVector& infos);
+    void GetNetWorldInfos(VariantVector& infos);
+
     void DumpRain(int viewport=0) const;
 
     void Start();

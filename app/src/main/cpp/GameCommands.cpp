@@ -112,6 +112,14 @@ void GameCommands::Launch(Context* context, const String& input)
 
         World2D::GetStorage()->DumpMapsMemory();
     }
+    else if (inputLower == "worldobjects")
+    {
+        if (GameContext::Get().stateManager_->GetActiveState()->GetStateId() != "Play")
+            return;
+
+        World2D::GetWorld()->DumpEntitiesInMemory();
+    }
+
     else if (inputLower == "worldvisibility")
     {
         if (GameContext::Get().stateManager_->GetActiveState()->GetStateId() != "Play")

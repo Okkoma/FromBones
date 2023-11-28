@@ -42,6 +42,7 @@
 #include "GOC_Collide2D.h"
 #include "GOC_PhysicRope.h"
 
+#include "MAN_Weather.h"
 #include "Player.h"
 #include "MapWorld.h"
 #include "ViewManager.h"
@@ -933,6 +934,25 @@ void GameNetwork::PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr, b
                      cmd.clientId_, clientID_, cmd.stamp_, clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() : 0, broadcast?"true":"false", netCommandNames[pcmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
 }
 
+void GameNetwork::PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast, int client)
+{
+    cmd.clientId_ = client;
+    cmd.stamp_ = clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() + 1 : Connection::GetServerObjCmd() + 1;
+    cmd.broadCast_ = broadcast;
+    cmd.cmd_[Net_ObjectCommand::P_COMMAND] = (int)pcmd;
+
+    newObjectCommands_ = true;
+
+    // on server only : save stamps for broadcasting to the clients
+#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+    if (broadcast && serverMode_)
+        cmd.SetBroadStamps();
+#endif
+
+    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) stamp=%u(%u) broadcast=%s cmd=%s nodeid=%u !",
+                     cmd.clientId_, clientID_, cmd.stamp_, clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() : 0, broadcast?"true":"false", netCommandNames[pcmd], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt());
+}
+
 void GameNetwork::ExplodeNode(VariantMap& eventData)
 {
     const unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
@@ -1299,7 +1319,9 @@ void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
         ChangeEquipment(eventData);
         break;
     case CHANGETILE:
+    {
         bool ok = ChangeTile(eventData);
+    }
         break;
     }
 }
@@ -1342,7 +1364,15 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         GOC_Inventory::NetClientSetInventory(eventData[Net_ObjectCommand::P_NODEID].GetUInt(), eventData);
         break;
     case CHANGETILE:
+    {
         bool ok = ChangeTile(eventData);
+    }
+        break;
+    case SETWEATHER:
+        WeatherManager::Get()->SetNetWorldInfos(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+        break;
+    case SETWORLD:
+        World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
         break;
     }
 
@@ -1783,16 +1813,15 @@ void GameNetwork::Server_SendSeedTime(unsigned time)
 
 void GameNetwork::Server_SendSnap(ClientInfo& clientInfo)
 {
-    // Prepare Added/Removed Tiles
+    // Send Weather Infomations
+    Server_SendWeatherInfos(clientInfo);
 
-    // Prepare Added/Removed Nodes List
+    // Prepare Added/Removed Tiles/Nodes List
+    Server_SendWorldObjects(clientInfo);
 
     // Prepare ObjectCommands for the Scene Modifiers
     // Lights / Player Inventory / Entity Equipments
     Server_SendInventories(clientInfo);
-
-    // Send Snap via a specific message to the client
-    // ex : PushObjectCommand(SNAPSHOT, 0, false, clientInfo.clientID_);
 }
 
 // Used by GOC_Destroyer::Destroy, GameNetwork::Server_RemovePlayers
@@ -1939,6 +1968,22 @@ void GameNetwork::Server_AllocatePlayers(ClientInfo& clientInfo)
 //    URHO3D_LOGINFOF("GameNetwork() - Server_AllocatePlayers : ClientID=%d ... OK !", clientInfo.clientID_);
 }
 
+void GameNetwork::Server_SendWeatherInfos(ClientInfo& clientInfo)
+{
+    VariantVector weatherInfos;
+    WeatherManager::Get()->GetNetWorldInfos(weatherInfos);
+    sServerEventData_[Net_ObjectCommand::P_DATAS] = weatherInfos;
+    PushObjectCommand(SETWEATHER, 0, false, clientInfo.clientID_);
+    sServerEventData_.Clear();
+}
+
+void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
+{
+    ObjectCommand& cmd = GetFreeObjectCommand();
+    cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects();
+    PushObjectCommand(SETWORLD, cmd, false, clientInfo.clientID_);
+}
+
 void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
 {
     // local players on server : send equipment to the client
@@ -1956,6 +2001,7 @@ void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
             sServerEventData_[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
             sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
             PushObjectCommand(SETFULLEQUIPMENT, 0, false, clientInfo.clientID_);
+            sServerEventData_.Clear();
         }
     }
     // remote clients players : send equipment to the client
@@ -1983,6 +2029,7 @@ void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
                 sServerEventData_[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
                 sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
                 PushObjectCommand(SETFULLEQUIPMENT, 0, false, clientInfo.clientID_);
+                sServerEventData_.Clear();
             }
         }
     }
@@ -2003,6 +2050,7 @@ void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
         sServerEventData_[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
         sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = inventory->GetInventoryAttr();
         PushObjectCommand(SETFULLINVENTORY, 0, false, clientInfo.clientID_);
+        sServerEventData_.Clear();
 
         // client send the equipment to other client via a broadcast
         VariantVector equipmentSet;
@@ -2012,6 +2060,7 @@ void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
             sServerEventData_[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
             sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
             PushObjectCommand(SETFULLEQUIPMENT, 0, true, clientInfo.clientID_);
+            sServerEventData_.Clear();
         }
     }
 }
@@ -3467,14 +3516,14 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
             GOC_PhysicRope* grapin = node->GetComponent<GOC_PhysicRope>();
             if (grapin)
             {
-                URHO3D_LOGERRORF("GameNetwork() - UpdateControl : node=%u ... grapin holder src=%u dest=%u !", node->GetID(), src.GetReceivedControl().holderinfo_.id_, dest.GetReceivedControl().holderinfo_.id_);
-
                 const ObjectControl& control = src.GetReceivedControl();
 
-                if (!control.holderinfo_.id_)
+                if (control.holderinfo_.id_ == M_MIN_UNSIGNED || control.holderinfo_.id_ == M_MAX_UNSIGNED)
                 {
+                    URHO3D_LOGERRORF("GameNetwork() - UpdateControl : node=%u ... grapin holder src=%u dest=%u ... Release !", node->GetID(), control.holderinfo_.id_, dest.GetPreparedControl().holderinfo_.id_);
+
                     grapin->Detach();
-                    grapin->Release();
+                    grapin->Release(2.f);
                     if (!grapin->IsAnchorOnMap())
                         grapin->BreakContact();
                 }
@@ -3486,6 +3535,13 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
                         holder->SetWorldPosition2D(Vector2(control.holderinfo_.point1x_, control.holderinfo_.point1y_));
                         grapin->SetAttachedNode(holder);
                         bool ok = grapin->AttachOnRoof(Vector2(control.holderinfo_.point2x_, control.holderinfo_.point2y_), control.holderinfo_.rot2_);
+                        URHO3D_LOGERRORF("GameNetwork() - UpdateControl : node=%u ... grapin holder src=%u dest=%u ... AttachOnRoof=%s !",
+                                        node->GetID(), control.holderinfo_.id_, dest.GetPreparedControl().holderinfo_.id_, ok?"true":"false");
+                    }
+                    else
+                    {
+                        URHO3D_LOGERRORF("GameNetwork() - UpdateControl : node=%u ... grapin holder src=%u dest=%u ... No Holder Node !", node->GetID(), control.holderinfo_.id_, dest.GetPreparedControl().holderinfo_.id_);
+                        grapin->Release(2.f);
                     }
                 }
 
@@ -3697,23 +3753,27 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
 }
 
 
-inline bool IsNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxstamp=24)
+inline bool IsNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxstamp=STAMP_MAXDELTASHORT)
 {
     // delta = a - b;
     // (delta >= 0) check if it's an acceptable gap
     // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >65535-MAX_DELTASTAMP)
-    int delta = (int)stamp-(int)stampref;
-    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (65535U + (unsigned)delta < maxstamp));
+    int delta = stamp-(int)stampref;
+    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (65535U + delta < maxstamp));
 }
 
-inline bool IsNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxstamp=24)
+inline bool IsNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxstamp=STAMP_MAXDELTABYTE)
 {
     // delta = a - b;
     // (delta >= 0) check if it's an acceptable gap
     // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >255-MAX_DELTASTAMP)
-    int delta = (int)stamp-(int)stampref;
-    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (255U + (unsigned)delta < maxstamp));
+    int delta = stamp-(int)stampref;
+    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (255U + delta < maxstamp));
 }
+
+template< typename T > bool GameNetwork::CheckNewStamp(T stamp, T stampref, T maxdelta) { return IsNewStamp(stamp, stampref, maxdelta); }
+template bool GameNetwork::CheckNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxdelta);
+template bool GameNetwork::CheckNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxdelta);
 
 void GameNetwork::CleanObjectCommands()
 {
@@ -3776,6 +3836,7 @@ void GameNetwork::CleanObjectCommands()
             URHO3D_LOGINFOF("GameNetwork() - CleanObjectCommands : clean ObjectCommand[%u] clientid=%d cmd=%s cmdstamp=%u oldestObjectCmdAck=%u ... OK !",
                             &cmd, cmd.clientId_, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.stamp_, oldestObjectCmdAck);
             cmd.clientId_ = -1;
+            cmd.cmd_.Clear();
         }
     }
 }

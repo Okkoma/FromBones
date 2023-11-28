@@ -79,6 +79,12 @@ struct WorldViewInfo
     Vector<Map*> visibleAreaMaps_;
 };
 
+struct NetObjectsState
+{
+    unsigned short stamp_;
+    VariantVector datas_;
+};
+
 class FROMBONES_API World2D : public Component
 {
     URHO3D_OBJECT(World2D, Component);
@@ -342,6 +348,13 @@ public:
     Node* SpawnFurniture(const StringHash& got);
     Node* SpawnActor();
 
+/// For Network Snapshot
+public:
+    void SetNetWorldObjects(const VariantVector& objects);
+    const VariantVector& GetNetWorldObjects();
+private:
+    void PrepareNetWorldObjects();
+
 /// Serializers
 private:
     void LoadActors();
@@ -403,6 +416,7 @@ private:
 private :
     bool addBorder_, allowClearMaps_;
     bool isSet_;
+
     IntVector2 chunkNum_;
 
     StringVector imageLayersInfos_;
@@ -421,6 +435,8 @@ private :
 
     MapSimulatorLiquid* mapLiquid_;
     ViewManager* viewManager_;
+
+    NetObjectsState worldObjectState_;
 
     /// Cached extended visible rect
     static Rect extVisibleRectCached_;
@@ -451,6 +467,7 @@ private :
     static MapStorage* mapStorage_;
     static Text* world2DDebugPoolText_;
 };
+
 
 
 

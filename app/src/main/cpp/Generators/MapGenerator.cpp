@@ -619,8 +619,8 @@ void MapGenerator::GenerateBiomeFurnitures(MapGeneratorStatus& genStatus, int bi
                 rand = ORand.Get(-127, 127);
                 furnitures_.Resize(furnitures_.Size()+1);
                 EntityData& entitydata = furnitures_.Back();
-                //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, signed char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
-                entitydata.Set(GOT::GetIndex(got), tileindex, DirectionalInfos[i][0] != 0 ? DirectionalInfos[i][0] : rand, DirectionalInfos[i][1] != 0 ? DirectionalInfos[i][1] : rand, -1,
+                //EntityData::Set(short unsigned gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony_=0, unsigned char sstype=-1, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
+                entitydata.Set(GOT::GetIndex(got), tileindex, DirectionalInfos[i][0] != 0 ? DirectionalInfos[i][0] : rand, DirectionalInfos[i][1] != 0 ? DirectionalInfos[i][1] : rand, 0,
                                layer, DirectionalInfos[i][2], (gotprops & GOT_Flippable) ? rand > 0 : false, DirectionalInfos[i][3]);
 //                URHO3D_LOGERRORF("MapGenerator() - GenerateBiomeFurnitures dir=%d ... got=%s(%u) flippable=%s layer=%d layerZIndex=%d !",
 //                                   i, GOT::GetType(got).CString(), got.Value(), (gotprops & GOT_Flippable) ? "true":"false", layerZ, entitydata.GetLayerZIndex());

@@ -164,6 +164,11 @@ public:
     {
         return node_;
     }
+    const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const
+    {
+        return storage_->mapDatas_;
+    }
+
     bool IsInsideBufferedAreas(const ShortIntVector2& mPoint);
 
     void UpdateBufferedArea(int viewport, const ShortIntVector2& newCenterPoint);
@@ -199,7 +204,6 @@ public:
     {
         return registeredWorldPoint_;
     }
-
     static MapStorage* Get()
     {
         return storage_;

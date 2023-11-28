@@ -1044,7 +1044,7 @@ Vector2 EntityData::GetNormalizedPositionInTile() const
 String EntityData::Dump() const
 {
     String s;
-    s = s.AppendWithFormat("tindex=%u tpos=%d %d etype=%d isboss=%s", tileindex_, tilepositionx_, tilepositiony_, GetEntityValue(), IsBoss());
+    s = s.AppendWithFormat("ptr=%u tindex=%u tpos=%d %d sstype=%u(etype=%u,isboss=%s)", this, tileindex_, tilepositionx_, tilepositiony_, sstype_, GetEntityValue(), IsBoss() ? "true":"false");
     return s;
 }
 
@@ -1344,7 +1344,7 @@ void MapData::RemoveEntityData(EntityData* entitydata, bool furnituretype)
     {
 //        URHO3D_LOGINFOF("MapData() - RemoveEntityData : remove entitydata !");
         freedatas.Push(entitydata);
-        entitydata->gotindex_ = 0;
+        entitydata->Clear();
     }
 }
 
@@ -1897,6 +1897,11 @@ void MapData::Dump() const
 
     for (unsigned i=MAP_NUMMAXVIEWS; i < MAP_NUMMAXVIEWS+2; i++)
         GameHelpers::DumpData(maps_[i]->Buffer(), 1, 2, width_, height_);
+
+    unsigned i=0;
+    URHO3D_LOGINFOF("MapData() - Dump : this=%u mpoint=%s entityInfosSize=%u ...", this, mpoint_.ToString().CString(), entityInfos_.Size());
+    for (HashMap<unsigned, EntityData* >::ConstIterator it = entityInfos_.Begin(); it != entityInfos_.End(); ++it, i++)
+        URHO3D_LOGINFOF(" entityInfos_[%u] = nodeid=%u entitydata=%s", i, it->first_, it->second_ ? it->second_->Dump().CString() : "null");
 }
 
 

@@ -51,7 +51,8 @@
 
 	<variable name="networkMode_" value ="auto" />
 	<!-- <variable name="networkServerIP_" value="88.163.159.128" /> -->
-	<variable name="networkServerIP_" value="127.0.0.1" />
+	<!-- <variable name="networkServerIP_" value="127.0.0.1" /> -->
+	<variable name="networkServerIP_" value="192.168.1.196" /> <!-- White -->
 	<variable name="networkServerPort_" value="2345" />
 
 	<variable name="physics3DEnabled_" value ="false" />

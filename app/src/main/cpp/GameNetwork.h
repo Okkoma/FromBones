@@ -20,6 +20,8 @@
 
 using namespace Urho3D;
 
+const unsigned short STAMP_MAXDELTASHORT = 24U;
+const unsigned char  STAMP_MAXDELTABYTE  = 24U;
 
 class Player;
 
@@ -154,6 +156,7 @@ public:
 
     /// Object Commands
     void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
+    void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);
     void ExplodeNode(VariantMap& eventData);
     void Server_UpdateInventory(int cmd, VariantMap& eventData);
     void Client_SpawnItem(VariantMap& eventData);
@@ -199,7 +202,6 @@ public:
     void Server_SetEnableAllObjects(bool enable);
 
     void Server_AllocatePlayers(ClientInfo& clientInfo);
-    void Server_SendInventories(ClientInfo& clientInfo);
     void Server_SetActivePlayer(Player* player, bool active);
     void Server_SetEnablePlayers(ClientInfo& clientInfo, bool enable);
     void Server_SetEnableAllActiveObjectsToClient(ClientInfo& clientInfo);
@@ -305,11 +307,17 @@ public:
     void DumpNetObjects() const;
     void Dump() const;
 
+    template< typename T > static bool CheckNewStamp(T stamp, T stampRef, T maxdelta);
+
 private:
     void Reset();
     void StartServer();
     void StartClient();
     void StartLocal();
+
+    void Server_SendWeatherInfos(ClientInfo& clientInfo);
+    void Server_SendWorldObjects(ClientInfo& clientInfo);
+    void Server_SendInventories(ClientInfo& clientInfo);
 
     /// Server and Client Subscribers
     void Server_SubscribeToPlayEvents();

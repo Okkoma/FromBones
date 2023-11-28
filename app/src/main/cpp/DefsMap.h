@@ -713,9 +713,10 @@ enum EntityTypeFlag
 
 struct EntityData                   // 8 bytes
 {
-    EntityData() : gotindex_(0), tileindex_(USHRT_MAX) { }
+    EntityData() : gotindex_(0U), tileindex_(USHRT_MAX) { }
     EntityData(const StringHash& got, const Vector2& position, int layerZ);
 
+    void Clear() { gotindex_ = 0U; tileindex_ = USHRT_MAX; properties_[1] = 0U; }
     void Set(unsigned short gotindex=0, short unsigned tileindex=USHRT_MAX, signed char tilepositionx=0, signed char tilepositiony=0, unsigned char sstype=RandomEntityFlag|RandomMappingFlag, int layerZ=0, bool rotate=false, bool flipX=false, bool flipY=false);
 
     void SetDrawableProps(int layerZ, bool rotate=false, bool flipX=false, bool flipY=false);
@@ -726,7 +727,6 @@ struct EntityData                   // 8 bytes
     {
         return (drawableprops_ & FlagLayerZIndex_);
     }
-
     unsigned char GetEntityValue() const
     {
         return sstype_ & EntityValue;
@@ -738,17 +738,29 @@ struct EntityData                   // 8 bytes
 
     String Dump() const;
 
-    // entity type
-    short unsigned gotindex_;       // 2 bytes // got
-    // map position
-    short unsigned tileindex_;      // 2 bytes // 0 to 65535 (max 256x256 tiles in a map)
-    // inside tile position
-    signed char tilepositionx_;     // 1 bytes // -127 to 127 (-127 = rightalign  ; center = 0; 127 = leftalign)
-    signed char tilepositiony_;     // 1 bytes // -127 to 127 (-127 = bottomalign ; center = 0; 127 = topalign)
-    // entity animation index
-    unsigned char sstype_;  	// 1 bytes // entityid
-    // hardcoded drawable props
-    unsigned char drawableprops_;   // 1 bytes // bit1-5=layerzindex; bit6=rotate; bit7=flipx; bit8=flipy;
+    union
+    {
+        struct
+        {
+            unsigned int properties_[2];
+        };
+        struct
+        {
+            // entity type
+            short unsigned gotindex_;       // 2 bytes // got
+            // map position
+            short unsigned tileindex_;      // 2 bytes // 0 to 65535 (max 256x256 tiles in a map)
+            // inside tile position
+            signed char tilepositionx_;     // 1 bytes // -127 to 127 (-127 = rightalign  ; center = 0; 127 = leftalign)
+            signed char tilepositiony_;     // 1 bytes // -127 to 127 (-127 = bottomalign ; center = 0; 127 = topalign)
+            // entity animation index
+            unsigned char sstype_;  	    // 1 bytes // entityid
+            // hardcoded drawable props
+            unsigned char drawableprops_;   // 1 bytes // bit1-5=layerzindex; bit6=rotate; bit7=flipx; bit8=flipy;
+        };
+    };
+
+
 };
 
 struct ZoneData
@@ -800,7 +812,6 @@ struct ZoneData
 
 class MapData
 {
-
     friend class MapBase;
     friend class Map;
 
@@ -877,7 +888,7 @@ public:
     Vector<FeaturedMap* > maps_;
 
     // the tile modifiers to apply to the featured views
-    Vector<TileModifier > tilesModifiers_;
+    PODVector<TileModifier > tilesModifiers_;
 
     // the fluidcell values by indexfluidview
     Vector<PODVector<FeatureType> > fluidValues_;

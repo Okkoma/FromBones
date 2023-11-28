@@ -209,6 +209,8 @@ void ObjectMaped::Init()
 
     mapData_ = 0;
 
+    tileModifiersDirty_ = entitiesDirty_ = false;
+
     cacheTileModifiers_.Clear();
 }
 

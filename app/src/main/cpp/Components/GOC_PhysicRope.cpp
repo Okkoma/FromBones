@@ -92,6 +92,12 @@ void GOC_PhysicRope::RegisterObject(Context* context)
 
 void GOC_PhysicRope::Release(float time)
 {
+    if (isReleasing_)
+        return;
+
+    if (HasSubscribedToEvent(node_, E_PHYSICSBEGINCONTACT2D))
+        UnsubscribeFromEvent(node_, E_PHYSICSBEGINCONTACT2D);
+
     if (anchorNode1_ && model_ == RM_ThrowableRope)
         TimerRemover::Get()->Start(anchorNode1_.Get(), time);
 
@@ -108,10 +114,18 @@ void GOC_PhysicRope::Release(float time)
             destroyer->Destroy(time+0.1f, false);
     }
 
+    ObjectControlInfo* oinfo = 0;
+    if (!GameContext::Get().LocalMode_)
+    {
+        oinfo = GameNetwork::Get()->GetObjectControl(node_->GetID());
+        if (oinfo)
+            oinfo->GetPreparedControl().holderinfo_.id_ = M_MAX_UNSIGNED;
+    }
+
     isAttached_ = false;
     isReleasing_ = true;
 
-    URHO3D_LOGINFOF("GOC_PhysicRope() - Release : %u !", node_->GetID());
+    URHO3D_LOGINFOF("GOC_PhysicRope() - Release : %u oinfo=%u delay=%F!", node_->GetID(), oinfo, time);
 }
 
 void GOC_PhysicRope::CleanDependences()
@@ -364,8 +378,6 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
         return 0.f;
 
     Vector2 delta(endAnchor - startAnchor);
-    if (model_ == RM_ThrowableRope && delta.y_ >= 0.f)
-        return 0.f;
 
     const float scale = model_ == RM_ThrowableRope ? 1.5f : 1.f;
     Rect drawrect;
@@ -777,7 +789,10 @@ void GOC_PhysicRope::ResetBridgeElementsPositions()
 bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anchorRotation, const void* pinfo)
 {
     if (isReleasing_)
+    {
+        URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnRoof : node=%u is Releasing !", node_->GetID());
         return false;
+    }
 
 //    URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnRoof ... attachedNode=%s(%u) ...",
 //                    attachedNode_ ? attachedNode_->GetName().CString() : "null", attachedNode_ ? attachedNode_->GetID() : 0);
@@ -787,7 +802,8 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
     if (attachedNode_)
     {
         Node* anchorNode = attachedNode_->GetChild("Anchor");
-        anchorOnAttachedNodePosition = anchorNode ? anchorNode->GetWorldPosition2D() :  attachedNode_->GetComponent<RigidBody2D>()->GetWorldMassCenter();
+//        anchorOnAttachedNodePosition = anchorNode ? anchorNode->GetWorldPosition2D() :  attachedNode_->GetComponent<RigidBody2D>()->GetWorldMassCenter();
+        anchorOnAttachedNodePosition = anchorNode ? anchorNode->GetWorldPosition2D() :  attachedNode_->GetWorldPosition2D();
     }
     else
     {
@@ -797,7 +813,7 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
     if ((anchorOnRoofPosition-anchorOnAttachedNodePosition).Length() > lengthMax_)
     {
         URHO3D_LOGWARNINGF("GOC_PhysicRope() - AttachOnRoof : Rope Length > %f ! Release !", lengthMax_);
-        Release();
+        Release(2.f);
         return false;
     }
 
@@ -805,7 +821,7 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
     if (!body)
     {
         URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnRoof : node=%u No Body !", node_->GetID());
-        Release();
+        Release(2.f);
         return false;
     }
 
@@ -838,7 +854,14 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
         if (!cs->GetColliderInfo() || cinfo.normal_.y_ > PIXEL_SIZE)
         {
             URHO3D_LOGWARNINGF("GOC_PhysicRope() - AttachOnRoof : node=%u No MapCollider in Collision !", node_->GetID());
-            Release();
+            Release(2.f);
+            return false;
+        }
+
+        if (model_ == RM_ThrowableRope && anchorOnRoofPosition.y_ - anchorOnAttachedNodePosition.y_ < 0.5f)
+        {
+            URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnRoof : startAnchor=%s endAnchor=%s ... to low", anchorOnRoofPosition.ToString().CString(), anchorOnAttachedNodePosition.ToString().CString());
+            Release(2.f);
             return false;
         }
     }
@@ -878,6 +901,8 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
     // create Chains and Joints
     Drawable2D* drawable = hook_ ? node_->GetChild(hook_)->GetDerivedComponent<Drawable2D>() : node_->GetDerivedComponent<Drawable2D>();
 
+    URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnRoof : startAnchor=%s endAnchor=%s ...", anchorOnRoofPosition.ToString().CString(), anchorOnAttachedNodePosition.ToString().CString());
+
     float ropeLength = CreateRope(anchorOnRoofPosition, anchorOnAttachedNodePosition, viewZ, drawable->GetLayer(), drawable->GetOrderInLayer()-1);
     if (ropeLength > 0.f && chainNodes_.Size())
     {
@@ -905,13 +930,13 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
             if (oinfo)
             {
                 ObjectControl& control = oinfo->GetPreparedControl();
-                control.holderinfo_.id_ = attachedNode_ ? attachedNode_->GetID() : 0;
+                control.holderinfo_.id_ = attachedNode_ ? attachedNode_->GetID() : M_MIN_UNSIGNED;
                 control.holderinfo_.point1x_ = anchorOnAttachedNodePosition.x_;
                 control.holderinfo_.point1y_ = anchorOnAttachedNodePosition.y_;
                 control.holderinfo_.point2x_ = anchorOnRoofPosition.x_;
                 control.holderinfo_.point2y_ = anchorOnRoofPosition.y_;
                 control.holderinfo_.rot2_ = anchorRotation;
-                oinfo->GetReceivedControl().holderinfo_.id_ = control.holderinfo_.id_ ;
+                oinfo->GetReceivedControl().holderinfo_.id_ = control.holderinfo_.id_;
             }
         }
 
@@ -1133,7 +1158,7 @@ void GOC_PhysicRope::OnSetEnabled()
                 rootNode_->SetEnabledRecursive(false);
 
             // In case is attached (network packet lost)
-            if (isAttached_ && RM_ThrowableRope)
+            if (isAttached_ && model_ == RM_ThrowableRope)
             {
 //                URHO3D_LOGINFOF("GOC_PhysicRope() - OnSetEnabled : node=%u enable=false => Release !", node_->GetID());
                 Detach();
@@ -1213,6 +1238,8 @@ void GOC_PhysicRope::HandleBreakContact(StringHash eventType, VariantMap& eventD
                 Detach();
                 Release(2.f);
             }
+
+            node_->SendEvent(ABI_RELEASE);
         }
     }
 }

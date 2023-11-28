@@ -30,6 +30,8 @@ enum NetCommand
     SETFULLEQUIPMENT,
     SETFULLINVENTORY,
     CHANGETILE,
+    SETWEATHER,
+    SETWORLD,
 };
 
 enum ObjectControlFlagBit

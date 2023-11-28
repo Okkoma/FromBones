@@ -266,12 +266,9 @@ void ABI_Grapin::Release(float time)
 
     if (!GameContext::Get().LocalMode_)
     {
-        ObjectControlInfo* cinfo = GameNetwork::Get()->GetObjectControl(node_->GetID());
-        if (cinfo)
-        {
-            ObjectControl& control = cinfo->GetPreparedControl();
-            control.holderinfo_.id_ = 0;
-        }
+        ObjectControlInfo* oinfo = GameNetwork::Get()->GetObjectControl(node_->GetID());
+        if (oinfo)
+            oinfo->GetPreparedControl().holderinfo_.id_ = 0;
     }
 
     GOC_PhysicRope* grapin = node_->GetComponent<GOC_PhysicRope>();

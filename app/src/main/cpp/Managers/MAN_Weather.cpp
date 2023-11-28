@@ -131,6 +131,8 @@ int timeperiodsent_;
 
 void WeatherManager::Init()
 {
+    URHO3D_LOGINFOF("WeatherManager() - Init !");
+
     active_ = true;
     timeperiodsent_ = -1;
 
@@ -274,6 +276,8 @@ void WeatherManager::ResetTimePeriod()
 
 void WeatherManager::SetWorldTime(float time, unsigned day, unsigned year)
 {
+    URHO3D_LOGINFOF("WeatherManager() - SetWorldTime : time=%F day=%u year=%u", time, day, year);
+
     startworldtime_ = time;
     worldtime_ = time;
     day_ = day;
@@ -287,6 +291,30 @@ void WeatherManager::SetWorldTimeRate(float rate)
     worldtimerate_ = !rate ? WORLDTIMERATIO : rate;
 }
 
+void WeatherManager::SetNetWorldInfos(const VariantVector& infos)
+{
+    startworldtime_ = infos[0].GetFloat();
+    worldtime_ = infos[1].GetFloat();
+    day_ = infos[2].GetInt();
+    year_ = infos[3].GetInt();
+
+    URHO3D_LOGINFOF("WeatherManager() - SetNetWorldInfos : time=%F(%F) day=%d year=%d rate=%F", worldtime_, startworldtime_, day_, year_);
+
+    UpdateTimePeriod();
+
+    SetWorldTimeRate(infos[4].GetFloat());
+}
+
+void WeatherManager::GetNetWorldInfos(VariantVector& infos)
+{
+    infos.Clear();
+    infos.Push(Variant(startworldtime_));
+    infos.Push(Variant(worldtime_));
+    infos.Push(Variant(day_));
+    infos.Push(Variant(year_));
+    infos.Push(Variant(worldtimerate_));
+}
+
 void WeatherManager::SetRainTime(int viewport, float hour, float delayinhour, int direction, int intensity)
 {
 #ifdef ACTIVE_WEATHEREFFECTS
@@ -297,6 +325,8 @@ void WeatherManager::SetRainTime(int viewport, float hour, float delayinhour, in
     viewdata.raindelay_ = delayinhour * 3600000.f;
     viewdata.raineffect_->SetDirection((float)direction);
     viewdata.rainintensity_ = intensity;
+
+    viewdata.rtimer_.Reset();
 #endif
 }
 
@@ -454,8 +484,6 @@ void WeatherManager::Start()
         }
         GameRand& ORand = GameRand::GetRandomizer(OBJRAND);
         SetRainTime(viewport, (float)ORand.Get(0, 24), (float)ORand.Get(1, 5), ORand.Get(100) < 50 ? 1 : -1, ORand.Get(2, 7));
-
-        viewdata.rtimer_.Reset();
 #endif
     }
 

@@ -1288,7 +1288,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
 #ifdef HANDLE_TILEMODIFIERS
         if (!map->GetMapData()->IsSectionSet(MAPDATASECTION_LAYER))
         {
-            bool state = map->SetTileModifiers(timer, delay_);
+            bool state = map->SetTileModifiers(map->GetMapData()->tilesModifiers_, timer, delay_);
             if (!state)
             {
 #ifdef DUMP_ERROR_ON_TIMEOVER

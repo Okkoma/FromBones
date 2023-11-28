@@ -106,15 +106,21 @@ public:
     bool CanSetTile(FeatureType feat, int x, int y, int viewZ, bool permutesametiles=false);
     void SetTile(FeatureType feat, int x, int y, int viewZ, Tile** removedtile=0);
     void SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tileIndexes);
+    void SetTiles(const PODVector<TileModifier>& tileModifiers);
     bool SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, bool dynamic=false);
-    bool SetTileModifiers(HiresTimer* timer, const long long& delay);
+    bool SetTileModifiers(const PODVector<TileModifier>& tileModifiers, HiresTimer* timer=0, long long delay=0L);
+    void SetCachedTileModifiers(const PODVector<TileModifier>& tileModifiers);
+    void GetCachedTileModifiers(PODVector<TileModifier>& tileModifiers);
+
+    void SetTileModifiersDirty(bool dirty) { tileModifiersDirty_ = dirty; }
+    void SetEntitiesDirty(bool dirty) { entitiesDirty_ = dirty; }
+    bool IsTileModifiersDirty() const { return tileModifiersDirty_; }
+    bool IsEntitiesDirty() const { return entitiesDirty_; }
 
 protected:
     virtual void OnTileModified(int x, int y) { }
 
     // MapData Updaters
-    bool CopyTileModifiersToCache(HiresTimer* timer);
-    bool CopyTileModifiersToMapData(HiresTimer* timer);
     bool UpdateMapData(HiresTimer* timer);
     virtual bool OnUpdateMapData(HiresTimer* timer);
 
@@ -500,6 +506,7 @@ private:
     bool canSwitchViewZ_;
     bool skipInitialTopBorder_;
     bool serializable_;
+    bool tileModifiersDirty_, entitiesDirty_;
 
     Vector2 center_;
 
