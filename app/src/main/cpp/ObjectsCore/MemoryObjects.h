@@ -119,8 +119,7 @@ inline void CopyOR(T* dst, T* src, unsigned dst_dw, unsigned src_dw, unsigned sr
 void BlitCopy(BlitInfo& i, const IntRect& rect);
 
 
-template< typename T >
-class Stack
+template< typename T > class Stack
 {
 public:
     Stack() { ; }
@@ -177,8 +176,7 @@ private:
 };
 
 /// if using SetBufferValue, T must be a type POD (due to memset)
-template< typename T >
-class Matrix2D
+template< typename T > class Matrix2D
 {
 public:
     Matrix2D() : width_(0), height_(0), buffer_(0) { }
@@ -279,3 +277,64 @@ private:
     size_t width_;
     size_t height_;
 };
+
+class PoolObject
+{
+public:
+    PoolObject() : refcount_(0) { }
+
+    void AddRef() { refcount_++; }
+    void RemoveRef() { if (refcount_) { refcount_--; } }
+    unsigned GetRefCount() const { return refcount_; }
+
+private:
+    unsigned refcount_;
+};
+
+template <class T> class Pool
+{
+public:
+    Pool() { }
+    Pool(int size) { Resize(size); }
+    void Resize(unsigned size)
+    {
+        pool_.Resize(size);
+        freeObjects_.Resize(size);
+        for (unsigned i=0; i < size; i++)
+            freeObjects_[i] = &pool_[i];
+    }
+    T* Get(bool addref=true)
+    {
+        T* obj = 0;
+        if (freeObjects_.Size())
+        {
+            obj = freeObjects_.Back();
+            if (addref)
+                obj->AddRef();
+            freeObjects_.Pop();
+        }
+        return obj;
+    }
+    void AddRef(T* obj) { obj->AddRef(); }
+    void RemoveRef(T* obj)
+    {
+        if (obj->GetRefCount())
+        {
+            obj->RemoveRef();
+            if (!obj->GetRefCount())
+            {
+                freeObjects_.Push(obj);
+                obj->OnRestore();
+            }
+        }
+    }
+
+    unsigned Size() const { return pool_.Size(); }
+    unsigned FreeSize() const { return freeObjects_.Size(); }
+
+private:
+    Vector<T > pool_;
+    PODVector<T* > freeObjects_;
+};
+
+

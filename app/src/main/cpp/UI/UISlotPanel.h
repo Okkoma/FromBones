@@ -56,7 +56,7 @@ public :
 
     static UIPanel* GetPanel(const String& name);
     static void RegisterPanel(UIPanel* panel);
-    static void RemovePanel(UIPanel* panel);    
+    static void RemovePanel(UIPanel* panel);
     static void ClearRegisteredPanels();
     static void SetAllowSceneInteraction(bool enable) { allowSceneInteraction_ = enable; }
     static SharedPtr<UIElement> draggedElement_;
@@ -75,7 +75,7 @@ protected :
 
     WeakPtr<UIElement> panel_;
     IntVector2 lastPosition_;
-    
+
     static bool allowSceneInteraction_;
     static HashMap<String, SharedPtr<UIPanel> > panels_;
 };
@@ -108,7 +108,7 @@ public :
         return startSlotIndex_;
     }
 
-    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false);
+    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false, bool updateNet=false);
 
     virtual void Update();
 
@@ -142,7 +142,7 @@ protected :
 
     void OnKey(StringHash eventType, VariantMap& eventData);
 
-    UIElement *slotZone_, *selectHalo_; 
+    UIElement *slotZone_, *selectHalo_;
     int slotSize_, miniSlotSize_;
 
     WeakPtr<Node> holderNode_;

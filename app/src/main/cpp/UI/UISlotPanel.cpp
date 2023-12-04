@@ -500,7 +500,7 @@ void UISlotPanel::UpdateNodes()
 //                    inventory_);
 }
 
-void UISlotPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)
+void UISlotPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers, bool updateNet)
 {
     ;
 }
@@ -753,7 +753,7 @@ void UISlotPanel::OnDragSlotIn(int slotId, Slot& fromSlot, int fromSlotId, UISlo
 
 void UISlotPanel::OnDragSlotFinish(int slotId)
 {
-    UpdateSlot(slotId, true, true);
+    UpdateSlot(slotId, true, true, true);
 }
 
 void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
@@ -839,6 +839,7 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
         }
     }
 
+    OnDragSlotFinish(fromSlotId);
     OnSlotRemain(slot, fromSlotId);
 
     GetSubsystem<UI>()->GetRoot()->RemoveChild(draggedElement_);

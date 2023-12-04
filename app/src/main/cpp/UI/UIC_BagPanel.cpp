@@ -59,7 +59,7 @@ void UIC_BagPanel::SetSlotZone()
     miniSlotSize_ = 16;
 }
 
-void UIC_BagPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)
+void UIC_BagPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers, bool updateNet)
 {
     if (!slotZone_)
         return;
@@ -72,7 +72,7 @@ void UIC_BagPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSub
     if (!uiSlot)
         return;
 
-    if (GameContext::Get().ClientMode_ && updateButtons)
+    if (GameContext::Get().ClientMode_ && updateNet)
     {
         VariantMap& eventData = context_->GetEventDataMap();
         eventData[Net_ObjectCommand::P_NODEIDFROM] = inventory_->GetNode()->GetID();

@@ -115,7 +115,7 @@ void UIC_CraftPanel::SetSlotZone()
     }
 }
 
-void UIC_CraftPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)
+void UIC_CraftPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers, bool updateNet)
 {
 //    URHO3D_LOGINFOF("UIC_CraftPanel() - UpdateSlot : idSlot=%u inventory=%u", index, inventory_);
 

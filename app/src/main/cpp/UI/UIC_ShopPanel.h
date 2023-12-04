@@ -55,7 +55,7 @@ public :
         return basketSlotMarks_[idslot];
     }
 
-    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false);
+    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false, bool updateNet=false);
     void UpdatePrice();
     void UpdateShopSlots(bool updateButtons=false, bool updateSubscribers=false);
     void UpdateBasketSlots(bool updateButtons=false, bool updateSubscribers=false);

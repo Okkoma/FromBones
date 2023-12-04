@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MemoryObjects.h"
 
 using namespace Urho3D;
 
@@ -180,31 +181,43 @@ struct ObjectControlInfo
     static const ObjectControlInfo EMPTY;
 };
 
-struct ObjectCommand
+class ObjectCommand : public PoolObject
 {
-    ObjectCommand() : clientId_(0), stamp_(0), broadCast_(true) { }
+public:
+    ObjectCommand() : clientId_(0), broadCast_(true) { }
     ObjectCommand(VectorBuffer& msg) { Read(msg); }
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
     void Read(VectorBuffer& msg);
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
+
     void Write(VectorBuffer& msg, int toclient=0) const;
-#else
-    void Write(VectorBuffer& msg) const;
-#endif
     void CopyTo(ObjectCommand& cmd) const;
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-    void SetBroadStamps(); // for Server Only
-    unsigned short AddNewBroadCastStamp(Connection* connection);
-#endif
     void Dump() const;
 
     int clientId_;
-    unsigned short int stamp_;
     bool broadCast_;
     VariantMap cmd_;
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-    // for Server Only
-    Vector<unsigned short> broadcastStamps_;
-#endif
+
+    static const ObjectCommand EMPTY;
+};
+
+enum ObjectCommandPacketState
+{
+    PACKET_CLEARED = 0,
+    PACKET_PREPARED,
+    PACKET_SENDED,
+    PACKET_RECEIVED,
+    PACKET_APPLIED,
+};
+
+class ObjectCommandPacket : public PoolObject
+{
+public:
+    ObjectCommandPacket() : state_(PACKET_CLEARED) { }
+
+    void OnRestore() { buffer_.Clear(); state_ = PACKET_CLEARED; }
+
+    unsigned char stamp_;
+    int state_;
+    VectorBuffer buffer_;
 };

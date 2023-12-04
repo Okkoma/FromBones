@@ -28,7 +28,7 @@ public :
 
     virtual void Start(Object* user, Object* feeder=0);
 
-    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false);
+    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false, bool updateNet=false);
     void UpdateCraftedItem(bool clear=false);
     void SetTool(unsigned islot, const StringHash& type);
 

@@ -21,7 +21,7 @@ public :
 
     static void RegisterObject(Context* context);
 
-    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false);
+    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false, bool updateNet=false);
 
     virtual void OnResize();
 

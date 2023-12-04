@@ -86,7 +86,7 @@ void UIC_EquipmentPanel::SetSlotZone()
     URHO3D_LOGINFOF("UIC_EquipmentPanel() - SetSlotZone : numslots=%u size=%d slotscale=%f", numSlots_, slotSize_, slotscale);
 }
 
-void UIC_EquipmentPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)
+void UIC_EquipmentPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers, bool updateNet)
 {
     const Slot& slot = inventory_->GetSlot(index);
     String slotName = inventory_->GetSlotName(index);

@@ -24,12 +24,19 @@ Todos:
         on doit pouvoir gérer
             un vector des ObjectCommands préparés et taggés par stamp
             un vector des stamps reçus (ack)
-            un vector des stamps manquants attendus
+            les stamps manquants attendus
             les ObjectCommands préparés et envoyés dont le stamp est bien reçu peuvent être supprimées sinon doivent être réenvoyés.
             les ObjectCommands reçus et non taggés "InOrder" peuvent être executés.
             les ObjectCommands reçus et taggés "InOrder" sont executé quand ils arrivent en tête de séquence. la Tete de sequence correspond au stampAck qui est envoyé vers l'emetteur pour l'informer de la reception
             ce stamp ack est envoyé tant que le stamp reçu est égal à celui-ci
             si le stamp reçu est nouveau par rapport au stamp ack, le stamp ack est incrémenté jusqu'au prochain trou dans la séquence. et les ObjectCommands sont alors executés jusqu'à cette nouvelle Tete.            
+        => 4/12/2023 : gros refactor du ObjectCommand
+        ==> les ObjectCommand sont préparé dans des ObjectCommandPacket puis envoyé via Connection
+        ==> tant que les packets ne sont pas ACK reçus, ils sont renvoyés par l'emetteur
+        ==> RAF : la synchronisation d'un client qui arrive en cours de partie
+        ===> doit etre faite automatiquement si le CheckStamp montre une desyncro.
+        ==> il faut absolument que les stamps et ACK soient lié au client et non au serveur.
+        ===> OK
 
     ✔ 23/11/2023 : pb de desynchro des lames, des bombes etc... suite au derniere modification sur AddSpawnControl (DROPITEM-23/11/2023) @done(23-11-24 17:42)
         cf GOC_Destroyer::Destroy->Server_RemoveObject(node) qui était Server_RemoveObject(node,!node->isPoolNode_)

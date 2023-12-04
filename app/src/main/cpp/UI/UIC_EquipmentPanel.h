@@ -26,7 +26,7 @@ public :
     virtual void Reset();
 
     virtual void Update();
-    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false);
+    virtual void UpdateSlot(unsigned index, bool updateButtons=false, bool updateSubscribers=false, bool updateNet=false);
     void UpdateEquipment(unsigned index);
 
     virtual void OnResize();

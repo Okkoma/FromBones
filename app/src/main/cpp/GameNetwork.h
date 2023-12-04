@@ -55,6 +55,20 @@ struct LogStatNetObject
 };
 #endif
 
+struct ObjectCommandInfo
+{
+    ObjectCommandInfo() : objCmdHead_(1U), objCmdToSendStamp_(0U), newSpecificPacketToSend_(0) { }
+
+// Receive Part
+    unsigned char objCmdHead_;
+    ObjectCommandPacket objCmdPacketsReceived_[256];
+// Send Part
+    unsigned char objCmdToSendStamp_;
+    List<ObjectCommandPacket* > objCmdPacketsToSend_;
+    List<unsigned char> objCmdPacketStampsToSend_;
+    ObjectCommandPacket* newSpecificPacketToSend_;
+};
+
 struct ClientInfo
 {
     ClientInfo();
@@ -94,6 +108,8 @@ struct ClientInfo
 
     Vector<SharedPtr<Player> > players_;
     Vector<WeakPtr<Node> > objects_;
+
+    ObjectCommandInfo objCmdInfo_;
 };
 
 enum
@@ -111,14 +127,8 @@ public:
     GameNetwork(Context* context);
     ~GameNetwork();
 
-    static GameNetwork* Get()
-    {
-        return network_;
-    }
-    static Network* GetNetwork()
-    {
-        return network_->net_;
-    }
+    static GameNetwork* Get() { return network_; }
+    static Network* GetNetwork() { return network_->net_; }
 
     static void Clear();
     static bool ClientMode();
@@ -154,16 +164,6 @@ public:
 
     void PurgeObjects();
 
-    /// Object Commands
-    void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
-    void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);
-    void ExplodeNode(VariantMap& eventData);
-    void Server_UpdateInventory(int cmd, VariantMap& eventData);
-    void Client_SpawnItem(VariantMap& eventData);
-    void ChangeEquipment(VariantMap& eventData);
-    bool ChangeTile(VariantMap& eventData);
-    void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);
-
     /// Spawn Controls
     unsigned GetSpawnID(unsigned holderid, unsigned char stamp) const;
     unsigned GetSpawnHolder(unsigned spawnID) const;
@@ -183,14 +183,8 @@ public:
     ObjectControlInfo* GetClientObjectControl(unsigned nodeid);
     ObjectControlInfo& GetOrCreateServerObjectControl(unsigned servernodeid, unsigned clientnodeid=0, int clientid=0, Node* node=0);
     ObjectControlInfo* GetOrCreateClientObjectControl(unsigned servernodeid, unsigned clientnodeid=0);
-    const Vector<ObjectControlInfo>& GetServerObjectControls() const
-    {
-        return serverObjectControls_;
-    }
-    const Vector<ObjectControlInfo>& GetClientObjectControls() const
-    {
-        return clientObjectControls_;
-    }
+    const Vector<ObjectControlInfo>& GetServerObjectControls() const { return serverObjectControls_; }
+    const Vector<ObjectControlInfo>& GetClientObjectControls() const { return clientObjectControls_; }
     void RemoveServerObject(ObjectControlInfo& cinfo);
 
     /// Server Setters
@@ -229,27 +223,12 @@ public:
 
     /// Getters
     void GetLocalAddresses(Vector<String>& adresses);
-    bool IsServer() const
-    {
-        return serverMode_;
-    }
-    bool IsClient() const
-    {
-        return clientMode_;
-    }
-    bool IsStarted() const
-    {
-        return started_;
-    }
-    unsigned GetSeedTime() const
-    {
-        return seedTime_;
-    }
+    bool IsServer() const { return serverMode_; }
+    bool IsClient() const { return clientMode_; }
+    bool IsStarted() const { return started_; }
+    unsigned GetSeedTime() const { return seedTime_; }
     // Return the id of this client assigned by server : for server or localmode clientid=0
-    int GetClientID() const
-    {
-        return clientID_;
-    }
+    int GetClientID() const { return clientID_; }
 
 #ifdef ACTIVE_NETWORK_SIMULATOR
     bool IsSimulatorActive() const;
@@ -259,18 +238,17 @@ public:
 #endif
 
     /// Server Getters Only
-    unsigned GetNumConnections() const
-    {
-        return serverClientInfos_.Size();
-    }
-    const HashMap<Connection*, ClientInfo>& GetServerClientInfos() const
-    {
-        return serverClientInfos_;
-    }
+    unsigned GetNumConnections() const { return serverClientInfos_.Size(); }
+    const HashMap<Connection*, ClientInfo>& GetServerClientInfos() const { return serverClientInfos_; }
     ClientInfo* GetServerClientInfo(Connection* connection)
     {
         HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Find(connection);
         return it != serverClientInfos_.End() ? &(it->second_) : 0;
+    }
+    ClientInfo* GetServerClientInfo(int clientId)
+    {
+        HashMap<int, ClientInfo* >::ConstIterator it = serverClientID2Infos_.Find(clientId);
+        return it != serverClientID2Infos_.End() ? it->second_ : 0;
     }
     // Server : Get ClientID for the connection
     int GetClientID(Connection* connection)
@@ -291,10 +269,7 @@ public:
     // Return the nodeid of the object "index" owned by this client and assigned by the server for this client
 //    unsigned GetClientObjectID(unsigned index) const { return index < clientNodeIDs_.Size() ? clientNodeIDs_[index] : 0; }
 
-    GameStatus GetGameStatus() const
-    {
-        return gameStatus_;
-    }
+    GameStatus GetGameStatus() const { return gameStatus_; }
 
     /// Generic Subscribers
     void SubscribeToEvents();
@@ -333,19 +308,34 @@ private:
     /// Server Handles
     void HandleServer_MessagesFromClient(StringHash eventType, VariantMap& eventData);
     void HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMap& eventData);
-    void HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMap& eventData);
+    void HandlePlayServer_ReceiveCommands(StringHash eventType, VariantMap& eventData);
+    void HandlePlayServer_ReceiveControls(StringHash eventType, VariantMap& eventData);
     void HandlePlayServer_Messages(StringHash eventType, VariantMap& eventData);
-
-    /// Server commands from clients
-    void Server_ApplyObjectCommand(VariantMap& eventData);
 
     /// Client Handles
     void HandleClient_MessagesFromServer(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_NetworkUpdate(StringHash eventType, VariantMap& eventData);
-    void HandlePlayClient_ReceiveServerUpdate(StringHash eventType, VariantMap& eventData);
-    void HandlePlayClient_ReceiveClientUpdate(StringHash eventType, VariantMap& eventData);
+    void HandlePlayClient_ReceiveCommands(StringHash eventType, VariantMap& eventData);
+    void HandlePlayClient_ReceiveServerControls(StringHash eventType, VariantMap& eventData);
+    void HandlePlayClient_ReceiveClientControls(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_MessagesFromServer(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_Messages(StringHash eventType, VariantMap& eventData);
+
+/// Object Commands
+public:
+    void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
+    void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);
+    void PushObjectCommand(VariantMap& cmdvar, bool broadcast=true, int client=0);
+
+    void ExplodeNode(VariantMap& eventData);
+    void Server_UpdateInventory(int cmd, VariantMap& eventData);
+    void Client_SpawnItem(VariantMap& eventData);
+    void ChangeEquipment(VariantMap& eventData);
+    bool ChangeTile(VariantMap& eventData);
+    void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);
+private:
+    /// Server commands from clients
+    void Server_ApplyObjectCommand(VariantMap& eventData);
 
     /// Client commands from server
     void Client_CommandAddObject(VariantMap& eventData);
@@ -355,8 +345,11 @@ private:
     void Client_TransferItem(VariantMap& eventData);
     void Client_ApplyObjectCommand(VariantMap& eventData);
 
-    void CleanObjectCommands();
-    ObjectCommand& GetFreeObjectCommand();
+    /// Object Commands Pool
+    Pool<ObjectCommand > objCmdPool_;
+    Pool<ObjectCommandPacket > objCmdPckPool_;
+    PODVector<ObjectCommand* > objCmdNew_;
+    ObjectCommandInfo objCmdInfo_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     void UpdateLogStats();
@@ -382,10 +375,6 @@ private:
     Vector<ObjectControlInfo> serverObjectControls_;
     Vector<ObjectControlInfo> clientObjectControls_;
 
-    /// Object Commands
-    Vector<ObjectCommand> objectCommands_;
-    bool newObjectCommands_;
-
     /// Temporary Spawned Object Controls by client et by spawnid
     Vector<HashMap<unsigned, ObjectControlInfo* > > spawnControls_;
     /// received and local spawnStamp for each client
@@ -395,6 +384,7 @@ private:
     /// Server Only
     VectorBuffer preparedServerMessageBuffer_;
     HashMap<Connection*, ClientInfo> serverClientInfos_;
+    HashMap<int, ClientInfo* > serverClientID2Infos_;
     HashMap<int, Connection* > serverClientConnections_;
     HashMap<StringHash, ClientAccount> clientAccounts_;
     Vector<StringHash> loggedClientAccounts_;

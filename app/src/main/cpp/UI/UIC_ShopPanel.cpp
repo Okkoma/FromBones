@@ -277,7 +277,7 @@ void UIC_ShopPanel::ValidateBasket()
     UpdatePrice();
 }
 
-void UIC_ShopPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers)
+void UIC_ShopPanel::UpdateSlot(unsigned index, bool updateButtons, bool updateSubscribers, bool updateNet)
 {
 //    URHO3D_LOGINFOF("UIC_ShopPanel() - UpdateSlot : idSlot=%u inventory=%u", index, inventory_);
     if (!inventory_)

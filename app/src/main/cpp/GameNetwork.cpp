@@ -351,6 +351,9 @@ GameNetwork::GameNetwork(Context* context)  :
 
     net_->SetUpdateFps(NET_DEFAULT_UPDATEFPS);
 
+    objCmdPool_.Resize(500U);
+    objCmdPckPool_.Resize(500U);
+
 #ifdef ACTIVE_NETWORK_SIMULATOR
     net_->SetSimulatedLatency(NET_DEFAULT_LATENCY);
     net_->SetSimulatedPacketLoss(NET_DEFAULT_LOSTPACKET);
@@ -916,41 +919,41 @@ void GameNetwork::PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr, b
     VariantMap& eventData = !eventDataPtr ? (clientSideConnection_ ? sClientEventData_ : sServerEventData_) : *eventDataPtr;
     eventData[Net_ObjectCommand::P_COMMAND] = (int)pcmd;
 
-    ObjectCommand& cmd = GetFreeObjectCommand();
+    ObjectCommand& cmd = *objCmdPool_.Get();
     cmd.clientId_ = client;
-    cmd.stamp_ = clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() + 1 : Connection::GetServerObjCmd() + 1;
     cmd.broadCast_ = broadcast;
     cmd.cmd_ = eventData;
 
-    newObjectCommands_ = true;
+    objCmdNew_.Push(&cmd);
 
-    // on server only : save stamps for broadcasting to the clients
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-    if (broadcast && serverMode_)
-        cmd.SetBroadStamps();
-#endif
-
-    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) stamp=%u(%u) broadcast=%s cmd=%s nodeid=%u !",
-                     cmd.clientId_, clientID_, cmd.stamp_, clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() : 0, broadcast?"true":"false", netCommandNames[pcmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) broadcast=%s cmd=%s nodeid=%u !",
+                     cmd.clientId_, clientID_, broadcast?"true":"false", netCommandNames[pcmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
 }
 
 void GameNetwork::PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast, int client)
 {
     cmd.clientId_ = client;
-    cmd.stamp_ = clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() + 1 : Connection::GetServerObjCmd() + 1;
     cmd.broadCast_ = broadcast;
     cmd.cmd_[Net_ObjectCommand::P_COMMAND] = (int)pcmd;
 
-    newObjectCommands_ = true;
+    objCmdNew_.Push(&cmd);
 
-    // on server only : save stamps for broadcasting to the clients
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-    if (broadcast && serverMode_)
-        cmd.SetBroadStamps();
-#endif
+    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) broadcast=%s cmd=%s nodeid=%u !",
+                     cmd.clientId_, clientID_, broadcast?"true":"false", netCommandNames[pcmd], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt());
+}
 
-    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) stamp=%u(%u) broadcast=%s cmd=%s nodeid=%u !",
-                     cmd.clientId_, clientID_, cmd.stamp_, clientSideConnection_ ? clientSideConnection_->GetClientObjCmd() : 0, broadcast?"true":"false", netCommandNames[pcmd], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt());
+void GameNetwork::PushObjectCommand(VariantMap& cmdvar, bool broadcast, int client)
+{
+    ObjectCommand& cmd = *objCmdPool_.Get();
+    cmd.clientId_ = client;
+    cmd.broadCast_ = broadcast;
+    cmd.cmd_ = cmdvar;
+    objCmdNew_.Push(&cmd);
+
+    int pcmd = cmdvar[Net_ObjectCommand::P_COMMAND].GetInt();
+
+    URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) broadcast=%s cmd=%s nodeid=%u !",
+                     cmd.clientId_, clientID_, broadcast?"true":"false", netCommandNames[pcmd], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt());
 }
 
 void GameNetwork::ExplodeNode(VariantMap& eventData)
@@ -1979,7 +1982,7 @@ void GameNetwork::Server_SendWeatherInfos(ClientInfo& clientInfo)
 
 void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
 {
-    ObjectCommand& cmd = GetFreeObjectCommand();
+    ObjectCommand& cmd = *objCmdPool_.Get();
     cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects();
     PushObjectCommand(SETWORLD, cmd, false, clientInfo.clientID_);
 }
@@ -2180,6 +2183,7 @@ void GameNetwork::Server_RemoveAllPlayers()
     }
 }
 
+
 void GameNetwork::Server_PopulateClientIDs()
 {
     serverFreeClientIds_.Clear();
@@ -2242,6 +2246,7 @@ void GameNetwork::Server_AddConnection(Connection* connection, bool clean)
             clientInfo.connection_ = connection;
             clientInfo.clientID_   = Server_GetNextClientID();
 
+            serverClientID2Infos_[clientInfo.clientID_] = &clientInfo;
             serverClientConnections_[clientInfo.clientID_] = connection;
 
             // Allow Sending ObjectControls for this connection
@@ -2293,6 +2298,7 @@ void GameNetwork::Server_KillConnections()
         it = serverClientInfos_.Erase(it);
     }
 
+    serverClientID2Infos_.Clear();
     serverClientConnections_.Clear();
 }
 
@@ -2310,6 +2316,7 @@ void GameNetwork::Server_PurgeConnections()
             int clientid = it->second_.clientID_;
             Server_FreeClientID(clientid);
             it = serverClientInfos_.Erase(it);
+            serverClientID2Infos_.Erase(clientid);
             serverClientConnections_.Erase(clientid);
         }
         else
@@ -2338,6 +2345,7 @@ void GameNetwork::Server_PurgeConnection(Connection* connection)
     int clientid = it->second_.clientID_;
     Server_FreeClientID(clientid);
     serverClientInfos_.Erase(it);
+    serverClientID2Infos_.Erase(clientid);
     serverClientConnections_.Erase(clientid);
 }
 
@@ -2835,7 +2843,8 @@ void GameNetwork::Server_SubscribeToPlayEvents()
     SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
 
     SubscribeToEvent(E_NETWORKUPDATE, URHO3D_HANDLER(GameNetwork, HandlePlayServer_NetworkUpdate));
-    SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_ReceiveUpdate));
+    SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_ReceiveControls));
+    SubscribeToEvent(OBJECTCOMMANDSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_ReceiveCommands));
 
     Server_PurgeInactiveObjects();
 }
@@ -2851,6 +2860,7 @@ void GameNetwork::Server_UnsubscribeToPlayEvents()
 
     UnsubscribeFromEvent(E_NETWORKUPDATE);
     UnsubscribeFromEvent(CLIENTOBJECTCONTROLSRECEIVED);
+    UnsubscribeFromEvent(OBJECTCOMMANDSRECEIVED);
 
     Server_RemoveAllPlayers();
     Server_SetEnableAllObjects(false);
@@ -2872,11 +2882,11 @@ void GameNetwork::Client_SubscribeToPlayEvents()
 
     if (clientSideConnection_)
     {
-        newObjectCommands_ = false;
         clientSideConnection_->ResetObjectControlAndCommands();
 
-        SubscribeToEvent(SERVEROBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_ReceiveServerUpdate));
-        SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_ReceiveClientUpdate));
+        SubscribeToEvent(SERVEROBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_ReceiveServerControls));
+        SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_ReceiveClientControls));
+        SubscribeToEvent(OBJECTCOMMANDSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_ReceiveCommands));
 
 //        SetEnabledServerObjectControls(clientSideConnection_, false);
         SetEnabledServerObjectControls(clientSideConnection_, true);
@@ -2898,6 +2908,7 @@ void GameNetwork::Client_UnsubscribeToPlayEvents()
 
     UnsubscribeFromEvent(SERVEROBJECTCONTROLSRECEIVED);
     UnsubscribeFromEvent(CLIENTOBJECTCONTROLSRECEIVED);
+    UnsubscribeFromEvent(OBJECTCOMMANDSRECEIVED);
 
     if (clientSideConnection_)
     {
@@ -3192,7 +3203,6 @@ void GameNetwork::HandleClient_MessagesFromServer(StringHash eventType, VariantM
             {
                 SetEnabledServerObjectControls(clientSideConnection_, false);
                 SetEnabledClientObjectControls(clientSideConnection_, false);
-                newObjectCommands_ = false;
                 clientSideConnection_->ResetObjectControlAndCommands();
             }
         }
@@ -3775,97 +3785,18 @@ template< typename T > bool GameNetwork::CheckNewStamp(T stamp, T stampref, T ma
 template bool GameNetwork::CheckNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxdelta);
 template bool GameNetwork::CheckNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxdelta);
 
-void GameNetwork::CleanObjectCommands()
-{
-    unsigned short int oldestObjectCmdAck = 0;
-
-    // find the oldest stamp from connections
-
-    if (serverMode_)
-    {
-        // on the server, find the stamp from all the client connection
-        // don't get clients that are not playing.
-        bool objectCmdDefined = false;
-        PODVector<int> notRunningClientIds;
-        for (HashMap<Connection*, ClientInfo>::ConstIterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
-        {
-            if (it->second_.gameStatus_ < PLAYSTATE_INITIALIZING)
-                notRunningClientIds.Push(it->second_.clientID_);
-            else if (!objectCmdDefined)
-            {
-                objectCmdDefined = true;
-                oldestObjectCmdAck = it->first_->GetServerObjCmdAck();
-            }
-        }
-
-        if (objectCmdDefined)
-        {
-            for (HashMap<Connection*, ClientInfo>::ConstIterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
-            {
-                const unsigned objCmdAck = it->first_->GetServerObjCmdAck();
-                const int clientid = it->second_.clientID_;
-                if (!notRunningClientIds.Contains(clientid) && !IsNewStamp(objCmdAck, oldestObjectCmdAck))
-                    oldestObjectCmdAck = objCmdAck;
-            }
-        }
-        else
-            oldestObjectCmdAck = Connection::GetServerObjCmd();
-    }
-    else
-    {
-        // on the client get the stamp from the connection to the server (named here clientSideConnection_)
-        oldestObjectCmdAck = clientSideConnection_->GetClientObjCmdAck();
-    }
-
-    // clean the commands if the stamp is older than the oldest connection's stamp
-    for (Vector<ObjectCommand>::Iterator it = objectCommands_.Begin(); it != objectCommands_.End(); ++it)
-    {
-        ObjectCommand& cmd = *it;
-
-        if (cmd.clientId_ < 0)
-            continue;
-
-        if (serverMode_)
-        {
-            URHO3D_LOGINFOF("GameNetwork() - CleanObjectCommands : try ObjectCommand[%u] clientid=%d cmd=%s cmdstamp=%u oldestObjectCmdAck=%u ...",
-                            &cmd, cmd.clientId_, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.stamp_, oldestObjectCmdAck);
-        }
-
-        if (!IsNewStamp(cmd.stamp_, oldestObjectCmdAck))
-        {
-            URHO3D_LOGINFOF("GameNetwork() - CleanObjectCommands : clean ObjectCommand[%u] clientid=%d cmd=%s cmdstamp=%u oldestObjectCmdAck=%u ... OK !",
-                            &cmd, cmd.clientId_, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.stamp_, oldestObjectCmdAck);
-            cmd.clientId_ = -1;
-            cmd.cmd_.Clear();
-        }
-    }
-}
-
-ObjectCommand& GameNetwork::GetFreeObjectCommand()
-{
-    for (unsigned i=0; i < objectCommands_.Size(); i++)
-    {
-        if (objectCommands_[i].clientId_ < 0)
-            return objectCommands_[i];
-    }
-
-//    URHO3D_LOGERRORF("GameNetwork() - GetFreeObjectCommand : objectCommands_.Size()=%u !", objectCommands_.Size()+1);
-    objectCommands_.Resize(objectCommands_.Size()+1);
-    return objectCommands_.Back();
-}
-
-
 /// GameNetwork Handle Receive Object Controls
 
 static ObjectControlInfo sDumpObject_;
+static ObjectCommand sObjCmd_;
 static PODVector<unsigned char> sReceiveStamps_;
 
-void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMap& eventData)
+void GameNetwork::HandlePlayServer_ReceiveControls(StringHash eventType, VariantMap& eventData)
 {
     Connection* sender = static_cast<Connection*>(context_->GetEventSender());
     if (!sender)
     {
-        URHO3D_LOGERROR("GameNetwork() - HandlePlayServer_ReceiveUpdate : connection = 0 !");
+        URHO3D_LOGERROR("GameNetwork() - HandlePlayServer_ReceiveControls : connection = 0 !");
         return;
     }
 
@@ -3890,7 +3821,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
             ClientInfo& clientInfo = serverClientInfos_[sender];
             if (clientInfo.gameStatus_ == PLAYSTATE_ENDGAME)
             {
-                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : clientid=%d PLAYSTATE_STARTGAME !", clientInfo.clientID_);
+                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : clientid=%d PLAYSTATE_STARTGAME !", clientInfo.clientID_);
                 clientInfo.gameStatus_ = PLAYSTATE_RUNNING;
                 Server_SetEnablePlayers(clientInfo, true);
                 Server_SetEnableAllActiveObjectsToClient(clientInfo);
@@ -3911,14 +3842,13 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
         else if (IsNewStamp(receivedstamp, receivedSpawnStamps_[senderclientid]))
         {
         #ifdef ACTIVE_NETWORK_DEBUGSERVER_RECEIVE
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : from clientid=%d newsSpawntamp=%u lastSpawnstamp=%u buffersize=%u ...", senderclientid, receivedstamp, receivedSpawnStamps_[senderclientid], buffer.GetBuffer().Size());
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveControls : from clientid=%d newsSpawntamp=%u lastSpawnstamp=%u buffersize=%u ...", senderclientid, receivedstamp, receivedSpawnStamps_[senderclientid], buffer.GetBuffer().Size());
         #endif
             receivedSpawnStamps_[senderclientid] = receivedstamp;
-
         }
         else if (receivedstamp != receivedSpawnStamps_[senderclientid])
         {
-            URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : spawnStamps desync : received=%u lastreceived=%u !", receivedstamp, receivedSpawnStamps_[senderclientid]);
+            URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : spawnStamps desync : received=%u lastreceived=%u !", receivedstamp, receivedSpawnStamps_[senderclientid]);
         }
     }
 
@@ -3969,7 +3899,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
 
             if (!clientnodeid && !servernodeid)
             {
-                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive empty nodeids from client=%d(%d) !", senderclientid, nodeclientid);
+                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive empty nodeids from client=%d(%d) !", senderclientid, nodeclientid);
                 continue;
             }
 
@@ -3982,8 +3912,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
                 oinfo = GetSpawnControl(nodeclientid, spawnid);
 
 #ifdef ACTIVE_NETWORK_DEBUGSERVER_RECEIVE_ALL
-//                if (!GameContext::Get().IsAvatarNodeID(clientnodeid))
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u allownetspawn=%s spawnid=%u(holder=%u,stamp=%u) ...",
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u allownetspawn=%s spawnid=%u(holder=%u,stamp=%u) ...",
                                 senderclientid, servernodeid, clientnodeid, oinfo, oinfo ? oinfo->active_ : 0, sDumpObject_.IsEnable(),
                                 sDumpObject_.GetReceivedControl().HasNetSpawnMode() ?"true":"false", spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
@@ -4000,7 +3929,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
                 else
                 {
                     if (!GameContext::Get().IsAvatarNodeID(clientnodeid))
-                        URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u ... no spawn entity allowed ...",
+                        URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u ... no spawn entity allowed ...",
                                         senderclientid, servernodeid, clientnodeid, oinfo, oinfo ? oinfo->active_ : 0, sDumpObject_.IsEnable());
                 }
 
@@ -4019,7 +3948,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
                 oinfo = GetServerObjectControl(servernodeid);
 #ifdef ACTIVE_NETWORK_DEBUGSERVER_RECEIVE_ALL
 //            if (!GameContext::Get().IsAvatarNodeID(clientnodeid))
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u spawnid=%u(holder=%u,stamp=%u) ...",
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive from clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u active=%u enable=%u spawnid=%u(holder=%u,stamp=%u) ...",
                                 senderclientid, servernodeid, clientnodeid, oinfo, oinfo ? oinfo->active_ : 0, sDumpObject_.IsEnable(), spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
                 // Let the server process with this spawnid until client received and send back the servernodeid to server (gain 1x latence)
@@ -4028,14 +3957,14 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
 
             if (!oinfo)
             {
-                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u spawnid=%u(holder=%u,stamp=%u) => has no object control !",
+                URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive from clientid=%d servernodeid=%u clientnodeid=%u spawnid=%u(holder=%u,stamp=%u) => has no object control !",
                                  senderclientid, servernodeid, clientnodeid, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
                 continue;
             }
 
             if (oinfo->active_ && oinfo->clientId_ != senderclientid)
             {
-                // URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveUpdate : server receive from clientid=%d servernodeid=%u clientnodeid=%u with nodeclientid=%d != senderclientid=%d !",
+                // URHO3D_LOGERRORF("GameNetwork() - HandlePlayServer_ReceiveControls : server receive from clientid=%d servernodeid=%u clientnodeid=%u with nodeclientid=%d != senderclientid=%d !",
                 //                  senderclientid, servernodeid, clientnodeid, oinfo->clientId_, senderclientid);
                 continue;
             }
@@ -4054,7 +3983,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
             {
 #if defined(ACTIVE_NETWORK_DEBUGSERVER_RECEIVE) || defined(ACTIVE_NETWORK_DEBUGSERVER_RECEIVE_ALL)
 //            if (!GameContext::Get().IsAvatarNodeID(clientnodeid))
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : nodeclientid=%d servernodeid=%u clientnodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) node=%s(%u) ... updated !",
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveControls : nodeclientid=%d servernodeid=%u clientnodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) node=%s(%u) ... updated !",
                                 objectControlInfo.clientId_, objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_,
                                 oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid),
                                 objectControlInfo.node_ ? objectControlInfo.node_->GetName().CString() : "null",
@@ -4062,57 +3991,10 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
 #endif
             }
         }
-        else if (type == OBJECTCOMMAND)
-        {
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            unsigned lastbufferpos = buffer.Tell();
-#endif
-
-            ObjectCommand tempcmd(buffer);
-
-//            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : receive ObjectCommand from clientid=%d cmd=%s stamp=%u clientAck=%u ...",
-//                            tempcmd.clientId_, netCommandNames[tempcmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], tempcmd.stamp_, sender->GetClientObjCmdAck());
-
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            tmpLogStats_.stats_[ObjCmdReceived]++;
-            tmpLogStats_.stats_[ObjCmdBytesReceived] += (buffer.Tell() - lastbufferpos);
-            if (clientinfo)
-            {
-                clientinfo->tmpLogStats_.stats_[ObjCmdReceived]++;
-                clientinfo->tmpLogStats_.stats_[ObjCmdBytesReceived] += (buffer.Tell() - lastbufferpos);
-            }
-#endif
-
-#ifdef ACTIVE_NETWORK_DEBUGSERVER_OBJECTCOMMANDS
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : try ObjectCommand from clientid=%d cmdclientid=%d cmd=%s cmdstamp=%u ClientCmdAck=%u ServerCmdAck=%u ...",
-                            senderclientid, tempcmd.clientId_, netCommandNames[tempcmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], tempcmd.stamp_, sender->GetClientObjCmdAck(), sender->GetServerObjCmdAck());
-#endif
-
-            if (tempcmd.clientId_ > 0 && IsNewStamp(tempcmd.stamp_, sender->GetClientObjCmdAck()))
-            {
-                if (tempcmd.broadCast_)
-                {
-                    // Receive the ObjectCommand
-                    ObjectCommand& cmd = GetFreeObjectCommand();
-                    tempcmd.CopyTo(cmd);
-                    cmd.stamp_ = Connection::GetServerObjCmd()+1;
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-                    cmd.SetBroadStamps();
-#endif
-                    newObjectCommands_ = true;
-#ifdef ACTIVE_NETWORK_DEBUGSERVER_OBJECTCOMMANDS
-                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : apply ObjectCommand[%u] from clientid=%d cmdclientid=%d cmd=%s and Push to objectCommands_ with stamp=%u ... OK !",
-                                    &cmd, senderclientid, cmd.clientId_, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.stamp_);
-#endif
-                }
-                // Apply ObjectCommand
-                Server_ApplyObjectCommand(tempcmd.cmd_);
-            }
-        }
     }
     while (!buffer.IsEof());
 
-//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveUpdate : stamp=%u ... numObjects=%u/%u size=%u fromclientid=%u ",
+//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveControls : stamp=%u ... numObjects=%u/%u size=%u fromclientid=%u ",
 //                     sender->GetObjectTimeStampReceived(), buffer.GetSize(), senderclientid);
 
     buffer.Clear();
@@ -4122,7 +4004,7 @@ void GameNetwork::HandlePlayServer_ReceiveUpdate(StringHash eventType, VariantMa
 #endif
 }
 
-void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, VariantMap& eventData)
+void GameNetwork::HandlePlayClient_ReceiveServerControls(StringHash eventType, VariantMap& eventData)
 {
     VectorBuffer& buffer = clientSideConnection_->GetReceivedServerObjectControlsBuffer();
     if (!buffer.GetBuffer().Size())
@@ -4136,7 +4018,7 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
 
     buffer.Seek(0);
 
-//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : ... buffer.size=%u stamp=%u", buffer.GetSize(), GetConnection()->GetObjectTimeStampReceived());
+//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : ... buffer.size=%u stamp=%u", buffer.GetSize(), GetConnection()->GetObjectTimeStampReceived());
 
     // Receive the client netstatus
     int serverstatus = buffer.ReadInt();
@@ -4205,7 +4087,7 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
             if (avatarnode)
             {
                 oinfo = &GetOrCreateServerObjectControl(servernodeid, servernodeid, nodeclientid);
-//                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : avatarnode clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
+//                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : avatarnode clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
 //                                clientID_, nodeclientid, servernodeid, clientnodeid, oinfo ? oinfo->clientNodeID_:0, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
             }
             else
@@ -4224,10 +4106,8 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
                 {
                     if (sDumpObject_.GetReceivedControl().HasNetSpawnMode() && sDumpObject_.IsEnable())
                     {
-//                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) spawncontrol=%s ... spawn entity ...",
+//                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) spawncontrol=%s ... spawn entity ...",
 //                                        clientID_, nodeclientid, servernodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), spawncontrol?"true":"false");
-
-                        //assert(!(servernodeid >= 16792822 && servernodeid <= 16792836 && spawncontrol == true));
 
                         // entity to instantiate
                         NetSpawnEntity(servernodeid, sDumpObject_, oinfo);
@@ -4248,13 +4128,13 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
 
 #ifdef ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL
 //            if (!avatarnode)
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
                             clientID_, nodeclientid, servernodeid, clientnodeid, oinfo ? oinfo->clientNodeID_:0, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
 
             if (!oinfo)
             {
-//                URHO3D_LOGERRORF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
+//                URHO3D_LOGERRORF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%d servernodeid=%u clientnodeid=%u(%u) oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
 //                            clientID_, nodeclientid, servernodeid, clientnodeid, oinfo ? oinfo->clientNodeID_:0, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
                 continue;
             }
@@ -4276,7 +4156,7 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
                     bool ok = NetAddEntity(objectControlInfo);
 
 //#if defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE) || defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL)
-                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... instantiate entity !",
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... instantiate entity !",
                                     clientID_, objectControlInfo.clientId_, objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_,
                                     objectControlInfo.node_ ? objectControlInfo.node_->GetName().CString() : "null",
                                     objectControlInfo.node_ ? objectControlInfo.node_->GetID() : 0, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
@@ -4289,44 +4169,12 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
             {
 //                if (!avatarnode)
 #if defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE) || defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL)
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... updated !",
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... updated !",
                                 clientID_, objectControlInfo.clientId_, objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_,
                                 objectControlInfo.node_ ? objectControlInfo.node_->GetName().CString() : "null",
                                 objectControlInfo.node_ ? objectControlInfo.node_->GetID() : 0,
                                 spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
 #endif
-            }
-        }
-        else if (type == OBJECTCOMMAND)
-        {
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            unsigned lastbufferpos = buffer.Tell();
-#endif
-            ObjectCommand cmd(buffer);
-
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            tmpLogStats_.stats_[ObjCmdReceived]++;
-            tmpLogStats_.stats_[ObjCmdBytesReceived] += (buffer.Tell() - lastbufferpos);
-#endif
-
-            bool stampTest = IsNewStamp(cmd.stamp_, clientSideConnection_->GetServerObjCmdAck());
-#ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : try ObjectCommand cmd=%s for nodeid=%u broadcast=%s cmdclientid=%d cmdstamp=%u serverObjCmdAck=%u test=%s...",
-                            netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(), cmd.broadCast_?"true":"false", cmd.clientId_,
-                            cmd.stamp_, clientSideConnection_->GetServerObjCmdAck(), stampTest?"true":"false");
-#endif
-            if ((!cmd.broadCast_ && clientID_ == cmd.clientId_) || (cmd.broadCast_ && clientID_ != cmd.clientId_))
-            {
-                if (stampTest)
-                {
-    #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerUpdate : apply ObjectCommand from clientid=%d cmdstamp=%u serverObjCmdAck=%u ... OK !",
-                                    cmd.clientId_, cmd.stamp_, clientSideConnection_->GetServerObjCmdAck());
-    #endif
-                    // Apply ObjectCommand
-                    Client_ApplyObjectCommand(cmd.cmd_);
-                }
             }
         }
     }
@@ -4339,14 +4187,14 @@ void GameNetwork::HandlePlayClient_ReceiveServerUpdate(StringHash eventType, Var
 #endif
 }
 
-void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, VariantMap& eventData)
+void GameNetwork::HandlePlayClient_ReceiveClientControls(StringHash eventType, VariantMap& eventData)
 {
     VectorBuffer& buffer = GetConnection()->GetReceivedClientObjectControlsBuffer();
     buffer.Seek(0);
 
-//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientUpdate : clientid=%d servernodeid=%u nodeclientid=%d stamp=%u ...", clientID_, servernodeid, objectControlInfo.clientId_, objectControlInfo.GetReceivedControl().states_.stamp_);
+//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientControls : clientid=%d servernodeid=%u nodeclientid=%d stamp=%u ...", clientID_, servernodeid, objectControlInfo.clientId_, objectControlInfo.GetReceivedControl().states_.stamp_);
 
-//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientUpdate : ... buffer.size=%u stamp=%u", buffer.GetSize(), GetConnection()->GetObjectTimeStampReceived());
+//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientControls : ... buffer.size=%u stamp=%u", buffer.GetSize(), GetConnection()->GetObjectTimeStampReceived());
 
     // Receive Client Object Controls
     do
@@ -4391,7 +4239,7 @@ void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, Var
                 if (gameStatus_ == PLAYSTATE_STARTGAME && sDumpObject_.IsEnable())
                 {
                     // receive a player respawn
-                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientUpdate : nodeid=%u player restart !", servernodeid);
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientControls : nodeid=%u player restart !", servernodeid);
                     SetGameStatus(PLAYSTATE_RUNNING, true);
                 }
             }
@@ -4400,7 +4248,7 @@ void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, Var
 
     #ifdef ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL
     //        if (!GameContext::Get().IsAvatarNodeID(servernodeid))
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientUpdate : clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientControls : clientid=%d servernodeid=%u clientnodeid=%u oinfo=%u... spawnid=%u(holder=%u,stamp=%u) ...",
                             clientID_, servernodeid, clientnodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid));
     #endif
 
@@ -4414,7 +4262,7 @@ void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, Var
             {
     #if defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE) || defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL)
     //            if (!GameContext::Get().IsAvatarNodeID(servernodeid))
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientUpdate : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... updated !",
+                URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveClientControls : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... updated !",
                                 clientID_, oinfo->clientId_, oinfo->serverNodeID_, oinfo->clientNodeID_,
                                 oinfo->node_ ? oinfo->node_->GetName().CString() : "null",
                                 oinfo->node_ ? oinfo->node_->GetID() : 0,
@@ -4432,6 +4280,250 @@ void GameNetwork::HandlePlayClient_ReceiveClientUpdate(StringHash eventType, Var
 #endif
 }
 
+
+void GameNetwork::HandlePlayServer_ReceiveCommands(StringHash eventType, VariantMap& eventData)
+{
+    Connection* connection = static_cast<Connection*>(context_->GetEventSender());
+    if (!connection)
+    {
+        URHO3D_LOGERROR("GameNetwork() - HandlePlayServer_ReceiveCommands : connection = 0 !");
+        return;
+    }
+
+    ClientInfo* clientinfo = GetServerClientInfo(connection);
+    if (!clientinfo)
+        return;
+
+    // New Ack for Ouput Stream : Remove the ObjectCommand Packets Reference that have been received by the peer
+    if (connection->HasNewAckReceived())
+    {
+        const unsigned oldsize = objCmdInfo_.objCmdPacketsToSend_.Size();
+        const int numPacketsToKeep   = Max(0, connection->GetDeltaObjectCommandPackets());
+        const int numPacketsToRemove = Max(0, clientinfo->objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
+        List<ObjectCommandPacket* >::Iterator jt = --clientinfo->objCmdInfo_.objCmdPacketsToSend_.End();
+        for (int i=0; i < numPacketsToRemove; i++, jt--)
+            objCmdPckPool_.RemoveRef(*jt);
+        clientinfo->objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
+        clientinfo->objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
+
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
+                        oldsize, numPacketsToKeep, objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
+    }
+
+    VectorBuffer& buffer = connection->GetObjCmdReceivedBuffer();
+    if (!buffer.GetSize())
+        return;
+
+    int clientid = GetClientID(connection);
+
+    // Store the new packets (the extra packets are those that have been resubmitted (=lost packets))
+    buffer.Seek(0);
+    while (buffer.GetSize()-buffer.Tell() > 0)
+    {
+        // Read the Command Packet Stamp and get the good storage location
+        const unsigned char stamp = buffer.ReadUByte();
+        ObjectCommandPacket& packet = clientinfo->objCmdInfo_.objCmdPacketsReceived_[stamp];
+
+        const unsigned packetsize = buffer.ReadUInt();
+
+        // Check if the Packet is already received or applied
+        if (packet.state_ >= PACKET_RECEIVED)
+        {
+            // same packet received, so skip.
+            if (packet.buffer_.GetBuffer().Size() == packetsize)
+            {
+                buffer.SeekRelative(packetsize);
+                continue;
+            }
+            else if (packet.state_ == PACKET_RECEIVED)
+                URHO3D_LOGWARNINGF("GameNetwork() - HandlePlayServer_ReceiveCommands : clientid=%d Packet stamp=%u previously received with a different size but never apply (overwrite) !",
+                                    clientid, stamp);
+        }
+
+        // Store the packet
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : Packet Received stamp=%u size=%u", stamp, packetsize);
+        packet.state_  = PACKET_RECEIVED;
+        packet.buffer_.Resize(packetsize);
+        buffer.Read(packet.buffer_.GetModifiableData(), packetsize);
+        packet.buffer_.Seek(0);
+    }
+    buffer.Clear();
+
+    // From the head, try to apply Commands in each packet to the next unreceived Packet
+    unsigned char head = clientinfo->objCmdInfo_.objCmdHead_;
+    int headinc = 0;
+    for (;;)
+    {
+        ObjectCommandPacket& packet = clientinfo->objCmdInfo_.objCmdPacketsReceived_[head];
+
+        if (packet.state_ < PACKET_RECEIVED)
+            break;
+
+        if (packet.state_ == PACKET_RECEIVED)
+        {
+            packet.buffer_.Seek(0);
+            do
+            {
+                int type = packet.buffer_.ReadUByte();
+                if (type == OBJECTCOMMAND)
+                {
+                    sObjCmd_.Read(packet.buffer_);
+
+                #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : try ObjectCommand cmd=%s for nodeid=%u broadcast=%s cmdclientid=%d...",
+                                    netCommandNames[sObjCmd_.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], sObjCmd_.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(),
+                                    sObjCmd_.broadCast_?"true":"false", sObjCmd_.clientId_);
+                #endif
+                    if ((!sObjCmd_.broadCast_ && clientID_ == sObjCmd_.clientId_) || (sObjCmd_.broadCast_ && clientID_ != sObjCmd_.clientId_))
+                    {
+                #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : apply ObjectCommand from clientid=%d cmdstamp=%u serverObjCmdAck=%u ... OK !", sObjCmd_.clientId_);
+                #endif
+                        // Apply ObjectCommand
+                        Server_ApplyObjectCommand(sObjCmd_.cmd_);
+
+                        // Relay Client BroadCasted Command
+                        if (sObjCmd_.broadCast_ && sObjCmd_.clientId_)
+                            PushObjectCommand(sObjCmd_.cmd_, true, sObjCmd_.clientId_);
+                    }
+                }
+            }
+            while (!packet.buffer_.IsEof());
+            packet.buffer_.Clear();
+            packet.state_ = PACKET_APPLIED;
+        }
+
+        // todo : check if the overflow is ok
+        if (head == 255)
+            assert(head+1 == 0U);
+        head++; // note : overflow accepted 255+1 -> 0
+        headinc++;
+    }
+
+    // Move the head
+    clientinfo->objCmdInfo_.objCmdHead_ = head;
+    connection->UpdateObjCmdInStampAck(headinc);
+
+#ifdef ACTIVE_NETWORK_LOGSTATS
+    UpdateLogStats();
+#endif
+}
+
+void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, VariantMap& eventData)
+{
+    // New Ack for Ouput Stream : Remove the ObjectCommand Packets Reference that have been received by the peer
+    if (clientSideConnection_->HasNewAckReceived())
+    {
+        const unsigned oldsize = objCmdInfo_.objCmdPacketsToSend_.Size();
+        const int numPacketsToKeep   = Max(0, clientSideConnection_->GetDeltaObjectCommandPackets());
+        const int numPacketsToRemove = Max(0, objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
+        List<ObjectCommandPacket* >::Iterator jt = --objCmdInfo_.objCmdPacketsToSend_.End();
+        for (int i=0; i < numPacketsToRemove; i++, jt--)
+            objCmdPckPool_.RemoveRef(*jt);
+        objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
+        objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
+
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
+                        oldsize, numPacketsToKeep, objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
+    }
+
+    VectorBuffer& buffer = clientSideConnection_->GetObjCmdReceivedBuffer();
+    if (!buffer.GetSize())
+        return;
+
+//    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : ...");
+
+    // Store the new packets (the extra packets are those that have been resubmitted (=lost packets))
+    buffer.Seek(0);
+    while (buffer.GetSize()-buffer.Tell() > 0)
+    {
+        // Read the Command Packet Stamp and get the good storage location
+        unsigned char stamp = buffer.ReadUByte();
+        ObjectCommandPacket& packet = objCmdInfo_.objCmdPacketsReceived_[stamp];
+
+        unsigned packetsize = buffer.ReadUInt();
+
+        // Check if the Packet is already received or applied
+        if (packet.state_ >= PACKET_RECEIVED)
+        {
+            // same packet received, so skip.
+            if (packet.buffer_.GetBuffer().Size() == packetsize)
+            {
+                buffer.SeekRelative(packetsize);
+                continue;
+            }
+            else if (packet.state_ == PACKET_RECEIVED)
+                URHO3D_LOGWARNINGF("GameNetwork() - HandlePlayClient_ReceiveCommands : Packet stamp=%u previously received with a different size but never apply (overwrite) !", stamp);
+        }
+
+        // Store the packet
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : Packet Received stamp=%u head=%u size=%u", stamp, objCmdInfo_.objCmdHead_, packetsize);
+        packet.state_  = PACKET_RECEIVED;
+        if (packetsize)
+        {
+            packet.buffer_.Resize(packetsize);
+            buffer.Read(packet.buffer_.GetModifiableData(), packetsize);
+            packet.buffer_.Seek(0);
+        }
+    }
+    buffer.Clear();
+
+    // From the head, try to apply Commands in each packet to the next unreceived Packet
+    unsigned char head = objCmdInfo_.objCmdHead_;
+    int headinc = 0;
+    for (;;)
+    {
+        ObjectCommandPacket& packet = objCmdInfo_.objCmdPacketsReceived_[head];
+
+        // unreceived Packet => break
+        if (packet.state_ < PACKET_RECEIVED)
+            break;
+
+        if (packet.state_ == PACKET_RECEIVED)
+        {
+            packet.buffer_.Seek(0);
+            do
+            {
+                int type = packet.buffer_.ReadUByte();
+                if (type == OBJECTCOMMAND)
+                {
+                    sObjCmd_.Read(packet.buffer_);
+
+                #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : try ObjectCommand cmd=%s for nodeid=%u broadcast=%s cmdclientid=%d...",
+                                    netCommandNames[sObjCmd_.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], sObjCmd_.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(),
+                                    sObjCmd_.broadCast_?"true":"false", sObjCmd_.clientId_);
+                #endif
+                    if ((!sObjCmd_.broadCast_ && clientID_ == sObjCmd_.clientId_) || (sObjCmd_.broadCast_ && clientID_ != sObjCmd_.clientId_))
+                    {
+                #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d cmdstamp=%u serverObjCmdAck=%u ... OK !", sObjCmd_.clientId_);
+                #endif
+                        // Apply ObjectCommand
+                        Client_ApplyObjectCommand(sObjCmd_.cmd_);
+                    }
+                }
+            }
+            while (!packet.buffer_.IsEof());
+            packet.buffer_.Clear();
+            packet.state_ = PACKET_APPLIED;
+        }
+
+        // todo : check if the overflow is ok
+        if (head == 255)
+            assert(head+1 == 0U);
+        head++; // note : overflow accepted 255+1 -> 0
+        headinc++;
+    }
+
+    // Move the head
+    objCmdInfo_.objCmdHead_ = head;
+    clientSideConnection_->UpdateObjCmdInStampAck(headinc);
+
+#ifdef ACTIVE_NETWORK_LOGSTATS
+    UpdateLogStats();
+#endif
+}
 
 /// GameNetwork Handle Network Update / Prepare Object Controls
 
@@ -4718,108 +4810,133 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
 
 //    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : Prepare ObjectControls ... OK !");
 
-    // Write ObjectCommands to Buffer
-    if (objectCommands_.Size() && hasClients)
+    /// Prepare Object Commands Message
+    if (hasClients)
     {
-        CleanObjectCommands();
+//        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : Prepare ObjectCommands ... ");
 
-        unsigned numcmdsended = 0;
+        HashMap<int, ObjectCommandPacket* > newpackets;
 
-        for (Vector<ObjectCommand>::Iterator jt = objectCommands_.Begin(); jt != objectCommands_.End(); ++jt)
+        // Prepare the new ObjectCommand Packets from the pool
+        if (objCmdNew_.Size())
         {
-            ObjectCommand& cmd = *jt;
-            if (cmd.clientId_ < 0)
-                continue;
+//            URHO3D_LOGINFOF(" ... New Commands Size = %u ...", objCmdNew_.Size());
 
-            // Server ObjectCommand to distribute to all clients : always broadcast
-            if (cmd.clientId_ == 0)
+            // write new commands into new packets
+            for (PODVector<ObjectCommand* >::Iterator it = objCmdNew_.Begin(); it != objCmdNew_.End(); ++it)
             {
-#ifdef ACTIVE_NETWORK_DEBUGSERVER_OBJECTCOMMANDS
-                URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : send Server ObjectCommand[%u] cmd=%s for nodeid=%u cmdstamp=%u serverObjCmd=%u !",
-                                &cmd, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(), cmd.stamp_, Connection::GetServerObjCmd());
-#endif
-#ifdef ACTIVE_NETWORK_LOGSTATS
-                unsigned lastbuffersize = preparedServerMessageBuffer_.GetBuffer().Size();
-#endif
-                cmd.Write(preparedServerMessageBuffer_);
-                numcmdsended++;
-#ifdef ACTIVE_NETWORK_LOGSTATS
-                tmpLogStats_.stats_[ObjCmdBytesSent] += (preparedServerMessageBuffer_.GetBuffer().Size() - lastbuffersize);
-#endif
-            }
-            else
-            {
-                for (HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
+                ObjectCommand& cmd = **it;
+                if (cmd.clientId_ == 0)
                 {
-                    Connection* connection = it->first_;
-                    if (!connection)
-                        continue;
-
-                    if (!connection->IsClientObjectControlsAllowed())
-                        continue;
-
-                    // Write a Command to a specific client
-                    // or Write a Broadcast Command to others clients
-
-                    ClientInfo& clientinfo = it->second_;
-                    int clientid = clientinfo.clientID_;
-
-                    if ((!cmd.broadCast_ && clientid == cmd.clientId_) || (cmd.broadCast_ && clientid != cmd.clientId_))
+                    ObjectCommandPacket*& serverpacket = newpackets[0];
+                    if (!serverpacket)
+                        serverpacket = objCmdPckPool_.Get(false); // don't addref here
+                    cmd.Write(serverpacket->buffer_, 0);
+//                    URHO3D_LOGINFOF(" .... Command[%d] serverpacket=%u ", it-objCmdNew_.Begin(), serverpacket);
+                }
+                else if (cmd.broadCast_)
+                {
+                    for (HashMap<Connection*, ClientInfo>::Iterator jt = serverClientInfos_.Begin(); jt != serverClientInfos_.End(); ++jt)
                     {
-                        unsigned short stamp = cmd.stamp_;
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-                        if (cmd.broadCast_)
+                        ClientInfo& clientinfo = jt->second_;
+                        // prepare packet for clientid != cmd.clientId
+                        if (clientinfo.clientID_ != cmd.clientId_)
                         {
-                            if (clientid < cmd.broadcastStamps_.Size())
-                                stamp = cmd.broadcastStamps_[clientid];
-                            else
-                                stamp = cmd.AddNewBroadCastStamp(connection);
+                            ObjectCommandPacket*& broadcastpacket = newpackets[cmd.clientId_];
+                            if (!broadcastpacket)
+                            {
+                                broadcastpacket = objCmdPckPool_.Get(false); // don't addref here
+                                cmd.Write(broadcastpacket->buffer_, cmd.clientId_); // write the command only once !
+//                                URHO3D_LOGINFOF(" .... Command[%d] broadcastpacket=%u for clientids!=%d", it-objCmdNew_.Begin(), broadcastpacket, cmd.clientId_);
+                            }
                         }
-#endif
-                        bool stampTest = IsNewStamp(stamp, connection->GetServerObjCmdAck());
-#ifdef ACTIVE_NETWORK_DEBUGSERVER_OBJECTCOMMANDS
-                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : try ObjectCommand[%u] cmd=%s for nodeid=%u to specific clientid=%d broadcast=%s cmdclientid=%d cmdstamp=%u serverObjCmdAck=%u test=%s...",
-                                        &cmd, netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(), clientid, cmd.broadCast_?"true":"false", cmd.clientId_,
-                                        stamp, connection->GetServerObjCmdAck(), stampTest?"true":"false");
-#endif
-                        if (stampTest)
-                        {
-#ifdef ACTIVE_NETWORK_DEBUGSERVER_OBJECTCOMMANDS
-                            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : send ObjectCommand cmd=%s for nodeid=%u to specific clientid=%d broadcast=%s cmdclientid=%d cmdstamp=%u serverObjCmd=%u serverObjCmdAck=%u ... OK !",
-                                            netCommandNames[cmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt()], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(), clientid, cmd.broadCast_?"true":"false", cmd.clientId_,
-                                            stamp, Connection::GetServerObjCmd(), connection->GetServerObjCmdAck());
-#endif
-#ifdef ACTIVE_NETWORK_LOGSTATS
-                            unsigned lastbuffersize = connection->GetPreparedSpecificServerObjectControlMessageBuffer()->GetBuffer().Size();
-#endif
-#ifdef ACTIVE_OBJECTCOMMAND_BROADCASTING
-                            cmd.Write(*connection->GetPreparedSpecificServerObjectControlMessageBuffer(), clientid);
-#else
-                            cmd.Write(*connection->GetPreparedSpecificServerObjectControlMessageBuffer());
-#endif
-                            numcmdsended++;
-#ifdef ACTIVE_NETWORK_LOGSTATS
-                            clientinfo.tmpLogStats_.stats_[ObjCmdSent]++;
-                            clientinfo.tmpLogStats_.stats_[ObjCmdBytesSent] += (connection->GetPreparedSpecificServerObjectControlMessageBuffer()->GetBuffer().Size() - lastbuffersize);
-                            tmpLogStats_.stats_[ObjCmdBytesSent] += (connection->GetPreparedSpecificServerObjectControlMessageBuffer()->GetBuffer().Size() - lastbuffersize);
-#endif
-                        }
+                    }
+                }
+                else
+                {
+                    // prepare specific packet for clientid == cmd.clientId
+                    ClientInfo* clientinfo = GetServerClientInfo(cmd.clientId_);
+                    if (clientinfo)
+                    {
+                        if (!clientinfo->objCmdInfo_.newSpecificPacketToSend_)
+                            clientinfo->objCmdInfo_.newSpecificPacketToSend_ = objCmdPckPool_.Get();
+
+                        cmd.Write(clientinfo->objCmdInfo_.newSpecificPacketToSend_->buffer_, cmd.clientId_);
+//                        URHO3D_LOGINFOF(" .... Command[%d] specificpacket=%u for clientid=%d", it-objCmdNew_.Begin(), clientinfo->objCmdInfo_.newSpecificPacketToSend_, cmd.clientId_);
                     }
                 }
             }
         }
 
-        if (numcmdsended)
+        // For each ClientInfo, send all packets
+        for (HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
         {
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            tmpLogStats_.stats_[ObjCmdSent] += numcmdsended;
-#endif
+            Connection* connection = it->first_;
+            if (!connection)
+                continue;
+
+            ClientInfo& clientinfo = it->second_;
+
+            // if new packets, store them to clientinfo.objCmdInfo_.objCmdPacketsToSend_ for future resends
+            if (objCmdNew_.Size())
+            {
+                bool newpacket = false;
+                for (HashMap<int, ObjectCommandPacket*>::ConstIterator it = newpackets.Begin(); it != newpackets.End(); ++it)
+                {
+                    if (it->first_ != clientinfo.clientID_)
+                    {
+                        newpacket = true;
+                        it->second_->AddRef();
+                        clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(it->second_);
+                        clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+1);
+                    }
+                }
+                if (clientinfo.objCmdInfo_.newSpecificPacketToSend_)
+                {
+                    newpacket = true;
+                    clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(clientinfo.objCmdInfo_.newSpecificPacketToSend_);
+                    clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+1);
+                    clientinfo.objCmdInfo_.newSpecificPacketToSend_ = 0;
+                }
+                if (newpacket)
+                {
+                    clientinfo.objCmdInfo_.objCmdToSendStamp_++;
+                    connection->UpdateObjCmdOutStamp(1);
+                }
+            }
+
+            // write all the packets to send (new ones and the ones to resend)
+            if (clientinfo.objCmdInfo_.objCmdPacketsToSend_.Size())
+            {
+                VectorBuffer& buffer = connection->GetObjCmdSendBuffer();
+                buffer.Clear();
+                List<ObjectCommandPacket*>::ConstIterator jt = clientinfo.objCmdInfo_.objCmdPacketsToSend_.Begin();
+                List<unsigned char>::ConstIterator kt = clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.Begin();
+                for (jt; jt != clientinfo.objCmdInfo_.objCmdPacketsToSend_.End(); ++jt, ++kt)
+                {
+                    ObjectCommandPacket* packet = *jt;
+                    buffer.WriteUByte(*kt); // write the client stamp for the packet
+                    buffer.WriteUInt(packet->buffer_.GetSize());
+                    // write the packet buffer
+                    buffer.Write(packet->buffer_.GetData(), packet->buffer_.GetSize());
+                }
+
+            #ifdef ACTIVE_NETWORK_LOGSTATS
+                if (buffer.GetSize())
+                {
+                    tmpLogStats_.stats_[ObjCmdSent] += clientinfo.objCmdInfo_.objCmdPacketsToSend_.Size();
+                    tmpLogStats_.stats_[ObjCmdBytesSent] += (buffer.GetSize());
+                }
+            #endif
+            #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+                if (buffer.GetSize())
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : objcmd=%u clientid=%d numCmdPackets=%u deltapackets=%d sendbuffer.Size()=%u",
+                                clientinfo.objCmdInfo_.objCmdToSendStamp_, clientinfo.clientID_, clientinfo.objCmdInfo_.objCmdPacketsToSend_.Size(), connection->GetDeltaObjectCommandPackets(), buffer.GetSize());
+            #endif
+            }
         }
-        if (newObjectCommands_)
-        {
-            Connection::UpdateServerObjCmd();
-            newObjectCommands_ = false;
-        }
+
+        objCmdNew_.Clear();
     }
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
@@ -4852,7 +4969,7 @@ void GameNetwork::HandlePlayClient_NetworkUpdate(StringHash eventType, VariantMa
     if (gameStatus_ >= PLAYSTATE_SYNCHRONIZING && !clientSideConnection_->IsClientObjectControlsAllowed())
         return;
 
-    /// Prepares Client Object Controls Message
+    /// Prepare Client Object Controls Message
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     unsigned lastbuffersize = preparedClientMessageBuffer.GetBuffer().Size();
@@ -4860,45 +4977,6 @@ void GameNetwork::HandlePlayClient_NetworkUpdate(StringHash eventType, VariantMa
 
     // Write local spawn stamp
     preparedClientMessageBuffer.WriteUByte(localSpawnStamps_[clientID_]);
-
-    // Write ObjectCommands to Buffer
-    if (objectCommands_.Size())
-    {
-        CleanObjectCommands();
-
-#ifdef ACTIVE_NETWORK_LOGSTATS
-        unsigned lastbuffersize = preparedClientMessageBuffer.GetBuffer().Size();
-#endif
-        unsigned numcmdsended = 0;
-        for (Vector<ObjectCommand>::Iterator it = objectCommands_.Begin(); it != objectCommands_.End(); ++it)
-        {
-            ObjectCommand& cmd = *it;
-            if (cmd.clientId_ > 0)
-            {
-                cmd.Write(preparedClientMessageBuffer);
-                numcmdsended++;
-            }
-        }
-
-        if (numcmdsended)
-        {
-#ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_NetworkUpdate : numcmdsended=%u/%u clientobjcmd=%u clientobjcmdAck=%u",
-                            numcmdsended, objectCommands_.Size(), clientSideConnection_->GetClientObjCmd(),  clientSideConnection_->GetClientObjCmdAck());
-#endif
-
-#ifdef ACTIVE_NETWORK_LOGSTATS
-            tmpLogStats_.stats_[ObjCmdSent] += numcmdsended;
-            tmpLogStats_.stats_[ObjCmdBytesSent] += (preparedClientMessageBuffer.GetBuffer().Size() - lastbuffersize);
-#endif
-
-            if (newObjectCommands_)
-            {
-                clientSideConnection_->UpdateClientObjCmd();
-                newObjectCommands_ = false;
-            }
-        }
-    }
 
     // Write ObjectControls to Buffer
     if (clientObjectControls_.Size())
@@ -4958,6 +5036,54 @@ void GameNetwork::HandlePlayClient_NetworkUpdate(StringHash eventType, VariantMa
 #endif
     }
 
+    /// Prepare Object Commands Message
+    {
+        VectorBuffer& buffer = clientSideConnection_->GetObjCmdSendBuffer();
+        buffer.Clear();
+
+        // Prepare the new ObjectCommand Packets
+        if (objCmdNew_.Size())
+        {
+            ObjectCommandPacket* packet = objCmdPckPool_.Get();
+            for (PODVector<ObjectCommand* >::Iterator it = objCmdNew_.Begin(); it != objCmdNew_.End(); ++it)
+                (*it)->Write(packet->buffer_);
+
+            objCmdNew_.Clear();
+            objCmdInfo_.objCmdPacketsToSend_.PushFront(packet);
+
+            // update the stamp
+            objCmdInfo_.objCmdToSendStamp_++;
+
+            // set the stamp for the packet
+            packet->stamp_ = objCmdInfo_.objCmdToSendStamp_;
+            clientSideConnection_->UpdateObjCmdOutStamp(1);
+        }
+
+        // Write the ObjectCommand Packets to send
+        for (List<ObjectCommandPacket* >::ConstIterator it = objCmdInfo_.objCmdPacketsToSend_.Begin(); it != objCmdInfo_.objCmdPacketsToSend_.End(); ++it)
+        {
+            ObjectCommandPacket* packet = *it;
+            buffer.WriteUByte(packet->stamp_);
+            buffer.WriteUInt(packet->buffer_.GetSize()); // write the stamp for the packet
+            // write the packet buffer
+            buffer.Write(packet->buffer_.GetData(), packet->buffer_.GetSize());
+        }
+
+    #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+        if (buffer.GetSize())
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_NetworkUpdate : numCmdPackets=%u objcmd=%u deltapackets=%d sendbuffer.Size()=%u",
+                        objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdInfo_.objCmdToSendStamp_, clientSideConnection_->GetDeltaObjectCommandPackets(), buffer.GetSize());
+    #endif
+
+    #ifdef ACTIVE_NETWORK_LOGSTATS
+        if (buffer.GetSize())
+        {
+            tmpLogStats_.stats_[ObjCmdSent] += objCmdInfo_.objCmdPacketsToSend_.Size();
+            tmpLogStats_.stats_[ObjCmdBytesSent] += (buffer.GetSize());
+        }
+    #endif
+    }
+
 #ifdef ACTIVE_NETWORK_LOGSTATS
     UpdateLogStats();
 #endif
@@ -5008,9 +5134,8 @@ void GameNetwork::DumpClientInfos() const
     }
     else if (clientMode_ && clientSideConnection_)
     {
-        URHO3D_LOGINFOF("GameNetwork() - DumpClientInfos : connectionToServer=%u clientid=%d gamestatus=%s(%u) ClientObjCmd=%u ClientObjCmdAck=%u ServerObjCmd=%u ServerObjCmdAck=%u",
-                         clientSideConnection_.Get(), clientID_, gameStatusNames[gameStatus_], gameStatus_, clientSideConnection_->GetClientObjCmd(), clientSideConnection_->GetClientObjCmdAck(),
-                        clientSideConnection_->GetServerObjCmd(), clientSideConnection_->GetServerObjCmdAck());
+        URHO3D_LOGINFOF("GameNetwork() - DumpClientInfos : connectionToServer=%u clientid=%d gamestatus=%s(%u) objcmd=%u deltapackets=%d",
+                         clientSideConnection_.Get(), clientID_, gameStatusNames[gameStatus_], gameStatus_, objCmdInfo_.objCmdToSendStamp_, clientSideConnection_->GetDeltaObjectCommandPackets());
 
         URHO3D_LOGINFOF(" => NbPacket(in:%d-out:%d) BytespSec(in:%F-out:%F) ",
                         clientSideConnection_->GetPacketsInPerSec(), clientSideConnection_->GetPacketsOutPerSec(), clientSideConnection_->GetBytesInPerSec(), clientSideConnection_->GetBytesOutPerSec());
@@ -5027,9 +5152,7 @@ void GameNetwork::DumpNetObjects() const
     for (Vector<ObjectControlInfo>::ConstIterator it = clientObjectControls_.Begin(); it != clientObjectControls_.End(); ++it)
         it->Dump();
 
-    URHO3D_LOGINFOF("GameNetwork() - DumpNetObjects : objectCommands_.Size=%u ", objectCommands_.Size());
-    for (Vector<ObjectCommand>::ConstIterator it = objectCommands_.Begin(); it != objectCommands_.End(); ++it)
-        it->Dump();
+    URHO3D_LOGINFOF("GameNetwork() - DumpNetObjects : objCmdPoolFree=%u/%u objCmdPckPoolFree=%u/%u ", objCmdPool_.FreeSize(), objCmdPool_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
 }
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
