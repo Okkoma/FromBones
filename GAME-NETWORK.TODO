@@ -18,7 +18,7 @@ Todos:
         quels impacts sur les composants de jeux utilisant Renderer2D, Renderer et Graphics.
         il ne doit rester que GameNetwork et PlayState (à modifier - aucun spawn de joueur locaux)
 
-    ☐ 28/11/2023 : Pb ObjectCommand avec activation de NetSimulator
+    ✔ 28/11/2023 : Pb ObjectCommand avec activation de NetSimulator @done(23-12-05 17:09)
         s'assurer que les ObjectCommands qui n'ont pas été reçu sont bien renvoyés
         il faut créer une pile d'ObjectCommands à envoyer.
         on doit pouvoir gérer
@@ -33,10 +33,10 @@ Todos:
         => 4/12/2023 : gros refactor du ObjectCommand
         ==> les ObjectCommand sont préparé dans des ObjectCommandPacket puis envoyé via Connection
         ==> tant que les packets ne sont pas ACK reçus, ils sont renvoyés par l'emetteur
-        ==> RAF : la synchronisation d'un client qui arrive en cours de partie
+        ==> OK : il faut absolument que les stamps et ACK soient lié au client et non au serveur.
+        ==> la synchronisation d'un client qui arrive en cours de partie
         ===> doit etre faite automatiquement si le CheckStamp montre une desyncro.
-        ==> il faut absolument que les stamps et ACK soient lié au client et non au serveur.
-        ===> OK
+        ===> OK : correctif pour nettoyer la connection coté client qui retourne au MENU et coté serveur.
 
     ✔ 23/11/2023 : pb de desynchro des lames, des bombes etc... suite au derniere modification sur AddSpawnControl (DROPITEM-23/11/2023) @done(23-11-24 17:42)
         cf GOC_Destroyer::Destroy->Server_RemoveObject(node) qui était Server_RemoveObject(node,!node->isPoolNode_)

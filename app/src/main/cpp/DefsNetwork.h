@@ -184,7 +184,7 @@ struct ObjectControlInfo
 class ObjectCommand : public PoolObject
 {
 public:
-    ObjectCommand() : clientId_(0), broadCast_(true) { }
+    ObjectCommand() { Clear(); }
     ObjectCommand(VectorBuffer& msg) { Read(msg); }
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
@@ -193,6 +193,9 @@ public:
     void Write(VectorBuffer& msg, int toclient=0) const;
     void CopyTo(ObjectCommand& cmd) const;
     void Dump() const;
+
+    void Clear() { clientId_ = 0; broadCast_ = true; cmd_.Clear(); }
+    void OnRestore() { Clear(); }
 
     int clientId_;
     bool broadCast_;
@@ -213,9 +216,10 @@ enum ObjectCommandPacketState
 class ObjectCommandPacket : public PoolObject
 {
 public:
-    ObjectCommandPacket() : state_(PACKET_CLEARED) { }
+    ObjectCommandPacket() { Clear(); }
 
-    void OnRestore() { buffer_.Clear(); state_ = PACKET_CLEARED; }
+    void Clear() { stamp_ = 0U; state_ = PACKET_CLEARED; buffer_.Clear(); }
+    void OnRestore() { Clear(); }
 
     unsigned char stamp_;
     int state_;

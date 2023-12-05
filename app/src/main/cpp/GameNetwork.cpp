@@ -112,6 +112,20 @@ void LogStatNetObject::Copy(LogStatNetObject& logstat)
     memcpy(logstat.stats_, stats_, 9 * sizeof(unsigned int));
 }
 
+
+void ObjectCommandInfo::Clear()
+{
+    objCmdHead_ = 1U;
+    for (int i = 0; i < 256; i++)
+        objCmdPacketsReceived_[i].Clear();
+
+    objCmdToSendStamp_ = 0U;
+    newSpecificPacketToSend_ = 0;
+
+    objCmdPacketsToSend_.Clear();
+    objCmdPacketStampsToSend_.Clear();
+}
+
 /// ClientInfo
 
 ClientInfo::ClientInfo() :
@@ -190,16 +204,17 @@ void ClientInfo::AddPlayer()
 
 void ClientInfo::Clear()
 {
-//    URHO3D_LOGINFOF("ClientInfo() - Clear : ...");
+    URHO3D_LOGINFOF("ClientInfo() - Clear : ...");
 
     gameStatus_ = MENUSTATE;
     timeStamp_ = lastReceivedTimeStamp_ = 0;
 
-    ClearObjects();
+    objCmdInfo_.Clear();
 
+    ClearObjects();
     ClearPlayers();
 
-//    URHO3D_LOGINFOF("ClientInfo() - Clear : ... OK !");
+    URHO3D_LOGINFOF("ClientInfo() - Clear : ... OK !");
 }
 
 void ClientInfo::ClearObjects()
@@ -909,6 +924,15 @@ void GameNetwork::PurgeObjects()
 
 
 /// GameNetwork Object Commands
+
+void GameNetwork::ClearObjectCommands()
+{
+    objCmdInfo_.Clear();
+
+    objCmdPool_.Restore();
+    objCmdPckPool_.Restore();
+    objCmdNew_.Clear();
+}
 
 // Send Command
 // if broadcast and client=0  : server send to all clients
@@ -2364,7 +2388,14 @@ void GameNetwork::Server_CleanUpConnection(Connection* connection)
     {
         ClientInfo& clientInfo = serverClientInfos_[connection];
         connection = clientInfo.connection_;
+
+        for (List<ObjectCommandPacket* >::Iterator it = clientInfo.objCmdInfo_.objCmdPacketsToSend_.Begin(); it != clientInfo.objCmdInfo_.objCmdPacketsToSend_.End(); ++it)
+            if (*it)
+                objCmdPckPool_.RemoveRef(*it);
+
         clientInfo.Clear();
+
+        connection->ResetObjectControlAndCommands();
     }
 
     // Cleanup scene from connection
@@ -2513,10 +2544,13 @@ void GameNetwork::Client_RemoveObjects()
 
 void GameNetwork::Client_PurgeConnection()
 {
+    ClearObjectCommands();
+
     if (clientSideConnection_)
     {
         SetEnabledServerObjectControls(clientSideConnection_, false);
         SetEnabledClientObjectControls(clientSideConnection_, false);
+        clientSideConnection_->ResetObjectControlAndCommands();
     }
 
     ClearScene();
@@ -2864,6 +2898,8 @@ void GameNetwork::Server_UnsubscribeToPlayEvents()
 
     Server_RemoveAllPlayers();
     Server_SetEnableAllObjects(false);
+
+    ClearObjectCommands();
 }
 
 /// Client Subscribers For sPlay
@@ -2897,6 +2933,7 @@ void GameNetwork::Client_SubscribeToPlayEvents()
 void GameNetwork::Client_UnsubscribeToPlayEvents()
 {
     URHO3D_LOGINFOF("GameNetwork() - Client_UnsubscribeToPlayEvents !");
+
     UnsubscribeFromEvent(NET_SERVERSEEDTIME);
     UnsubscribeFromEvent(NET_OBJECTCOMMAND);
 
@@ -2910,10 +2947,13 @@ void GameNetwork::Client_UnsubscribeToPlayEvents()
     UnsubscribeFromEvent(CLIENTOBJECTCONTROLSRECEIVED);
     UnsubscribeFromEvent(OBJECTCOMMANDSRECEIVED);
 
+    ClearObjectCommands();
+
     if (clientSideConnection_)
     {
         SetEnabledServerObjectControls(clientSideConnection_, false);
         SetEnabledClientObjectControls(clientSideConnection_, false);
+        clientSideConnection_->ResetObjectControlAndCommands();
     }
 }
 
@@ -3095,6 +3135,7 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
         {
             URHO3D_LOGERRORF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d MENUSTATE !", clientInfo.clientID_);
             Server_RemovePlayers(clientInfo);
+            Server_CleanUpConnection(connection);
         }
 
         clientInfo.gameStatus_ = clientNewStatus;
@@ -4297,17 +4338,20 @@ void GameNetwork::HandlePlayServer_ReceiveCommands(StringHash eventType, Variant
     // New Ack for Ouput Stream : Remove the ObjectCommand Packets Reference that have been received by the peer
     if (connection->HasNewAckReceived())
     {
-        const unsigned oldsize = objCmdInfo_.objCmdPacketsToSend_.Size();
-        const int numPacketsToKeep   = Max(0, connection->GetDeltaObjectCommandPackets());
-        const int numPacketsToRemove = Max(0, clientinfo->objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
-        List<ObjectCommandPacket* >::Iterator jt = --clientinfo->objCmdInfo_.objCmdPacketsToSend_.End();
-        for (int i=0; i < numPacketsToRemove; i++, jt--)
-            objCmdPckPool_.RemoveRef(*jt);
-        clientinfo->objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
-        clientinfo->objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
+        const unsigned oldsize       = clientinfo->objCmdInfo_.objCmdPacketsToSend_.Size();
+        const int numPacketsToKeep   = Min(oldsize, connection->GetDeltaObjectCommandPackets());
+        if (numPacketsToKeep != oldsize)
+        {
+            const int numPacketsToRemove = Max(0, clientinfo->objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
+            List<ObjectCommandPacket* >::Iterator jt = --clientinfo->objCmdInfo_.objCmdPacketsToSend_.End();
+            for (int i=0; i < numPacketsToRemove; i++, jt--)
+                objCmdPckPool_.RemoveRef(*jt);
+            clientinfo->objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
+            clientinfo->objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
 
-        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
-                        oldsize, numPacketsToKeep, objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
+                            oldsize, numPacketsToKeep, objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
+        }
     }
 
     VectorBuffer& buffer = connection->GetObjCmdReceivedBuffer();
@@ -4414,17 +4458,20 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
     // New Ack for Ouput Stream : Remove the ObjectCommand Packets Reference that have been received by the peer
     if (clientSideConnection_->HasNewAckReceived())
     {
-        const unsigned oldsize = objCmdInfo_.objCmdPacketsToSend_.Size();
-        const int numPacketsToKeep   = Max(0, clientSideConnection_->GetDeltaObjectCommandPackets());
-        const int numPacketsToRemove = Max(0, objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
-        List<ObjectCommandPacket* >::Iterator jt = --objCmdInfo_.objCmdPacketsToSend_.End();
-        for (int i=0; i < numPacketsToRemove; i++, jt--)
-            objCmdPckPool_.RemoveRef(*jt);
-        objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
-        objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
+        const unsigned oldsize       = objCmdInfo_.objCmdPacketsToSend_.Size();
+        const int numPacketsToKeep   = Min(oldsize, clientSideConnection_->GetDeltaObjectCommandPackets());
+        if (numPacketsToKeep != oldsize)
+        {
+            const int numPacketsToRemove = Max(0, objCmdInfo_.objCmdPacketsToSend_.Size() - numPacketsToKeep);
+            List<ObjectCommandPacket* >::Iterator jt = --objCmdInfo_.objCmdPacketsToSend_.End();
+            for (int i=0; i < numPacketsToRemove; i++, jt--)
+                objCmdPckPool_.RemoveRef(*jt);
+            objCmdInfo_.objCmdPacketsToSend_.Resize(numPacketsToKeep);
+            objCmdInfo_.objCmdPacketStampsToSend_.Resize(numPacketsToKeep);
 
-        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : receive newAck -> Clean old packets size = %u => %d(%u) ... Pool(%u/%u) ",
                         oldsize, numPacketsToKeep, objCmdInfo_.objCmdPacketsToSend_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
+        }
     }
 
     VectorBuffer& buffer = clientSideConnection_->GetObjCmdReceivedBuffer();
@@ -4497,7 +4544,7 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
                     if ((!sObjCmd_.broadCast_ && clientID_ == sObjCmd_.clientId_) || (sObjCmd_.broadCast_ && clientID_ != sObjCmd_.clientId_))
                     {
                 #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d cmdstamp=%u serverObjCmdAck=%u ... OK !", sObjCmd_.clientId_);
+                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d ... OK !", sObjCmd_.clientId_);
                 #endif
                         // Apply ObjectCommand
                         Client_ApplyObjectCommand(sObjCmd_.cmd_);
@@ -4517,8 +4564,12 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
     }
 
     // Move the head
-    objCmdInfo_.objCmdHead_ = head;
-    clientSideConnection_->UpdateObjCmdInStampAck(headinc);
+    if (headinc)
+    {
+        objCmdInfo_.objCmdHead_ = head;
+        clientSideConnection_->UpdateObjCmdInStampAck(headinc);
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d ... OK !", sObjCmd_.clientId_);
+    }
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     UpdateLogStats();
@@ -4880,28 +4931,28 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
             // if new packets, store them to clientinfo.objCmdInfo_.objCmdPacketsToSend_ for future resends
             if (objCmdNew_.Size())
             {
-                bool newpacket = false;
+                int incStamp = 0;
                 for (HashMap<int, ObjectCommandPacket*>::ConstIterator it = newpackets.Begin(); it != newpackets.End(); ++it)
                 {
                     if (it->first_ != clientinfo.clientID_)
                     {
-                        newpacket = true;
+                        incStamp++;
                         it->second_->AddRef();
                         clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(it->second_);
-                        clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+1);
+                        clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+incStamp);
                     }
                 }
                 if (clientinfo.objCmdInfo_.newSpecificPacketToSend_)
                 {
-                    newpacket = true;
+                    incStamp++;
                     clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(clientinfo.objCmdInfo_.newSpecificPacketToSend_);
-                    clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+1);
+                    clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+incStamp);
                     clientinfo.objCmdInfo_.newSpecificPacketToSend_ = 0;
                 }
-                if (newpacket)
+                if (incStamp)
                 {
-                    clientinfo.objCmdInfo_.objCmdToSendStamp_++;
-                    connection->UpdateObjCmdOutStamp(1);
+                    clientinfo.objCmdInfo_.objCmdToSendStamp_ += incStamp;
+                    connection->UpdateObjCmdOutStamp(incStamp);
                 }
             }
 

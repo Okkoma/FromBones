@@ -299,9 +299,7 @@ public:
     void Resize(unsigned size)
     {
         pool_.Resize(size);
-        freeObjects_.Resize(size);
-        for (unsigned i=0; i < size; i++)
-            freeObjects_[i] = &pool_[i];
+        Restore();
     }
     T* Get(bool addref=true)
     {
@@ -326,6 +324,15 @@ public:
                 freeObjects_.Push(obj);
                 obj->OnRestore();
             }
+        }
+    }
+    void Restore()
+    {
+        freeObjects_.Resize(pool_.Size());
+        for (unsigned i=0; i < pool_.Size(); i++)
+        {
+            pool_[i].OnRestore();
+            freeObjects_[i] = &pool_[i];
         }
     }
 

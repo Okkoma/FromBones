@@ -57,16 +57,18 @@ struct LogStatNetObject
 
 struct ObjectCommandInfo
 {
-    ObjectCommandInfo() : objCmdHead_(1U), objCmdToSendStamp_(0U), newSpecificPacketToSend_(0) { }
+    ObjectCommandInfo() { Clear();  }
+
+    void Clear();
 
 // Receive Part
     unsigned char objCmdHead_;
     ObjectCommandPacket objCmdPacketsReceived_[256];
 // Send Part
     unsigned char objCmdToSendStamp_;
+    ObjectCommandPacket* newSpecificPacketToSend_;
     List<ObjectCommandPacket* > objCmdPacketsToSend_;
     List<unsigned char> objCmdPacketStampsToSend_;
-    ObjectCommandPacket* newSpecificPacketToSend_;
 };
 
 struct ClientInfo
@@ -97,7 +99,6 @@ struct ClientInfo
     GameStatus gameStatus_;
     unsigned char timeStamp_;
     unsigned char lastReceivedTimeStamp_;
-    unsigned short int lastObjectCmdStampAck;
 
     bool playersStarted_;
     int requestPlayers_;
@@ -323,6 +324,8 @@ private:
 
 /// Object Commands
 public:
+    void ClearObjectCommands();
+
     void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
     void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);
     void PushObjectCommand(VariantMap& cmdvar, bool broadcast=true, int client=0);
