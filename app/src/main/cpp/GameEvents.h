@@ -39,6 +39,7 @@ URHO3D_EVENT(GO_SELECTED, Go_Selected)
     URHO3D_PARAM(GO_ACTION, GoAction);     // Type of Action to Release by AI
 }
 URHO3D_EVENT(GO_TRIGCLICKED, Go_TrigClicked) { }
+URHO3D_EVENT(NET_TRIGCLICKED, Net_TrigClicked) { }
 
 /// World2D
 

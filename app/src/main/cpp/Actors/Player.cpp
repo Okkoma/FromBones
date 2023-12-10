@@ -252,8 +252,6 @@ void Player::SetScene(Scene* scene, const Vector2& position, int viewZ, bool loa
         return;
     }
 
-    SetViewManager(ViewManager::Get());
-
     if (!loadmode)
     {
         if (!forceposition)

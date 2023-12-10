@@ -44,7 +44,8 @@ const char* netCommandNames[] =
     "SETFULLINVENTORY=11",
     "CHANGETILE=12",
     "SETWEATHER=13",
-    "SETWORLD=14"
+    "SETWORLD=14",
+    "TRIGCLICKED=15",
 };
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL

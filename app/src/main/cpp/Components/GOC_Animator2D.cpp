@@ -3300,6 +3300,9 @@ void GOC_Animator2D::CheckFireLight(const VariantMap& param)
     else
         node_->RemoveVar(GOA::INFLUID);
 
+//    URHO3D_LOGINFOF("GOC_Animator2D() - CheckFireLight : Node=%s(%u) currentanimstate=%s ... ",
+//                         node_->GetName().CString(), node_->GetID(), currentState->name.CString());
+
     if (currentState->hashName.Value() == STATE_LIGHTED || currentState->hashName.Value() == STATE_UNLIGHTED)
     {
         bool lightWanted = currentState->hashName.Value() == STATE_LIGHTED;
@@ -3318,8 +3321,8 @@ void GOC_Animator2D::CheckFireLight(const VariantMap& param)
 
         node_->SetVar(GOA::LIGHTSTATE, lighted);
 
-        URHO3D_LOGDEBUGF("GOC_Animator2D() - CheckFireLight : Node=%s(%u) currentanimstate=%s ... lighted=%s ... OK !",
-                         node_->GetName().CString(), node_->GetID(), currentState->name.CString(), lighted ? "true":"false");
+//        URHO3D_LOGINFOF("GOC_Animator2D() - CheckFireLight : Node=%s(%u) currentanimstate=%s ... lighted=%s ... OK !",
+//                         node_->GetName().CString(), node_->GetID(), currentState->name.CString(), lighted ? "true":"false");
     }
 
     if (animatedSprites.Size())

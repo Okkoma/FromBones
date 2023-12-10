@@ -1,4 +1,13 @@
 Todos:
+
+    ✔ 08/12/2023 : crash avec le composant GOC_DropZone au moment du ThrowItems @done(23-12-09 11:31)
+        => il s'agit du destroyer du holder (le sanctuaire) qui n'a pas son shapeRect de défini
+        ==> correctif de GameHelpers::GetDropPoint() et GOC_Destroyer::GetWorldShapesRect()
+
+    ✔ 08/12/2023 : il est necessaire de categoriser les furnitures et les objects de 2 façons : par category(plantes, pieges, decors ...) et par biomes (dungeon, external ...) @done(23-12-09 11:29)
+        -> c'est important également pour l'editeur
+        => ok modification de furnitures.json
+
     ☐ 13/10/2023 : en mode arena, apres avoir passer le boss darkren au niveau2
         -> pb de generation de monde
 

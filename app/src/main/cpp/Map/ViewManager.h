@@ -92,10 +92,24 @@ public:
     {
         return layerZ_[index];
     }
+    static int GetFluidZ(int index)
+    {
+        return fluidZ_[index];
+    }
     static unsigned GetLayerMask(int viewZ)
     {
         HashMap<int, unsigned>::ConstIterator it = layerMask_.Find(viewZ);
         return it != layerMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
+    }
+    static unsigned GetViewMask(int viewZ)
+    {
+        HashMap<int, unsigned>::ConstIterator it = viewMask_.Find(viewZ);
+        return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
+    }
+    static unsigned GetEffectMask(int viewZ)
+    {
+        HashMap<int, unsigned>::ConstIterator it = effectMask_.Find(viewZ);
+        return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
     }
     static int GetViewZIndex(int viewZ)
     {
@@ -106,6 +120,14 @@ public:
     {
         HashMap<int, unsigned>::ConstIterator it = layerZIndexes_.Find(viewZ);
         return it != layerZIndexes_.End() ? it->second_ : - 1;
+    }
+    static unsigned GetFluidZIndex(int viewZIndex)
+    {
+        return viewZIndex2fluidZIndex_[viewZIndex];
+    }
+    static const Vector<int>& GetFluidZ()
+    {
+        return fluidZ_;
     }
     static int GetNearLayerZ(int z, int dir);
     static int GetNearViewZ(int z, int dir=0);
@@ -190,24 +212,6 @@ public:
 
     void Dump() const;
 
-    Scene* scene_;
-
-    unsigned numViewports_;
-    ViewportInfo viewportInfos_[MAX_VIEWPORTS];
-
-    static Vector<int> layerZ_;
-    static Vector<int> viewZ_;
-    static HashMap<int, unsigned> layerZIndexes_;
-    static HashMap<int, unsigned> viewZIndexes_;
-    static Vector<String> viewZNames_;
-    static Vector<String> viewIdNames_;
-    static Vector<int> fluidZ_;
-    static Vector<unsigned> viewZIndex2fluidZIndex_;
-
-    static HashMap<int, unsigned> layerMask_;
-    static HashMap<int, unsigned> viewMask_;
-    static HashMap<int, unsigned> effectMask_;
-
     static unsigned INNERVIEW_Index;
     static unsigned INNERLAYER_Index;
     static unsigned FRONTVIEW_Index;
@@ -216,6 +220,25 @@ public:
     static unsigned FLUIDFRONTVIEW_Index;
 
     static IntRect viewportRects_[MAX_VIEWPORTS][MAX_VIEWPORTS];
+
+private:
+    Scene* scene_;
+
+    unsigned numViewports_;
+    ViewportInfo viewportInfos_[MAX_VIEWPORTS];
+
+    static Vector<int> layerZ_;
+    static Vector<int> viewZ_;
+    static Vector<int> fluidZ_;
+    static Vector<unsigned> viewZIndex2fluidZIndex_;
+    static HashMap<int, unsigned> layerZIndexes_;
+    static HashMap<int, unsigned> viewZIndexes_;
+    static Vector<String> viewZNames_;
+    static Vector<String> viewIdNames_;
+
+    static HashMap<int, unsigned> layerMask_;
+    static HashMap<int, unsigned> viewMask_;
+    static HashMap<int, unsigned> effectMask_;
 
     static ViewManager* viewManager_;
 };

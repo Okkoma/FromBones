@@ -852,8 +852,8 @@ void WeatherManager::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
     WeatherViewData& viewdata = weatherviewdatas_[0];
 
 #ifdef ACTIVE_WEATHEREFFECTS
-    if (viewdata.raineffect_ && viewdata.raineffect_->IsStarted() && !GameContext::Get().gameConfig_.debugSprite2D_)
-        viewdata.raineffect_->DrawDebugGeometry(debug, depthTest);
+//    if (viewdata.raineffect_ && viewdata.raineffect_->IsStarted() && !GameContext::Get().gameConfig_.debugSprite2D_)
+//        viewdata.raineffect_->DrawDebugGeometry(debug, depthTest);
 #endif
 
     // DrawDebug Time

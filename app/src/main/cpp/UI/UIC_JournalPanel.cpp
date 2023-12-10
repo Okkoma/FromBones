@@ -307,7 +307,7 @@ void UIC_JournalPanel::OnNamedMissionUpdated(StringHash eventType, VariantMap& e
                             URHO3D_LOGINFOF("UIC_JournalPanel() - No More Slot in Avatar => Drop Collectable Reward %s qty=%u from avatar to scene",
                                             GOT::GetType(slot.type_).CString(), slot.quantity_);
 
-                            Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slot);
+                            Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slot, false);
                         }
                     }
                     else

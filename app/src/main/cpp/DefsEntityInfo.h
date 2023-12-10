@@ -2,6 +2,7 @@
 
 #include "ShortIntVector2.h"
 #include "DefsNetwork.h"
+#include "DefsViews.h"
 
 namespace Urho3D
 {
@@ -17,8 +18,8 @@ class World2DInfo;
 struct WorldMapPosition
 {
     WorldMapPosition() : defined_(false), viewMask_(0), drawOrder_(-1), viewZIndex_(-1) { }
-    WorldMapPosition(World2DInfo* winfo, const Vector2& position);
-    WorldMapPosition(World2DInfo* winfo, const IntVector2& mpoint, const IntVector2& mposition, int viewZ=40);
+    WorldMapPosition(World2DInfo* winfo, const Vector2& position, int viewZ=FRONTVIEW);
+    WorldMapPosition(World2DInfo* winfo, const IntVector2& mpoint, const IntVector2& mposition, int viewZ=FRONTVIEW);
     WorldMapPosition(const WorldMapPosition& position)
     {
         /*defined_ = true;*/ *this = position;

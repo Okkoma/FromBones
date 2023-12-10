@@ -426,7 +426,7 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
     chainNodes_.Clear();
 
     // create links from Start to End
-    const unsigned viewMask = ViewManager::Get()->layerMask_[viewZ];
+    const unsigned viewMask = ViewManager::Get()->GetLayerMask(viewZ);
 //    const int numlinks = (int) ceil(delta.Length() / (linkLength * node_->GetWorldScale2D().y_));
     const int numlinks = (int) ceil((delta.Length() - 0.5f * linkLength * node_->GetWorldScale().y_) / (linkLength * (node_->GetWorldScale2D().y_)));
     RigidBody2D* prevBody = 0;
@@ -550,7 +550,7 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
     chainNodes_.Clear();
 
     // create links from Start to End
-    const unsigned viewMask = ViewManager::Get()->layerMask_[viewZ];
+    const unsigned viewMask = ViewManager::Get()->GetLayerMask(viewZ);
     const int numlinks = (int) floor(delta.Length() / (bridgeEltLength  * node_->GetWorldScale().y_));
 
     RigidBody2D* prevBody = 0;
@@ -906,15 +906,15 @@ bool GOC_PhysicRope::AttachOnRoof(const Vector2& anchorOnRoofPosition, float anc
     float ropeLength = CreateRope(anchorOnRoofPosition, anchorOnAttachedNodePosition, viewZ, drawable->GetLayer(), drawable->GetOrderInLayer()-1);
     if (ropeLength > 0.f && chainNodes_.Size())
     {
-        Constraint2D* constraint = AttachNodesWithRevoluteJoint(anchorNode1_, chainNodes_.Front(), anchorOnRoofPosition, &sChainJointDef);
+        Constraint2D* constraint1 = AttachNodesWithRevoluteJoint(anchorNode1_, chainNodes_.Front(), anchorOnRoofPosition, &sChainJointDef);
 
         if (attachedNode_)
         {
-            constraint = AttachNodesWithRevoluteJoint(attachedNode_, chainNodes_.Back(), anchorOnAttachedNodePosition, &sChainJointDef);
-            constraint = AttachNodesWithRopeJoint(anchorNode1_, attachedNode_, ropeLength + softness_);
+            Constraint2D* constraint2 = AttachNodesWithRevoluteJoint(attachedNode_, chainNodes_.Back(), anchorOnAttachedNodePosition, &sChainJointDef);
+            Constraint2D* constraint3 = AttachNodesWithRopeJoint(anchorNode1_, attachedNode_, ropeLength + softness_);
 
-//            URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnRoof ... create joint rope length=%f between anchor=%s & attachednode=%s",
-//                            ropeLength, anchorOnAttachedNodePosition.ToString().CString(), anchorOnAttachedNodePosition.ToString().CString());
+            URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnRoof ... create joint rope length=%f between anchor=%s & attachednode=%s c1=%u c2=%u c3=%u",
+                            ropeLength, anchorOnAttachedNodePosition.ToString().CString(), anchorOnAttachedNodePosition.ToString().CString(), constraint1, constraint2, constraint3);
         }
 
         isAttached_ = true;
@@ -1124,7 +1124,8 @@ void GOC_PhysicRope::OnSetEnabled()
                 if (attachedNode_ && !isAttached_ && (!node_->isInPool_ || !node_->isPoolNode_))
                 {
                     bool ok = AttachOnRoof(node_->GetWorldPosition2D(), node_->GetWorldRotation2D());
-//                    URHO3D_LOGINFOF("GOC_PhysicRope() - OnSetEnabled : node=%s(%u) enable=true ok=%s !", node_->GetName().CString(), node_->GetID(), ok?"true":"false");
+//                    URHO3D_LOGINFOF("GOC_PhysicRope() - OnSetEnabled : node=%s(%u) enable=true ok=%s rootNode_=%s(%u) !",
+//                                    node_->GetName().CString(), node_->GetID(), ok ? "true":"false", rootNode_ ? rootNode_->GetName().CString() : "none", rootNode_ ? rootNode_->GetID() : 0);
                 }
             }
             else if (model_ == RM_FixedBridge)
@@ -1148,6 +1149,9 @@ void GOC_PhysicRope::OnSetEnabled()
 //	                URHO3D_LOGINFOF("GOC_PhysicRope() - OnSetEnabled : node=%u subscribe to roof collision !", node_->GetID());
                 }
             }
+
+            // Need this to active correctly Lustre's Children.
+            node_->SetEnabledRecursive(true);
 
             if (rootNode_)
                 rootNode_->SetEnabledRecursive(true);

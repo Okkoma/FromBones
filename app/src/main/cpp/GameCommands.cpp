@@ -241,7 +241,7 @@ void GameCommands::Launch(Context* context, const String& input)
     }
     else if (input0 == "numplayers")
     {
-        GameContext::Get().numPlayers_ = inputs.Size() > 1 ? Min( Max(ToInt(inputs[1]), 1), GameContext::Get().MAX_NUMPLAYERS) : 1;
+        GameContext::Get().numPlayers_ = inputs.Size() > 1 ? Min( Max(ToInt(inputs[1]), 0), GameContext::Get().MAX_NUMPLAYERS) : 1;
         URHO3D_LOGINFOF("Set NumLocalPlayers=%d", GameContext::Get().numPlayers_);
         for (unsigned i=0; i < GameContext::Get().numPlayers_; i++)
             GameContext::Get().playerState_[i].avatar = i;
@@ -564,7 +564,7 @@ void GameCommands::Launch(Context* context, const String& input)
     }
     else if (input0 == "focus")
     {
-        if (inputs.Size() == 1|| !ViewManager::Get())
+        if (inputs.Size() == 1 || !ViewManager::Get())
             return;
 
         unsigned id = ToUInt(inputs[1]);

@@ -55,6 +55,7 @@ public :
     void Dump();
 
     virtual void OnSetEnabled();
+    virtual void CleanDependences();
 
 protected :
     virtual void OnNodeSet(Node* node);

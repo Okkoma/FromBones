@@ -6,6 +6,25 @@
 ----------------------------------------------------------------------------
 
 Todos:   
+    
+    ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
+    
+    ☐ 07/12/2023 : les bosszones ne fonctionnent pas en reseau
+
+    ✔ 07/12/2023 : ObjectControl : pb desynchronisation du spawnstamp @done(23-12-07 19:06)
+        -> lorsqu'un objet est spawné et aussitot supprimé, la replication ne sera pas faite ce qui induit un décalage de spawnstamp
+        ex : avec le drop d'une potion sur un Goblin qui vient de se faire occire
+            il n'y a pas spawn de la potion coté client le spawnstamp server = 15 , le spawnstamp client = 14 (non apparent dans les logs) => décalage
+        en fait il n'y a aucun spawn de collectable
+        ==> correctif GOC_Collectable::DropSlotFrom pour permettre le netspawning quand c'est necessaire (autospawn)
+
+    ✔ 07/12/2023 : Lors de l'ajout d'entités via l'editeur sur le serveur il faut que cela soit repercuter coté client @done(23-12-07 14:26)
+        -> correctid dans Map::AddEntity(), si l'entity à un GOC_Controller il faut attribuer control_.type_, sinon le spawn ne peut se faire.
+        --> attention il faudrait aussi attribuer entityid.
+
+    ✔ 07/12/2023 : Ajout de l'UI pour la selection du mode reseau @done(23-12-07 14:26)
+        -> en mode client, si server local => proposer de lancer un serveur s'il n'existe pas.
+        --> pour cela un server Headless serait bienvenu.
 
     ☐ Server Graphics
         pouvoir choisir si on demarre avec un avatar ou pas. Par defaut aucun.
@@ -275,11 +294,13 @@ Todos:
         ✔ 16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
         ✔ 23/11/2023 : ajout de Weather => GameNetwork::Server_SendWeatherInfos @done(23-11-28 15:04)
         ✔ 28/11/2023 : ajout des TileModifiers => GameNetwork::Server_SendWorldObjects @done(23-11-28 15:04)
-        ☐ ajout des entities
-            
-    ☐ 14/11/2023 : ajouter deux modes reseau : arena (salle d'attente, redirection vers une partie en attente, synchronisation des autres clients, lancement) et world (pas d'attente)
+        ☐ ajout des entities/furnitures et des states initiaux (d'animation principalement pour les lumieres) pour ceux qui n'ont pas de GOC_Controller uniquement ?
+            => il faut la liste des nodes effacés par rapport à la génération initiale.
+
+    ✔ 14/11/2023 : ajouter deux modes reseau : arena (salle d'attente, redirection vers une partie en attente, synchronisation des autres clients, lancement) et world (pas d'attente) @done(23-12-06 16:15)
         avec le NetSimulator activé, pour le moment il y a un probleme pour mode reseau sans attente, car en arena si on lance un serveur et un client en playstate. Puis on ajoute un second client et playstate
         alors le second client n'a pas la synchro du snap initial, ni les equipments ...
+        => corrigé le 05/12/2023. Il faut maintenant créer le reseau en world.
 
     ✔ 14/11/2023 : les inventaires des autres clients et serveur doivent être communiqués à tout nouveau client qui se connecte. @done(23-11-17 16:07)
         les clients ne doivent pas avoir à charger de l'inventaire local, l'ordre doit venir du serveur.
@@ -327,11 +348,17 @@ Todos:
             GOC_PhysicRope::CreateRope n'est pas en mesure de créer la chaine si deltay >= 0.
             ajout d'un seuil superieur et ne pas utiliser le holder->GetWorlMassCenter() mais GetWorldPosition2D()
 
-    ☐ 13/11/2023 : l'envoi de l'etat allumé éteint des torches/bougies est à faire.
+    ✔ 13/11/2023 : l'envoi de l'etat allumé éteint des torches/bougies est à faire. @done(23-12-06 15:29)
         via ObjectCommand
+        -> 06/12/2023 : on utilise un duo d'event GO_TRIGCLICKED et NET_TRIGCLICKED pour eviter un ping pong infini entre peers
+        ==> ces events sont enregistrés dans les GOC_AnimatorTemplate "AnimatorTemplate_InteractiveFire" et "AnimatorTemplate_InteractiveFurniture"
+        ==> GOC_Animator2D prend ensuite le relai (notamment avec CheckFireLight pour les lumières)
+        ===> RAF : il y a encore un probleme mineure : CheckFireLight est utilisé deux fois de suite ... bizarre.
 
-    ☐ 13/11/2023 : pouvoir se connecter en tant que serveur ou client sans avatar pour observer
+    ✔ 13/11/2023 : pouvoir se connecter en tant que serveur ou client sans avatar pour observer @done(23-12-06 15:29)
         permet de realiser des tests distants et verifier la replication
+        => 6/12/2023 : il suffit de modifier GameCommands::Launch pour permettre de taper dans la console numplayers=0
+        => mettre par défaut numplayers=0 pour le serveur.
 
     ✔ 13/11/2023 : les lustres sont répliqués par ObjectControl ce qui ne doit pas être le cas @done(23-11-13 18:28)
         les furnitures ne sont pour le moment pas répliqués cf MapBase::SetFurnitures il n'y a pas de commande network

@@ -187,7 +187,7 @@ void SimpleActor::UpdateComponents()
     GOC_Destroyer* gocDestroyer = avatar_->GetComponent<GOC_Destroyer>();
     if (gocDestroyer)
     {
-        gocDestroyer->SetViewZ(viewManager_->GetCurrentViewZ(), 0, 1);
+        gocDestroyer->SetViewZ(ViewManager::Get()->GetCurrentViewZ(), 0, 1);
     }
 
     avatar_->SetTemporary(true);

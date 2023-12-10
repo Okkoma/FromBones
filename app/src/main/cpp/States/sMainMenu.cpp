@@ -96,7 +96,7 @@ void MenuState::Begin()
     URHO3D_LOGERROR("MenuState() - ----------------------------------------");
 
     GameContext::Get().lastLevelMode_ = LVL_NEW;
-    if (!GameContext::Get().numPlayers_)
+    if (!GameContext::Get().ServerMode_ && !GameContext::Get().numPlayers_)
         GameContext::Get().numPlayers_ = 1;
 
     // Reset controls

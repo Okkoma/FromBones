@@ -240,7 +240,7 @@ void GOC_Collectable::TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nod
 
 VariantMap GOC_Collectable::tempSlotData_;
 
-Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty, VariantMap* slotData)
+Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, unsigned int qty, VariantMap* slotData)
 {
     if (!slot.Empty())
     {
@@ -258,7 +258,8 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty, V
         if (qty > slot.quantity_)
             qty = slot.quantity_;
 
-       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d ...", GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt());
+       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d droppoint=%F %F ...",
+                       GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), physicInfo.positionx_, physicInfo.positiony_);
 
         if (!slotData)
             slotData = &tempSlotData_;
@@ -266,7 +267,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, unsigned int qty, V
         Slot::GetSlotData(slot, *slotData, qty);
 
         SceneEntityInfo sceneinfo;
-        sceneinfo.skipNetSpawn_ = true;
+        sceneinfo.skipNetSpawn_ = skipNetSpawn;
         sceneinfo.zindex_ = 1000;
 
         int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt(), 0);

@@ -190,6 +190,13 @@ enum EditorPanel
     PANEL_MAINTOOLBAR = 0,
     PANEL_INSPECTORWINDOW,
     PANEL_MONSTERPOPLIST,
+    PANEL_PLANTPOPLIST,
+    PANEL_DOORPOPLIST,
+    PANEL_LIGHTPOPLIST,
+    PANEL_DECORATIONPOPLIST,
+    PANEL_CONTAINERPOPLIST,
+    PANEL_COLLECTABLEPOPLIST,
+    PANEL_TOOLPOPLIST,
     PANEL_ANIMATOR2D_MAIN,
     PANEL_ANIMATOR2D_CMAPS,
     PANEL_ANIMATOR2D_NEWCMAPS,
@@ -206,6 +213,13 @@ String EditorPanelXmlFilenames[] =
 {
     "",
     "Editor/EditorInspectorWindow.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
+    "Editor/EditorPopList.xml",
     "Editor/EditorPopList.xml",
     "Editor/EditorAnimator2D_Main.xml",
     "Editor/EditorAnimator2D_CharacterMaps.xml",
@@ -391,7 +405,8 @@ public :
     void SubscribeToUIEvent();
     void HandleResizeUI(StringHash eventType, VariantMap& eventData);
     void HandleToolBarCheckBoxToogle(StringHash eventType, VariantMap& eventData);
-    void HandleMonsterTypeSelected(StringHash eventType, VariantMap& eventData);
+    void HandleToolBarLayerAlignChanged(StringHash eventType, VariantMap& eventData);
+    void HandleCategoryTypeSelected(StringHash eventType, VariantMap& eventData);
     void HandleWindowLayoutUpdated(StringHash eventType, VariantMap& eventData);
     void HandleHidePanel(StringHash eventType, VariantMap& eventData);
     void HandleToggleInspectorLock(StringHash eventType, VariantMap& eventData);
@@ -409,7 +424,7 @@ public :
 private:
     void CreateUI();
     void CreateSpawnToolBar();
-    void SetMonsterPopList();
+    void SetCategoryPopList(int spawnCategory);
     void RemoveUI();
     void ResizeUI();
 
@@ -487,7 +502,8 @@ private:
 
     int pickMode_, clickMode_;
     int spawnCategory_;
-    StringHash spawnMonster_;
+    StringHash spawnObject_;
+    int editorLayerModifier_;
 };
 
 // Resource picker functionality
@@ -822,9 +838,10 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
     pickMode_(PICK_GEOMETRIES),
     clickMode_(CLICK_NONE),
     spawnCategory_(SPAWN_NONE),
-    spawnMonster_(StringHash("GOT_Skeleton"))
+    spawnObject_(StringHash("GOT_Skeleton"))
 {
     editor_ = this;
+    editorLayerModifier_ = 1;
 
     ResourcePicker::Init();
 
@@ -915,7 +932,14 @@ void MapEditorLibImpl::CreateUI()
 
     uiPanels_[PANEL_ANIMATOR2D_MAIN]->SetVar(DISABLEVIEWRAYCAST, true);
 
-    SetMonsterPopList();
+    SetCategoryPopList(SPAWN_MONSTER);
+    SetCategoryPopList(SPAWN_PLANT);
+    SetCategoryPopList(SPAWN_DOOR);
+    SetCategoryPopList(SPAWN_LIGHT);
+    SetCategoryPopList(SPAWN_DECORATION);
+    SetCategoryPopList(SPAWN_CONTAINER);
+    SetCategoryPopList(SPAWN_COLLECTABLE);
+    SetCategoryPopList(SPAWN_TOOL);
 
     ResizeUI();
 }
@@ -1075,6 +1099,52 @@ UIElement* CreateToolBarSpacer(unsigned width)
     return spacer;
 }
 
+DropDownList* CreateDropDownList(const String& title, const Vector<String>& listElements, const IntVector2& size, int defaultSelection)
+{
+    DropDownList* dropdownlist = new DropDownList(GameContext::Get().context_);
+    dropdownlist->SetName(title);
+    dropdownlist->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
+    dropdownlist->SetStyle("DropDownList");
+    // ddl must be LM_free, otherwise the placeholder will not be centered as expected.
+    dropdownlist->SetLayout(LM_FREE);
+    dropdownlist->SetVerticalAlignment(VA_CENTER);
+    dropdownlist->SetResizePopup(true);
+    dropdownlist->GetPopup()->GetChild(0)->SetHorizontalAlignment(HA_CENTER);
+    dropdownlist->SetMinSize(size);
+    dropdownlist->SetMaxSize(size);
+    // set the list items
+    for (unsigned i=0; i < listElements.Size(); i++)
+    {
+        Text* text = new Text(GameContext::Get().context_);
+        text->SetStyle("Text");
+        text->SetText(listElements[i]);
+        text->SetHorizontalAlignment(HA_CENTER);
+        text->SetTextAlignment(HA_CENTER);
+        dropdownlist->AddItem(text);
+    }
+    // set default selection
+    dropdownlist->SetSelection(defaultSelection);
+
+    // set the placeholder
+    dropdownlist->SetPlaceholderEditable(false);
+    // center the placeholder
+    dropdownlist->GetPlaceholder()->SetVerticalAlignment(VA_CENTER);
+    Text* holdertext = static_cast<Text*>(dropdownlist->GetPlaceholder()->GetChild(0));
+    holdertext->SetTextAlignment(HA_CENTER);
+
+    // after setting manually the selection, resize place holder to correctly show it
+    // put that in the engine ?
+    UIElement* selectedItem = dropdownlist->GetSelectedItem();
+    if (selectedItem)
+        dropdownlist->GetPlaceholder()->SetSize(selectedItem->GetSize());
+    // Be sure to have prepare the batch of the popup, because PlaceHolder copy it
+    // it's necessary for the obtention of the good alignment of placeholder text
+    dropdownlist->ShowPopup(true);
+    dropdownlist->ShowPopup(false);
+
+    return dropdownlist;
+}
+
 void FinalizeGroupHorizontal(UIElement* group, const String& baseStyle)
 {
     unsigned numchildren =  group->GetNumChildren();
@@ -1115,9 +1185,17 @@ void MapEditorLibImpl::CreateSpawnToolBar()
 
     FinalizeGroupHorizontal(spawngroup, "ToolBarToggle");
     toolbar->AddChild(spawngroup);
+
+    // Add Spawn Alignment DropDownList
+    Vector<String> layerAlignements;
+    layerAlignements.Push("Z Back");
+    layerAlignements.Push("Z Middle");
+    layerAlignements.Push("Z Front");
+    DropDownList* layerAlignDdl = CreateDropDownList("LayerAlign", layerAlignements, IntVector2(105,60), editorLayerModifier_);
+    toolbar->AddChild(layerAlignDdl);
 }
 
-UIElement* AddListButton(const String& name, Sprite2D* sprite, bool addpivot=false)
+UIElement* AddListButton(const String& name, Sprite2D* sprite, bool addpivot=false, int defaultstyleid=0, const String& defaulticon = String::EMPTY)
 {
     Button* button = new Button(GameContext::Get().context_);
     button->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(UISTYLE_EDITORDEFAULT));
@@ -1134,6 +1212,12 @@ UIElement* AddListButton(const String& name, Sprite2D* sprite, bool addpivot=fal
         spritebtn->SetTexture(sprite->GetTexture());
         spritebtn->SetImageRect(sprite->GetRectangle());
     }
+    else
+    {
+        spritebtn->SetDefaultStyle(MapEditorLibImpl::GetUIStyle(defaultstyleid));
+        spritebtn->SetStyle(defaulticon);
+    }
+
     button->AddChild(spritebtn);
 
     if (addpivot)
@@ -1163,25 +1247,80 @@ UIElement* AddListButton(const String& name, Sprite2D* sprite, bool addpivot=fal
     return button;
 }
 
-void MapEditorLibImpl::SetMonsterPopList()
+void MapEditorLibImpl::SetCategoryPopList(int spawnCategory)
 {
-    UIElement* panel = GetPanel(PANEL_MONSTERPOPLIST);
-    IntVector2 posbutton = GetPanel(PANEL_MAINTOOLBAR)->GetChild(0)->GetChild(SPAWN_MONSTER)->GetPosition();
-    panel->SetPosition(posbutton.x_ - 60, GameContext::Get().targetheight_ - (panel->GetSize().y_ + 60));
+    int panelid = 0;
+    StringHash cot;
+    EventHandlerImpl<MapEditorLibImpl>::HandlerFunctionPtr funcptr = 0;
+
+    if (spawnCategory == SPAWN_MONSTER)
+    {
+        panelid = PANEL_MONSTERPOPLIST;
+        cot = COT::MONSTERS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_PLANT)
+    {
+        panelid = PANEL_PLANTPOPLIST;
+        cot = COT::PLANTS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_DOOR)
+    {
+        panelid = PANEL_DOORPOPLIST;
+        cot = COT::DOORS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_LIGHT)
+    {
+        panelid = PANEL_LIGHTPOPLIST;
+        cot = COT::LIGHTS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_DECORATION)
+    {
+        panelid = PANEL_DECORATIONPOPLIST;
+        cot = COT::DECORATIONS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_CONTAINER)
+    {
+        panelid = PANEL_CONTAINERPOPLIST;
+        cot = COT::CONTAINERS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_COLLECTABLE)
+    {
+        panelid = PANEL_COLLECTABLEPOPLIST;
+        cot = COT::ITEMS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+    else if (spawnCategory == SPAWN_TOOL)
+    {
+        panelid = PANEL_TOOLPOPLIST;
+        cot = COT::TOOLS;
+        funcptr = &MapEditorLibImpl::HandleCategoryTypeSelected;
+    }
+
+    int defaultstyleid = UISTYLE_TOOLBARICONS;
+    const String& defaulticon = SpawnCategoryNameStr[spawnCategory];
+    UIElement* panel = GetPanel(panelid);
+    IntVector2 posbutton = GetPanel(PANEL_MAINTOOLBAR)->GetChild(0)->GetChild(spawnCategory-1)->GetPosition();
+    panel->SetPosition(posbutton.x_, GameContext::Get().targetheight_ - (panel->GetSize().y_ + 60));
 
     ListView* spritesList = static_cast<ListView*>(panel->GetChild("SpritesList", true));
     spritesList->RemoveAllItems();
 
-    const Vector<StringHash>& monsterTypes = COT::GetTypesInCategory(COT::MONSTERS);
+    const Vector<StringHash>& types = COT::GetTypesInCategory(cot);
 
     const unsigned numSpritesByRow = 4;
-    const unsigned numSprites = monsterTypes.Size();
-    const unsigned numRows = numSprites / numSpritesByRow;
+    const unsigned numSprites = types.Size();
+    unsigned numRows = numSprites / numSpritesByRow;
     const int numSpritesLastRow = numSprites - numRows * numSpritesByRow;
 
     PODVector<UIElement*> buttons;
 
-    unsigned monsterindex = 0;
+    unsigned index = 0;
 
     // set sprites row
     for (unsigned i = 0; i < numRows; i++)
@@ -1192,16 +1331,19 @@ void MapEditorLibImpl::SetMonsterPopList()
         row->SetHorizontalAlignment(HA_CENTER);
         for (unsigned j = 0; j < numSpritesByRow; j++)
         {
-            StringHash hash = monsterTypes[monsterindex];
-            const String& monsterName = GOT::GetType(hash);
-            Sprite2D* sprite = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(monsterName);
+            StringHash hash = types[index];
+            const String& name = GOT::GetType(hash);
+            Sprite2D* sprite = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(name);
             if (!sprite)
-                sprite = GOT::GetObject(hash)->GetDerivedComponent<StaticSprite2D>()->GetSprite();
-
-            UIElement* elt = AddListButton(monsterName, sprite);
+            {
+                Node* objectnode = GOT::GetObject(hash);
+                StaticSprite2D* ssprite = objectnode ? objectnode->GetDerivedComponent<StaticSprite2D>() : 0;
+                sprite = ssprite ? ssprite->GetSprite() : 0;
+            }
+            UIElement* elt = AddListButton(name, sprite, false, defaultstyleid, defaulticon);
             buttons.Push(elt);
             row->AddChild(elt);
-            monsterindex++;
+            index++;
         }
         spritesList->AddItem(row);
     }
@@ -1214,24 +1356,31 @@ void MapEditorLibImpl::SetMonsterPopList()
         row->SetHorizontalAlignment(HA_CENTER);
         for (unsigned i = 0; i < numSpritesLastRow; i++)
         {
-            StringHash hash = monsterTypes[monsterindex];
-            const String& monsterName = GOT::GetType(hash);
-            Sprite2D* sprite = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(monsterName);
+            StringHash hash = types[index];
+            const String& name = GOT::GetType(hash);
+            Sprite2D* sprite = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite(name);
             if (!sprite)
-                sprite = GOT::GetObject(hash)->GetDerivedComponent<StaticSprite2D>()->GetSprite();
-
-            UIElement* elt = AddListButton(monsterName, sprite);
+            {
+                Node* objectnode = GOT::GetObject(hash);
+                StaticSprite2D* ssprite = objectnode ? objectnode->GetDerivedComponent<StaticSprite2D>() : 0;
+                sprite = ssprite ? ssprite->GetSprite() : 0;
+            }
+            UIElement* elt = AddListButton(name, sprite, false, defaultstyleid, defaulticon);
             buttons.Push(elt);
             row->AddChild(elt);
-            monsterindex++;
+            index++;
         }
         spritesList->AddItem(row);
     }
+
     // subscribe To Event
-    for (unsigned i=0; i < buttons.Size(); i++)
+    if (funcptr)
     {
-        buttons[i]->SetVar(TYPE_VAR, monsterTypes[i]);
-        SubscribeToEvent(buttons[i], E_PRESSED, URHO3D_HANDLER(MapEditorLibImpl, HandleMonsterTypeSelected));
+        for (unsigned i=0; i < buttons.Size(); i++)
+        {
+            buttons[i]->SetVar(TYPE_VAR, types[i]);
+            SubscribeToEvent(buttons[i], E_PRESSED, new Urho3D::EventHandlerImpl<MapEditorLibImpl>(this, funcptr));
+        }
     }
 }
 
@@ -1346,6 +1495,42 @@ void SetAttributeEditorID(UIElement* elt, const Vector<Serializable*>& serializa
     }
 }
 
+/// Return the actual serializable objects based on the IDs stored in the user-defined variable of the 'attribute editor'.
+void GetAttributeEditorTargets(UIElement* attrEdit, Vector<Serializable*>& serializables)
+{
+    if (!attrEdit->GetVar(NODE_IDS_VAR).IsEmpty())
+    {
+        const Vector<Variant>& ids = attrEdit->GetVar(NODE_IDS_VAR).GetVariantVector();
+        for (unsigned i = 0; i < ids.Size(); ++i)
+        {
+            Node* node = GameContext::Get().rootScene_->GetNode(ids[i].GetUInt());
+            if (node)
+                serializables.Push(node);
+        }
+    }
+    else if (!attrEdit->GetVar(COMPONENT_IDS_VAR).IsEmpty())
+    {
+        const Vector<Variant>& ids = attrEdit->GetVar(COMPONENT_IDS_VAR).GetVariantVector();
+        for (unsigned i = 0; i < ids.Size(); ++i)
+        {
+            Component* component = GameContext::Get().rootScene_->GetComponent(ids[i].GetUInt());
+            if (component)
+                serializables.Push(component);
+        }
+    }
+//    else if (!attrEdit->GetVar(UI_ELEMENT_ID_VAR).Empty())
+//    {
+//        const Vector<Variant>& ids = attrEdit->GetVar(UI_ELEMENT_ID_VAR).GetVariantVector();
+//        for (unsigned i = 0; i < ids.Size(); ++i)
+//        {
+//            UIElement* element = editorUIElement->GetChild(UI_ELEMENT_ID_VAR, ids[i], true);
+//            if (element)
+//                ret.Push(element);
+//        }
+//    }
+
+}
+
 void IconizeUIElement(UIElement* element, const String& iconType)
 {
     // Check if the icon has been created before
@@ -1412,6 +1597,8 @@ UIElement* SetEditable(UIElement* element, bool editable)
 {
     if (!element)
         return element;
+
+    editable = true;
 
     element->SetEditable(editable);
     element->SetColor(C_TOPLEFT, editable ? element->GetColor(C_BOTTOMRIGHT) : nonEditableTextColor);
@@ -2377,12 +2564,13 @@ void MapEditorLibImpl::UpdateInspector(bool fullUpdate)
         {
             UIElement* container = Inspector_GetComponentContainer(parentContainer, j);
             Text* componentTitle = static_cast<Text*>(container->GetChild(TITLETEXT));
+            Component* component = editComponents_[j * numEditableComponents];
 
-            componentTitle->SetText(GetComponentTitle(editComponents_[j * numEditableComponents]) + multiplierText);
-            IconizeUIElement(componentTitle, editComponents_[j * numEditableComponents]->GetTypeName());
-            SetIconEnabledColor(componentTitle, editComponents_[j * numEditableComponents]->IsEnabledEffective());
+            componentTitle->SetText(GetComponentTitle(component) + multiplierText);
+            IconizeUIElement(componentTitle, component->GetTypeName());
+            SetIconEnabledColor(componentTitle, component->IsEnabledEffective());
 
-            URHO3D_LOGINFOF("MapEditorLibImpl() - UpdateInspector ... j=%u editComponent=%s title=%s ...", j, editComponents_[j * numEditableComponents]->GetTypeName().CString(), componentTitle->GetText().CString());
+            URHO3D_LOGINFOF("MapEditorLibImpl() - UpdateInspector ... numEditableComponents=%u j=%u editComponent=%s title=%s ...", numEditableComponents, j, component->GetTypeName().CString(), componentTitle->GetText().CString());
 
             Vector<Serializable*> serializables;
             for (unsigned i = 0; i < numEditableComponents; ++i)
@@ -2769,23 +2957,13 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
     }
     else if (spawnCategory_ == SPAWN_MONSTER)
     {
-        Node* entity = World2D::GetWorld()->SpawnEntity(spawnMonster_);
+        Node* entity = World2D::GetWorld()->SpawnEntity(spawnObject_);
         if (entity)
         {
             drawable = entity->GetDerivedComponent<Drawable2D>();
             SelectObject(drawable);
 
             URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Monster - entity=%s(%u)", entity->GetName().CString(), entity->GetID());
-        }
-    }
-    else if (spawnCategory_ == SPAWN_PLANT)
-    {
-        Node* entity = World2D::GetWorld()->SpawnFurniture(StringHash("FUR_LTreeGrow"));
-        if (entity)
-        {
-            drawable = entity->GetDerivedComponent<Drawable2D>();
-            SelectObject(drawable);
-            URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Plant !");
         }
     }
     else if (spawnCategory_ == SPAWN_TILE)
@@ -2799,6 +2977,31 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
         {
             GameHelpers::AddTile(position);
             URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Tile !");
+        }
+    }
+    else if (spawnCategory_ == SPAWN_PLANT || spawnCategory_ == SPAWN_DOOR || spawnCategory_ == SPAWN_LIGHT || spawnCategory_ == SPAWN_DECORATION ||
+             spawnCategory_ == SPAWN_CONTAINER || spawnCategory_ == SPAWN_COLLECTABLE || spawnCategory_ == SPAWN_TOOL)
+    {
+        Node* entity = 0;
+        if (GOT::GetTypeProperties(spawnObject_) & GOT_Furniture)
+        {
+            int layerZ = BACKBIOME;
+            if (spawnCategory_ == SPAWN_DOOR)
+                layerZ = THRESHOLDVIEW;
+            else if (ViewManager::Get()->GetCurrentViewZ() == FRONTVIEW)
+                layerZ = editorLayerModifier_ > 1 ? FRONTBIOME : editorLayerModifier_ > 0 ? OUTERBIOME : BACKBIOME;
+            else if (ViewManager::Get()->GetCurrentViewZ() == INNERVIEW)
+                layerZ = editorLayerModifier_ > 1 ? FRONTINNERBIOME : BACKINNERBIOME;
+            entity = World2D::GetWorld()->SpawnFurniture(spawnObject_, layerZ);
+        }
+        else
+            entity = World2D::GetWorld()->SpawnEntity(spawnObject_);
+
+        if (entity)
+        {
+            drawable = entity->GetDerivedComponent<Drawable2D>();
+            SelectObject(drawable);
+            URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn %s - entity=%s(%u)", SpawnCategoryNameStr[spawnCategory_], entity->GetName().CString(), entity->GetID());
         }
     }
 
@@ -2843,6 +3046,28 @@ bool MapEditorLibImpl::MoveObjects(const Vector2& adjust)
 
             if (node->GetPosition2D() != oldPos)
                 moved = true;
+
+            // allow Z move for furniture
+            if (GOT::GetTypeProperties(StringHash(node->GetVar(GOA::GOT).GetUInt())) & GOT_Furniture)
+            {
+                Drawable2D* drawable = node->GetDerivedComponent<Drawable2D>();
+                int layerZ = drawable->GetLayer();
+                if (layerZ != THRESHOLDVIEW) // don't move doors
+                {
+                    int newlayerZ = layerZ;
+                    if (ViewManager::Get()->GetCurrentViewZ() == FRONTVIEW)
+                        newlayerZ = editorLayerModifier_ > 1 ? FRONTBIOME : editorLayerModifier_ > 0 ? OUTERBIOME : BACKBIOME;
+                    else if (ViewManager::Get()->GetCurrentViewZ() == INNERVIEW)
+                        newlayerZ = editorLayerModifier_ > 1 ? FRONTINNERBIOME : BACKINNERBIOME;
+
+                    if (newlayerZ != layerZ)
+                    {
+                        node->SetVar(GOA::ONVIEWZ, newlayerZ);
+                        drawable->SetViewMask(ViewManager::GetLayerMask(newlayerZ));
+                        drawable->SetLayer(newlayerZ);
+                    }
+                }
+            }
         }
     }
 
@@ -3005,6 +3230,9 @@ void MapEditorLibImpl::SubscribeToUIEvent()
         UIElement* panel = uiPanels_[PANEL_MAINTOOLBAR];
         for (int i = 1; i < MAX_SPAWNCATEGORIES; i++)
             SubscribeToEvent(panel->GetChild(SpawnCategoryNameStr[i], true), E_TOGGLED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarCheckBoxToogle));
+
+        DropDownList* layerAlignDdl = static_cast<DropDownList*>(panel->GetChild("LayerAlign", true));
+        SubscribeToEvent(layerAlignDdl, E_ITEMSELECTED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarLayerAlignChanged));
     }
 
     // Inspector Window
@@ -3038,18 +3266,37 @@ void MapEditorLibImpl::HandleToolBarCheckBoxToogle(StringHash eventType, Variant
     }
 
     if (spawncategory == SPAWN_MONSTER)
-    {
         GetPanel(PANEL_MONSTERPOPLIST)->SetVisible(checkbox->IsChecked());
-    }
+    else if (spawncategory == SPAWN_PLANT)
+        GetPanel(PANEL_PLANTPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_DOOR)
+        GetPanel(PANEL_DOORPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_LIGHT)
+        GetPanel(PANEL_LIGHTPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_DECORATION)
+        GetPanel(PANEL_DECORATIONPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_CONTAINER)
+        GetPanel(PANEL_CONTAINERPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_COLLECTABLE)
+        GetPanel(PANEL_COLLECTABLEPOPLIST)->SetVisible(checkbox->IsChecked());
+    else if (spawncategory == SPAWN_TOOL)
+        GetPanel(PANEL_TOOLPOPLIST)->SetVisible(checkbox->IsChecked());
 }
 
-void MapEditorLibImpl::HandleMonsterTypeSelected(StringHash eventType, VariantMap& eventData)
+void MapEditorLibImpl::HandleToolBarLayerAlignChanged(StringHash eventType, VariantMap& eventData)
+{
+    editorLayerModifier_ = eventData[ItemSelected::P_SELECTION].GetInt();
+
+//    URHO3D_LOGINFOF("MapEditorLibImpl() - HandleToolBarLayerAlignChanged : editorLayerModifier_=%d", editorLayerModifier_);
+}
+
+void MapEditorLibImpl::HandleCategoryTypeSelected(StringHash eventType, VariantMap& eventData)
 {
     Button* button = static_cast<Button*>(eventData["Element"].GetPtr());
     if (!button)
         return;
 
-    spawnMonster_ = button->GetVar(TYPE_VAR).GetStringHash();
+    spawnObject_ = button->GetVar(TYPE_VAR).GetStringHash();
 }
 
 void MapEditorLibImpl::HandleWindowLayoutUpdated(StringHash eventType, VariantMap& eventData)
@@ -3117,6 +3364,68 @@ void MapEditorLibImpl::HandleInspectorTagsSelect(StringHash eventType, VariantMa
 
 void MapEditorLibImpl::HandleInspectorEditAttribute(StringHash eventType, VariantMap& eventData)
 {
+    // TODO : this part doesn't work for the moment
+    
+    UIElement* attrEdit = static_cast<UIElement*>(eventData["Element"].GetPtr());
+    UIElement* parent = attrEdit->GetParent();
+
+    Vector<Serializable*> serializables;
+    GetAttributeEditorTargets(attrEdit, serializables);
+    if (serializables.Size())
+    {
+//        URHO3D_LOGINFOF("HandleInspectorEditAttribute : attrEdit=%s parent=%s num serializables = %u", attrEdit->GetName().CString(), parent->GetName().CString(), serializables.Size());
+
+        for (unsigned i = 0; i < serializables.Size(); ++i)
+            serializables[i]->ApplyAttributes();
+    }
+/*
+    // Changing elements programmatically may cause events to be sent. Stop possible infinite loop in that case.
+    if (inLoadAttributeEditor)
+        return;
+
+    UIElement@ attrEdit = eventData["Element"].GetPtr();
+    UIElement@ parent = attrEdit.parent;
+    Array<Serializable@>@ serializables = GetAttributeEditorTargets(attrEdit);
+    if (serializables.empty)
+        return;
+
+    uint index = attrEdit.vars["Index"].GetUInt();
+    uint subIndex = attrEdit.vars["SubIndex"].GetUInt();
+    uint coordinate = attrEdit.vars["Coordinate"].GetUInt();
+    bool intermediateEdit = eventType == TEXT_CHANGED_EVENT_TYPE;
+
+    // Do the editor pre logic before attribute is being modified
+    if (!PreEditAttribute(serializables, index))
+        return;
+
+    inEditAttribute = true;
+
+    Array<Variant> oldValues;
+
+    if (!dragEditAttribute)
+    {
+        // Store old values so that PostEditAttribute can create undo actions
+        for (uint i = 0; i < serializables.length; ++i)
+            oldValues.Push(serializables[i].attributes[index]);
+    }
+
+    StoreAttributeEditor(parent, serializables, index, subIndex, coordinate);
+    for (uint i = 0; i < serializables.length; ++i)
+        serializables[i].ApplyAttributes();
+
+    if (!dragEditAttribute)
+    {
+        // Do the editor post logic after attribute has been modified.
+        PostEditAttribute(serializables, index, oldValues);
+    }
+
+    inEditAttribute = false;
+
+    // If not an intermediate edit, reload the editor fields with validated values
+    // (attributes may have interactions; therefore we load everything, not just the value being edited)
+    if (!intermediateEdit)
+        attributesDirty = true;
+*/
 }
 
 void MapEditorLibImpl::HandleInspectorPickResource(StringHash eventType, VariantMap& eventData)

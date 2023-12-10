@@ -18,9 +18,9 @@ class SimpleActor : public Object
     URHO3D_OBJECT(SimpleActor, Object);
 
 public :
-    SimpleActor(Context* context) : Object(context), controlID_(0), viewManager_(0) { ; }
-    SimpleActor(Context* context, const String& name) : Object(context), name_(name), controlID_(0), viewManager_(0) { ; }
-    SimpleActor(const SimpleActor& actor) : Object(actor.GetContext()), name_(actor.name_), controlID_(0), viewManager_(0) { ; }
+    SimpleActor(Context* context) : Object(context), controlID_(0) { }
+    SimpleActor(Context* context, const String& name) : Object(context), name_(name), controlID_(0) { }
+    SimpleActor(const SimpleActor& actor) : Object(actor.GetContext()), name_(actor.name_), controlID_(0) { }
     ~SimpleActor();
 
     static void RegisterObject(Context* context);
@@ -35,10 +35,7 @@ public :
     }
 
     void SetScene(Scene* scene);
-    void SetViewManager(ViewManager* viewManager)
-    {
-        viewManager_ = viewManager;
-    }
+
     void SetControlID(int ID)
     {
         controlID_ = ID;
@@ -70,6 +67,5 @@ protected:
 
     Scene* scene_;
     WeakPtr<Node> avatar_;
-    ViewManager* viewManager_;
 };
 

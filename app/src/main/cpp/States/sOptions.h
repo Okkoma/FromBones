@@ -38,11 +38,15 @@ public:
 
 protected:
 
+    void LoadJSONServerList();
+    void GetNetServerParams(int selection, String& serverip, int& serverport);
+    int GetNetServerIndex(const String& serverip, int serverport);
+
     void SetDefaultWorldParameters();
 
     bool CreateUI();
     void RemoveUI();
-    void SwitchToCategory(String category);
+    void SwitchToCategory(const String& category);
 
     void SynchronizeParameters();
     void CheckParametersChanged();
@@ -110,6 +114,10 @@ protected:
     void HandleMusicChanged(StringHash eventType, VariantMap& eventData);
     void HandleSoundChanged(StringHash eventType, VariantMap& eventData);
 
+    // Network Category Handle
+    void HandleNetworkMode(StringHash eventType, VariantMap& eventData);
+    void HandleNetworkServer(StringHash eventType, VariantMap& eventData);
+
     // Debug Category Handle
     void HandleFluidEnableChanged(StringHash eventType, VariantMap& eventData);
     void HandleRenderShapesChanged(StringHash eventType, VariantMap& eventData);
@@ -129,4 +137,6 @@ protected:
     void OnPostRenderUpdate(StringHash eventType, VariantMap& eventData);
 
     bool snapshotdirty_;
+
+    String category_;
 };

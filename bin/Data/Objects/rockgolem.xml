@@ -74,7 +74,7 @@
 		<attribute name="Detected Categories" value="Characters" />
 	</component>
 	<component type="GOC_AIController">
-		<attribute name="Behavior Target" value="FollowAttack" />
+		<attribute name="Behavior Target" value="Patrol" />
 		<attribute name="Detects Target" value="true" />
 	</component>	
 	<component type="GOC_BodyExploder2D">

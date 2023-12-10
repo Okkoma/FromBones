@@ -678,6 +678,8 @@
 			<attribute name="New Event" value="name:AEvent_EndLoop | applyToStates:State_Opening | nextState:State_Opened" />
 			<attribute name="New Event" value="name:Go_TrigClicked | applyToStates:State_Close | nextState:State_Opening" />
 			<attribute name="New Event" value="name:Go_TrigClicked | applyToStates:State_Opened | nextState:State_Close" />
+			<attribute name="New Event" value="name:Net_TrigClicked | applyToStates:State_Close | nextState:State_Opening" />
+			<attribute name="New Event" value="name:Net_TrigClicked | applyToStates:State_Opened | nextState:State_Close" />			
 		<attribute name="Register Template" value="AnimatorTemplate_InteractiveFurniture" />
 		<!-- <attribute name="Define Template" value="AnimatorTemplate_Empty" />
 			<attribute name="New State" value="name:State_Lighted | animKeyWords:lighted;use | tick:0 | action:AAction_LightOn" />
@@ -696,6 +698,8 @@
 			<attribute name="New Event" value="name:AEvent_StartLoop | applyToStates:State_Lighted;State_Unlighted | action:AAction_ChangeAnim" />
 			<attribute name="New Event" value="name:Go_TrigClicked | applyToStates:State_Unlighted | nextState:State_Lighted" />
 			<attribute name="New Event" value="name:Go_TrigClicked | applyToStates:State_Lighted | nextState:State_Unlighted" />
+			<attribute name="New Event" value="name:Net_TrigClicked | applyToStates:State_Unlighted | nextState:State_Lighted" />
+			<attribute name="New Event" value="name:Net_TrigClicked | applyToStates:State_Lighted | nextState:State_Unlighted" />			
 		<attribute name="Register Template" value="AnimatorTemplate_InteractiveFire" />
 	</component>
 	<component type="GOC_SoundEmitter">

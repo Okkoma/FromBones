@@ -541,7 +541,8 @@ void MapGeneratorDungeon::GenerateFurnitures(MapGeneratorStatus& genStatus)
 
                         roomfurnitures++;
                         objectqtys[iobject]++;
-                        URHO3D_LOGINFOF("-> place a %s in room=%s at start=%s coord=%s tileindex=%u !", GOT::GetType(got).CString(), roomrect.ToString().CString(), coord.ToString().CString(), newcoord.ToString().CString(), tileindex);
+                        URHO3D_LOGINFOF("-> place a %s in room=%s at start=%s coord=%s tileindex=%u entitydump=%s !",
+                                         GOT::GetType(got).CString(), roomrect.ToString().CString(), coord.ToString().CString(), newcoord.ToString().CString(), tileindex, entitydata.Dump().CString());
                     }
 
                     coord.x_ = newcoord.x_ + Random.Get(1, objectrange.x_);
@@ -612,7 +613,8 @@ void MapGeneratorDungeon::GenerateFurnitures(MapGeneratorStatus& genStatus)
 
                         roomfurnitures++;
                         objectqtys[iobject]++;
-                        URHO3D_LOGINFOF("-> place a %s in room=%s at start=%s coord=%s !", GOT::GetType(got).CString(), roomrect.ToString().CString(), coord.ToString().CString(), newcoord.ToString().CString());
+                        URHO3D_LOGINFOF("-> place a %s in room=%s at start=%s coord=%s entitydump=%s !",
+                                         GOT::GetType(got).CString(), roomrect.ToString().CString(), coord.ToString().CString(), newcoord.ToString().CString(), entitydata.Dump().CString());
                     }
 
                     coord.y_ = newcoord.y_ + dirY * Random.Get(1, objectrange.y_);

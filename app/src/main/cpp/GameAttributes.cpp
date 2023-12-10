@@ -1140,6 +1140,7 @@ const StringHash COT::QUEST                 = StringHash("Quest");
 const StringHash COT::DUNGEON               = StringHash("Dungeon");
 
 const StringHash COT::CHARACTERS            = StringHash("Characters");
+const StringHash COT::MONSTERS              = StringHash("Monsters");
 
 const StringHash COT::EQUIPMENTS            = StringHash("Equipments");
 const StringHash COT::WEAPONS               = StringHash("Weapons");
@@ -1154,8 +1155,12 @@ const StringHash COT::HEADBANDS             = StringHash("Headbands");
 
 const StringHash COT::SPECIALS              = StringHash("Specials");
 
+const StringHash COT::DOORS                 = StringHash("Doors");
 const StringHash COT::CONTAINERS            = StringHash("Containers");
-const StringHash COT::MONSTERS              = StringHash("Monsters");
+const StringHash COT::PLANTS                = StringHash("Plants");
+const StringHash COT::LIGHTS                = StringHash("Lights");
+const StringHash COT::DECORATIONS           = StringHash("Decorations");
+const StringHash COT::TOOLS                 = StringHash("Tools");
 
 bool COT::IsACategory(const StringHash& hash)
 {
@@ -1324,6 +1329,7 @@ void COT::InitCategoryTables()
     Register("Quest");
 
     Register("Characters");
+    Register("Monsters", COT::OBJECTS);
 
     Register("Liquids", COT::OBJECTS);
 
@@ -1356,9 +1362,6 @@ void COT::InitCategoryTables()
     Register("BiomeBackGroundSides", COT::OBJECTS);
     Register("BiomeBackGroundBottom", COT::OBJECTS);
 
-    Register("Containers", COT::OBJECTS);
-    Register("Monsters", COT::OBJECTS);
-
     Register("Equipments", COT::ITEMS);
 
     Register("Weapons", COT::EQUIPMENTS);
@@ -1373,6 +1376,13 @@ void COT::InitCategoryTables()
 
     Register("MeleeWeapons", COT::WEAPONS);
     Register("RangedWeapons", COT::WEAPONS);
+
+    Register("Doors");
+    Register("Containers", COT::OBJECTS);
+    Register("Plants");
+    Register("Lights");
+    Register("Decorations");
+    Register("Tools");
 
     categoryNames_.Sort();
     //categoryAttributes_.Sort();

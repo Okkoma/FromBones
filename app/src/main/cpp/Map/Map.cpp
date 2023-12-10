@@ -97,7 +97,7 @@ const char* MapVisibleStateNames_[] =
 
 extern const char* mapStatusNames[];
 extern const char* mapGenModeNames[];
-
+extern const char* mapViewsNames[];
 
 
 
@@ -420,7 +420,7 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
     StringHash got = GOT::Get(entitydata.gotindex_);
 
     int viewZ = ViewManager::Get()->GetLayerZ(entitydata.GetLayerZIndex());
-    bool staticFurniture = (GOT::GetTypeProperties(got) & GOT_Static) != 0;
+    bool staticFurniture = (GOT::GetTypeProperties(got) & GOT_Anchored) != 0;
     if (!AllowDynamicFurnitures(viewZ) && !staticFurniture)
         return 0;
 
@@ -535,7 +535,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
         }
 
         viewZ = ViewManager::Get()->GetLayerZ(entitydata.GetLayerZIndex());
-        if (!(gotprops & GOT_Static) && !AllowDynamicFurnitures(viewZ))
+        if (!(gotprops & GOT_Anchored) && !AllowDynamicFurnitures(viewZ))
         {
             i++;
             continue;
@@ -565,7 +565,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
             GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
             if (destroyer)
             {
-                if (gotprops & GOT_Static)
+                if (gotprops & GOT_Anchored)
                 {
                     destroyer->SetEnableUnstuck(false);
                     VariantMap& eventData = node->GetContext()->GetEventDataMap();
@@ -579,7 +579,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
                 }
             }
 
-            if (gotprops & GOT_Static)
+            if (gotprops & GOT_Anchored)
                 World2D::AddStaticFurniture(GetMapPoint(), node, entitydata);
 
             GameHelpers::SetDrawableLayerView(node, viewZ);
@@ -615,7 +615,7 @@ const int BiomeLayerZByViewId[] =
     BACKBIOME,      // for BackGround_ViewId
     BACKINNERBIOME, // for InnerView_ViewId
     BACKINNERBIOME, // for BackView_ViewId
-    FRONTBIOME,     // for OuterView_ViewId
+    OUTERBIOME,     // for OuterView_ViewId
 };
 
 bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isabiome, bool checkpositionintile)
@@ -627,7 +627,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
     const bool anchorOnGroundTile = gotprops & GOT_AnchorOnGround;
     const bool anchorOnBackTile = gotprops & GOT_AnchorOnBack;
 
-    int viewZ, layerZ = -1;
+    int viewZ = 0, layerZ = -1;
     unsigned tileindex;
     Vector2 position;
     IntVector2 coords;
@@ -641,18 +641,19 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
     }
     else
     {
-        layerZ = ViewManager::Get()->GetLayerZ(entitydata.drawableprops_ & FlagLayerZIndex_);
+        viewZ = layerZ = ViewManager::Get()->GetLayerZ(entitydata.drawableprops_ & FlagLayerZIndex_);
         tileindex = entitydata.tileindex_;
         coords = GetTileCoords(tileindex);
         Vector2 positionintile = entitydata.GetNormalizedPositionInTile();
         position = GetWorldTilePosition(coords, positionintile);
-//        URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : tileindex=%u position=%s positionintile=%s ...", tileindex, position.ToString().CString(), positionintile.ToString().CString());
+
+        URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : tileindex=%u position=%s positionintile=%s layerZ=%d ...", tileindex, position.ToString().CString(), positionintile.ToString().CString(), layerZ);
     }
 
     Vector2 offset = position - GetWorldTilePosition(coords);
-    if (viewZ <= BACKGROUND)
+    if (viewZ < BACKVIEW)
         viewZ = BACKGROUND;
-    else if (viewZ <= INNERVIEW)
+    else if (viewZ < OUTERVIEW)
         viewZ = INNERVIEW;
     else
         viewZ = FRONTVIEW;
@@ -683,7 +684,8 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         // is a block with some free sides
         if (anchorOnGroundTile && cindex < MapTilesConnectType::AllConnect)
         {
-//            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnGroundTile check x=%d y=%d view=%d cindex=%d ...", coords.x_, coords.y_, viewids[i], cindex);
+            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnGroundTile check x=%d y=%d view=%s(%d) cindex=%d ...",
+                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
 
             // find the nearest side where to spawn
             if (!checkpositionintile || (Abs(offset.x_) >= halftilewidth * bordershrinkfactor && Abs(offset.x_) >= Abs(offset.y_)))
@@ -711,7 +713,8 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         // is a block in back
         else if (anchorOnBackTile && cindex <= MapTilesConnectType::AllConnect)
         {
-//            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnBackTile check x=%d y=%d view=%d cindex=%d ...", x, y, viewids[i], cindex);
+            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnBackTile check x=%d y=%d view=%s(%d) cindex=%d ...",
+                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
             anchor = NoneSide;
             viewid = viewids[i];
             break;
@@ -729,8 +732,8 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
             else if (offset.y_ > 0.f)
                 diry = -1;
 
-//            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check x=%d y=%d view=%d cindex=%d offset=%f,%f dirx=%d diry=%d ...",
-//                            coords.x_, coords.y_, viewids[i], cindex, offset.x_, offset.y_, dirx, diry);
+            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check x=%d y=%d view=%s(%d) cindex=%d offset=%f,%f dirx=%d diry=%d ...",
+                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex, offset.x_, offset.y_, dirx, diry);
 
             if (dirx && !AreCoordsOutside(coords.x_+dirx, coords.y_))
             {
@@ -739,7 +742,8 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                     unsigned newtileindex = GetTileIndex(coords.x_+dirx, coords.y_);
                     cindex = GetConnectedView(viewids[i])[newtileindex];
 
-//                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check dirx=%d x=%d y=%d cindex=%d ...", dirx, x+dirx, y, cindex);
+                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check dirx=%d x=%d y=%d view=%s(%d) cindex=%d ...",
+                                    dirx, coords.x_+dirx, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
                     {
@@ -762,7 +766,8 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                     unsigned newtileindex = GetTileIndex(coords.x_, coords.y_+diry);
                     cindex = GetConnectedView(viewids[i])[newtileindex];
 
-//                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check diry=%d x=%d y=%d cindex=%d ...", diry, coords.x_, coords.y_+diry, cindex);
+                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check diry=%d x=%d y=%d view=%s(%d) cindex=%d ...",
+                                    diry, coords.x_, coords.y_+diry, mapViewsNames[viewids[i]], viewids[i], cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
                     {
@@ -788,12 +793,29 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
 
     // Update Datas
     entitydata.tileindex_ = tileindex;
-    entitydata.SetLayerZ(isabiome ? BiomeLayerZByViewId[viewid] : layerZ > 0 ? layerZ : viewZ);
-    //entitydata.drawableprops_ = (unsigned char)(ViewManager::GetLayerZIndex(BiomeLayerZByViewId[viewid]));
+    if (isabiome)
+    {
+//        int newLayerZ = BiomeLayerZByViewId[viewid];
+        if (viewid == FrontView_ViewId || viewid == OuterView_ViewId)
+            layerZ = layerZ > viewZ ? FRONTBIOME : layerZ < BACKVIEW ? BACKBIOME : OUTERBIOME;
+        else if (viewid == InnerView_ViewId || viewid == BackView_ViewId)
+            layerZ = layerZ > viewZ ? FRONTINNERBIOME : BACKINNERBIOME;
+        else if (viewid == BackGround_ViewId)
+            layerZ = BACKBIOME;
+    }
+
+    entitydata.SetLayerZ(layerZ > 0 ? layerZ : viewZ);
     entitydata.SetPositionProps(offset, anchor);
 
-    URHO3D_LOGERRORF("Map() - AnchorEntityOnTileAt : tileindex=%u tilepositionx=%d tilepositiony=%d anchor=%d layerZIndex=%d OK !",
-                     entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_, anchor, entitydata.GetLayerZIndex());
+    // Patch for Lustre
+    if (anchor == BottomSide)
+    {
+        entitydata.tileindex_ = GetTileIndex(coords.x_, coords.y_+1);
+        entitydata.tilepositiony_ = 100;
+    }
+
+    URHO3D_LOGERRORF("Map() - AnchorEntityOnTileAt : tileindex=%u tilepositionx=%d tilepositiony=%d anchor=%d BiomeLayer=%s viewid=%s(%d) LayerZ=%d ViewZ=%d !",
+                     entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_, anchor, isabiome?"true":"false", mapViewsNames[viewid], viewid, layerZ, viewZ);
 
     return true;
 }
@@ -1155,7 +1177,7 @@ void MapBase::SetTile(FeatureType feat, int x, int y, int viewZ, Tile** removedt
     }
 
     // Update fluid cell
-    FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::viewZIndexes_[viewZ]);
+    FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
     fluidcell->Set(featref);
     fluidcell->UnsettleNeighbors();
     fluidcell->ResetDirections();
@@ -1380,7 +1402,7 @@ void MapBase::SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tile
         }
 
         // Update fluid cell
-        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::viewZIndexes_[viewZ]);
+        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
         fluidcell->Set(featref);
         fluidcell->UnsettleNeighbors();
         fluidcell->ResetDirections();
@@ -1461,7 +1483,7 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
     // Update fluid cell
     if (!dynamic)
     {
-        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::viewZIndexes_[viewZ]);
+        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
         fluidcell->Set(feature);
         fluidcell->UnsettleNeighbors();
         fluidcell->ResetDirections();
@@ -3993,7 +4015,7 @@ FeatureType MapBase::GetFeatureAtZ(unsigned index, int layerZ) const
 
 FluidCell* MapBase::GetFluidCellPtr(unsigned index, int indexZ) const
 {
-    return &featuredMap_->GetFluidView(ViewManager::viewZIndex2fluidZIndex_[indexZ]).fluidmap_[index];
+    return &featuredMap_->GetFluidView(ViewManager::GetFluidZIndex(indexZ)).fluidmap_[index];
 }
 
 
@@ -5760,6 +5782,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
     // Never Spawn in a Wall
     if (gocDestroyer)
     {
+//        gocDestroyer->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), Vector2(physicInfo.positionx_, physicInfo.positiony_), viewZ));
         if (!gocDestroyer->AllowWallSpawning() && gocDestroyer->IsInWalls(this, viewZ))
         {
             if (gocDestroyer->GetCheckUnstuck())
@@ -5794,7 +5817,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
         controller->SetMainController(GameContext::Get().LocalMode_ ||
                                       (GameContext::Get().ClientMode_ && sceneInfo.faction_ == ((localclientid << 8) + GO_Player)) ||
                                       (GameContext::Get().ServerMode_ && ((sceneInfo.faction_ >> 8) == 0)));
-
+        controller->control_.type_ = got.Value();
 //        URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d maincontrol=%s ... OK !",
 //                    GetMapPoint().ToString().CString(), id, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
 //                    viewZ, sceneInfo.zindex_, controller->IsMainController() ? "true":"false");
@@ -5805,7 +5828,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
     if (gocDestroyer)
     {
         if (viewZ != NOVIEW)
-            gocDestroyer->SetViewZ(viewZ, viewManager_->layerMask_[viewZ], sceneInfo.zindex_);
+            gocDestroyer->SetViewZ(viewZ, ViewManager::GetLayerMask(viewZ), sceneInfo.zindex_);
 
         if (!sceneInfo.deferredAdd_)
         {
@@ -5955,7 +5978,10 @@ bool Map::SetEntities_Load(HiresTimer* timer)
 
             GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
             if (controller)
+            {
                 controller->SetMainController(GameContext::Get().ClientMode_ ? false : true);
+                controller->control_.type_ = got.Value();
+            }
 
             {
                 const Variant& bosszone = node->GetVar(GOA::BOSSZONEID);
@@ -5994,7 +6020,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
 
                 if (node->GetComponent<GOC_Destroyer>())
                 {
-                    if (gotprops & GOT_Static)
+                    if (gotprops & GOT_Anchored)
                     {
                         VariantMap& eventData = node->GetContext()->GetEventDataMap();
                         eventData[Go_Appear::GO_MAP] = GetMapPoint().ToHash();
@@ -6007,7 +6033,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
                     }
                 }
 
-                if (gotprops & GOT_Static)
+                if (gotprops & GOT_Anchored)
                     World2D::AddStaticFurniture(GetMapPoint(), node, entitydata);
 
 //                node->ApplyAttributes();
@@ -6159,7 +6185,10 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
             GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
             if (controller)
+            {
                 controller->SetMainController(GameContext::Get().ClientMode_ ? false : true);
+                controller->control_.type_ = got.Value();
+            }
 
             if (category && category->HasReplicatedMode())
                 ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true);
@@ -6883,7 +6912,7 @@ const char* Map::GetVisibleState() const
 
 int Map::GetMaterialType(unsigned index, int indexZ) const
 {
-    return featuredMap_->GetFluidView(ViewManager::viewZIndex2fluidZIndex_[indexZ]).fluidmap_[index].type_;
+    return featuredMap_->GetFluidView(ViewManager::GetFluidZIndex(indexZ)).fluidmap_[index].type_;
 }
 
 bool Map::AllowEntities(int viewZ) const

@@ -177,6 +177,34 @@
 		"en":"Effect",
 		"fr":"Effet"
 	},
+	"Network":{
+		"en":"Network",
+		"fr":"Reseau"
+	},
+	"server":{
+		"en":"Server",
+		"fr":"Serveur"
+	},	
+	"client":{
+		"en":"Client",
+		"fr":"Client"
+	},
+	"local":{
+		"en":"Local",
+		"fr":"Local"
+	},	
+	"netmode":{
+		"en":"Mode",
+		"fr":"Mode"
+	},
+	"whiteserver":{
+		"en":"White Server",
+		"fr":"Serveur White"
+	},	
+	"thismachine":{
+		"en":"This Machine",
+		"fr":"Cette machine"
+	},			
 	"quitgame":{
 		"en":"Quit",
 		"fr":"Quitter"

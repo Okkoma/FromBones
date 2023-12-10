@@ -959,7 +959,7 @@ void World2D::DestroyEntity(MapBase* map, Node* node)
     eventData[Go_Destroy::GO_PTR] = 0;
 
     // for static furniture
-//    if ((GOT::GetTypeProperties(node->GetVar(GOA::GOT).GetStringHash()) & (GOT_Furniture | GOT_Static)) == (GOT_Furniture | GOT_Static))
+//    if ((GOT::GetTypeProperties(node->GetVar(GOA::GOT).GetStringHash()) & (GOT_Furniture | GOT_Anchored)) == (GOT_Furniture | GOT_Anchored))
     if (node->GetVar(GOA::ONTILE) != Variant::EMPTY)
         eventData[Go_Destroy::GO_TILE] = node->GetVar(GOA::ONTILE).GetUInt();
 
@@ -1132,16 +1132,16 @@ Node* World2D::SpawnEntity(const StringHash& got)
     return map ? map->AddEntity(got, RandomEntityFlag|RandomMappingFlag, LOCAL, 0, ViewManager::Get()->GetCurrentViewZ(), PhysicEntityInfo(pos.x_, pos.y_)) : 0;
 }
 
-Node* World2D::SpawnFurniture(const StringHash& got)
+Node* World2D::SpawnFurniture(const StringHash& got, int layerZ)
 {
     IntVector2 position;
     GameHelpers::GetInputPosition(position.x_, position.y_);
     Vector2 pos = GameHelpers::ScreenToWorld2D(position);
 
-    return SpawnFurniture(got, pos, ViewManager::Get()->GetCurrentViewZ());
+    return SpawnFurniture(got, pos, layerZ, true, true, false);
 }
 
-Node* World2D::SpawnFurniture(const StringHash& got, Vector2 position, int viewZ, bool isabiome, bool checkpositionintile, bool findfloor)
+Node* World2D::SpawnFurniture(const StringHash& got, Vector2 position, int layerZ, bool isabiome, bool checkpositionintile, bool findfloor)
 {
     ShortIntVector2 mpoint;
 
@@ -1156,32 +1156,35 @@ Node* World2D::SpawnFurniture(const StringHash& got, Vector2 position, int viewZ
         IntVector2 coordatfloor = coord;
 
         // Get the floor positions
-        map->GetBlockPositionAt(DownDir, map->GetViewId(viewZ), coordatfloor);
+        int viewid = map->GetNearestViewId(layerZ);
+
+        map->GetBlockPositionAt(DownDir, viewid, coordatfloor);
         coordatfloor.y_--;
         position = map->GetWorldTilePosition(coordatfloor);
 
         // TODO : check for change the map
 
-//        URHO3D_LOGINFOF("World2D() - SpawnFurniture : at mPoint=%s viewZ=%d coord=%s coordatfloor=%s => new position=%s!",
-//                        mpoint.ToString().CString(), viewZ, coord.ToString().CString(), coordatfloor.ToString().CString(), position.ToString().CString());
+//        URHO3D_LOGINFOF("World2D() - SpawnFurniture : at mPoint=%s layerZ=%d coord=%s coordatfloor=%s => new position=%s!",
+//                        mpoint.ToString().CString(), layerZ, coord.ToString().CString(), coordatfloor.ToString().CString(), position.ToString().CString());
     }
 
-    EntityData entitydata(got, position, viewZ);
-    if ((GOT::GetTypeProperties(got) & GOT_Static) != 0)
+    EntityData entitydata(got, position, layerZ);
+
+    if (GOT::GetTypeProperties(got) & GOT_Anchored)
     {
         if (!map->AnchorEntityOnTileAt(entitydata, 0, isabiome, checkpositionintile))
         {
-            URHO3D_LOGERRORF("World2D() - SpawnFurniture : Can't anchor on tile !");
+            URHO3D_LOGERRORF("World2D() - SpawnFurniture : Can't anchor on tile pos=%s layerZ=%d", position.ToString().CString(), layerZ);
             return 0;
         }
 
-        URHO3D_LOGINFOF("World2D() - SpawnFurniture : got=%s(%u) GOT_Static at mPoint=%s tileindex=%u viewZ=%d !",
-                        GOT::GetType(got).CString(), got.Value(), mpoint.ToString().CString(), entitydata.tileindex_, viewZ);
+        URHO3D_LOGINFOF("World2D() - SpawnFurniture : got=%s(%u) anchored at mPoint=%s tileindex=%u layerZ=%d !",
+                        GOT::GetType(got).CString(), got.Value(), mpoint.ToString().CString(), entitydata.tileindex_, layerZ);
     }
 
     Node* node = map->AddFurniture(entitydata);
     if (!node)
-        URHO3D_LOGERRORF("World2D() - SpawnFurniture : at mPoint=%s viewZ=%d can't spawn got=%s(%u) !", mpoint.ToString().CString(), viewZ, GOT::GetType(got).CString(), got.Value());
+        URHO3D_LOGERRORF("World2D() - SpawnFurniture : at mPoint=%s layerZ=%d can't spawn got=%s(%u) !", mpoint.ToString().CString(), layerZ, GOT::GetType(got).CString(), got.Value());
 
     return node;
 }
@@ -1699,7 +1702,15 @@ bool FindBlock(const Vector2& posInTile, const IntVector2& direction, int viewZ,
 
     // check for a block
     Map* map = World2D::GetMapAt(mp);
-    if (map && map->HasTileProperties(map->GetTileIndex(position.x_, position.y_), map->GetViewId(viewZ), TilePropertiesFlag::Blocked))
+    int viewid = map->GetViewId(viewZ);
+    if (viewid == -1)
+    {
+        viewid = map->GetNearestViewId(viewZ);
+        int newViewZ = map->GetViewZ(viewid);
+        URHO3D_LOGERRORF("FindBlock no viewid for viewZ=%d ... get a nearest viewid=%d (viewz=%d)", viewZ, viewid, newViewZ);
+    }
+
+    if (map && map->HasTileProperties(map->GetTileIndex(position.x_, position.y_), viewid, TilePropertiesFlag::Blocked))
     {
         mposition = position;
         mpoint = mp;

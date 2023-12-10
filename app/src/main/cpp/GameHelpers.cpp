@@ -1583,7 +1583,7 @@ bool GameHelpers::IsNodeImmuneToEffect(Node* node, const EffectType& effect)
         const Variant& var = node->GetVar(GOA::GOT);
         if (var != Variant::EMPTY)
         {
-            if (GOT::GetTypeProperties(var.GetStringHash()) & (GOT_Effect | GOT_Animation | GOT_Static))
+            if (GOT::GetTypeProperties(var.GetStringHash()) & (GOT_Effect | GOT_Animation | GOT_Anchored))
                 return true;
 
             /// TODO : create immune property for gottype
@@ -1609,6 +1609,9 @@ bool GameHelpers::SetPhysicProperties(Node* node, const PhysicEntityInfo& physic
 {
     float dx = physicInfo.positionx_ - node->GetPosition().x_;
     float dy = physicInfo.positiony_ - node->GetPosition().y_;
+
+    if (IsNaN(dx) || IsNaN(dy))
+        dx = dy = GameContext::Get().NetMaxDistance_;
 
     if (!init)
     {
@@ -1681,7 +1684,7 @@ bool GameHelpers::SetPhysicProperties(Node* node, const PhysicEntityInfo& physic
     }
 
     // Set Initial Position
-    if (Abs(dx) > 0.01f || Abs(dy) > 0.01f)
+    if (Abs(dx) > 0.01f || Abs(dy) > 0.01f )
     {
         node->SetPosition(Vector3(physicInfo.positionx_, physicInfo.positiony_, 0.f));
 
@@ -1717,7 +1720,7 @@ bool GameHelpers::SetPhysicProperties(Node* node, const PhysicEntityInfo& physic
         }
     }
 
-//    URHO3D_LOGINFOF("GameHelpers() - SetPhysicProperties : node=%s(%u) init=true position=%s rotation=%F !", node->GetName().CString(), node->GetID(), node->GetPosition2D().ToString().CString(), node->GetRotation2D());
+    URHO3D_LOGINFOF("GameHelpers() - SetPhysicProperties : node=%s(%u) init=true position=%s rotation=%F !", node->GetName().CString(), node->GetID(), node->GetPosition2D().ToString().CString(), node->GetRotation2D());
 
     return true;
 }
@@ -1824,17 +1827,23 @@ void GameHelpers::GetDropPoint(Node* holder, float& x, float& y)
 {
     bool isdead = holder->GetVar(GOA::ISDEAD).GetBool();
     GOC_Destroyer* destroyer = holder->GetComponent<GOC_Destroyer>();
-    if (!isdead && destroyer)
+    if (!isdead && destroyer && destroyer->GetShapesRect().Defined())
     {
         Vector2 direction = holder->GetVar(GOA::DIRECTION).GetVector2();
-        Rect holderRect = holder->GetComponent<GOC_Destroyer>()->GetWorldShapesRect();
+        Rect holderRect = destroyer->GetWorldShapesRect();
         x = direction.x_ >= 0.f ? holderRect.max_.x_ + 0.2f : holderRect.min_.x_ - 0.5f;
         y = direction.y_ >= 0.f ? holderRect.max_.y_ + 0.2f : holderRect.min_.y_ - 0.5f;
+
+        URHO3D_LOGINFOF("GameHelpers() - GetDropPoint : holder=%s(%u) position=%s %F %F from destroyer shapeRect !", holder->GetName().CString(), holder->GetID(),
+                        holder->GetWorldPosition2D().ToString().CString(), x, y);
     }
     else
     {
         x = holder->GetWorldPosition2D().x_;
         y = holder->GetWorldPosition2D().y_ + 0.5f;
+
+        URHO3D_LOGINFOF("GameHelpers() - GetDropPoint : holder=%s(%u) position=%s %F %F !", holder->GetName().CString(), holder->GetID(),
+                        holder->GetWorldPosition2D().ToString().CString(), x, y);
     }
 }
 
@@ -2862,7 +2871,7 @@ int GameHelpers::RemoveTile(const WorldMapPosition& position, bool addeffects, b
                 const MapTerrain* terrain = &World2DInfo::currentAtlas_->GetTerrain(terrainid);
                 const Color& terraincolor = terrain ? terrain->GetColor() : Color::WHITE;
 
-                GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, viewZ+LAYER_ACTOR, viewZ, ViewManager::Get()->layerMask_[viewZ], position.position_,
+                GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, viewZ+LAYER_ACTOR, viewZ, ViewManager::GetLayerMask(viewZ), position.position_,
                                          Vector2(2.f,2.f), World2D::GetWorldInfo()->mTileWidth_, 5.f, 50.f, 100.f);
 
                 URHO3D_LOGINFOF("GameHelpers - RemoveTile : scrap=%s terrainid=%d(%d) tile=%u gid=%d...", String(ScrapTerrain+String(terrainid)).CString(), terrainid, removedtile ? removedtile->GetTerrain() : 0, removedtile, removedtile ? removedtile->GetGid() : 0);
@@ -2952,7 +2961,7 @@ bool GameHelpers::SetTiles(MapBase* map, FeatureType feat, const Vector<unsigned
                     const MapTerrain* terrain = &World2DInfo::currentAtlas_->GetTerrain(terrainid);
                     const Color& terraincolor = terrain ? terrain->GetColor() : Color::WHITE;
 
-                    GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, layerZ+LAYER_ACTOR, layerZ, ViewManager::Get()->layerMask_[layerZ], position,
+                    GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, layerZ+LAYER_ACTOR, layerZ, ViewManager::GetLayerMask(layerZ), position,
                                              Vector2(2.f,2.f), World2D::GetWorldInfo()->mTileWidth_, 5.f, 50.f, 100.f);
                 }
             }
@@ -2979,7 +2988,7 @@ bool GameHelpers::SetTiles(MapBase* map, FeatureType feat, const Vector<unsigned
                 const MapTerrain* terrain = &World2DInfo::currentAtlas_->GetTerrain(terrainid);
                 const Color& terraincolor = terrain ? terrain->GetColor() : Color::WHITE;
 
-                GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, layerZ+LAYER_ACTOR, layerZ, ViewManager::Get()->layerMask_[layerZ], position,
+                GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, layerZ+LAYER_ACTOR, layerZ, ViewManager::GetLayerMask(layerZ), position,
                                          Vector2(2.f,2.f), World2D::GetWorldInfo()->mTileWidth_, 5.f, 50.f, 100.f);
             }
         }

@@ -337,7 +337,7 @@ public:
     static void AddStaticFurniture(const ShortIntVector2& mPoint, Node* node, EntityData& furniture);
     static void DestroyFurnituresAt(MapBase* map, unsigned tileindex);
 
-    static Node* SpawnFurniture(const StringHash& got, Vector2 position, int viewZ, bool isabiome=true, bool checkpositionintile=true, bool findfloor=false);
+    static Node* SpawnFurniture(const StringHash& got, Vector2 position, int layerZ, bool isabiome=true, bool checkpositionintile=true, bool findfloor=false);
     static Node* NetSpawnEntity(ObjectControlInfo& info, Node* holder=0, VariantMap* slotData=0);
     static Node* SpawnEntity(const StringHash& got, int entityid, int id, unsigned holderid, int viewZ, const PhysicEntityInfo& physicInfo, const SceneEntityInfo& sceneInfo=SceneEntityInfo::EMPTY, VariantMap* slotData=0, bool outsidePool=false);
     static Actor* SpawnActor(const String& name, const StringHash& got, unsigned char entityid, const StringHash& dialogue, int viewZ, const Vector2& position);
@@ -345,7 +345,7 @@ public:
 
 /// For Editor
     Node* SpawnEntity(const StringHash& got);
-    Node* SpawnFurniture(const StringHash& got);
+    Node* SpawnFurniture(const StringHash& got, int layerZ);
     Node* SpawnActor();
 
 /// For Network Snapshot

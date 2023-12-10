@@ -101,10 +101,6 @@ public :
     void SetEnableStats(bool enable);
     void SetViewZ(int viewZ);
     void SetScene(Scene* scene, const Vector2& position=Vector2::ZERO, int viewZ = 0);
-    void SetViewManager(ViewManager* viewManager)
-    {
-        viewManager_ = viewManager;
-    }
     void SetControlID(int ID)
     {
         controlID_ = ID;
@@ -231,7 +227,6 @@ protected:
     WeakPtr<UIPanel> focusPanel_;
 
     Scene* scene_;
-    ViewManager* viewManager_;
     ActorStats* stats_;
     bool mainController_;
     bool started_;

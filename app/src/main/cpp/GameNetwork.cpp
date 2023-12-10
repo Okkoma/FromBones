@@ -381,6 +381,8 @@ GameNetwork::GameNetwork(Context* context)  :
 
 GameNetwork::~GameNetwork()
 {
+    GameContext::Get().gameNetwork_ = network_ = 0;
+
     if (net_)
         net_->Stop();
 }
@@ -454,23 +456,24 @@ void GameNetwork::Start()
 
     switch (networkMode_)
     {
-    case SERVERMODE:
-        URHO3D_LOGINFO("GameNetwork() - Start() : ServerMode ... OK ! ");
-        StartServer();
-        break;
-
     case LOCALMODE:
         URHO3D_LOGINFO("GameNetwork() - Start() : LocalMode ... OK ! ");
         StartLocal();
         break;
 
+    case CLIENTMODE:
+        URHO3D_LOGINFO("GameNetwork() - Start() : ClientMode ... ");
+        TryConnection();
+        break;
+
+    case SERVERMODE:
+        URHO3D_LOGINFO("GameNetwork() - Start() : ServerMode ... OK ! ");
+        StartServer();
+        break;
+
     // AUTODETECT MODE
     default:
-        SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
-        SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
-        net_->Connect(serverIP_, serverPort_, GameContext::Get().rootScene_);
-
-        AddGraphicMessage(context_, "Searching.Network...", IntVector2(20, -1), WHITEGRAY30);
+        TryConnection();
     }
 
     // Set Scene Smoothing
@@ -480,6 +483,14 @@ void GameNetwork::Start()
     }
 
     started_ = true;
+}
+
+void GameNetwork::TryConnection()
+{
+    SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
+    SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
+    net_->Connect(serverIP_, serverPort_, GameContext::Get().rootScene_);
+    AddGraphicMessage(context_, "Searching.Network...", IntVector2(20, -1), WHITEGRAY30);
 }
 
 void GameNetwork::StartServer()
@@ -494,6 +505,7 @@ void GameNetwork::StartServer()
     clientObjectControls_.Reserve(1000);
 
     GameContext::Get().ResetNetworkStatics();
+    GameContext::Get().numPlayers_ = 0;
     SubscribeToEvents();
 
     GetSubsystem<Network>()->StartServer(serverPort_, GameContext::Get().MAX_NUMNETPLAYERS);
@@ -669,6 +681,15 @@ void GameNetwork::SetMode(const String& mode)
         networkMode_ = LOCALMODE;
     else
         networkMode_ = AUTOMODE;
+}
+
+void GameNetwork::SetMode(int mode)
+{
+    URHO3D_LOGINFOF("GameNetwork() - SetMode() : mode=%d", mode);
+    networkMode_ = (GameNetworkMode)mode;
+
+    if (networkMode_ == SERVERMODE)
+        Server_PopulateClientIDs();
 }
 
 void GameNetwork::SetServerInfo(const String& ip, int port)
@@ -927,11 +948,19 @@ void GameNetwork::PurgeObjects()
 
 void GameNetwork::ClearObjectCommands()
 {
-    objCmdInfo_.Clear();
+    CleanObjectCommandInfo(objCmdInfo_);
 
     objCmdPool_.Restore();
     objCmdPckPool_.Restore();
     objCmdNew_.Clear();
+}
+
+void GameNetwork::CleanObjectCommandInfo(ObjectCommandInfo& info)
+{
+    for (List<ObjectCommandPacket* >::Iterator it = info.objCmdPacketsToSend_.Begin(); it != info.objCmdPacketsToSend_.End(); ++it)
+        objCmdPckPool_.RemoveRef(*it);
+
+    info.Clear();
 }
 
 // Send Command
@@ -1350,6 +1379,15 @@ void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
         bool ok = ChangeTile(eventData);
     }
         break;
+    case TRIGCLICKED:
+    {
+        Node* node = GameContext::Get().rootScene_->GetNode(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+        if (node)
+            node->SendEvent(NET_TRIGCLICKED);
+        else
+            URHO3D_LOGERRORF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) nodeid=%u no node !", netCommandNames[cmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+    }
+        break;
     }
 }
 
@@ -1400,6 +1438,15 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         break;
     case SETWORLD:
         World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+        break;
+    case TRIGCLICKED:
+    {
+        Node* node = GameContext::Get().rootScene_->GetNode(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+        if (node)
+            node->SendEvent(NET_TRIGCLICKED);
+        else
+            URHO3D_LOGERRORF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) nodeid=%u no node !", netCommandNames[cmd], eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+    }
         break;
     }
 
@@ -2871,10 +2918,11 @@ void GameNetwork::Server_SubscribeToPlayEvents()
     URHO3D_LOGINFOF("GameNetwork() - Server_SubscribeToPlayEvents ...");
 
     SubscribeToEvent(E_NETWORKSCENELOADFAILED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
-//    SubscribeToEvent(NET_OBJECTCOMMAND, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
+
     SubscribeToEvent(GO_INVENTORYGET, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_INVENTORYSLOTEQUIP, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
+    SubscribeToEvent(GO_TRIGCLICKED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
 
     SubscribeToEvent(E_NETWORKUPDATE, URHO3D_HANDLER(GameNetwork, HandlePlayServer_NetworkUpdate));
     SubscribeToEvent(CLIENTOBJECTCONTROLSRECEIVED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_ReceiveControls));
@@ -2888,9 +2936,11 @@ void GameNetwork::Server_UnsubscribeToPlayEvents()
     URHO3D_LOGINFOF("GameNetwork() - Server_UnsubscribeToPlayEvents ...");
 
     UnsubscribeFromEvent(E_NETWORKSCENELOADFAILED);
-    UnsubscribeFromEvent(NET_OBJECTCOMMAND);
+
     UnsubscribeFromEvent(GO_INVENTORYGET);
     UnsubscribeFromEvent(GO_INVENTORYSLOTEQUIP);
+    UnsubscribeFromEvent(GO_DROPITEM);
+    UnsubscribeFromEvent(GO_TRIGCLICKED);
 
     UnsubscribeFromEvent(E_NETWORKUPDATE);
     UnsubscribeFromEvent(CLIENTOBJECTCONTROLSRECEIVED);
@@ -2913,6 +2963,7 @@ void GameNetwork::Client_SubscribeToPlayEvents()
     SubscribeToEvent(GO_INVENTORYSLOTEQUIP, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
     SubscribeToEvent(GO_INVENTORYSLOTSET, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
     SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
+    SubscribeToEvent(GO_TRIGCLICKED, URHO3D_HANDLER(GameNetwork, HandlePlayClient_Messages));
 
     SubscribeToEvent(E_NETWORKUPDATE, URHO3D_HANDLER(GameNetwork, HandlePlayClient_NetworkUpdate));
 
@@ -2935,11 +2986,11 @@ void GameNetwork::Client_UnsubscribeToPlayEvents()
     URHO3D_LOGINFOF("GameNetwork() - Client_UnsubscribeToPlayEvents !");
 
     UnsubscribeFromEvent(NET_SERVERSEEDTIME);
-    UnsubscribeFromEvent(NET_OBJECTCOMMAND);
 
     UnsubscribeFromEvent(GO_INVENTORYSLOTEQUIP);
     UnsubscribeFromEvent(GO_INVENTORYSLOTSET);
     UnsubscribeFromEvent(GO_DROPITEM);
+    UnsubscribeFromEvent(GO_TRIGCLICKED);
 
     UnsubscribeFromEvent(E_NETWORKUPDATE);
 
@@ -3178,6 +3229,14 @@ void GameNetwork::HandlePlayServer_Messages(StringHash eventType, VariantMap& ev
 
     else if (eventType == GO_DROPITEM)
         PushObjectCommand(DROPITEM, &eventData, true, 0);
+
+    else if (eventType == GO_TRIGCLICKED)
+    {
+        Node* node = static_cast<Node*>(context_->GetEventSender());
+        if (node)
+            eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+        PushObjectCommand(TRIGCLICKED, &eventData, true, 0);
+    }
 }
 
 
@@ -3304,6 +3363,14 @@ void GameNetwork::HandlePlayClient_Messages(StringHash eventType, VariantMap& ev
 
     else if (eventType == GO_DROPITEM)
         PushObjectCommand(DROPITEM, &eventData, true, clientID_);
+
+    else if (eventType == GO_TRIGCLICKED)
+    {
+        Node* node = static_cast<Node*>(context_->GetEventSender());
+        if (node)
+            eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+        PushObjectCommand(TRIGCLICKED, &eventData, true, clientID_);
+    }
 }
 
 
@@ -4594,6 +4661,7 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
             if (!clientInfo.connection_ || !clientInfo.connection_->IsConnected() || clientInfo.connection_->IsConnectPending())
             {
                 Server_RemovePlayers(clientInfo);
+                CleanObjectCommandInfo(clientInfo.objCmdInfo_);
                 it = serverClientInfos_.Erase(it);
                 continue;
             }
@@ -4986,9 +5054,9 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
             #endif
             }
         }
-
-        objCmdNew_.Clear();
     }
+
+    objCmdNew_.Clear();
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     UpdateLogStats();

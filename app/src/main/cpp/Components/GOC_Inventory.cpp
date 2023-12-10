@@ -1279,12 +1279,16 @@ void GOC_Inventory::HandleGive(StringHash eventType, VariantMap& eventData)
     {
         if (cinfo.shapeA_ && cinfo.shapeA_->IsTrigger())
             return;
+        if (cinfo.shapeB_ && cinfo.shapeB_->GetNode()->GetName().StartsWith(TRIGATTACK))
+            return;
 
         other = b2;
     }
     else if (b2 == body)
     {
         if (cinfo.shapeB_ && cinfo.shapeB_->IsTrigger())
+            return;
+        if (cinfo.shapeA_ && cinfo.shapeA_->GetNode()->GetName().StartsWith(TRIGATTACK))
             return;
 
         other = b1;
@@ -1923,11 +1927,11 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
     if (dropmode == 0)
     {
         /// Drop items
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, qty);
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, qty);
         if (node)
         {
             dropmode = 0;
-            URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop node=%s(%u) item=%s qty=%u !", 
+            URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop node=%s(%u) item=%s qty=%u !",
                             node->GetName().CString(), node->GetID(), GOT::GetType(slot.type_).CString(), qty);
         }
         else
@@ -1936,7 +1940,7 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
     /// Use the item on holder (DropOn Mode)
     else if (dropmode == 1)
     {
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, 1U);
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, 1U);
         if (node)
         {
             // Apply Effect
@@ -1952,12 +1956,12 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
             URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop and use item=%s on holder !", GOT::GetType(slot.type_).CString());
         }
         else
-            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());        
+            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());
     }
     /// Use item (DropOut Mode)
     else if (dropmode == 2)
     {
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, 1U);
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, 1U);
         if (node)
         {
             GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -1972,6 +1976,6 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
             URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop and use item=%s !", GOT::GetType(slot.type_).CString());
         }
         else
-            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());        
+            URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());
     }
 }

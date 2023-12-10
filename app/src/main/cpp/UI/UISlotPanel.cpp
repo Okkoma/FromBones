@@ -889,7 +889,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     {
         /// Drop an item
         slotqty = 1U;
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
         if (node)
         {
             // Apply Effect
@@ -911,7 +911,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     {
         /// Drop an item
         slotqty = 1U;
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
         if (node)
         {
             GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -930,7 +930,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     else if (allowdrop)
     {
         /// Drop items
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
         if (node)
         {
             dropmode = 0;
@@ -970,7 +970,7 @@ void UISlotPanel::OnSlotRemain(Slot& slot, int slotid)
         URHO3D_LOGINFOF("UISlotPanel() - OnSlotRemain : drop remain item=%s qty=%u !",
                         GOT::GetType(slot.type_).CString(), slot.quantity_);
 
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot);
+        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, false);
         GameHelpers::SpawnSound(holderNode_, "Sounds/024-Door01.ogg");
     }
 

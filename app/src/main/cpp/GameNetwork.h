@@ -140,10 +140,13 @@ public:
 
     void Start();
     void Stop();
+    void TryConnection();
+
     void ClearScene();
 
     /// Setters
     void SetMode(const String& mode);
+    void SetMode(int mode);
     void SetServerInfo(const String& ip, int port);
     void SetSeedTime(unsigned time);
     void SetGameStatus(GameStatus status, bool send=true);
@@ -164,6 +167,10 @@ public:
     void SetEnableObject(bool enable, unsigned nodeid, bool forceactivation=false);
 
     void PurgeObjects();
+
+    int GetMode() const { return (int)networkMode_; }
+    String GetServerIP() const { return serverIP_; }
+    int GetServerPort() const { return serverPort_; }
 
     /// Spawn Controls
     unsigned GetSpawnID(unsigned holderid, unsigned char stamp) const;
@@ -325,6 +332,7 @@ private:
 /// Object Commands
 public:
     void ClearObjectCommands();
+    void CleanObjectCommandInfo(ObjectCommandInfo& info);
 
     void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
     void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);

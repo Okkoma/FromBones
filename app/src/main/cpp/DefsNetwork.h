@@ -11,9 +11,9 @@ using namespace Urho3D;
 enum GameNetworkMode
 {
     AUTOMODE = 0,
+    LOCALMODE,
     CLIENTMODE,
-    SERVERMODE,
-    LOCALMODE
+    SERVERMODE
 };
 
 enum NetCommand
@@ -33,6 +33,7 @@ enum NetCommand
     CHANGETILE,
     SETWEATHER,
     SETWORLD,
+    TRIGCLICKED,
 };
 
 enum ObjectControlFlagBit

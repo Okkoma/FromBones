@@ -1383,7 +1383,7 @@ void MapData::SetEntityData(Node* node, EntityData* entitydata, bool priorizeEnt
 //    URHO3D_LOGERRORF("MapData() - SetEntityData : map=%s node=%s(%u) ... ontile=%s", map_ ? map_->GetMapPoint().ToString().CString() : "none", node->GetName().CString(), node->GetID(), onTile ? "true":"false");
 
     // if ONTILE not defined (new furniture or furniture position edited)
-    if (!onTile && (GOT::GetTypeProperties(got) & GOT_Static))
+    if (!onTile && (GOT::GetTypeProperties(got) & GOT_Anchored))
     {
         unsigned lasttileindex = USHRT_MAX;
         if (entitydata->tileindex_ != USHRT_MAX)

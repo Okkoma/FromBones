@@ -1,5 +1,26 @@
 Todos:
 
+    ✔ 07/12/2023 : Saut à l'infini de rockgolem quand une entité sur la tete @done(23-12-10 11:24)
+        -> correctif dans GOC_Collide2D::HandleBeginContact lorsque deux entity sont en contact : test des positions delta.
+        
+    ☐ 07/12/2023 : les lumieres lorsque l'on change de viewZ se reinitialisent au state unlighted
+        -> ce comportement n'est pas voulu
+        
+    ✔ 07/12/2023 : les EliegorFlowers lancent parfois plusieurs Seeds alors que le comportement attendu est d'une seule. @done(23-12-07 15:10)
+        => dans GOC_DropZone ajout de CleanDependences qui va permettre de reinitialiser les items contenus dans le storage  lors de la restauration dans le Pool.
+
+    ✔ 06/12/2023 : suite à l'ajout de Player::UpdateTriggerAttacks, Elsarion mais aussi Petit peuvent monter au mur à l'infini en tapant et en maintenant la touche saut @done(23-12-06 15:12)
+        -> ce comportement n'est pas souhaité.
+        -> il est du qu fait que le contact avec le mur est rompu et presque imperceptiblement retablit du au physic du pseudo trigger qui rapproche le body du mur (d'ou le nouveau contact)
+        ==> ce qui reinitialise le compteur de saut permettant ainsi de monter le mur en bypassant le compteur de saut finalement.
+        => il n'y a pas de solution miracle au niveau du code dans GOC_Collide2D, peut-etre dans GOC_Move2D ...
+        ==> mesure mis en place : modification des positions du TA dans elsarion.scml pour eviter au TA de taper sur la bordure d'un mur ce qui ferait rapprocher le body du mur
+        ===> il ne faut pas que le TA soit trop proche du body ni trop eloigner (bordure interieur et exterieur d'un tile wall)
+        ===> pour que le coup ait la meme portée on ajoute un autre TA mais qui ne sera pas Physic cette fois.
+            en effet, Player::UpdateTriggerAttacks ne prend en compte que le premier TA et le transform en physics.
+        ===> pour petit, il faut faire de meme car la 3eme attaque est trop proche du body.
+        ===> l'animation pour Elsarion est traitée et mis de coté (cf elsarion_demi2_trigpatch) car Dede veut garder la version Ubber !
+
     ☐ 06/11/2023 : pb avec la vache pour tirer en continue avec le joystick
 
     ☐ 07/10/2023 : creer nouveaux objets de jeu et behaviors necessaires
@@ -149,7 +170,7 @@ Todos:
         =======> Il faudra ensuite modifier chaque attribut "GOA_LayerAlignement" dans les furnitures XML pour trier chaque furniture.
         =======> RAF : dans l'ordre ascendant de layer : Tenture(-2), Cheminee(-1), Armoire(-1), Stele(-1), Table(-1), Tronc(0), Pont(0), Escalier(0), Marmite(1), Enclume(1), Lustre(1)
 
-    ☐ 30/12/2022 : GOC_PhysicsGrapin renommmer GOC_PhysicRope
+    ✔ 30/12/2022 : GOC_PhysicsGrapin renommmer GOC_PhysicRope @done(23-12-07 19:01)
 
     ☐ 25/11/2022 : ajout de Spectii et Podomorphe
         => RAF : pouvoirs et animation dead.
@@ -216,8 +237,10 @@ Todos:
     ☐ Modifier le vol pour que le player puisse diriger son vol via les touches déplacements, la touche saut sera utilisee pour donner une impulsion supplémentaire (04/08/2017)
         => 06/03/2022 reprise : ...
 
-    ☐ 22/05/2021 : la couronne de pic d'EliegorGolem entre en collision avec les plateform. EliegorGolem est porté par la plateforme ...
+    ✔ 22/05/2021 : la couronne de pic d'EliegorGolem entre en collision avec les plateform. EliegorGolem est porté par la plateforme ... @done(23-12-07 19:01)
         cf les collisionCircle2D qui doivent être déclaré en ContactTopOnly.
+        => 07/12/2023 : modification de AnimatedSprite2D::UpdateTriggers() pour les physicTriggers
+        ==> tous les physicTriggers auront l'extraContactBits = Top Contact Only & Stable = 3
 
     ☐ 24/05/2022 : pouvoir avec Buros casser les Furnitures (Pieges, table) et Infliger de plus gros degats sur RockGolem.
 

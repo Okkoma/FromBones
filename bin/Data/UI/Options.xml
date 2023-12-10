@@ -93,6 +93,13 @@
                 </element>
             </element>
             <element type="Button" style="CategoryButton">
+                <attribute name="Name" value="Network" />
+                <attribute name="Size" value="200 50" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Network" />
+                </element>
+            </element>            
+            <element type="Button" style="CategoryButton">
                 <attribute name="Name" value="Developper" />
                 <attribute name="Size" value="200 50" />
                 <element type="Text" style="OptionText22">
@@ -1399,6 +1406,88 @@
                                             style="OptionDropDownSelectorText_NoL10">
                                             <attribute name="Text" value="5" />
                                         </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+            </element>
+
+            <!-- Content of the category "Network" -->
+            <element>
+                <attribute name="Name" value="Network" />
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="50" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <attribute name="Vert Alignment" value="Center" />
+                <attribute name="Min Size" value="566 150" />
+                <attribute name="Max Size" value="566 150" />
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="150 50" />
+                        <attribute name="Max Size" value="150 50" />
+                        <attribute name="Text" value="netmode" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="NetMode" />
+                        <attribute name="Min Size" value="200 50" />
+                        <attribute name="Max Size" value="200 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
+                                        <element type="Text" style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="local" />
+                                        </element>
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="client" />
+                                        </element>
+                                        <element type="Text"
+                                            style="OptionDropDownSelectorText">
+                                            <attribute name="Text" value="server" />
+                                        </element>
+                                    </element>
+                                </element>
+                            </element>
+                        </element>
+                    </element>
+                </element>
+
+                <element>
+                    <attribute name="Min Size" value="350 50" />
+                    <attribute name="Max Size" value="350 50" />
+                    <attribute name="Horiz Alignment" value="Center" />
+                    <attribute name="Layout Mode" value="Horizontal" />
+                    <attribute name="Layout Spacing" value="10" />
+                    <element type="Text" style="OptionText">
+                        <attribute name="Min Size" value="150 50" />
+                        <attribute name="Max Size" value="150 50" />
+                        <attribute name="Text" value="server" />
+                        <attribute name="Text Alignment" value="Left" />
+                    </element>
+                    <element type="DropDownList" style="OptionDropDownList">
+                        <attribute name="Name" value="Server" />
+                        <attribute name="Min Size" value="200 50" />
+                        <attribute name="Max Size" value="200 50" />
+                        <attribute name="Resize Popup" value="true" />
+                        <attribute name="Selection" value="0" />
+                        <element type="Window" popup="true" internal="true">
+                            <element type="ListView" internal="true">
+                                <element type="BorderImage" internal="true">
+                                    <element internal="true" style="none">
+                                        <attribute name="Pivot" value="0 0" />
                                     </element>
                                 </element>
                             </element>

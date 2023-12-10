@@ -64,7 +64,7 @@
 	<variable name="debugPathFinder_" value ="false" />
 	<variable name="debugPhysics_" value ="false" />
 	<variable name="debugLights_" value ="false" />
-	<variable name="debugWorld2D_" value ="true" />
+	<variable name="debugWorld2D_" value ="false" />
 	<variable name="debugWorld2DTagged_" value ="false" />
 	<variable name="debugUI_" value ="false" />
 	<variable name="debugFluid_" value ="false" />

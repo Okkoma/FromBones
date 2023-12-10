@@ -559,8 +559,9 @@ void ViewManager::SwitchToViewZ(int viewZ, Node* node, int viewport)
 {
     if (!viewZ_.Contains(viewZ))
     {
-        URHO3D_LOGWARNINGF("ViewManager() - SwitchToViewZ : for node=%u ViewZ = %d Not Register !", node ? node->GetID() : 0, viewZ);
-        return;
+        int newViewZ = GetNearViewZ(viewZ);
+        URHO3D_LOGWARNINGF("ViewManager() - SwitchToViewZ : for node=%u ViewZ = %d Not Register ! get the nearest ViewZ=%d", node ? node->GetID() : 0, viewZ, newViewZ);
+        viewZ = newViewZ;
     }
 
 //    if (node)
@@ -684,8 +685,8 @@ int ViewManager::GetNearLayerZ(int z, int dir)
 
 int ViewManager::GetNearViewZ(int z, int dir)
 {
-    // return near viewZ below
-    if (dir == -1)
+
+    if (dir == -1) // return near viewZ below
     {
         if (z < 0)
             return -1;
@@ -702,8 +703,7 @@ int ViewManager::GetNearViewZ(int z, int dir)
             i--;
         }
     }
-    else if (dir == 1)
-        // return near viewZ above
+    else if (dir == 1) // return near viewZ above
     {
         if (z > viewZ_.Back())
             return -1;

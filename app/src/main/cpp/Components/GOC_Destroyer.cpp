@@ -715,6 +715,10 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
         return;
 
     sViewZ_ = node_->GetVar(GOA::ONVIEWZ) != Variant::EMPTY ? node_->GetVar(GOA::ONVIEWZ).GetInt() : NOVIEW;
+    // Assure to have a viewz and not a layerz
+    if (sViewZ_ != NOVIEW)
+        sViewZ_ = ViewManager::Get()->GetNearViewZ(sViewZ_);
+
     if (body_)
     {
         // always reactive body (GOC_BodyExploder2D case)
@@ -859,7 +863,7 @@ void GOC_Destroyer::Destroy(float delay, bool reset)
     eventData[Go_Destroy::GO_MAP] = mapWorldPosition_.mPoint_.ToHash();
     eventData[Go_Destroy::GO_PTR] = 0;
 
-    if (GOT::GetTypeProperties(node_->GetVar(GOA::GOT).GetStringHash()) & GOT_Static)
+    if (GOT::GetTypeProperties(node_->GetVar(GOA::GOT).GetStringHash()) & GOT_Anchored)
         eventData[Go_Destroy::GO_TILE] = mapWorldPosition_.tileIndex_;
 
     node_->SendEvent(GO_DESTROY, eventData);
@@ -2051,7 +2055,10 @@ void GOC_Destroyer::HandleUpdateTime(StringHash eventType, VariantMap& eventData
 
 Rect GOC_Destroyer::GetWorldShapesRect() const
 {
-    return Rect(mapWorldPosition_.position_ + shapesRect_.min_, mapWorldPosition_.position_ + shapesRect_.max_);
+    if (shapesRect_.Defined())
+        return Rect(mapWorldPosition_.position_ + shapesRect_.min_, mapWorldPosition_.position_ + shapesRect_.max_);
+    else
+        return Rect(mapWorldPosition_.position_ - Vector2(0.2, 0.2f), mapWorldPosition_.position_ + Vector2(0.2, 0.2f));
 }
 
 void GOC_Destroyer::DrawDebugGeometry(DebugRenderer* debugRenderer, bool depthTest) const

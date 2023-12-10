@@ -542,7 +542,7 @@
 		"defaultValue":0
 	}	
 	, "GOT_MonsterSpawner":{
-		"category":"Objects",
+		"category":"Objects|Containers",
 		"fileName":"Objects/monsterspawner.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,

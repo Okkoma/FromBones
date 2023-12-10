@@ -573,7 +573,7 @@ void ScrollingShape::AddQuadScrolling(Node* nodeRoot, int layer, int order, Mate
     ScrollingShape* scrollshape = scrollnode->CreateComponent<ScrollingShape>();
     scrollshape->SetLayer2(IntVector2(layer,-1));
     scrollshape->SetOrderInLayer(order);
-    scrollshape->SetViewMask(layer <= INNERVIEW ? ViewManager::effectMask_[INNERVIEW] : ViewManager::effectMask_[FRONTVIEW]);
+    scrollshape->SetViewMask(layer <= INNERVIEW ? ViewManager::GetEffectMask(INNERVIEW) : ViewManager::GetEffectMask(FRONTVIEW));
     scrollshape->SetMaterial(material, textureunit);
     scrollshape->SetTextureFX(texturefx);
     scrollshape->SetScreenShape(true);

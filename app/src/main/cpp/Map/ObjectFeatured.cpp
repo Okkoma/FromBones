@@ -450,7 +450,7 @@ void ObjectFeatured::SetFluidView(unsigned featureViewId, int checkViewId, unsig
 
 int ObjectFeatured::LinkFluidViewToZView(unsigned zValue1, unsigned zValue2)
 {
-    Vector<int>& fluidZ = ViewManager::fluidZ_;
+    const Vector<int>& fluidZ = ViewManager::GetFluidZ();
     Vector<int>::ConstIterator it = fluidZ.Find(zValue1);
     if (it == fluidZ.End())
     {
@@ -1494,8 +1494,8 @@ FluidDatas& ObjectFeatured::GetFluidView(unsigned indexFluidZ)
 
 FluidDatas& ObjectFeatured::GetFluidViewByZValue(int Z)
 {
-    Vector<int>::ConstIterator it = ViewManager::fluidZ_.Find(Z);
-    return fluidView_[it - ViewManager::fluidZ_.Begin()];
+    Vector<int>::ConstIterator it = ViewManager::GetFluidZ().Find(Z);
+    return fluidView_[it - ViewManager::GetFluidZ().Begin()];
 }
 
 Vector<FeaturedMap>& ObjectFeatured::GetMaskedViews(unsigned indexZ)
@@ -1632,11 +1632,11 @@ void ObjectFeatured::SortViewsIds_All(unsigned viewZ)
 
     viewIds.Compact();
 
-//    numIds = viewIds.Size();
-//    for (int i=0; i < numIds; i++)
-//        URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : Dump i=%d/%d viewId=%d viewZ=%d", i+1, numIds, viewIds[i], viewZ_[viewIds[i]]);
+    numIds = viewIds.Size();
+    for (int i=0; i < numIds; i++)
+        URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : Dump i=%d/%d viewId=%d viewZ=%d", i+1, numIds, viewIds[i], viewZ_[viewIds[i]]);
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : ... OK !", viewZ);
+    URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : ... OK !", viewZ);
 }
 
 const Vector<int>& ObjectFeatured::GetViewIDs(unsigned viewZ)
@@ -1648,20 +1648,21 @@ const Vector<int>& ObjectFeatured::GetViewIDs(unsigned viewZ)
         URHO3D_LOGERRORF("ObjectFeatured() - GetViewIDs : ERROR at viewZ=%d => DumpViewIds=%s !",
                          viewZ, GetDumpViewId(viewZ).CString());
 
-        int nearestViewZ = GetNearestViewZ(viewZ);
-
-        Vector<int>& viewids = viewIds_[viewZ];
-
-        if (nearestViewZ > 0)
-        {
-            viewids = GetViewIDs(nearestViewZ);
-        }
-        else
-        {
-            viewids.Push(0);
-        }
-
-        URHO3D_LOGINFOF("ObjectFeatured() - GetViewIDs : viewZ=%d => patch use nearestviewz=%d DumpViewIds=%s !", viewZ, nearestViewZ, GetDumpViewId(viewZ).CString());
+        SortViewsIds_All(viewZ);
+//        int nearestViewZ = GetNearestViewZ(viewZ);
+//
+//        Vector<int>& viewids = viewIds_[viewZ];
+//
+//        if (nearestViewZ > 0)
+//        {
+//            viewids = GetViewIDs(nearestViewZ);
+//        }
+//        else
+//        {
+//            viewids.Push(0);
+//        }
+//
+//        URHO3D_LOGINFOF("ObjectFeatured() - GetViewIDs : viewZ=%d => patch use nearestviewz=%d DumpViewIds=%s !", viewZ, nearestViewZ, GetDumpViewId(viewZ).CString());
 
         return viewIds_[viewZ];
     }

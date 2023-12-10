@@ -103,6 +103,11 @@ void GOC_DropZone::OnNodeSet(Node* node)
         SetActived(false);
 }
 
+void GOC_DropZone::CleanDependences()
+{
+    Clear();
+}
+
 void GOC_DropZone::SetActived(bool actived)
 {
     if (actived_ == actived)
@@ -533,7 +538,7 @@ void GOC_DropZone::HandleThrowOutItems(StringHash eventType, VariantMap& eventDa
             // SPAWN item
             if (!itemsAttr_[throwItemsEndIndex_].Empty())
             {
-                WeakPtr<Node> node(GOC_Collectable::DropSlotFrom(GetNode(), items_[throwItemsEndIndex_], 1));
+                WeakPtr<Node> node(GOC_Collectable::DropSlotFrom(GetNode(), items_[throwItemsEndIndex_], true, 1));
 
                 throwItemsEndIndex_++;
                 itemsNodes_.Push(node);

@@ -243,7 +243,7 @@ void UIC_CraftPanel::UpdateCraftedItem(bool clear)
             URHO3D_LOGINFOF("UIC_CraftPanel() - No More Slot in Avatar => Drop %s qty=%u to scene",
                             GOT::GetType(craftedItem_.type_).CString(), craftedItem_.quantity_);
 
-            Node* droppeditem = GOC_Collectable::DropSlotFrom(avatar, craftedItem_);
+            Node* droppeditem = GOC_Collectable::DropSlotFrom(avatar, craftedItem_, false);
         }
     }
 

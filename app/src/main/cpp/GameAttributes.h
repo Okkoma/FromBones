@@ -194,8 +194,8 @@ enum GOTypeProperties
     // wearable + usable = slot arme ?
     GOT_CollectablePart = GOT_Collectable | GOT_Part,
     GOT_BuildablePart   = GOT_Buildable | GOT_Part,
-    GOT_Static          = GOT_AnchorOnGround | GOT_AnchorOnBack,
-    GOT_StaticFurniture = GOT_Furniture | GOT_Static,
+    GOT_Anchored        = GOT_AnchorOnGround | GOT_AnchorOnBack,
+    GOT_StaticFurniture = GOT_Furniture | GOT_Anchored,
     GOT_UsableFurniture = GOT_Furniture | GOT_Usable,
 };
 
@@ -301,6 +301,7 @@ public :
     static const StringHash DUNGEON;
 
     static const StringHash CHARACTERS;
+    static const StringHash MONSTERS;
 
     static const StringHash EQUIPMENTS;
     static const StringHash WEAPONS;
@@ -313,8 +314,12 @@ public :
     static const StringHash HEADBANDS;
     static const StringHash SPECIALS;
 
+    static const StringHash DOORS;
     static const StringHash CONTAINERS;
-    static const StringHash MONSTERS;
+    static const StringHash PLANTS;
+    static const StringHash LIGHTS;
+    static const StringHash DECORATIONS;
+    static const StringHash TOOLS;
 
     static const String& GetName(const StringHash& category);
 

@@ -3250,13 +3250,13 @@ void PlayState::OnPostRenderUpdate(StringHash eventType, VariantMap& eventData)
 //            }
 //        }
 
-//        if (GameContext::Get().gameConfig_.debugObjectMaped_)
-        {
-            PODVector<ObjectMaped*> drawables;
-            rootScene_->GetComponents<ObjectMaped>(drawables, true);
-            for (unsigned i = 0; i < drawables.Size(); ++i)
-                drawables[i]->DrawDebugGeometry(debugRenderer, false);
-        }
+////        if (GameContext::Get().gameConfig_.debugObjectMaped_)
+//        {
+//            PODVector<ObjectMaped*> drawables;
+//            rootScene_->GetComponents<ObjectMaped>(drawables, true);
+//            for (unsigned i = 0; i < drawables.Size(); ++i)
+//                drawables[i]->DrawDebugGeometry(debugRenderer, false);
+//        }
 
         if (GameContext::Get().rttScene_)
         {
@@ -3276,12 +3276,12 @@ void PlayState::OnPostRenderUpdate(StringHash eventType, VariantMap& eventData)
                 drawables[i]->DrawDebugGeometry(debugRenderer, false);
         }
 
-        {
-            PODVector<DrawableScroller*> drawables;
-            rootScene_->GetComponents<DrawableScroller>(drawables, true);
-            for (unsigned i = 0; i < drawables.Size(); ++i)
-                drawables[i]->DrawDebugGeometry(debugRenderer, false);
-        }
+//        {
+//            PODVector<DrawableScroller*> drawables;
+//            rootScene_->GetComponents<DrawableScroller>(drawables, true);
+//            for (unsigned i = 0; i < drawables.Size(); ++i)
+//                drawables[i]->DrawDebugGeometry(debugRenderer, false);
+//        }
 
         if (GameContext::Get().gameConfig_.debugRenderShape_)
         {
@@ -3295,11 +3295,11 @@ void PlayState::OnPostRenderUpdate(StringHash eventType, VariantMap& eventData)
         {
             weather_->DrawDebugGeometry(debugRenderer, false);
         }
-
-        if (effects_)
-        {
-            effects_->DrawDebugGeometry(debugRenderer, false);
-        }
+//
+//        if (effects_)
+//        {
+//            effects_->DrawDebugGeometry(debugRenderer, false);
+//        }
 
         if (GameContext::Get().gameConfig_.debugPlayer_)
         {

@@ -263,6 +263,9 @@ void GOC_Collide2D::AddWallContact2D(CollisionShape2D* cs, unsigned ishape, cons
 
     bool newContact = true;
 
+    URHO3D_LOGINFOF("GOC_Collide2D() - AddWallContact2D : Node=%s(%u) wallType=%s normal=%s ...",
+                    node_->GetName().CString(), node_->GetID(), wallTypeNames[walltype], normal.ToString().CString());
+
     if (wallContacts.Size() > 0)
     {
         // Search CollisionShape2D in hashmap
@@ -648,7 +651,7 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 #endif
 
     /// Other is not a sensor and is not attacking
-    if (!csOther->IsTrigger() && !csOther->GetNode()->GetName().StartsWith(TRIGATTACK))
+    if (!csOther->IsTrigger() && !csOther->GetNode()->GetName().StartsWith(TRIGATTACK) && !csBody->GetNode()->GetName().StartsWith(TRIGATTACK))
     {
         /// Body is a Collectable/Part Collider
         if (GOT::GetTypeProperties(node_->GetVar(GOA::GOT).GetStringHash()) & (GOT_Collectable|GOT_Part))
@@ -677,17 +680,15 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 #else
             b2Contact* contact = (b2Contact*)eventData[PhysicsBeginContact2D::P_CONTACTPTR].GetVoidPtr();
             AddWallContact2D(contact, normal);
-//            URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : %s(%u) Begin Contact with MapCollider2D(%u) with contact=%u",
-//                              body->GetNode()->GetName().CString(), body->GetNode()->GetID(), other->GetNode()->GetID(), contact);
 #endif
         }
         /// Other is an Entity Collider
         else if (csOther->GetExtraContactBits() & CONTACT_ISSTABLE)
         {
+            Vector2 delta  = body->GetNode()->GetWorldPosition2D() - other->GetNode()->GetWorldPosition2D();
             Vector2 normal = cinfo.normal_;
-
             // Only add ground contact
-            if (normal.y_ > 0.f && normal.y_ > Abs(normal.x_))
+            if (delta.y_ > 0.f && normal.y_ > 0.f && normal.y_ > Abs(normal.x_))
             {
 #if (WALLCONTACTMODE == 0)
                 AddGroundContact2D(csOther);

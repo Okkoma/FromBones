@@ -46,6 +46,7 @@
 //#include "GameDialogue.h"
 #include "GameCommands.h"
 #include "GameStateManager.h"
+#include "GameNetwork.h"
 
 #include "MapStorage.h"
 #include "MapWorld.h"
@@ -70,7 +71,7 @@ extern bool drawDebug_;
 
 const String OPTION_ROOTUI("optionrootui");
 
-const unsigned OPTION_NUMCATEGORIES = 7;
+const unsigned OPTION_NUMCATEGORIES = 8;
 
 const char* optionCategories_[] =
 {
@@ -80,6 +81,7 @@ const char* optionCategories_[] =
     "Interface",
     "Graphics",
     "Sounds",
+    "Network",
     "Developper"
 };
 
@@ -135,6 +137,8 @@ enum OptionParameters
     OPTION_DebugPhysics,
     OPTION_DebugWorld,
     OPTION_DebugRttScene,
+    OPTION_NetMode,
+    OPTION_NetServer,
     OPTION_NUMPARAMETERS
 };
 
@@ -173,7 +177,9 @@ OptionParameter optionParameters_[OPTION_NUMPARAMETERS] =
     OptionParameter("DebugRenderShapes"),
     OptionParameter("DebugPhysics"),
     OptionParameter("DebugWorld"),
-    OptionParameter("DebugRttScene")
+    OptionParameter("DebugRttScene"),
+    OptionParameter("NetMode"),
+    OptionParameter("Server"),
 };
 
 WeakPtr<Window> uioptions_;
@@ -285,6 +291,67 @@ void OptionState::End()
     URHO3D_LOGINFO("OptionState() - ----------------------------------------");
     URHO3D_LOGINFO("OptionState() - End ... OK !                           -");
     URHO3D_LOGINFO("OptionState() - ----------------------------------------");
+}
+
+void OptionState::LoadJSONServerList()
+{
+    URHO3D_LOGINFO("OptionState() - LoadJSONServerList : ...");
+
+    DropDownList* control = optionParameters_[OPTION_NetServer].control_;
+    control->RemoveAllItems();
+
+    Text* text = new Text(context_);
+    control->AddItem(text);
+    text->SetStyle("OptionDropDownSelectorText");
+    text->SetText("thismachine");
+    text->AddTag("127.0.0.1:2345");
+
+    SharedPtr<JSONFile> serverlist = context_->GetSubsystem<ResourceCache>()->GetTempResource<JSONFile>("Texts/netservers.json");
+    if (serverlist)
+    {
+        const JSONValue& servers = serverlist->GetRoot();
+        for (JSONObject::ConstIterator i = servers.Begin(); i != servers.End(); ++i)
+        {
+            const String& servername = i->first_;
+            if (servername.Empty())
+            {
+                URHO3D_LOGWARNING("OptionState() - LoadJSONServerList : servername is empty !");
+                continue;
+            }
+
+            const JSONValue& serverip = i->second_;
+            Text* text = new Text(context_);
+            control->AddItem(text);
+            text->SetStyle("OptionDropDownSelectorText");
+            text->SetText(servername);
+            text->AddTag(serverip.GetString());
+        }
+    }
+}
+
+void OptionState::GetNetServerParams(int selection, String& serverip, int& serverport)
+{
+    UIElement* servertextelt = optionParameters_[OPTION_NetServer].control_->GetItem(selection);
+    if (servertextelt->GetTags().Size())
+    {
+        Vector<String> s = servertextelt->GetTags().Front().Split(':');
+        serverip = s.Front();
+        serverport = ToInt(s.Back());
+    }
+    URHO3D_LOGINFOF("OptionState() - GetNetServerParams : selection=%d uielt=%u ...serverip=%s serverport=%d", selection, servertextelt, serverip.CString(), serverport);
+}
+
+int OptionState::GetNetServerIndex(const String& serverip, int serverport)
+{
+    for (int i=0; i < optionParameters_[OPTION_NetServer].control_->GetNumItems(); i++)
+    {
+        String serverip;
+        int serverport = 0;
+        GetNetServerParams(i, serverip, serverport);
+        if (serverip == GameNetwork::Get()->GetServerIP() && serverport == GameNetwork::Get()->GetServerPort())
+            return i;
+    }
+    return 0;
 }
 
 void OptionState::SetDefaultWorldParameters()
@@ -471,6 +538,10 @@ void OptionState::OpenFrame()
         return;
 
     URHO3D_LOGINFO("OptionState() - OpenFrame ...");
+
+    LoadJSONServerList();
+
+    SynchronizeParameters();
 
     SubscribeToEvents();
 
@@ -680,7 +751,7 @@ void OptionState::UpdateConfigControls(int controlid)
 }
 
 
-void OptionState::SwitchToCategory(String category)
+void OptionState::SwitchToCategory(const String& category)
 {
     URHO3D_LOGINFOF("OptionState() - SwitchToCategory ... cat=%s", category.CString());
 
@@ -706,6 +777,7 @@ void OptionState::SwitchToCategory(String category)
         titleText->SetText(category);
     }
 
+    category_ = category;
     uioptionsframe_->SetFocus(true);
 
     URHO3D_LOGINFO("OptionState() - SwitchToCategory ... OK !");
@@ -911,6 +983,28 @@ void OptionState::SynchronizeParameters()
         optionParameters_[OPTION_Sound].control_->SetSelection(GameContext::Get().gameConfig_.soundEnabled_);
     }
 
+    int netmode = GameNetwork::Get() ? GameNetwork::Get()->GetMode() : LOCALMODE;
+
+    if (optionParameters_[OPTION_NetMode].control_ && optionParameters_[OPTION_NetMode].control_->GetSelection()+1 != netmode)
+    {
+        if (netmode == AUTOMODE)
+            netmode = CLIENTMODE;
+
+        optionParameters_[OPTION_NetMode].control_->SetSelection(netmode-1);
+    }
+
+    optionParameters_[OPTION_NetServer].control_->GetParent()->SetVisible(netmode == CLIENTMODE);
+
+    if (GameNetwork::Get())
+    {
+        int netserverindex = GetNetServerIndex(GameNetwork::Get()->GetServerIP(), GameNetwork::Get()->GetServerPort());
+        optionParameters_[OPTION_NetServer].control_->SetSelection(netserverindex);
+    }
+    else
+    {
+        optionParameters_[OPTION_NetServer].control_->SetSelection(0);
+    }
+
     URHO3D_LOGINFO("OptionState() - SynchronizeParameters ... Updating DropDownLists Popups !");
 
     // Needed to update world parameters
@@ -931,102 +1025,148 @@ void OptionState::SynchronizeParameters()
 
 void OptionState::CheckParametersChanged()
 {
-    Graphics* graphics = GetSubsystem<Graphics>();
-
-    const unsigned monitor = graphics->GetMonitor();
-
-    int width = graphics->GetWidth();
-    int height = graphics->GetHeight();
-    int refreshRate = graphics->GetRefreshRate();
-    bool fullscreen = graphics->GetFullscreen();
-
-    const unsigned currentResolution = graphics->FindBestResolutionIndex(monitor, width, height, refreshRate);
-
     int change = 0;
 
-    if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
-        change++;
-    if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
-        change++;
-    if (optionParameters_[OPTION_TextureQuality].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureQuality())
-        change++;
-    if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureFilterMode())
-        change++;
-
-    applybutton_->SetVisible(change);
-    applybutton_->SetEnabled(change);
-}
-
-
-void OptionState::ApplyParameters()
-{
-    Renderer* renderer = GetSubsystem<Renderer>();
-    if (renderer)
+    if (category_ == "Graphics")
     {
-        // Texture Quality
-        if (optionParameters_[OPTION_TextureQuality].control_->GetSelection() != renderer->GetTextureQuality())
-        {
-            renderer->SetTextureQuality(optionParameters_[OPTION_TextureQuality].control_->GetSelection());
-            Sprite2D::SetTextureLevels(renderer->GetTextureQuality());
-            SendEvent(WORLD_DIRTY);
-        }
-        // Texture Filter
-        if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != renderer->GetTextureFilterMode())
-        {
-            renderer->SetTextureFilterMode((TextureFilterMode)optionParameters_[OPTION_TextureFilter].control_->GetSelection());
-            SendEvent(WORLD_DIRTY);
-        }
-    }
+        Graphics* graphics = GetSubsystem<Graphics>();
 
-    Graphics* graphics = GetSubsystem<Graphics>();
-    if (graphics)
-    {
         const unsigned monitor = graphics->GetMonitor();
 
         int width = graphics->GetWidth();
         int height = graphics->GetHeight();
         int refreshRate = graphics->GetRefreshRate();
         bool fullscreen = graphics->GetFullscreen();
+
         const unsigned currentResolution = graphics->FindBestResolutionIndex(monitor, width, height, refreshRate);
-        const PODVector<IntVector3> resolutions = graphics->GetResolutions(monitor);
 
-        int videomodechanged = 0;
-
-        // Texture Filter
-        if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != graphics->GetDefaultTextureFilterMode())
-        {
-            graphics->SetDefaultTextureFilterMode((TextureFilterMode)optionParameters_[OPTION_TextureFilter].control_->GetSelection());
-        }
-
-        if (!currentResolution || optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
-        {
-            const unsigned selectedResolution = optionParameters_[OPTION_Resolution].control_->GetSelection();
-            width = resolutions[selectedResolution].x_;
-            height = resolutions[selectedResolution].y_;
-            refreshRate = resolutions[selectedResolution].z_;
-            videomodechanged++;
-        }
+        if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
+            change++;
         if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
+            change++;
+        if (optionParameters_[OPTION_TextureQuality].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureQuality())
+            change++;
+        if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureFilterMode())
+            change++;
+    }
+    else if (category_ == "Network")
+    {
+        int netmode = (GameNetwork::Get() ? GameNetwork::Get()->GetMode() : LOCALMODE) - 1;
+        if (optionParameters_[OPTION_NetMode].control_->GetSelection() != netmode)
+            change++;
+
+        if (GameNetwork::Get())
         {
-            fullscreen = optionParameters_[OPTION_Fullscreen].control_->GetSelection();
-            videomodechanged++;
+            String serverip;
+            int serverport = 0;
+            GetNetServerParams(optionParameters_[OPTION_NetServer].control_->GetSelection(), serverip, serverport);
+            if (serverip != GameNetwork::Get()->GetServerIP() || serverport != GameNetwork::Get()->GetServerPort())
+                change++;
+        }
+        URHO3D_LOGINFOF("OptionState() - CheckParametersChanged ... network change = %d !", change);
+    }
+
+    applybutton_->SetVisible(change);
+    applybutton_->SetEnabled(change);
+}
+
+void OptionState::ApplyParameters()
+{
+    if (category_ == "Graphics")
+    {
+        Renderer* renderer = GetSubsystem<Renderer>();
+        if (renderer)
+        {
+            // Texture Quality
+            if (optionParameters_[OPTION_TextureQuality].control_->GetSelection() != renderer->GetTextureQuality())
+            {
+                renderer->SetTextureQuality(optionParameters_[OPTION_TextureQuality].control_->GetSelection());
+                Sprite2D::SetTextureLevels(renderer->GetTextureQuality());
+                SendEvent(WORLD_DIRTY);
+            }
+            // Texture Filter
+            if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != renderer->GetTextureFilterMode())
+            {
+                renderer->SetTextureFilterMode((TextureFilterMode)optionParameters_[OPTION_TextureFilter].control_->GetSelection());
+                SendEvent(WORLD_DIRTY);
+            }
         }
 
-        if (videomodechanged)
+        Graphics* graphics = GetSubsystem<Graphics>();
+        if (graphics)
         {
-            const bool borderless = graphics->GetBorderless();
-            const bool resizable = graphics->GetResizable();
-            const bool highDPI = graphics->GetHighDPI();
-            const bool vsync = fullscreen ? true : false;
-            const bool tripleBuffer = graphics->GetTripleBuffer();
-            const int multiSample = graphics->GetMultiSample();
+            const unsigned monitor = graphics->GetMonitor();
 
-            graphics->SetMode(width, height, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, refreshRate);
+            int width = graphics->GetWidth();
+            int height = graphics->GetHeight();
+            int refreshRate = graphics->GetRefreshRate();
+            bool fullscreen = graphics->GetFullscreen();
+            const unsigned currentResolution = graphics->FindBestResolutionIndex(monitor, width, height, refreshRate);
+            const PODVector<IntVector3> resolutions = graphics->GetResolutions(monitor);
 
-//            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;
-//            GameContext::Get().InitMouse(GetContext(), MM_FREE);
-//            if (GameContext::Get().cursor_)
-//                GameContext::Get().cursor_->SetVisible(cursorvisible);
+            int videomodechanged = 0;
+
+            // Texture Filter
+            if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != graphics->GetDefaultTextureFilterMode())
+            {
+                graphics->SetDefaultTextureFilterMode((TextureFilterMode)optionParameters_[OPTION_TextureFilter].control_->GetSelection());
+            }
+
+            if (!currentResolution || optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
+            {
+                const unsigned selectedResolution = optionParameters_[OPTION_Resolution].control_->GetSelection();
+                width = resolutions[selectedResolution].x_;
+                height = resolutions[selectedResolution].y_;
+                refreshRate = resolutions[selectedResolution].z_;
+                videomodechanged++;
+            }
+            if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
+            {
+                fullscreen = optionParameters_[OPTION_Fullscreen].control_->GetSelection();
+                videomodechanged++;
+            }
+
+            if (videomodechanged)
+            {
+                const bool borderless = graphics->GetBorderless();
+                const bool resizable = graphics->GetResizable();
+                const bool highDPI = graphics->GetHighDPI();
+                const bool vsync = fullscreen ? true : false;
+                const bool tripleBuffer = graphics->GetTripleBuffer();
+                const int multiSample = graphics->GetMultiSample();
+
+                graphics->SetMode(width, height, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, refreshRate);
+
+    //            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;
+    //            GameContext::Get().InitMouse(GetContext(), MM_FREE);
+    //            if (GameContext::Get().cursor_)
+    //                GameContext::Get().cursor_->SetVisible(cursorvisible);
+            }
+        }
+    }
+    else if (category_ == "Network")
+    {
+        const int currentnetmode = GameNetwork::Get() ? GameNetwork::Get()->GetMode() : LOCALMODE;
+        const int requirednetmode = optionParameters_[OPTION_NetMode].control_->GetSelection()+1;
+        bool change = requirednetmode != currentnetmode;
+
+        String serverip;
+        int serverport = 0;
+        GetNetServerParams(optionParameters_[OPTION_NetServer].control_->GetSelection(), serverip, serverport);
+        if (!change)
+            change = GameNetwork::Get() && (serverip != GameNetwork::Get()->GetServerIP() || serverport != GameNetwork::Get()->GetServerPort());
+
+        if (change)
+        {
+            if (currentnetmode == LOCALMODE && !GameNetwork::Get())
+                new GameNetwork(context_);
+
+            URHO3D_LOGINFOF("OptionState() - ApplyParameters ... mode=%d serverip=%s serverport=%d ...", requirednetmode, serverip.CString(), serverport);
+
+            GameNetwork::Get()->Stop();
+            GameNetwork::Get()->SetMode(requirednetmode);
+            GameNetwork::Get()->SetServerInfo(serverip, serverport);
+            GameNetwork::Get()->Start();
         }
     }
 
@@ -1232,6 +1372,13 @@ void OptionState::SubscribeToEvents()
     if (optionParameters_[OPTION_Sound].control_)
         SubscribeToEvent(optionParameters_[OPTION_Sound].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleSoundChanged));
 
+    if (optionParameters_[OPTION_NetMode].control_)
+        SubscribeToEvent(optionParameters_[OPTION_NetMode].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleNetworkMode));
+
+    if (optionParameters_[OPTION_NetServer].control_)
+        SubscribeToEvent(optionParameters_[OPTION_NetServer].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleNetworkServer));
+
+
     Button* resetmapsbutton = uioptionsframe_->GetChildStaticCast<Button>("ResetMaps", true);
     if (resetmapsbutton)
         SubscribeToEvent(resetmapsbutton, E_RELEASED, URHO3D_HANDLER(OptionState, HandleResetMaps));
@@ -1396,6 +1543,12 @@ void OptionState::UnsubscribeToEvents()
     if (optionParameters_[OPTION_Sound].control_)
         UnsubscribeFromEvent(optionParameters_[OPTION_Sound].control_, E_ITEMSELECTED);
 
+    if (optionParameters_[OPTION_NetMode].control_)
+        UnsubscribeFromEvent(optionParameters_[OPTION_NetMode].control_, E_ITEMSELECTED);
+
+    if (optionParameters_[OPTION_NetServer].control_)
+        UnsubscribeFromEvent(optionParameters_[OPTION_NetServer].control_, E_ITEMSELECTED);
+
     Button* resetmapsbutton = uioptionsframe_->GetChildStaticCast<Button>("ResetMaps", true);
     if (resetmapsbutton)
         UnsubscribeFromEvent(resetmapsbutton, E_RELEASED);
@@ -1410,7 +1563,6 @@ void OptionState::UnsubscribeToEvents()
     if (closebutton_)
         UnsubscribeFromEvent(closebutton_, E_RELEASED);
 }
-
 
 void OptionState::HandleClickCategory(StringHash eventType, VariantMap& eventData)
 {
@@ -2191,6 +2343,23 @@ void OptionState::HandleSoundChanged(StringHash eventType, VariantMap& eventData
 
         SendEvent(GAME_SOUNDVOLUMECHANGED);
     }
+}
+
+
+// Network Category Handle
+
+void OptionState::HandleNetworkMode(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("OptionState() - HandleNetworkMode ... ");
+    CheckParametersChanged();
+
+    optionParameters_[OPTION_NetServer].control_->GetParent()->SetVisible(optionParameters_[OPTION_NetMode].control_->GetSelection() == CLIENTMODE-1);
+}
+
+void OptionState::HandleNetworkServer(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("OptionState() - HandleNetworkServer ... ");
+    CheckParametersChanged();
 }
 
 

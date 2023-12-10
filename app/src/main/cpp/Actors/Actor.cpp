@@ -382,7 +382,6 @@ Actor* Actor::GetWithNode(Node* node)
 Actor::Actor() :
     Object(0),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -430,7 +429,6 @@ Actor::Actor(const Actor& actor) :
 Actor::Actor(Context* context) :
     Object(context),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -444,7 +442,6 @@ Actor::Actor(Context* context) :
 Actor::Actor(Context* context, unsigned id) :
     Object(context),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -458,7 +455,6 @@ Actor::Actor(Context* context, unsigned id) :
 Actor::Actor(Context* context, const StringHash& type) :
     Object(context),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -473,7 +469,6 @@ Actor::Actor(Context* context, const StringHash& type) :
 Actor::Actor(Context* context, const String& name) :
     Object(context),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -488,7 +483,6 @@ Actor::Actor(Context* context, const String& name) :
 Actor::Actor(const Actor& actor) :
     Object(actor.GetContext()),
     scene_(0),
-    viewManager_(0),
     stats_(0),
     mainController_(false),
     started_(false),
@@ -1025,7 +1019,7 @@ void Actor::ResetAvatar(const Vector2& newposition)
         }
         else if (info_.type_)
         {
-            avatar_ = World2D::SpawnEntity(info_.type_, info_.entityid_, nodeID_, 0, viewZ_ ? viewZ_ : viewManager_->GetCurrentViewZ(controlID_), PhysicEntityInfo(position.x_, position.y_), SceneEntityInfo());
+            avatar_ = World2D::SpawnEntity(info_.type_, info_.entityid_, nodeID_, 0, viewZ_ ? viewZ_ : ViewManager::Get()->GetCurrentViewZ(controlID_), PhysicEntityInfo(position.x_, position.y_), SceneEntityInfo());
             URHO3D_LOGINFOF("Actor() - ResetAvatar : ... WorldSpawnEntity type_=%u nodeId_=%u ... ", info_.type_.Value(), nodeID_);
         }
 #else
@@ -1149,8 +1143,8 @@ void Actor::UpdateComponents()
     {
         gocDestroyer->Reset(true);
 //        gocDestroyer->UpdatePositions();
-        URHO3D_LOGINFOF("Actor() - UpdateComponents ... gocDestroyer controlid=%d viewZ_=%d currentviewz=%d ...", controlID_, viewZ_, viewManager_->GetCurrentViewZ(controlID_));
-        gocDestroyer->SetViewZ(viewZ_ ? viewZ_ : viewManager_->GetCurrentViewZ(controlID_), 0, 1);
+        URHO3D_LOGINFOF("Actor() - UpdateComponents ... gocDestroyer controlid=%d viewZ_=%d currentviewz=%d ...", controlID_, viewZ_, ViewManager::Get()->GetCurrentViewZ(controlID_));
+        gocDestroyer->SetViewZ(viewZ_ ? viewZ_ : ViewManager::Get()->GetCurrentViewZ(controlID_), 0, 1);
     }
 
     if (abilities_)
@@ -1338,6 +1332,7 @@ void Actor::OnDialogueDetected(StringHash eventType, VariantMap& eventData)
                 viewZ = FRONTBIOME;
             drawable->SetLayer2(IntVector2(viewZ+LAYERADDER_DIALOGS, -1));
             drawable->SetOrderInLayer(0);
+            drawable->SetViewMask(avatar_->GetDerivedComponent<Drawable2D>()->GetViewMask());
         }
 
         // show interaction marker only if has no dialogframe or dialogframe's hidden
@@ -1345,8 +1340,8 @@ void Actor::OnDialogueDetected(StringHash eventType, VariantMap& eventData)
         bool enable = !dialogFrame || !dialogFrame->IsEnabled();
         dialogMarkerNode->SetEnabled(enable);
         if (enable)
-            URHO3D_LOGINFOF("Actor() - OnDialogDetected : detected DialogMarker on node %s(%u) markernode=%s(%u)",
-                            avatar_->GetName().CString(), avatar_->GetID(), dialogMarkerNode->GetName().CString(), dialogMarkerNode->GetID());
+            URHO3D_LOGINFOF("Actor() - OnDialogDetected : detected DialogMarker on node %s(%u) markernode=%s(%u) viewmask=%u",
+                            avatar_->GetName().CString(), avatar_->GetID(), dialogMarkerNode->GetName().CString(), dialogMarkerNode->GetID(), drawable->GetViewMask());
     }
     else
     {

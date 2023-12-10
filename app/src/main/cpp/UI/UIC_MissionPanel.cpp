@@ -270,7 +270,7 @@ void UIC_MissionPanel::Update()
                     URHO3D_LOGINFOF("UIC_MissionPanel() - No More Slot in Avatar => Drop Reward %s qty=%u from avatar to scene",
                                     GOT::GetType(slotToTransfer.type_).CString(), slotToTransfer.quantity_);
 
-                    Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slotToTransfer);
+                    Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slotToTransfer, false);
                 }
             }
             mission_->SetState(IsFinished);
