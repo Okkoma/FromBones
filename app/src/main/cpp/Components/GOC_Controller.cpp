@@ -10,6 +10,7 @@
 #include <Urho3D/Urho2D/AnimatedSprite2D.h>
 #include <Urho3D/Urho2D/RigidBody2D.h>
 #include <Urho3D/Urho2D/PhysicsWorld2D.h>
+#include <Urho3D/Urho2D/ConstraintWeld2D.h>
 
 #include "GameNetwork.h"
 #include "GameAttributes.h"
@@ -39,6 +40,7 @@
 GOC_Controller::GOC_Controller(Context* context) :
     Component(context),
     mainController_(false),
+    controlActionEnable_(true),
     controlType_(GO_None),
     currentIdPath_(-1),
     thinker_(0),
@@ -48,6 +50,7 @@ GOC_Controller::GOC_Controller(Context* context) :
 GOC_Controller::GOC_Controller(Context* context, int type) :
     Component(context),
     mainController_(false),
+    controlActionEnable_(true),
     controlType_(type),
     currentIdPath_(-1),
     thinker_(0),
@@ -91,6 +94,140 @@ void GOC_Controller::Stop()
     if (HasSubscribedToEvent(E_UPDATESMOOTHING))
         UnsubscribeFromEvent(E_UPDATESMOOTHING);
 #endif
+}
+
+
+void GOC_Controller::CheckMountNode()
+{
+    const unsigned mountid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+    if (mountid)
+    {
+        if (node_->GetParent() == GetScene() || node_->GetParent() == 0 || node_->GetParent()->GetVar(GOA::ISDEAD).GetBool())
+            Unmount();
+    }
+}
+
+void GOC_Controller::MountOn(Node* target)
+{
+    URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ...",
+                    node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
+
+    if (thinker_)
+    {
+        static_cast<Player*>(thinker_)->MountOn(target);
+    }
+    else
+    {
+        node_->SetVar(GOA::ISMOUNTEDON, target->GetID());
+
+        Node* mountNode = target->GetChild(MOUNTNODE, true);
+        if (mountNode)
+        {
+            node_->GetComponent<RigidBody2D>()->SetEnabled(false);
+            node_->SetParent(mountNode);
+            node_->SetPosition2D(Vector2::ZERO);
+            node_->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
+            node_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
+            node_->GetDerivedComponent<Drawable2D>()->SetLayer(target->GetDerivedComponent<Drawable2D>()->GetLayer());
+        }
+        else
+        {
+            // Divide Mass
+            RigidBody2D* body = node_->GetComponent<RigidBody2D>();
+            if (body)
+            {
+//                body->SetMass(body->GetMass() * 0.5f);
+                body->SetEnabled(false);
+            }
+
+            node_->SetParent(target);
+
+            GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
+            if (targetdestroyer && targetdestroyer->GetShapesRect().Defined())
+                node_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
+            else
+                node_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
+
+            ConstraintWeld2D* constraintWeld = node_->CreateComponent<ConstraintWeld2D>();
+            constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
+            constraintWeld->SetAnchor(node_->GetWorldPosition2D());
+            constraintWeld->SetFrequencyHz(4.0f);
+            constraintWeld->SetDampingRatio(0.5f);
+        }
+    }
+
+    URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ... OK !",
+                    node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
+}
+
+void GOC_Controller::Unmount()
+{
+    URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ...", node_->GetName().CString(), node_->GetID());
+
+    if (thinker_)
+    {
+        static_cast<Player*>(thinker_)->Unmount();
+    }
+    else
+    {
+        if (node_->GetParent()->GetName().StartsWith(MOUNTNODE))
+        {
+            node_->SetParent(node_->GetScene());
+            node_->GetComponent<RigidBody2D>()->SetEnabled(true);
+        }
+        else
+        {
+            const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+            if (targetid)
+            {
+                // Get Contraints on the node and remove
+                PODVector<ConstraintWeld2D* > contraints;
+                node_->GetComponents<ConstraintWeld2D>(contraints);
+                for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
+                {
+                    ConstraintWeld2D* constraint = *it;
+                    if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
+                    {
+                        constraint->ReleaseJoint();
+                        constraint->Remove();
+                    }
+                }
+                // Get the Contraints on the parent and remove
+                contraints.Clear();
+                node_->GetParent()->GetComponents<ConstraintWeld2D>(contraints);
+                for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
+                {
+                    ConstraintWeld2D* constraint = *it;
+                    if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == node_->GetID())
+                    {
+                        constraint->ReleaseJoint();
+                        constraint->Remove();
+                    }
+                }
+            }
+            // Restore the mass
+            RigidBody2D* body = node_->GetComponent<RigidBody2D>();
+            if (body)
+            {
+//                body->SetMass(body->GetMass() * 2.f);
+                body->SetEnabled(true);
+            }
+            // Set Parent
+            node_->SetParent(node_->GetScene());
+        }
+
+        node_->SetVar(GOA::ISMOUNTEDON, 0U);
+
+        GOC_Move2D* move2d = node_->GetComponent<GOC_Move2D>();
+        if (move2d)
+            move2d->SetMoveType(move2d->GetLastMoveType());
+
+        node_->GetComponent<GOC_Animator2D>()->ResetState();
+
+        node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+    }
+
+    URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... OK !", node_->GetName().CString(), node_->GetID());
 }
 
 
@@ -174,7 +311,7 @@ bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
 {
     if (thinker_)
     {
-        return ((Player*)thinker_)->ChangeAvatar(type, entityid, true);
+        return static_cast<Player*>(thinker_)->ChangeAvatar(type, entityid, true);
     }
     else
     {
@@ -188,7 +325,9 @@ bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
                             GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
                             GOT::GetType(StringHash(type)).CString(), type);
 
-//            SetEnableObjectControl(false);
+            // unmount if mounted
+            MountInfo mountinfo(node_);
+            GameHelpers::UnmountNode(mountinfo);
 
             // Important in Networking : Backup Position/layering before changing avatar for the SpawnEffect
             Vector2 position = node_->GetWorldPosition2D();
@@ -217,8 +356,8 @@ bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
             control_.entityid_ = eid;
 
             node_->SetVar(GOA::CLIENTID, clientid);
+
             node_->SetEnabled(true);
-//            SetEnableObjectControl(true);
 
             Light* light = node_->GetComponent<Light>();
             if (light)
@@ -227,6 +366,9 @@ bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
             node_->ApplyAttributes();
 
             node_->AddTag("Player");
+
+            // remount if was mounted
+            GameHelpers::MountNode(mountinfo);
 
             // Spawn Effect
             GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], layer, viewmask, position, 0.f, 1.f, true, 1.f, Color::BLUE, LOCAL);
@@ -291,22 +433,25 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
 
     if (mainController_)
     {
-        if (control_.IsButtonDown(CTRL_FIRE))
+        if (controlActionEnable_)
         {
-//            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
-            node_->SendEvent(GOC_CONTROLACTION1);
-        }
+            if (control_.IsButtonDown(CTRL_FIRE))
+            {
+    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+                node_->SendEvent(GOC_CONTROLACTION1);
+            }
 
-        if (control_.IsButtonDown(CTRL_FIRE2))
-        {
-//            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
-            node_->SendEvent(GOC_CONTROLACTION2);
-        }
+            if (control_.IsButtonDown(CTRL_FIRE2))
+            {
+    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+                node_->SendEvent(GOC_CONTROLACTION2);
+            }
 
-        if (control_.IsButtonDown(CTRL_FIRE3))
-        {
-//            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE3 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
-            node_->SendEvent(GOC_CONTROLACTION3);
+            if (control_.IsButtonDown(CTRL_FIRE3))
+            {
+    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE3 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+                node_->SendEvent(GOC_CONTROLACTION3);
+            }
         }
 
         if (control_.IsButtonDown(CTRL_STATUS))

@@ -1,6 +1,6 @@
 {
 	"Torche":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/torche.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
 		"replicateMode":1,
@@ -9,7 +9,7 @@
 		"maxDropQty":1
 	}
 	, "Filet":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/filet.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
 		"replicateMode":1,
@@ -18,7 +18,7 @@
 		"maxDropQty":1
 	}
 	, "Pelle":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/pelle.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -27,7 +27,7 @@
 		"maxDropQty":1
 	}
 	, "Arrosoir":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/arrosoir.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -54,7 +54,7 @@
 		"maxDropQty":2
 	}
 	, "AileDark":{
-		"category":"Specials",
+		"category":"Specials|Items",
 		"fileName":"Objects/ailedark.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
 		"replicateMode":1,
@@ -119,7 +119,7 @@
 		"defaultValue":0
 	}
 	, "EliegorSeed":{
-		"category":"Objects",
+		"category":"Objects|Items",
 		"fileName":"Objects/eliegorseed.xml",
 		"typeProperty":"GOT_Collectable|GOT_Droppable",
 		"replicateMode":1,
@@ -139,7 +139,7 @@
 		"maxDropQty":1
 	}	
 	, "ShortSword":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-shortsword.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -148,7 +148,7 @@
 		"maxDropQty":1
 	}
 	, "LongSword":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-longsword.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -157,7 +157,7 @@
 		"maxDropQty":1
 	}
 	, "LargeSword":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-largesword.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -166,7 +166,7 @@
 		"maxDropQty":1
 	}
 	, "HugeSword":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-hugesword.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -175,7 +175,7 @@
 		"maxDropQty":1
 	}
 	, "KatanaSword":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-katanasword.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -184,7 +184,7 @@
 		"maxDropQty":1
 	}
 	, "Hammer01":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-hammer01.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -193,7 +193,7 @@
 		"maxDropQty":1
 	}
 	, "Axe01":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-axe01.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -202,7 +202,7 @@
 		"maxDropQty":1
 	}
 	, "EpeeArete":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-epeearete.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
 		"replicateMode":1,
@@ -211,7 +211,7 @@
 		"maxDropQty":1
 	}
 	, "LargeSwordFlame":{
-		"category":"MeleeWeapons",
+		"category":"MeleeWeapons|Items",
 		"fileName":"Objects/weapons-largeswordflame.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Animation|GOT_Droppable",
 		"replicateMode":1,
@@ -220,7 +220,7 @@
 		"maxDropQty":1
 	}
 	, "PirateGun":{
-		"category":"RangedWeapons",
+		"category":"RangedWeapons|Items",
 		"fileName":"Objects/weapons-pirategun.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -229,7 +229,7 @@
 		"maxDropQty":1
 	}
 	, "BrownHelmet":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-brown.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -238,7 +238,7 @@
 		"maxDropQty":1
 	}
 	, "GreenHelmet":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-green.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -247,7 +247,7 @@
 		"maxDropQty":1
 	}
 	, "WhiteHelmet":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-white.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -256,7 +256,7 @@
 		"maxDropQty":1
 	}
 	, "BlackHelmet":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-black.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -265,7 +265,7 @@
 		"maxDropQty":1
 	}
 	, "LizardHelmet1":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-lizard1.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -274,7 +274,7 @@
 		"maxDropQty":1
 	}
 	, "LizardHelmet2":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-lizard2.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -283,7 +283,7 @@
 		"maxDropQty":1
 	}
 	, "LizardHelmet3":{
-		"category":"Helmets",
+		"category":"Helmets|Items",
 		"fileName":"Objects/helmet-lizard3.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -292,7 +292,7 @@
 		"maxDropQty":1
 	}
 	, "BlindFold1":{
-		"category":"Headbands",
+		"category":"Headbands|Items",
 		"fileName":"Objects/headband-blindfold1.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -310,7 +310,7 @@
 		"maxDropQty":1
 	}
 	, "Belt1":{
-		"category":"Belts",
+		"category":"Belts|Items",
 		"fileName":"Objects/belt-belt1.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -319,7 +319,7 @@
 		"maxDropQty":1
 	}
 	, "ArmorPetit":{
-		"category":"Armors",
+		"category":"Armors|Items",
 		"fileName":"Objects/armorpetit2.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -328,7 +328,7 @@
 		"maxDropQty":1
 	}
 	, "ArmorLizard":{
-		"category":"Armors",
+		"category":"Armors|Items",
 		"fileName":"Objects/armorlizard.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,
@@ -337,7 +337,7 @@
 		"maxDropQty":1
 	}
 	, "ArmorSkeleton":{
-		"category":"Armors",
+		"category":"Armors|Items",
 		"fileName":"Objects/armorskeleton.xml",
 		"typeProperty":"GOT_Collectable|GOT_Wearable|GOT_Droppable",
 		"replicateMode":1,

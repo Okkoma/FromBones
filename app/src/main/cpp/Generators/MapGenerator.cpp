@@ -131,7 +131,7 @@ void MapGenerator::SetGeneratorMap(MapGeneratorStatus& genStatus, int mapslot, i
 
     genStatus.genSpots_ = genspot;
     genStatus.activeslot_ = mapslot;
-    genStatus.viewZindexes_[mapslot] = ViewManager::Get()->GetViewZIndex(viewZ);
+    genStatus.viewZindexes_[mapslot] = ViewManager::GetViewZIndex(ViewManager::GetNearViewZ(viewZ));
     genStatus.features_[mapslot] = data;
     genStatus.rseed_ = genStatus.wseed_ + genStatus.cseed_;
 

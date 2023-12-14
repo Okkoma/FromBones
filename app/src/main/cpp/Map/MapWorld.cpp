@@ -1119,26 +1119,37 @@ void World2D::PurgeEntities(const ShortIntVector2& mPoint)
     }
 }
 
-Node* World2D::SpawnEntity(const StringHash& got)
+// Editor Spawn Furniture
+Node* World2D::SpawnFurniture(const StringHash& got, int layerZ, bool isabiome)
 {
     IntVector2 position;
     GameHelpers::GetInputPosition(position.x_, position.y_);
     Vector2 pos = GameHelpers::ScreenToWorld2D(position);
-    ShortIntVector2 mpoint;
-    info_->Convert2WorldMapPoint(pos, mpoint);
 
-    Map* map = GetMapAt(mpoint);
+    Node* node = SpawnFurniture(got, pos, layerZ, isabiome, true, false);
 
-    return map ? map->AddEntity(got, RandomEntityFlag|RandomMappingFlag, LOCAL, 0, ViewManager::Get()->GetCurrentViewZ(), PhysicEntityInfo(pos.x_, pos.y_)) : 0;
+    if (node && !GameContext::Get().LocalMode_)
+    {
+        // Send a NetCommand
+        VariantMap eventData;
+        eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+        eventData[Net_ObjectCommand::P_NODEIDFROM] = 0;
+        eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE] = got.Value();
+        eventData[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = layerZ;
+        eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = pos;
+        eventData[Net_ObjectCommand::P_DATAS] = isabiome;
+        SendEvent(MAP_ADDFURNITURE, eventData);
+    }
+
+    return node;
 }
 
-Node* World2D::SpawnFurniture(const StringHash& got, int layerZ)
+Node* World2D::SpawnFurniture(VariantMap& eventData)
 {
-    IntVector2 position;
-    GameHelpers::GetInputPosition(position.x_, position.y_);
-    Vector2 pos = GameHelpers::ScreenToWorld2D(position);
-
-    return SpawnFurniture(got, pos, layerZ, true, true, false);
+    return SpawnFurniture(StringHash(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt()),
+                          eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION].GetVector2(),
+                          eventData[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ].GetInt(),
+                          eventData[Net_ObjectCommand::P_DATAS].GetBool(), true, false);
 }
 
 Node* World2D::SpawnFurniture(const StringHash& got, Vector2 position, int layerZ, bool isabiome, bool checkpositionintile, bool findfloor)
@@ -1189,12 +1200,38 @@ Node* World2D::SpawnFurniture(const StringHash& got, Vector2 position, int layer
     return node;
 }
 
-Node* World2D::SpawnActor()
+Node* World2D::NetSpawnFurniture(ObjectControlInfo& info)
 {
+    const ObjectControl& control = info.GetReceivedControl();
+
+    Node* node = SpawnFurniture(StringHash(control.states_.type_), Vector2(control.physics_.positionx_, control.physics_.positiony_),
+                                (int)control.states_.viewZ_, false, false, false);
+
+    GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
+    if (animator)
+    {
+        animator->SetDirection(Vector2(control.physics_.direction_, 0.f));
+    }
+    else
+    {
+        StaticSprite2D* sprite = node->GetDerivedComponent<StaticSprite2D>();
+        if (sprite)
+            sprite->SetFlip(control.physics_.direction_ < 0.f, false);
+    }
+
+    node->SetEnabled(true);
+
+    return node;
+}
+
+// Editor Spawn Collectable
+Node* World2D::SpawnCollectable(const StringHash& got)
+{
+    URHO3D_LOGINFOF("World2D() - SpawnCollectable : got=%s editor ...", GOT::GetType(got).CString());
+
     IntVector2 position;
     GameHelpers::GetInputPosition(position.x_, position.y_);
     Vector2 pos = GameHelpers::ScreenToWorld2D(position);
-
     ShortIntVector2 mpoint;
     info_->Convert2WorldMapPoint(pos, mpoint);
 
@@ -1202,9 +1239,74 @@ Node* World2D::SpawnActor()
     if (!map)
         return 0;
 
-    Actor* actor = SpawnActor(String("Eredot"), StringHash("GOT_Merchant"), 0, StringHash("merchandise1"), ViewManager::Get()->GetCurrentViewZ(), pos);
+    SceneEntityInfo sceneInfo;
+    sceneInfo.skipNetSpawn_ = true;
+    sceneInfo.zindex_ = 1000;
 
-    return actor ? actor->GetAvatar() : 0;
+    StringHash fromtype;
+    if (GOT::GetTypeProperties(got) & GOT_Part)
+        fromtype = GOT::GetBuildableType(got);
+
+    VariantMap eventData;
+    Slot slot;
+    slot.Set(got, 1U, fromtype);
+    Slot::GetSlotData(slot, eventData);
+
+    Node* node = map->AddEntity(got, 0, LOCAL, 0, ViewManager::Get()->GetCurrentViewZ(), PhysicEntityInfo(pos.x_, pos.y_), sceneInfo, &eventData);
+    if (node && !GameContext::Get().LocalMode_)
+    {
+        // Send a NetCommand
+        eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+        eventData[Net_ObjectCommand::P_NODEIDFROM] = 0;
+        eventData[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = ViewManager::Get()->GetCurrentViewZ();
+        eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = pos;
+        SendEvent(MAP_ADDCOLLECTABLE, eventData);
+    }
+
+    return node;
+}
+
+Node* World2D::SpawnCollectable(VariantMap& eventData)
+{
+    unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
+    StringHash got(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
+
+    URHO3D_LOGINFOF("World2D() - SpawnCollectable : got=%s nodeid=%u  ...", GOT::GetType(got).CString(), nodeid);
+
+    int viewZ = eventData[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ].GetUInt();
+
+    PhysicEntityInfo physicInfo;
+    physicInfo.positionx_ = eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION].GetVector2().x_;
+    physicInfo.positiony_ = eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION].GetVector2().y_;
+
+    SceneEntityInfo sceneinfo;
+    sceneinfo.zindex_ = 1000;
+    sceneinfo.clientId_ = 0;
+    sceneinfo.skipNetSpawn_ = true;
+
+    Node* node = World2D::SpawnEntity(got, 0, LOCAL, 0, viewZ, physicInfo, sceneinfo, &eventData);
+    if (node)
+        URHO3D_LOGINFOF("GameNetwork() - SpawnCollectable : Node=%s(%u) spawned ... OK !", node->GetName().CString(), node->GetID());
+    else
+        URHO3D_LOGERRORF("GameNetwork() - SpawnCollectable : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
+
+    return node;
+}
+
+// Editor Spawn Entity
+Node* World2D::SpawnEntity(const StringHash& got)
+{
+    URHO3D_LOGINFOF("World2D() - SpawnEntity : got=%s editor ...", GOT::GetType(got).CString());
+
+    IntVector2 position;
+    GameHelpers::GetInputPosition(position.x_, position.y_);
+    Vector2 pos = GameHelpers::ScreenToWorld2D(position);
+    ShortIntVector2 mpoint;
+    info_->Convert2WorldMapPoint(pos, mpoint);
+
+    Map* map = GetMapAt(mpoint);
+
+    return map ? map->AddEntity(got, RandomEntityFlag|RandomMappingFlag, LOCAL, 0, ViewManager::Get()->GetCurrentViewZ(), PhysicEntityInfo(pos.x_, pos.y_)) : 0;
 }
 
 Node* World2D::SpawnEntity(const StringHash& got, int entityid, int id, unsigned holderid, int viewZ, const PhysicEntityInfo& physicInfo, const SceneEntityInfo& sceneInfo, VariantMap* slotData, bool outsidePool)
@@ -1214,6 +1316,8 @@ Node* World2D::SpawnEntity(const StringHash& got, int entityid, int id, unsigned
 
     ShortIntVector2 mpoint;
     info_->Convert2WorldMapPoint(physicInfo.positionx_, physicInfo.positiony_, mpoint);
+
+    viewZ = ViewManager::Get()->GetNearViewZ(viewZ);
 
     Map* map = GetMapAt(mpoint);
     if (!map)
@@ -1232,10 +1336,10 @@ Node* World2D::SpawnEntity(const StringHash& got, int entityid, int id, unsigned
                          physicInfo.positionx_, physicInfo.positiony_, mpoint.ToString().CString());
         return 0;
     }
-//    URHO3D_LOGINFOF("World2D() - SpawnEntity : id=%u got=%s(%u) effectiveType=%s(%u) position=%F %F mpoint=%s viewZ=%d deferredAdd=%s",
-//                    id, GOT::GetType(got).CString(), got.Value(),GOT::GetType(got).CString(), got.Value(),
-//                    physicInfo.positionx_, physicInfo.positiony_,
-//                    mpoint.ToString().CString(), viewZ, sceneInfo.deferredAdd_ ? "true":"false");
+    URHO3D_LOGINFOF("World2D() - SpawnEntity : id=%u got=%s(%u) effectiveType=%s(%u) position=%F %F mpoint=%s viewZ=%d deferredAdd=%s",
+                    id, GOT::GetType(got).CString(), got.Value(),GOT::GetType(got).CString(), got.Value(),
+                    physicInfo.positionx_, physicInfo.positiony_,
+                    mpoint.ToString().CString(), viewZ, sceneInfo.deferredAdd_ ? "true":"false");
 
 //    return map->AddEntity(got, entityid, (!id && GameContext::Get().ClientMode_) ? LOCAL : id, holderid, viewZ, physicInfo, sceneInfo, slotData);
     return map->AddEntity(got, entityid, !id ? LOCAL : id, holderid, viewZ, physicInfo, sceneInfo, slotData, outsidePool);
@@ -1269,8 +1373,8 @@ Node* World2D::NetSpawnEntity(ObjectControlInfo& info, Node* holder, VariantMap*
         scinfo.objectControlInfo_ = &info;
         node = SpawnEntity(got, (int)control.states_.entityid_, info.serverNodeID_, info.serverNodeID_, control.states_.viewZ_, *((PhysicEntityInfo*) &control.physics_), scinfo, slotData);
 
-//        URHO3D_LOGINFOF("World2D() - NetSpawnEntity : Node=%s(%u) spawned dir=%f rot=%f velx=%f... OK !",
-//                        node->GetName().CString(), node->GetID(), control.physics_.direction_, control.physics_.rotation_, control.physics_.velx_);
+        URHO3D_LOGINFOF("World2D() - NetSpawnEntity : Node=%s(%u) spawned dir=%f rot=%f velx=%f... OK !",
+                        node->GetName().CString(), node->GetID(), control.physics_.direction_, control.physics_.rotation_, control.physics_.velx_);
     }
 
     if (!node)
@@ -1318,6 +1422,25 @@ Node* World2D::NetSpawnEntity(ObjectControlInfo& info, Node* holder, VariantMap*
     node->SetEnabled(true);
 
     return node;
+}
+
+// Editor Spawn Actor
+Node* World2D::SpawnActor()
+{
+    IntVector2 position;
+    GameHelpers::GetInputPosition(position.x_, position.y_);
+    Vector2 pos = GameHelpers::ScreenToWorld2D(position);
+
+    ShortIntVector2 mpoint;
+    info_->Convert2WorldMapPoint(pos, mpoint);
+
+    Map* map = GetMapAt(mpoint);
+    if (!map)
+        return 0;
+
+    Actor* actor = SpawnActor(String("Eredot"), StringHash("GOT_Merchant"), 0, StringHash("merchandise1"), ViewManager::Get()->GetCurrentViewZ(), pos);
+
+    return actor ? actor->GetAvatar() : 0;
 }
 
 Actor* World2D::SpawnActor(const String& name, const StringHash& got, unsigned char entityid, const StringHash& dialogue, int viewZ, const Vector2& position)
@@ -1368,7 +1491,7 @@ Actor* World2D::SpawnActor(unsigned actorid, const Vector2& position, int viewZ)
 
             WorldMapPosition& pos = actor->GetInfo().position_;
             world_->GetWorldInfo()->Convert2WorldMapPosition(position, pos);
-            pos.viewZ_ = viewZ;
+            pos.SetViewZ(viewZ);
             actor->GetInfo().state_ = Activated;
             actor->GetAvatar()->SetEnabled(true);
             actor->GetAvatar()->GetComponent<GOC_Destroyer>()->SetWorldMapPosition(pos);

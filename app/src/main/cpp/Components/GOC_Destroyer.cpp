@@ -203,6 +203,7 @@ void GOC_Destroyer::SetEnableLifeNotifier(bool enable)
 
 void GOC_Destroyer::SetEnableUnstuck(bool enable)
 {
+    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnableUnstuck : %s(%u) checkUnstuck_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
     checkUnstuck_ = enable;
 }
 
@@ -274,7 +275,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     if (!viewZ || viewZ == NOVIEW)
         viewZ = node_->GetVar(GOA::ONVIEWZ).GetInt();
     else
-        mapWorldPosition_.viewZIndex_ = ViewManager::Get()->GetViewZIndex(viewZ);
+        mapWorldPosition_.viewZIndex_ = ViewManager::GetViewZIndex(viewZ);
 
     if (!viewZ || viewZ == NOVIEW)
     {
@@ -326,12 +327,15 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
             mapWorldPosition_.viewMask_ = viewMask;
 
         // Set Layer and Order
-        const int layermodifier = node_->GetVar(GOA::PLATEFORM).GetBool() ? LAYER_PLATEFORM : LAYER_ACTOR;
-        IntVector2 layer;
-        // layer for INNERVIEW / FRONTVIEW
-        layer.x_ = viewZ + layermodifier + node_->GetVar(GOA::LAYERALIGNMENT).GetInt();
-        // layer for BACKACTORVIEW ONLY
-        layer.y_ = BACKACTORVIEW;
+        IntVector2 layer(viewZ, -1);
+        if (viewZ != THRESHOLDVIEW)
+        {
+            const int layermodifier = node_->GetVar(GOA::PLATEFORM).GetBool() ? LAYER_PLATEFORM : LAYER_ACTOR;
+            // layer for INNERVIEW / FRONTVIEW
+            layer.x_ += layermodifier + node_->GetVar(GOA::LAYERALIGNMENT).GetInt();
+            // layer for BACKACTORVIEW ONLY
+            layer.y_ = viewZ > BACKVIEW && viewZ < OUTERVIEW ? INNERVIEW : BACKACTORVIEW;
+        }
 
         if (drawOrder != -1)
             mapWorldPosition_.drawOrder_ = drawOrder;
@@ -350,7 +354,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     }
 
     if (currentMap_ && mapWorldPosition_.viewZIndex_ == -1)
-        mapWorldPosition_.viewZIndex_ = ViewManager::Get()->GetViewZIndex(viewZ);
+        mapWorldPosition_.viewZIndex_ = ViewManager::GetViewZIndex(ViewManager::GetNearViewZ(viewZ));
 
     UpdateFilterBits(viewZ);
 
@@ -378,9 +382,9 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     }
 
     if (isPlayer)
-        URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u",
+        URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
                          node_->GetName().CString(), node_->GetID(), viewport, mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,
-                         numdrawables, numdrawables ? drawables[0]->GetID() : 0);
+                         numdrawables, numdrawables ? drawables[0]->GetID() : 0, drawables[0]->GetLayer2().ToString().CString());
 }
 
 void GOC_Destroyer::UpdateFilterBits(int viewZ)
@@ -716,8 +720,8 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
 
     sViewZ_ = node_->GetVar(GOA::ONVIEWZ) != Variant::EMPTY ? node_->GetVar(GOA::ONVIEWZ).GetInt() : NOVIEW;
     // Assure to have a viewz and not a layerz
-    if (sViewZ_ != NOVIEW)
-        sViewZ_ = ViewManager::Get()->GetNearViewZ(sViewZ_);
+//    if (sViewZ_ != NOVIEW)
+//        sViewZ_ = ViewManager::Get()->GetNearViewZ(sViewZ_);
 
     if (body_)
     {
@@ -1029,8 +1033,7 @@ void GOC_Destroyer::AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vec
     mapWorldPosition_.mPoint_ = mpoint;
     mapWorldPosition_.position_ = position;
     mapWorldPosition_.tileIndex_ = mapWorldPosition_.mPosition_.y_ * World2D::GetWorld()->GetWorldInfo()->mapWidth_ + mapWorldPosition_.mPosition_.x_;
-    mapWorldPosition_.viewZ_ = viewZ;
-    mapWorldPosition_.viewZIndex_ = ViewManager::GetViewZIndex(viewZ);
+    mapWorldPosition_.SetViewZ(viewZ);
     mapWorldPosition_.defined_ = true;
 
     if (!shapesRect_.Defined())

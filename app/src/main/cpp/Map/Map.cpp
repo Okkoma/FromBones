@@ -426,8 +426,10 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
 
     int entityid = entitydata.sstype_;
 
-    Node* attachNode = nodeFurniture_ ? nodeFurniture_ : World2D::GetEntitiesRootNode(GameContext::Get().rootScene_, GameNetwork::Get() ? REPLICATED : LOCAL);
-    node = ObjectPool::CreateChildIn(got, entityid, attachNode, 0, viewZ);
+    ObjectPoolCategory* category = 0;
+    Node* attachNode = nodeFurniture_ ? nodeFurniture_ : World2D::GetEntitiesRootNode(GameContext::Get().rootScene_, LOCAL);
+
+    node = ObjectPool::CreateChildIn(got, entityid, attachNode, 0, viewZ, 0, false, &category);
     if (!node)
     {
 //        URHO3D_LOGERRORF("MapBase() - AddFurniture : Map=%s ... type=%s(%u) tileindex=%s viewZ=%d can not create entity from ObjectPool !",
@@ -474,6 +476,9 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
     StaticSprite2D* sprite = node->GetComponent<StaticSprite2D>();
     if (sprite)
         sprite->ForceUpdateBatches();
+
+    if (category && category->HasReplicatedMode())
+        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, true, true);
 
 #endif // HANDLE_FURNITURES
 
@@ -1177,7 +1182,7 @@ void MapBase::SetTile(FeatureType feat, int x, int y, int viewZ, Tile** removedt
     }
 
     // Update fluid cell
-    FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
+    FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(ViewManager::GetNearViewZ(viewZ)));
     fluidcell->Set(featref);
     fluidcell->UnsettleNeighbors();
     fluidcell->ResetDirections();
@@ -1271,6 +1276,7 @@ void MapBase::SetTiles(const PODVector<TileModifier>& tileModifiers)
 void MapBase::SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tileIndexes)
 {
     int viewid = GetViewId(viewZ);
+    const int indexViewZ = ViewManager::GetViewZIndex(ViewManager::GetNearViewZ(viewZ));
 
     // Impacted Views
     HashSet<IntVector2> viewsToUpdate;
@@ -1402,7 +1408,7 @@ void MapBase::SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tile
         }
 
         // Update fluid cell
-        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
+        FluidCell* fluidcell = GetFluidCellPtr(tileindex, indexViewZ);
         fluidcell->Set(featref);
         fluidcell->UnsettleNeighbors();
         fluidcell->ResetDirections();
@@ -1460,6 +1466,7 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
     bool result = false;
     const bool addtile = feature > MapFeatureType::NoRender;
     const int viewId = GetViewId(viewZ);
+
     PhysicCollider* collider;
 
     // Update Physic Collider
@@ -1477,13 +1484,18 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
 
     if (!result)
         return false;
+
 #ifdef DUMP_MAPDEBUG_SETTILE
     URHO3D_LOGINFOF("MapBase() - SetTileEntity : feat=%s(%u) at tileindex=%u viewid=%d viewz=%d !", MapFeatureType::GetName(feature), feature, tileindex, viewId, viewZ);
 #endif
+
     // Update fluid cell
     if (!dynamic)
     {
-        FluidCell* fluidcell = GetFluidCellPtr(tileindex, ViewManager::GetViewZIndex(viewZ));
+        const int nViewZ = ViewManager::GetNearViewZ(viewZ);
+        const int indexViewZ = ViewManager::GetViewZIndex(nViewZ);
+//        URHO3D_LOGINFOF("MapBase() - SetTileEntity : tileindex=%u viewz=%d nViewZ=%d indexviewz=%d dynamic=%s", tileindex, viewZ, nViewZ, indexViewZ, dynamic ? "true":"false");
+        FluidCell* fluidcell = GetFluidCellPtr(tileindex, indexViewZ);
         fluidcell->Set(feature);
         fluidcell->UnsettleNeighbors();
         fluidcell->ResetDirections();
@@ -1508,8 +1520,8 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
 #endif
                 drawable->SetSprite(atlas->GetTileSprite(terrain.GetRandomTileGidForDimension(TILE_1X1)));
                 drawable->SetColor(terrain.GetColor());
-                drawable->SetViewMask(ViewManager::GetLayerMask(viewZ));
-                drawable->SetLayer2(IntVector2(viewZ + LAYER_ACTOR + 1 + LAYER_DECALS, BACKACTORVIEW));
+                drawable->SetViewMask(ViewManager::GetLayerMask(THRESHOLDVIEW));
+                drawable->SetLayer2(IntVector2(viewZ + LAYER_ACTOR + 1 + LAYER_DECALS, -1));
                 drawable->SetOrderInLayer(DRAWORDER_TILEENTITY);
                 drawable->SetHotSpot(Vector2(0.5f, 0.5f));
                 drawable->SetUseHotSpot(true);
@@ -1546,8 +1558,8 @@ bool MapBase::SetTileEntity(FeatureType feature, unsigned tileindex, int viewZ, 
                     if (flipY)
                         drawable->SetFlipY(true);
                     drawable->SetColor(terrain.GetColor());
-                    drawable->SetViewMask(ViewManager::GetLayerMask(viewZ));
-                    drawable->SetLayer2(IntVector2(viewZ + LAYER_ACTOR + 1 + LAYER_DECALS, BACKACTORVIEW));
+                    drawable->SetViewMask(ViewManager::GetLayerMask(THRESHOLDVIEW));
+                    drawable->SetLayer2(IntVector2(viewZ + LAYER_ACTOR + 1 + LAYER_DECALS, -1));
                     drawable->SetOrderInLayer(DRAWORDER_TILEENTITY+i+1);
                     drawable->SetDrawRect(rect);
                     drawable->SetUseDrawRect(true);
@@ -3911,6 +3923,7 @@ bool MapBase::IsMaskedByOtherMap(int viewZ) const
     int width = GetWidth();
     int wrect = rect.Width();
     int hrect = rect.Height();
+    const int indexViewZ = ViewManager::GetViewZIndex(viewZ);
 
 //    GameHelpers::DumpData(&features[0], 1, 2, width, height);
 
@@ -3929,7 +3942,7 @@ bool MapBase::IsMaskedByOtherMap(int viewZ) const
                     continue;
 
                 unsigned tileindexInMap;
-                const FeaturedMap& mapmask = map->GetMaskedView(ViewManager::GetViewZIndex(viewZ), map->GetViewId(INNERVIEW));
+                const FeaturedMap& mapmask = map->GetMaskedView(indexViewZ, map->GetViewId(INNERVIEW));
                 World2D::GetWorldInfo()->Convert2WorldTileIndex(map->GetMapPoint(), wtileposition, tileindexInMap);
                 if (mapmask[tileindexInMap] == MapFeatureType::NoRender)
                     nummaskedtiles++;

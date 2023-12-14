@@ -270,7 +270,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
         sceneinfo.skipNetSpawn_ = skipNetSpawn;
         sceneinfo.zindex_ = 1000;
 
-        int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt(), 0);
+        int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
 
         Node* node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
         if (!node)

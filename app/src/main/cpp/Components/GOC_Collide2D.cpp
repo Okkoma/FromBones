@@ -263,8 +263,8 @@ void GOC_Collide2D::AddWallContact2D(CollisionShape2D* cs, unsigned ishape, cons
 
     bool newContact = true;
 
-    URHO3D_LOGINFOF("GOC_Collide2D() - AddWallContact2D : Node=%s(%u) wallType=%s normal=%s ...",
-                    node_->GetName().CString(), node_->GetID(), wallTypeNames[walltype], normal.ToString().CString());
+//    URHO3D_LOGINFOF("GOC_Collide2D() - AddWallContact2D : Node=%s(%u) wallType=%s normal=%s ...",
+//                    node_->GetName().CString(), node_->GetID(), wallTypeNames[walltype], normal.ToString().CString());
 
     if (wallContacts.Size() > 0)
     {

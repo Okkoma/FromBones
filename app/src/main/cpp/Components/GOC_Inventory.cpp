@@ -622,26 +622,7 @@ VariantVector GOC_Inventory::GetInventoryAttr() const
     if (valuesToPopulate_.Size())
         return valuesToPopulate_;
 
-    VariantVector value;
-
-    if (slots_.Size())
-    {
-        value.Reserve(slots_.Size());
-        for (unsigned i=0; i < slots_.Size(); ++i)
-        {
-            const Slot& slot = slots_[i];
-
-            if (!slot.quantity_)
-                continue;
-
-//            String typeStr = GOT::GetType(slot.type_);
-            //if (!typeStr.Contains("Collectable_")) continue;
-
-            value.Push(Slot::GetSlotAttr(slot));
-        }
-    }
-
-    return value;
+    return Slot::GetSlotDatas(slots_);
 }
 
 

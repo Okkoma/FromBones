@@ -1,5 +1,18 @@
 Todos:
 
+    ☐ 11/12/2023 : pouvoir monter et descendre d'une monture en utilisant le clavier ou la manette (sans clic souris)
+    
+    ☐ 11/12/2023 : ajout de MountNode qui est géré par un NodeUpdater mais sans animation => c'est un node à la place
+        -> permet d'accrocher une entity sur ce node dont la position dépend du SCML.
+        --> necessaire pour les montures par exemple. cf (AnimatedSprite2D::UpdateTriggers)
+        --> dans les SCML, le nom du Point à ajouter doit commencer par IN_MT
+
+    ✔ 11/12/2023 : pouvoir controller l'AI Ally sur laquelle on est monté @done(23-12-11 10:49)
+        -> ajout de GOC_AIController::SetExternalController() et modification Player::Mount() et Unmount() et GOC_AIController::Update()
+
+    ✔ 10/12/2023 : l'AI n'arrive plus à monter sur l'avatar ou vice et verça @done(23-12-11 09:26)
+        -> correctif dans Player, GOB_MountOn au niveau du SetWorldPosition2D (Destroyer::shapeRect_ mal utilisé) et GOC_ControllerAI 
+
     ✔ 07/12/2023 : Saut à l'infini de rockgolem quand une entité sur la tete @done(23-12-10 11:24)
         -> correctif dans GOC_Collide2D::HandleBeginContact lorsque deux entity sont en contact : test des positions delta.
         

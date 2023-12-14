@@ -354,6 +354,7 @@ private:
     void Client_CommandRemoveObject(VariantMap& eventData, bool skipIfNotDead=false);
     void Client_DisableObjectControl(VariantMap& eventData);
     void Client_TransferItem(VariantMap& eventData);
+    void Client_MountNode(VariantMap& eventData);
     void Client_ApplyObjectCommand(VariantMap& eventData);
 
     /// Object Commands Pool

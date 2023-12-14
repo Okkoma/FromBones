@@ -36,6 +36,7 @@ void GOE::InitEventTable()
     events_ += Pair<StringHash,String>(StringHash("World_MapUpdate"), "World_MapUpdate");
     events_ += Pair<StringHash,String>(StringHash("World_CameraChanged"), "World_CameraChanged");
     events_ += Pair<StringHash,String>(StringHash("Map_Update"), "Map_Update");
+    events_ += Pair<StringHash,String>(StringHash("Map_AddFurniture"), "Map_AddFurniture");
 
     events_ += Pair<StringHash,String>(StringHash("Weather_Dawn"), "Weather_Dawn");
     events_ += Pair<StringHash,String>(StringHash("Weather_Twilight"), "Weather_Twilight");
@@ -50,7 +51,10 @@ void GOE::InitEventTable()
     events_ += Pair<StringHash,String>(StringHash("Go_Appear"), "Go_Appear");
     events_ += Pair<StringHash,String>(StringHash("Go_ChangeMap"), "Go_ChangeMap");
     events_ += Pair<StringHash,String>(StringHash("Go_Destroy"), "Go_Destroy");
+    events_ += Pair<StringHash,String>(StringHash("Go_MountedOn"), "Go_MountedOn");
+    events_ += Pair<StringHash,String>(StringHash("Go_StorageChanged"), "Go_StorageChanged");
     events_ += Pair<StringHash,String>(StringHash("Go_Killer"), "Go_Killer");
+
     events_ += Pair<StringHash,String>(StringHash("ControlUpdate"), "ControlUpdate");
     events_ += Pair<StringHash,String>(StringHash("ControlMove"), "ControlMove");
     events_ += Pair<StringHash,String>(StringHash("ControlAction0"), "ControlAction0");

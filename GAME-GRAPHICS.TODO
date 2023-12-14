@@ -1,5 +1,18 @@
 Todos:
-    ☐ 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ...
+    
+    ✔ 10/12/2023 : l'on ne voit pas les entités sur le seuil d'une porte ou à par une fenetre. @done(23-12-11 08:50)
+        -> modification de GameHelpers::SetDrawableLayerView et GOC_Destroyer::SetViewZ
+        --> si ViewZ du drawable == THRESHOLDVIEW, ne pas modifier le layer
+        --> si ViewZ du drawable est dans la zone INNERVIEW, le layer2 doit avoir la valeur INNERVIEW et pas BACKACTORVIEW
+
+    ✔ 10/12/2023 : en FRONTVIEW on ne voit plus apparaitre les Portes @done(23-12-11 09:00)
+        -> modification de Urho3D::Drawable2D::GetSourceBatchesToRender
+            // if camera in FRONTVIEW and drawable in INNERVIEW => use set2 (INNERVIEW defined in layer_.y_)
+            // if camera in INNERVIEW and drawable is not in INNERVIEW => use set2 (BACKACTORVIEW defined in layer_.y_)
+            // else use batchsetid = 0
+        --> avec ça la Thresholdview est toujours affichée
+
+    ✔ 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ... @done(23-12-11 08:37)
         => OK : dans Urho3D::AnimatedSprite2D::UpdateSourceBatches() et ..._Custom(), il faut toujours setter vertex.z_ ou vertex.position.z_. 
         (Car vertex.position_ est un Vector3 en GL et un Vector2 en VK) et que l'on utilise une matrix2x3 =>
             resultat vector2 en VK et un vector3 avec le z_ non attribué (NA)...
@@ -10,25 +23,25 @@ Todos:
         ==> pour les allouer pour le moment ca se passe dans Spriter::SpriterData::Register() mais on pourrait faire ça directement dans FromBones. En fait le nombre de Key va dépendre du nombre d'animatedSprite dans les ObjectPool etc...
         ==> les KEY_POOLS semblent moins rapide que l'allocation mémoire ... bizarre => faire un profilage.
 
-    ☐ 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas.
+    ✔ 01/06/2023 : parfois les parties StaticSprite2D des lustres ne s'affichent pas. @done(23-12-11 08:37)
         => pb avec StaticSprite2D, Drawable2D ?
         => difficilement reproductible
         ==> OK : Patch dans Drawable2D::GetSourceBatchesToRender(Camera* camera) : si le sourceBatch n'a pas de vertices alors sourceBatchDirty_ = true
 
-    ☐ 12/04/2023 : Fantomette ne s'affiche plus sous GL
+    ✔ 12/04/2023 : Fantomette ne s'affiche plus sous GL @done(23-12-11 08:37)
         => OK : pour les RenderTarget avec ACTIVE_LAYERMATERIALS, il ne faut pas appliquer de CustomMaterial dans GOT::PreLoadObjects donc eviter de mettre node->GetDerivedComponents</StaticSprite2D/>()
 
-    ☐ 31/03/2023 : les TileEntity créés pour fermer les zones de boss ne sont pas sur le bon layer par rapport aux particules qui passe au dessus de la partie Tile et au dessous de la partie Decals.
+    ✔ 31/03/2023 : les TileEntity créés pour fermer les zones de boss ne sont pas sur le bon layer par rapport aux particules qui passe au dessus de la partie Tile et au dessous de la partie Decals. @done(23-12-11 08:37)
         => OK : ajout DRAWORDER_TILEENTITY
 
-    ☐ 31/03/2023 : le splash de la vache doit etre au dessus des autres entités.
+    ✔ 31/03/2023 : le splash de la vache doit etre au dessus des autres entités. @done(23-12-11 08:37)
         => OK : ajout de l'attribut "Order in Layer" value="1000"" (attribut de Drawable2D)
 
     ☐ 21/03/2023 : les monstres comme mirubil depassent des murs
         => voir pour appliquer un depthstencil comme pour l'eau ? entre les pieces d'une meme view ca ne donnerait pas le bon resultat.
         ==> il faudrait appliquer un clipping par entity en fonction de sa localisation dans une piece et de la geometrie de la piece.
 
-    ☐ 22/02/2023 : sans Activation du clipping, certains RenderShapes avec holes posent pb : si le rendershape est adjacent à un autre rendershape alors le hole s'affiche comme si il n'etait pas integré à la rendershape
+    ✔ 22/02/2023 : sans Activation du clipping, certains RenderShapes avec holes posent pb : si le rendershape est adjacent à un autre rendershape alors le hole s'affiche comme si il n'etait pas integré à la rendershape @done(23-12-11 08:37)
         => surement PolyShape::Sanitate et la reaffectation des holes au bon contour.
         ==> dans Sanitate la duplication des hole et le Test par BoundingRect n'est pas suffisant occasionnant de garder des holes hors contours (ces holes se retrouver tracer plusieurs fois pour plusieurs contours).
         ===> OK : 23/02/2023 : utilisation de GameHelpers::IsInsidePolygon()
@@ -74,12 +87,12 @@ Todos:
         ====> generaliser le clipping pour les RenderShapes
         ====> faire l'implantation pour le multiviewport
 
-    ☐ 28/01/2023 : le skeleton affiche 3 cranes à sa mort
+    ✔ 28/01/2023 : le skeleton affiche 3 cranes à sa mort @done(23-12-11 08:37)
         => surement un pb dans le CharaterMapping suite aux modifications
         ==> il est important pour GOC_BodyExploder2D que lors de la PrepareNodes le characterMapping soit dejà fait.
         ==> OK : Modifications de GameHelpers::SetEntityVariation() pour toujours au moins avoir un charactermapping de tete attribué.
 
-    ☐ 28/01/2023 : certains lustres ne s'affichent plus.
+    ✔ 28/01/2023 : certains lustres ne s'affichent plus. @done(23-12-11 08:37)
         => pb avec StaticSprite2D ?
         ==> verifier les modifications dans Urho3D sur Drawable2D et StaticSprite2D
         ===> OK : pb avec Drawable2D::drawRect_ qui n'était pas initialiser

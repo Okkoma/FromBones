@@ -52,6 +52,8 @@ public :
 
     void ThrowOutItems();
 
+    static void NetClientUpdateStorage(unsigned servernodeid, VariantMap& eventData);
+
     void Dump();
 
     virtual void OnSetEnabled();
@@ -79,6 +81,7 @@ private :
     bool activeThrow_;
     bool buildObjects_;
     bool removeParts_;
+    bool throwItemsRunning_;
 
     float radius_;
     int numHitsToTrig_;

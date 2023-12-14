@@ -44,7 +44,8 @@ GOC_AIController::GOC_AIController(Context* context, int type) :
     targetID_(0),
     started_(0),
     targetDetection_(false),
-    alwaysUpdate_(false)
+    alwaysUpdate_(false),
+    externalController_(0)
 {
     SetMainController(true);
     aiInfos_.buttons = 0;
@@ -90,12 +91,12 @@ void GOC_AIController::SetDetectTarget(bool enable, float radius)
     targetDetection_ = enable;
 }
 
-void GOC_AIController::SetTarget(unsigned targetID)
+void GOC_AIController::SetTarget(unsigned targetID, bool reset)
 {
-    if (!targetID && aiInfos_.targetID)
+    if (!targetID && aiInfos_.targetID && !reset)
         targetID = aiInfos_.targetID;
 
-    if (targetID == node_->GetID())
+    if (targetID == node_->GetID() && !reset)
         return;
 
     targetID_ = targetID;
@@ -107,9 +108,9 @@ void GOC_AIController::SetTarget(unsigned targetID)
         aiInfos_.targetID = aiInfos_.target ? targetID_ : 0;
     }
 
-//    URHO3D_LOGINFOF("GOC_AIController() - SetTarget %s(%u) : set target node=%s(id=%u ptr=%u)",
-//                    node_->GetName().CString(), node_->GetID(), aiInfos_.target ? aiInfos_.target->GetName().CString() : "",
-//                    aiInfos_.target ? aiInfos_.target->GetID() : 0, aiInfos_.target.Get());
+    URHO3D_LOGINFOF("GOC_AIController() - SetTarget %s(%u) : set target node=%s(id=%u ptr=%u)",
+                    node_->GetName().CString(), node_->GetID(), aiInfos_.target ? aiInfos_.target->GetName().CString() : "",
+                    aiInfos_.target ? aiInfos_.target->GetID() : 0, aiInfos_.target.Get());
 }
 
 void GOC_AIController::SetBehavior(unsigned b)
@@ -119,8 +120,8 @@ void GOC_AIController::SetBehavior(unsigned b)
         behavior_ = b;
 
         Behavior* behavior = Behaviors::Get(behavior_);
-//        URHO3D_LOGINFOF("GOC_AIController() - SetBehavior : %s(%u) behavior=%s", node_->GetName().CString(), node_->GetID(),
-//                         behavior->GetTypeName().Substring(4).CString());
+        URHO3D_LOGINFOF("GOC_AIController() - SetBehavior : %s(%u) behavior=%s", node_->GetName().CString(), node_->GetID(),
+                         behavior->GetTypeName().Substring(4).CString());
     }
 }
 
@@ -159,8 +160,8 @@ Behavior* GOC_AIController::StartBehavior(unsigned b, bool forced)
 
     if (behavior_ && behavior_ != b)
     {
-//        URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : node=%s(%u) ... stop previous behavior",
-//                        node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : node=%s(%u) ... stop previous behavior",
+                        node_->GetName().CString(), node_->GetID());
         StopBehavior();
     }
 
@@ -171,9 +172,10 @@ Behavior* GOC_AIController::StartBehavior(unsigned b, bool forced)
         if (behavior_ != b || forced)
         {
             SetBehavior(b);
+
             behavior->Start(*this);
-//            URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : %s(%u) behavior=%s ... OK !", node_->GetName().CString(), node_->GetID(),
-//                                    behavior ? behavior->GetTypeName().Substring(4).CString() : "unknow");
+            URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : %s(%u) behavior=%s ... OK !", node_->GetName().CString(), node_->GetID(),
+                                    behavior ? behavior->GetTypeName().Substring(4).CString() : "unknow");
         }
     }
 
@@ -267,6 +269,18 @@ void GOC_AIController::Stop()
     }
 
     started_ = false;
+}
+
+void GOC_AIController::MountOn(Node* node)
+{
+    SetTarget(node->GetID(), true);
+    StartBehavior(GOB_MOUNTON, true);
+}
+
+void GOC_AIController::Unmount()
+{
+    SetTarget(0, true);
+    StopBehavior();
 }
 
 void GOC_AIController::ResetOrder()
@@ -439,6 +453,9 @@ Behavior* GOC_AIController::ChooseBehavior()
 
     Behavior* behavior = 0;
 
+//    URHO3D_LOGINFOF("GOC_AIController() - ChooseBehavior() : choose behavior ... ally=%s target=%u mountedon=%u",
+//                    GetControllerType() & GO_AI_Ally ? "true":"false", aiInfos_.target?aiInfos_.target->GetID():0, node_->GetVar(GOA::ISMOUNTEDON).GetUInt());
+
     if (aiInfos_.target)
     {
         if (GetControllerType() & GO_AI_Ally)
@@ -469,6 +486,12 @@ bool GOC_AIController::Update(unsigned time)
     if (!IsStarted())
         return true;
 
+    if (externalController_)
+    {
+        bool update = GOC_Controller::Update(externalController_->control_.buttons_, true);
+        return true;
+    }
+
 //    URHO3D_LOGINFOF("GOC_AIController() - Update : node=%s(%u) targetdetection=%d updateaggro=%d ...", node_->GetName().CString(), node_->GetID(), targetDetection_, aiInfos_.updateAggressivity);
 
     if (targetDetection_)
@@ -487,6 +510,10 @@ bool GOC_AIController::Update(unsigned time)
         URHO3D_LOGINFOF("GOC_AIController() - Update() : can't find behavior for node %u ! Waiting for new behavior ", node_->GetID());
         return true;
     }
+//    else
+//    {
+//        URHO3D_LOGINFOF("GOC_AIController() - Update() : choose behavior %s", behavior->GetTypeName().CString());
+//    }
 
     lastTime_ = time;
 
@@ -615,6 +642,16 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
     if (selectedID < 2)
         return;
 
+    if (selectedID == node_->GetID())
+    {
+        URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u <= selected target %u ... stop behavior !",
+                         node_->GetID(), selectedID);
+        return;
+//        SetTarget(0, true);
+//        StopBehavior();
+//        return;
+    }
+
     if (type == GO_AI_Enemy)
     {
         Node* selectedNode = GetScene()->GetNode(selectedID);
@@ -628,21 +665,20 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
             StartBehavior(GOB_FOLLOWATTACK);
         }
     }
-    else if (type & (GO_Player|GO_AI_Ally))
+    else if (type & (GO_Player|GO_NetPlayer|GO_AI_Ally))
     {
         Node* selectedNode = GetScene()->GetNode(selectedID);
-
-        URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u selected target %u node=%u ...",
-                         node_->GetID(), selectedID, selectedNode);
-
         if (!selectedNode)
             return;
 
         unsigned mountedOnID = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
-        Node* mountedOnNode = mountedOnID ? GetScene()->GetNode(mountedOnID) : 0;
+        Node* mountedOnNode  = mountedOnID ? GetScene()->GetNode(mountedOnID) : 0;
+
+        URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u selected target %u node=%u mountedID=%u ...",
+                         node_->GetID(), selectedID, selectedNode, mountedOnID);
 
         // if selectnode is the node
-        if (selectedNode == node_)
+        if (selectedID == mountedOnID)
         {
             SetTarget(0);
 
@@ -651,7 +687,6 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
             {
                 URHO3D_LOGINFOF("GOC_AIController() - OnEntitySelection : ID=%u on Mounted Node=%s(%u) => Unmount and Follow !",
                                 node_->GetID(), mountedOnNode->GetName().CString(), mountedOnNode->GetID());
-
                 StartBehavior(GOB_FOLLOW);
             }
             else
@@ -671,7 +706,7 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
 
             Vector2 delta = selectedNode->GetPosition2D() - node_->GetPosition2D();
             // Follow if not near
-            if (delta.LengthSquared() > 1.f)
+            if (delta.LengthSquared() > DISTANCEFORMOUNT)
             {
                 URHO3D_LOGINFOF("GOC_AIController() - OnEntitySelection : ID=%u on friend node=%s(%u) => Follow !",
                                 node_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());

@@ -5,10 +5,47 @@
 - ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique_
 ----------------------------------------------------------------------------
 
-Todos:   
-    
+Todos:
+
+    ☐ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients
+        plusieurs problemes surviennent alors :
+        -> si un buildabletype est disponible coté serveur et que coté client il n'y a pas la part pour ce build,
+            alors le pop se fera mais l'entity créée ne sera pas un follower de l'avatar client. donc pas de mount possible !
+            -> cela arrive souvent quand un collectable tombe dans le dropzone (sanctuaire) mais que le server envoit l'ordre de destruction avant
+            ==> on pourrait mettre une tempo sur la destruction
+        -> si le trigger attack coté avatar client ne se déclenche pas (mais se déclenche coté server) alors on aura le meme resultat.
+        => sur ce composant, pour le buildable, SpawnEntity est en mode NetSpawning (ObjectControl == passif);
+           pour le throwItems, Collectable::DropSlotFrom=>SpawnEntity est en mode SkipNetSpawning (ObjectCommand == actif);
+        ==> si serverMode, il faut envoyer un message indiquant le storage disponible pour le dropzone si le storage est modifié et le dernier ajout/suppression d'items.
+        ==> le client verifie alors le storage, le modifie si besoin et spawn si besoin.
+        ==> il faut donc envoyer pour le additem et le throwitem une netcommand pour mettre à jour le storage.
+        ===> OK ajout de GOC_DropZone::NetClientUpdateStorage, NetCommand UPDATEITEMSSTORAGE et GameEvents GO_STORAGECHANGED
+        ===> voir si on ne peut pas ameliorer l'envoi ... reduire la taille des messages ...
+
+    ☐ 12/12/2023 : Monter une entité allié en reseau pose probleme
+        -> il y a un décalage énorme qui se crée qui est du à GameHelpers::SetPhysicProperties qui gère le positionnement local (pas World)
+        -> lorsque le node est mis en enfant, le PrepareControl va envoyer des positions World ...
+        ==> correctif dans PrepareControl, utiliser le Positionnement local
+        ==> correctif dans PrepareControl et UpdateControl ne pas setter les positions si le node est monté sinon il y aura ce problème du à l'envoi/reception de positions alors que l'etat monté n'est pas encore repliquer.
+        -> il faut communiquer le montage au second client, pour que le node soit accroché à la monture.
+        ==> OK : le server envoit aux autres clients la netcommand MOUNTENTITYON, (ajout Client_MountNode)
+        -> quand on est monté le changement d'avatar n'est pas répliqué coté client distant.
+        ==> modifier GOC_Controller::ChangeAvatar pour integrer le mount et unmount.
+
+    ✔ 12/12/2023 : le spawn de furniture coté server -> client est à implementer
+        -> ajout de World2D::NetSpawnFurniture, modification Map::AddFurniture pour l'ajout de l'objectcontrol
+        -> desactivation de l'Editeur si ClientMode
+        --> le probleme : ca associe un ObjectControlInfo, ce que l'on ne veut pas pour des furnitures qui seront static.
+        ---> utilisation de la NetCommand ADDFURNITURE
+        ---> modification de furnitures.json: seules les furnitures marquées replicateMode=1 seront NetSpawnable
+
+    ✔ 12/12/2023 : ajout du spawn de collectables : le drop d'item n'est pas suffisant, l'editeur a besoin d'un spawn specifique notamment pour les collectableparts @done(23-12-13 09:58)
+
+    ☐ 12/12/2023 : coté client, le spawn d'eliegor seed pose probleme (c'est un exemple d'autres entités droppés par GOC_DropZone vont avoir ce probleme avec le storage initial)
+        -> si le client n'a pas un état initial synchronisé avec le server (Snap Initial ok), alors coté client eliegorflower va spawner une graine que le server n'a plus en stock
+
     ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
-    
+
     ☐ 07/12/2023 : les bosszones ne fonctionnent pas en reseau
 
     ✔ 07/12/2023 : ObjectControl : pb desynchronisation du spawnstamp @done(23-12-07 19:06)
@@ -48,7 +85,7 @@ Todos:
             les ObjectCommands reçus et non taggés "InOrder" peuvent être executés.
             les ObjectCommands reçus et taggés "InOrder" sont executé quand ils arrivent en tête de séquence. la Tete de sequence correspond au stampAck qui est envoyé vers l'emetteur pour l'informer de la reception
             ce stamp ack est envoyé tant que le stamp reçu est égal à celui-ci
-            si le stamp reçu est nouveau par rapport au stamp ack, le stamp ack est incrémenté jusqu'au prochain trou dans la séquence. et les ObjectCommands sont alors executés jusqu'à cette nouvelle Tete.            
+            si le stamp reçu est nouveau par rapport au stamp ack, le stamp ack est incrémenté jusqu'au prochain trou dans la séquence. et les ObjectCommands sont alors executés jusqu'à cette nouvelle Tete.
         => 4/12/2023 : gros refactor du ObjectCommand
         ==> les ObjectCommand sont préparé dans des ObjectCommandPacket puis envoyé via Connection
         ==> tant que les packets ne sont pas ACK reçus, ils sont renvoyés par l'emetteur
@@ -62,7 +99,7 @@ Todos:
         cf Map::AddEntity->AddSpawnControl qui force le spawn en servercontrolled : dans le cas des lames et des bombes cela ne passe normalement pas par ici mais par Ability::Use
         LOG SERVER avatar main apres 15 spawn
             [Fri Nov 24 12:37:57 2023] INFO: Player() - HandleClic : ID=1 at 421 716
-            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792836) ... spawnid=419430454(holderid=16777270,spawnstamp=25) ... 
+            [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792836) ... spawnid=419430454(holderid=16777270,spawnstamp=25) ...
             [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=2336413104 srvnodeid=16792836 cltnodeid=0 holderptr=2809938768(nodeid=16777270,clientid=0) spawnstamp=25 !
             [Fri Nov 24 12:37:57 2023] INFO: ABI_Shooter() - Use : pos=12.27,14.44 dir=-0.98,0.18 faction=1 viewZ=100
             [Fri Nov 24 12:37:59 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792836) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
@@ -70,13 +107,13 @@ Todos:
             [Fri Nov 24 12:37:59 2023] INFO: GameNetwork() - Server_RemoveObject : servernodeid=16792836 oinfo=2336413104 active=false clientnodeid=0 ... OK !
             ...
             [Fri Nov 24 12:38:07 2023] INFO: Player() - HandleClic : ID=1 at 894 239
-            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792822) ... spawnid=436207670(holderid=16777270,spawnstamp=26) ... 
+            [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - AddSpawnControl : ServerControl node=TA(16792822) ... spawnid=436207670(holderid=16777270,spawnstamp=26) ...
             [Fri Nov 24 12:38:07 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=2336407616 srvnodeid=16792822 cltnodeid=0 holderptr=2809938768(nodeid=16777270,clientid=0) spawnstamp=26 !
             [Fri Nov 24 12:38:07 2023] INFO: ABI_Shooter() - Use : pos=9.94,14.67 dir=-0.09,1.00 faction=1 viewZ=100
             [Fri Nov 24 12:38:09 2023] INFO: GOC_Destroyer() - Destroy : node=TA(16792822) ... enabled_=false delay=0.100000001490116 mode=FASTPOOLRESTORE ...
             [Fri Nov 24 12:38:09 2023] ERROR: GameNetwork() - PushObjectCommand : clientid=0(from:0) stamp=19(0) broadcast=true cmd=ERASENODE=1 nodeid=16792822 !
             [Fri Nov 24 12:38:09 2023] INFO: GameNetwork() - Server_RemoveObject : servernodeid=16792822 oinfo=2336407616 active=false clientnodeid=0 ... OK !
-        LOG CLIENT 
+        LOG CLIENT
             [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - HandlePlayClient_ReceiveServerUpdate : clientid=1 nodeclientid=0 servernodeid=16792836 oinfo=0 spawnid=419430454(holder=16777270,stamp=25) spawncontrol=false ... spawn entity ...
             [Fri Nov 24 12:37:57 2023] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 ... spawnid=419430454(holderid=16777270,spawnstamp=25) posreceived=12.27,14.45...
             [Fri Nov 24 12:37:57 2023] INFO: GameNetwork() - NetAddEntity : got=ABI_Shooter(3976370133) ... serverNodeID=16792836 clientNodeID=0 ...
@@ -106,21 +143,21 @@ Todos:
         1ere remarque : il n'est pas necessaire que le serveur envoit ERASENODE pour les objects qui ont un temps de vie fixé. (Lame, Bombe etc...)
         2eme remarque : la consommation en objectcontrol va etre importante, il faut penser à un pool d'objectcontrol.
         sur les lames (15 lames de qty de pool), pb de position,rotation lors du spawn apres les 15 premieres lame ... cela reprend la position des premiers pop
-            il n'y a pas le meme spawnid, le spawnstamp different. juste avant la 16 lame spawné cela se passe bien. 
+            il n'y a pas le meme spawnid, le spawnstamp different. juste avant la 16 lame spawné cela se passe bien.
             le server reutilise un ObjectControlInfo mais avec spawnstamp changé => le client reprend un ObjectControlInfo dans spawnControls_
             => cela vient de la reception, en desactivant ACTIVE_PACKEDOBJECTCONTROL, on retrouve le bon spawnid.
             ==> correctif pour s'assurer que le control est bien packé (faire le Pack dans Write).
         pour les Bombes, le probleme provient de l'animation qui va lancer parfois plusieurs bombes sur le main mais pas sur les remotes.
             => il se crée un décalage de spawnstamp : le spawnstamp est pris localement. Il n'y aura pas de synchro faite
             ==> des essais ont du etre fait (je me rappelle plus trop) avec localStamps_ et receivedStamps_ mais cela ne marchera pas avec les spawnstamp qui sont spécifiquement lié à un holderid.
-            => la correction de synchro est faite pour junkelspil en modifiant le tick. l'animation spawn l'entityBomb vers 400 et l'animation fait 600. 
+            => la correction de synchro est faite pour junkelspil en modifiant le tick. l'animation spawn l'entityBomb vers 400 et l'animation fait 600.
                 pour eviter la repetition de spawn mettre le tick à 0.6. prise d'un nouveau animatortemplate FlyAttackerJ.
             => pour le spawn avec le clic souris, il y a toujours pb de spawn (avec la touche attaque pas de pb) coté remote
             ==> le clic n'est pas envoyer coté remote
-            ===> le remote doit recevoir le changement de state ainsi que la direction de spawn. 
+            ===> le remote doit recevoir le changement de state ainsi que la direction de spawn.
                 il faut AddSpawnControl comme les lames (NetSpawnAllow=true) avec changement d'animation en STATE_ATTACK et intterdiction pour GOC_Animator de spawner une bombe dans ce cas.
             ====> OK : ajout de GOC_Animator2D::SetSpawnEntityMode(), et modification de Ability::Use(static) => ajout holder->SetSpawnEntityMode(SPAWNENTITY_SKIPONCE).
-                
+
     ☐ 22/11/2023 : mettre à jour network.svg
         Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
         Mettre des cas d'usage précis
@@ -168,13 +205,13 @@ Todos:
             [Mon Nov 20 21:43:06 2023] INFO: GOC_Destroyer() - Destroy : id=16777278 ... enabled_=true delay=0.100000001490116 mode=DISABLE ...
             [Mon Nov 20 21:43:06 2023] INFO: GOC_Destroyer() - OnSetEnabled : node=avatar(16777278) !maincontroller => keep update position !
             [Mon Nov 20 21:43:06 2023] INFO: GameNetwork() - Client_CommandRemoveObject : serverObjectControl id=16777278 inactived oldenable=0 enable=0 !
-            ==> pas d'autres reception apres ça                
+            ==> pas d'autres reception apres ça
         ===> surement un pb dans GameNetwork::CleanObjectCommands() coté server.
         ===> HandlePlayServer_ReceiveUpdate applique et renvoit les ObjectCommand si broadcast. Le serveur ne recoit que les ObjectCommand des clients qui emettent leur propre broadcast.
         ===> les autres clients envoient leur retour de reception dans Connection::serverObjCmdAck_ coté server
         ===> le serveur nettoie les ObjectCommand qui restent à envoyer en comparant les ObjCmdAck en prenant le plus vieux => oldestObjectCmdAck
         ====> 21/11/2023 : dans GameNetwork::CleanObjectCommands(), il ne faut pas compter dans la recherche de oldestObjectCmdAck les ObjCmdAck provenant des clients hors partie.
-        =====> Ok 
+        =====> Ok
 
     ✔ 20/11/2023 : la pluie apparait sur le serveur, un autre client mais pas le dernier @done(23-11-27 11:07)
         ajouter la synchronisation du temps au snap initial.
@@ -230,21 +267,21 @@ Todos:
                 ==> ok ajout de bool forceserver dans les parametres d'entree
                     il y a une affectation d'un nouveau ObjectControlInfo coté client dans le cas d'un changement du changement d'holderid mais pas coté serveur
                     LOG CLIENT
-                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ... 
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ...
                     [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=1975052248 srvnodeid=0 cltnodeid=16781278 holderptr=2483405888(nodeid=16777270,clientid=0) spawnstamp=12 !
                     ....
-                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ... 
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=1 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ...
                     [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=1975052640 srvnodeid=0 cltnodeid=16781278 holderptr=2484569936(nodeid=16777274,clientid=0) spawnstamp=13 !
                     LOG SERVER
-                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ... 
+                    [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=201326646(holderid=16777270,spawnstamp=12) ...
                     [Thu Nov 23 08:42:39 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3839142176 srvnodeid=16781278 cltnodeid=0 holderptr=17704784(nodeid=16777270,clientid=0) spawnstamp=12 !
                     ....
-                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ... 
+                    [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : clientid=0 toclientid=0 node=PirateGun(16781278) ... spawnid=218103866(holderid=16777274,spawnstamp=13) ...
                     [Thu Nov 23 08:42:46 2023] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3839142176 srvnodeid=16781278 cltnodeid=0 holderptr=25107040(nodeid=16777274,clientid=0) spawnstamp=13 !
                 =>  ne pas oublier que le ObjectControlInfo::SetActive() va effacer l'un des deux nodeids en fonction si c'est la machine est server ou client.
                     dans notre cas la machine est client, et AddSpawnControl cherche dans les serverObjectControls le servernodeid mais il est effacé (car desactivé),
                     donc un nouveau objectcontrolinfo est créé (ce que l'on ne veut pas)
-                    correctif : l'obtention du ObjectControlInfo doit etre faite en verifiant les deux nodeids (servernodeid, clientnodeid), si l'un des deux correspond on prend l'objectcontrol.                    
+                    correctif : l'obtention du ObjectControlInfo doit etre faite en verifiant les deux nodeids (servernodeid, clientnodeid), si l'un des deux correspond on prend l'objectcontrol.
             ✔ Drop Server => Replication Client, lorsque le server drop un item de qty 2, le client le ramasse mais c'est une qty 1. @done(23-11-22 15:39)
                 verifier que Client_TransferItem a la bonne quantity recue.
                 il s'agit du spawn qui est ecrasé par un NetSpawnEntity ordonné par ObjectControl.
@@ -285,7 +322,7 @@ Todos:
 
     ☐ 16/11/2023 : snap initial
         le serveur doit envoyer un snap initial au client qui se connecte.
-            cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS            
+            cela doit faire partie de la phase PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS
             tous les nodes ajoutés/retirés et les states : ex: l'etat des coffres(plein, vide), l'etat des lights(allumé,eteint)
             => il faut tracer dans World2D les ajout/suppression de nodes.
         le client recupère le snap et synchronise sa scene
@@ -338,7 +375,7 @@ Todos:
         ex: spawn coté serveur et destruction -> spawn coté client mais reste.
         -> il s'agit surement d'un probleme similaire à la collecte au sol de collectable
         ==> il faut que le serveur envoie une commande de remove object aux clients
-        => Resolu suite à la resolution du 23/11/2023 DROPITEM sur la synchro serveur/client des ObjectControl via AddSpawnControl        
+        => Resolu suite à la resolution du 23/11/2023 DROPITEM sur la synchro serveur/client des ObjectControl via AddSpawnControl
         25/11/2023 : Le grapin qui n'est pas encore accroché, ne s'efface pas coté remote
         => OK : Modification de GOC_PhysicRope::Release() => 3eme etat holderinfo_.id_ = M_MAX_UNSIGNED, modif GameNetwork::UpdateControl()
 
@@ -443,7 +480,7 @@ Todos:
                 [Thu Nov 23 14:32:05 2023] INFO: GOC_Destroyer() - Destroy : node=avatar(16777278) ... enabled_=true delay=0.100000001490116 mode=DISABLE ...
                 [Thu Nov 23 14:32:05 2023] INFO: GOC_Destroyer() - OnSetEnabled : node=avatar(16777278) !maincontroller => keep update position !
                 [Thu Nov 23 14:32:05 2023] INFO: GOC_Collide2D() - OnSetEnabled : avatar(16777278) ... scene=2603929264 enable=0 body=2729263248 shapes=0
-                à la premiere mort, GOC_BodyExploder a desactiver le RigidBody au moment de l'explosion puis, 
+                à la premiere mort, GOC_BodyExploder a desactiver le RigidBody au moment de l'explosion puis,
                 GOC_Collide2D::HandleDead desactive la CollisionShape qui n'a pas de contact Bottom (c'est le CollisionBox de corps)
                 Le Node est bien desactivé
             LOG CLIENT NON MAIN 2eme mort

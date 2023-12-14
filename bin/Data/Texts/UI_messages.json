@@ -201,6 +201,10 @@
 		"en":"White Server",
 		"fr":"Serveur White"
 	},	
+	"redserver":{
+		"en":"Red Server",
+		"fr":"Serveur Red"
+	},	
 	"thismachine":{
 		"en":"This Machine",
 		"fr":"Cette machine"

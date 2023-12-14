@@ -33,19 +33,25 @@ const char* netCommandNames[] =
     "NOACTION=0",
     "ERASENODE=1",
     "ENABLENODE=2",
-    "ADDNODE=3",
-    "EXPLODENODE=4",
-    "DISABLECLIENTOBJECTCONTROL=5",
-    "TRANSFERITEM=6",
-    "DROPITEM=7",
-    "SETITEM=8",
-    "UPDATEEQUIPMENT=9",
-    "SETFULLEQUIPMENT=10",
-    "SETFULLINVENTORY=11",
-    "CHANGETILE=12",
-    "SETWEATHER=13",
-    "SETWORLD=14",
-    "TRIGCLICKED=15",
+    "DISABLECLIENTOBJECTCONTROL=3",
+    "ADDNODE=4",
+    "EXPLODENODE=5",
+    "ADDFURNITURE=6",
+    "ADDCOLLECTABLE=7",
+    "TRANSFERITEM=8",
+    "DROPITEM=9",
+    "SETITEM=10",
+    "UPDATEEQUIPMENT=11",
+    "SETFULLEQUIPMENT=12",
+    "SETFULLINVENTORY=13",
+    "CHANGETILE=14",
+    "SETWEATHER=15",
+    "SETWORLD=16",
+    "TRIGCLICKED=17",
+    "ENTITYSELECTED=18",
+    "MOUNTENTITYON=19",
+    "UPDATEITEMSSTORAGE=20",
+    0
 };
 
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
@@ -376,5 +382,5 @@ void ObjectCommand::Dump() const
     unsigned nodeid = cmd_.Find(Net_ObjectCommand::P_NODEID)->second_.GetUInt();
 
     URHO3D_LOGINFOF("ObjectCommand() - Dump : cmd=%s(%d) nodeid=%u clientid=%d broadcast=%s !",
-                    netCommandNames[cmd], cmd, nodeid, clientId_, broadCast_?"true":"false");
+                    cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", cmd, nodeid, clientId_, broadCast_?"true":"false");
 }

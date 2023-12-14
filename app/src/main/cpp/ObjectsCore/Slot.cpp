@@ -427,8 +427,23 @@ void Slot::GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty)
     slotData[Net_ObjectCommand::P_SLOTCOLOR] = slot.color_;
 }
 
+VariantVector Slot::GetSlotDatas(const Vector<Slot>& slots)
+{
+    VariantVector datas;
 
+    if (slots.Size())
+    {
+        datas.Reserve(slots.Size());
+        for (unsigned i=0; i < slots.Size(); ++i)
+        {
+            const Slot& slot = slots[i];
+            if (!slot.quantity_)
+                continue;
 
-
+            datas.Push(Slot::GetSlotAttr(slot));
+        }
+    }
+    return datas;
+}
 
 

@@ -166,6 +166,11 @@ Player::~Player()
     URHO3D_LOGINFOF("~Player() - ID=%u ...", GetID());
 
     //Stop();
+    if (avatar_)
+    {
+        MountInfo mountinfo(avatar_);
+        GameHelpers::UnmountNode(mountinfo);
+    }
 
     if (equipment_)
     {
@@ -472,45 +477,9 @@ void Player::UpdateAvatar(bool forced)
         initialposition = gocDestroyer_->GetWorldMapPosition();
     }
 
-    // Unmount the avatar
-    Node* carrier = 0;
-    if (avatar_ && avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt())
-    {
-        carrier = avatar_->GetScene()->GetNode(avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt());
-        Unmount();
-    }
-
-    // Unmount the entities that are mounted on the avatar
-    Vector<SharedPtr<Node> > mountedAIs;
-    Vector<SharedPtr<Node> > mountedPlayers;
-    if (avatar_)
-    {
-        for (Vector<SharedPtr<Node> >::ConstIterator it=avatar_->GetChildren().Begin(); it!=avatar_->GetChildren().End(); ++it)
-        {
-            Node* node = (*it);
-            GOC_Controller* mountedcontroller = node->GetDerivedComponent<GOC_Controller>();
-            if (mountedcontroller)
-            {
-                if (mountedcontroller->IsInstanceOf<GOC_AIController>())
-                {
-                    URHO3D_LOGINFOF("Player() - UpdateAvatar : ... children umount aicontroller %s(%u) !", node->GetName().CString(), node->GetID());
-//                    mountedAIs.Push(static_cast<GOC_AIController*>(mountedcontroller));
-                    mountedAIs.Push(SharedPtr<Node>(node));
-                }
-                else if (mountedcontroller->IsInstanceOf<GOC_PlayerController>())
-                {
-                    URHO3D_LOGINFOF("Player() - UpdateAvatar : ... children umount player %s(%u) !", node->GetName().CString(), node->GetID());
-                    mountedPlayers.Push(SharedPtr<Node>(node));
-//                    mountedPlayers.Push(static_cast<Player*>(static_cast<GOC_PlayerController*>(mountedcontroller)->GetThinker()));
-                }
-            }
-        }
-
-        for (Vector<SharedPtr<Node> >::Iterator it=mountedAIs.Begin(); it!=mountedAIs.End(); ++it)
-            (*it)->GetComponent<GOC_AIController>()->StopBehavior();
-        for (Vector<SharedPtr<Node> >::Iterator it=mountedPlayers.Begin(); it!=mountedPlayers.End(); ++it)
-            static_cast<Player*>((*it)->GetComponent<GOC_PlayerController>()->GetThinker())->Unmount();
-    }
+    // Unmount the avatar if mounted
+    MountInfo mountinfo(avatar_);
+    GameHelpers::UnmountNode(mountinfo);
 
     SaveState();
 
@@ -531,29 +500,8 @@ void Player::UpdateAvatar(bool forced)
 
     Actor::Start(false, initialposition);
 
-    // Remount Previous Mounted Entities
-    if (avatar_)
-    {
-        for (Vector<SharedPtr<Node> >::Iterator it=mountedAIs.Begin(); it!=mountedAIs.End(); ++it)
-        {
-            GOC_AIController* aicontroller = (*it)->GetComponent<GOC_AIController>();
-
-            URHO3D_LOGINFOF("Player() - UpdateAvatar : ... children remount %s(%u) !", (*it)->GetName().CString(), (*it)->GetID());
-
-            aicontroller->GetaiInfos().target = avatar_;
-            aicontroller->StartBehavior();
-        }
-        for (Vector<SharedPtr<Node> >::Iterator it=mountedPlayers.Begin(); it!=mountedPlayers.End(); ++it)
-        {
-            static_cast<Player*>((*it)->GetComponent<GOC_PlayerController>()->GetThinker())->MountOn(avatar_);
-        }
-    }
-
-    // Remount the avatar on the carrier
-    if (carrier)
-    {
-        MountOn(carrier);
-    }
+    // Remount the avatar on the mount ad other entities mounted on avatar_
+    GameHelpers::MountNode(mountinfo);
 
     dirtyPlayer_ = false;
 
@@ -903,7 +851,7 @@ void Player::SwitchViewZ(int newViewZ)
 }
 
 
-void Player::MountOn(Node* target)
+void Player::MountOn(Node* target, bool sendnetevent)
 {
     if (!avatar_ || !target)
         return;
@@ -916,6 +864,7 @@ void Player::MountOn(Node* target)
     if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt() == target->GetID())
         return;
 
+    // if the player is a CPU
     GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
     if (aicontroller)
     {
@@ -929,47 +878,85 @@ void Player::MountOn(Node* target)
     if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt())
         Unmount();
 
-    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) ...", avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID());
-
     avatar_->SetVar(GOA::ISMOUNTEDON, target->GetID());
-    avatar_->SetParent(target);
+
+    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
+
+    Node* mountNode = target->GetChild(MOUNTNODE, true);
+
+    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) mountNode=%s...",
+                    avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID(), mountNode?"true":"false");
+    if (mountNode)
+    {
+        body->SetEnabled(false);
+
+        avatar_->SetParent(mountNode);
+        avatar_->SetPosition2D(Vector2::ZERO);
+    }
+    else
+    {
+        // If not MountNode exists, set the position of the node on the top of the target
+
+//        body->SetEnabled(false);
+        // Divide Mass
+        body->SetMass(body->GetMass() * 0.5f);
+
+        avatar_->SetParent(target);
+
+        GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
+        if (targetdestroyer)
+            avatar_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
+        else
+            avatar_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
+
+        ConstraintWeld2D* constraintWeld = avatar_->CreateComponent<ConstraintWeld2D>();
+        constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
+        constraintWeld->SetAnchor(avatar_->GetWorldPosition2D());
+        constraintWeld->SetFrequencyHz(4.0f);
+        constraintWeld->SetDampingRatio(0.5f);
+    }
+
     avatar_->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
     avatar_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
     if (target->GetComponent<GOC_Animator2D>())
         avatar_->GetComponent<GOC_Animator2D>()->SetDirection(target->GetComponent<GOC_Animator2D>()->GetDirection());
 
-    // Divide Mass
-    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
-    if (body)
-        body->SetMass(body->GetMass() * 0.5f);
+    gocDestroyer_->SetViewZ();
+
+
+    // if Player only (not netplayer who doesn't need to set these attributes)
+    if (gocController->GetControllerType() == GO_Player)
+    {
+        gocDestroyer_->SetEnableUnstuck(false);
+        gocDestroyer_->SetEnablePositionUpdate(false);
+    }
 
     GOC_Inventory* inventory = avatar_->GetComponent<GOC_Inventory>();
     if (inventory)
         inventory->SetEnabled(false);
 
-    // Set the position of the node on the top of the target
-    // TODO : Add a node Mounted in all animations (adapt the method used for the swords or wing)
-    GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
-    if (targetdestroyer)
-        avatar_->SetWorldPosition2D(Vector2(0.f, targetdestroyer->GetWorldShapesRect().max_.y_));
-    else
-        avatar_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
+    avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(false);
 
-    if (gocDestroyer_)
-        gocDestroyer_->SetViewZ();
+    // for the target set the External Controller.
+    GOC_AIController* targetcontroller = target->GetComponent<GOC_AIController>();
+    if (targetcontroller)
+        targetcontroller->SetExternalController(avatar_->GetDerivedComponent<GOC_Controller>());
 
-    ConstraintWeld2D* constraintWeld = avatar_->CreateComponent<ConstraintWeld2D>();
-    constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
-    constraintWeld->SetAnchor(avatar_->GetWorldPosition2D());
-    constraintWeld->SetFrequencyHz(4.0f);
-    constraintWeld->SetDampingRatio(0.5f);
+    if (GameContext::Get().ServerMode_ && sendnetevent)
+    {
+        VariantMap& eventData = context_->GetEventDataMap();
+        eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
+        eventData[Net_ObjectCommand::P_NODEPTRFROM] = target->GetID();
+        eventData[Net_ObjectCommand::P_CLIENTID] = clientID_;
+        avatar_->SendEvent(GO_MOUNTEDON, eventData);
+    }
 
-    SubscribeToEvent(avatar_, GOC_CONTROLUPDATE, URHO3D_HANDLER(Player, OnMountControlUpdate));
-
-    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) ... OK !", avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID());
+    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) position=%s worldposition=%s... OK !",
+                     avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID(),
+                     avatar_->GetPosition().ToString().CString(), avatar_->GetWorldPosition().ToString().CString());
 }
 
-void Player::Unmount()
+void Player::Unmount(bool sendnetevent)
 {
     if (!avatar_)
         return;
@@ -977,6 +964,7 @@ void Player::Unmount()
     if (!avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt())
         return;
 
+    // if the player is a CPU
     GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
     if (aicontroller)
     {
@@ -987,18 +975,17 @@ void Player::Unmount()
 
     URHO3D_LOGINFOF("Player() - Unmount : ...");
 
-    UnsubscribeFromEvent(avatar_, GOC_CONTROLUPDATE);
+//    UnsubscribeFromEvent(avatar_, GOC_CONTROLUPDATE);
 
-    unsigned parentid = avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt();
-
-    PODVector<ConstraintWeld2D* > contraints;
+    unsigned targetid = avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt();
 
     // Get Contraints on the node and remove
+    PODVector<ConstraintWeld2D* > contraints;
     avatar_->GetComponents<ConstraintWeld2D>(contraints);
     for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
     {
         ConstraintWeld2D* constraint = *it;
-        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == parentid)
+        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
         {
             constraint->ReleaseJoint();
             constraint->Remove();
@@ -1017,24 +1004,53 @@ void Player::Unmount()
         }
     }
 
-    // Restore Mass
-    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
-    if (body)
-        body->SetMass(body->GetMass() * 2.f);
-
     // Restore to RootScene
     avatar_->SetVar(GOA::ISMOUNTEDON, unsigned(0));
     avatar_->SetParent(GameContext::Get().rootScene_);
     avatar_->GetComponent<GOC_Animator2D>()->ResetState();
+
+    // Restore Body
+    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
+    if (body)
+    {
+        body->SetMass(body->GetMass() * 2.f);
+        body->SetEnabled(true);
+    }
+
     gocDestroyer_->SetViewZ();
 
     GOC_Move2D* move2d = avatar_->GetComponent<GOC_Move2D>();
     if (move2d)
         move2d->SetMoveType(move2d->GetLastMoveType());
 
+
     GOC_Inventory* inventory = avatar_->GetComponent<GOC_Inventory>();
     if (inventory)
         inventory->SetEnabled(true);
+
+    // if Player only (not netplayer who need to keep these attributes desactivated)
+    if (gocController->GetControllerType() == GO_Player)
+    {
+        gocDestroyer_->SetEnablePositionUpdate(true);
+        gocDestroyer_->SetEnableUnstuck(true);
+    }
+
+    avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(true);
+
+    // for the target reset the External Controller.
+    Node* target = GetScene()->GetNode(targetid);
+    GOC_AIController* targetcontroller = target ? target->GetComponent<GOC_AIController>() : 0;
+    if (targetcontroller)
+        targetcontroller->SetExternalController(0);
+
+    if (GameContext::Get().ServerMode_, sendnetevent)
+    {
+        VariantMap& eventData = context_->GetEventDataMap();
+        eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
+        eventData[Net_ObjectCommand::P_NODEPTRFROM] = 0U;
+        eventData[Net_ObjectCommand::P_CLIENTID] = clientID_;
+        avatar_->SendEvent(GO_MOUNTEDON, eventData);
+    }
 
     URHO3D_LOGINFOF("Player() - Unmount : ... OK !");
 }
@@ -2137,43 +2153,40 @@ void Player::StartSubscribers()
         SubscribeToEvent(WEATHER_TWILIGHT, URHO3D_HANDLER(Player, HandleUpdateTimePeriod));
     }
 
-//    if (mainController_)
+    gocController->ResetButtons();
+
+    if (mainController_)
     {
-        gocController->ResetButtons();
-
-//        if ((gocController->GetControllerType() == GO_Player ||  gocController->GetControllerType() == GO_AI_Ally) && scene_->GetComponent<PhysicsWorld2D>())
-        if (mainController_)
+        if (controlID_ == 0)
         {
-            if (controlID_ == 0)
+            SubscribeToEvent(E_RELEASED, URHO3D_HANDLER(Player, HandleClic));
+            SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Player, HandleClic));
+            SubscribeToEvent(E_TOUCHEND, URHO3D_HANDLER(Player, HandleClic));
+
+            URHO3D_LOGINFOF("Player() - Start : player ID=%u subscribe HandleClic !", GetID());
+
+            if (missionEnable_)
             {
-                SubscribeToEvent(E_RELEASED, URHO3D_HANDLER(Player, HandleClic));
-                SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Player, HandleClic));
-                SubscribeToEvent(E_TOUCHEND, URHO3D_HANDLER(Player, HandleClic));
-
-                URHO3D_LOGINFOF("Player() - Start : player ID=%u subscribe HandleClic !", GetID());
-
-                if (missionEnable_)
+                if (missionManager_ && !missionManager_->IsStarted())
                 {
-                    if (missionManager_ && !missionManager_->IsStarted())
-                    {
-                        SubscribeToEvent(this, GO_PLAYERMISSIONMANAGERSTART, URHO3D_HANDLER(Player, HandleDelayedActions));
-                        DelayInformer* delayedMissionStart = new DelayInformer(this, 7.f, GO_PLAYERMISSIONMANAGERSTART);
-                    }
-                }
-                else
-                {
-                    UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
+                    SubscribeToEvent(this, GO_PLAYERMISSIONMANAGERSTART, URHO3D_HANDLER(Player, HandleDelayedActions));
+                    DelayInformer* delayedMissionStart = new DelayInformer(this, 7.f, GO_PLAYERMISSIONMANAGERSTART);
                 }
             }
-
-            if (gocController->GetControllerType() == GO_Player)
-                SubscribeToEvent(GO_SELECTED, URHO3D_HANDLER(Player, OnEntitySelection));
-
-            SubscribeToEvent(avatar_, GO_INVENTORYGET, URHO3D_HANDLER(Player, OnGetCollectable));
-            SubscribeToEvent(this, GO_PLAYERTRANSFERCOLLECTABLESTART, URHO3D_HANDLER(Player, OnStartTransferCollectable));
-            SubscribeToEvent(this, GO_PLAYERTRANSFERCOLLECTABLEFINISH, URHO3D_HANDLER(Player, OnReceiveCollectable));
+            else
+            {
+                UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
+            }
         }
+
+        SubscribeToEvent(avatar_, GO_INVENTORYGET, URHO3D_HANDLER(Player, OnGetCollectable));
+        SubscribeToEvent(this, GO_PLAYERTRANSFERCOLLECTABLESTART, URHO3D_HANDLER(Player, OnStartTransferCollectable));
+        SubscribeToEvent(this, GO_PLAYERTRANSFERCOLLECTABLEFINISH, URHO3D_HANDLER(Player, OnReceiveCollectable));
     }
+
+    if ((GameContext::Get().ServerMode_ && (gocController->GetControllerType() & (GO_Player | GO_NetPlayer))) ||
+        (!GameContext::Get().ServerMode_ && (gocController->GetControllerType() & GO_Player)))
+        SubscribeToEvent(avatar_, GO_SELECTED, URHO3D_HANDLER(Player, OnEntitySelection));
 
     SubscribeToEvent(E_SCENEPOSTUPDATE, URHO3D_HANDLER(Player, OnPostUpdate));
 }
@@ -2230,15 +2243,12 @@ void Player::StopSubscribers()
                 UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
         }
 
-        if (avatar_ && gocController)
-        {
-            if (gocController->GetControllerType() == GO_Player)
-                UnsubscribeFromEvent(GO_SELECTED);
-        }
-
         UnsubscribeFromEvent(this, GO_PLAYERTRANSFERCOLLECTABLESTART);
         UnsubscribeFromEvent(this, GO_PLAYERTRANSFERCOLLECTABLEFINISH);
     }
+
+    if (avatar_ && gocController)
+        UnsubscribeFromEvent(avatar_, GO_SELECTED);
 
     UnsubscribeFromEvent(E_SCENEPOSTUPDATE);
 
@@ -2505,21 +2515,30 @@ void Player::OnEntitySelection(StringHash eventType, VariantMap& eventData)
             Vector2 delta = selectedNode->GetWorldPosition2D() - avatar_->GetWorldPosition2D();
 
             // Mount if near
-            if (delta.LengthSquared() <= 1.f)
+            if (delta.LengthSquared() <= DISTANCEFORMOUNT)
             {
                 URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) mount on target %s(%u) ...",
                                 avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
-                MountOn(selectedNode);
+                MountOn(selectedNode, true);
             }
+        }
+        else if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt() == selectedNode->GetID())
+        {
+            URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) unmount from target %s(%u) ...",
+                                avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
+            Unmount(true);
         }
     }
 }
 
 void Player::OnMountControlUpdate(StringHash eventType, VariantMap& eventData)
 {
-    // On Jump => Unmount
-    if (avatar_->GetDerivedComponent<GOC_Controller>()->control_.buttons_ & CTRL_JUMP)
-        Unmount();
+    // On Fire => Unmount
+//    if (avatar_->GetDerivedComponent<GOC_Controller>()->control_.buttons_ & CTRL_FIRE3)
+//    {
+//        Unmount();
+//        return;
+//    }
 }
 
 void Player::OnReceiveCollectable(StringHash eventType, VariantMap& eventData)
@@ -2824,8 +2843,11 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
 
         if (shape->IsTrigger())
         {
-            body->GetNode()->SendEvent(GO_TRIGCLICKED);
+//            VariantMap goEventData;
+            VariantMap& goEventData = context_->GetEventDataMap();
+            body->GetNode()->SendEvent(GO_TRIGCLICKED, goEventData);
             URHO3D_LOGINFOF("Player() - HandleClic : ID=%u - Clic on the Trigger of %s(%u) shapeviewz=%d nodepos=%s", GetID(), node->GetName().CString(), node->GetID(), shape->GetViewZ(), node->GetWorldPosition2D().ToString().CString());
+            return;
         }
         else
         {
@@ -2838,11 +2860,14 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
                 if (gocdestroyer)
                     gocdestroyer->DumpWorldMapPositions();
 
+//                VariantMap goEventData;
                 VariantMap& goEventData = context_->GetEventDataMap();
+                goEventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
                 goEventData[Go_Selected::GO_ID] = node->GetID();
                 goEventData[Go_Selected::GO_TYPE] = node->GetVar(GOA::TYPECONTROLLER).GetInt();
                 goEventData[Go_Selected::GO_ACTION] = 0;
                 avatar_->SendEvent(GO_SELECTED, goEventData);
+                return;
             }
             else if (!dialogInteractor_)
             {
@@ -2862,12 +2887,12 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
 
                             player->SetFaceTo(actor->GetAvatar());
 
-                            eventData.Clear();
-                            eventData[Dialog_Open::ACTOR_ID] = actor->GetID();
-                            eventData[Dialog_Open::PLAYER_ID] = player->GetID();
-                            actor->SendEvent(DIALOG_OPEN, eventData);
-                            player->SendEvent(DIALOG_OPEN, eventData);
-
+//                            VariantMap goEventData;
+                            VariantMap& goEventData = context_->GetEventDataMap();
+                            goEventData[Dialog_Open::ACTOR_ID] = actor->GetID();
+                            goEventData[Dialog_Open::PLAYER_ID] = player->GetID();
+                            actor->SendEvent(DIALOG_OPEN, goEventData);
+                            player->SendEvent(DIALOG_OPEN, goEventData);
                             return;
                         }
                     }

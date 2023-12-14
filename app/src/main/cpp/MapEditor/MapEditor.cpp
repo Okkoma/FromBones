@@ -170,7 +170,6 @@ bool MapEditor::LoadLibrary()
     SubscribeToEvent(scriptFile_, E_RELOADFAILED, URHO3D_HANDLER(MapEditor, HandleScriptReloadFailed));
 
     return true;
-
 #else
     #ifdef EDITORMODE2
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : load Editor Lib ... restorefocus=%u", sMapEditorSavedFocusState_);
@@ -253,8 +252,13 @@ void MapEditor::Toggle()
 {
     if (!mapEditor_)
     {
+        if (GameContext::Get().ClientMode_)
+        {
+            URHO3D_LOGERRORF("MapEditor() - Can't instantiate in ClientMode !");
+            return;
+        }
+
         mapEditor_ = new MapEditor(GameContext::Get().context_);
-        mapEditor_->Start();
     }
     else
     {

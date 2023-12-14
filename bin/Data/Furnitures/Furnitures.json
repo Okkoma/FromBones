@@ -4,7 +4,7 @@
 		"sscategory":"Hall|Corridor|Forge",
 		"fileName":"Furnitures/feudecamp.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -14,7 +14,7 @@
 		"sscategory":"Office",
 		"fileName":"Furnitures/bougie.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -24,7 +24,7 @@
 		"sscategory":"Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",
 		"fileName":"Furnitures/table.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 100,
 		"defaultValue":0
 	}
@@ -33,7 +33,7 @@
 		"sscategory":"Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",
 		"fileName":"Furnitures/tablegarnie.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"defaultValue":0
 	}
@@ -42,7 +42,7 @@
 		"sscategory":"Chamber|Office|Bedroom",
 		"fileName":"Furnitures/armoire.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"entityVariation":1,
 		"qtyInPool": 50,
 		"defaultValue":0
@@ -52,7 +52,7 @@
 		"sscategory":"Kitchen|Refectory|Sorcererroom|Priestroom",
 		"fileName":"Furnitures/marmite.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Tool|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 20,
 		"defaultValue":0
 	}
@@ -81,7 +81,7 @@
 		"sscategory":"Pit|Chamber|Kitchen|Refectory|Office|Library|Sorcererroom",		
 		"fileName":"Furnitures/escalier.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 20,
 		"defaultValue":0,
 		"sizex":2,
@@ -102,7 +102,7 @@
 		"category":"DungeonThreshold|Doors",
 		"fileName":"Furnitures/porte.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnBack|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 200,
 		"entityVariation":1,
 		"defaultValue":0
@@ -112,7 +112,7 @@
 		"sscategory":"Refectory|Bedroom|Office",
 		"fileName":"Furnitures/cheminee.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"defaultValue":0
 	}
@@ -121,7 +121,7 @@
 		"sscategory":"Kitchen|Refectory|Bedroom|Office",
 		"fileName":"Furnitures/chemineeallumee.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -131,7 +131,7 @@
 		"sscategory":"Forge",
 		"fileName":"Furnitures/enclume.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Tool|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"defaultValue":0
 	}
@@ -140,7 +140,7 @@
 		"sscategory":"Hall|Sorcererroom",
 		"fileName":"Furnitures/portal.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Usable|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -150,7 +150,7 @@
 		"sscategory":"Priestroom",
 		"fileName":"Furnitures/sanctuary.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -158,7 +158,7 @@
 	, "GOT_SteleRip":{
 		"fileName":"Furnitures/stelerip.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 10,
 		"maxDropQty":1,
 		"defaultValue":0
@@ -167,21 +167,21 @@
 		"category":"BiomeBackGround|Plants",
 		"fileName":"Furnitures/ltree.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 200,
 	}	
 	, "FUR_LTreeGrow":{
 	    "category":"Plants",
 		"fileName":"Furnitures/ltreegrow.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 	}
 	, "FUR_Plant01":{
 		"category":"BiomeExternal|BiomeExternalSides|BiomeBackGround|BiomeBackGroundSides|Plants",
 		"fileName":"Furnitures/plant01.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 1000,
 		"scaleVariation":4,
 		"entityVariation":1,
@@ -191,7 +191,7 @@
 		"category":"BiomeExternal|BiomeBackGround|Plants",
 		"fileName":"Furnitures/plant02.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 1000,
 		"scaleVariation":5,
 		"entityVariation":1,
@@ -201,7 +201,7 @@
 		"category":"BiomeExternal|BiomeBackGround|Plants",
 		"fileName":"Furnitures/plant04_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 1000,
 		"scaleVariation":6,
 		"defaultValue":0
@@ -210,7 +210,7 @@
 		"category":"BiomeCave|Plants",
 		"fileName":"Furnitures/plant05_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 500,
 		"scaleVariation":5,
 		"defaultValue":0
@@ -219,7 +219,7 @@
 		"category":"BiomeCave|Plants",
 		"fileName":"Furnitures/plant06_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 500,
 		"scaleVariation":5,
 		"defaultValue":0
@@ -228,7 +228,7 @@
 		"category":"BiomeCave|Plants",
 		"fileName":"Furnitures/plant07_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 500,
 		"scaleVariation":3,
 		"defaultValue":0
@@ -237,7 +237,7 @@
 		"category":"BiomeCave|BiomeCaveSides|BiomeCaveBottom|Plants",
 		"fileName":"Furnitures/plant08_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 4000,
 		"scaleVariation":3,
 		"defaultValue":0
@@ -246,7 +246,7 @@
 		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides|BiomeCaveBottom|Plants",
 		"fileName":"Furnitures/ronce01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 500,
 		"scaleVariation":3,
 		"defaultValue":0
@@ -255,7 +255,7 @@
 		"category":"BiomeExternal|Plants",
 		"fileName":"Furnitures/eliegorflower_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 200,
 		"scaleVariation":3,
 		"defaultValue":0
@@ -264,7 +264,7 @@
 		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides|Decorations",
 		"fileName":"Furnitures/tronc01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"scaleVariation":5,
 		"defaultValue":0
@@ -273,7 +273,7 @@
 		"category":"BiomeExternal|BiomeExternalSides|BiomeCave|BiomeCaveSides|Decorations",
 		"fileName":"Furnitures/tronc02_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"scaleVariation":5,
 		"defaultValue":0
@@ -283,7 +283,7 @@
 		"sscategory":"Pit",
 		"fileName":"Furnitures/rockpic01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 20,
 		"scaleVariation":5,
 		"maxDropQty":10,
@@ -295,7 +295,7 @@
 		"sscategory":"Pit",
 		"fileName":"Furnitures/rockpic02_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 20,
 		"scaleVariation":1,
 		"maxDropQty":10,
@@ -307,7 +307,7 @@
 		"sscategory":"Pit",
 		"fileName":"Furnitures/rockpic03_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 20,
 		"scaleVariation":3,
 		"maxDropQty":10,
@@ -318,7 +318,7 @@
 		"category":"BiomeBackGround|BiomeBackGroundSides|Decorations",
 		"fileName":"Furnitures/woodpic01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"scaleVariation":1,
 		"defaultValue":0
@@ -327,7 +327,7 @@
 		"category":"BiomeBackGround|BiomeBackGroundSides|Decorations",
 		"fileName":"Furnitures/woodpic02_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"scaleVariation":1,
 		"defaultValue":0
@@ -336,7 +336,7 @@
 		"category":"BiomeBackGround|BiomeBackGroundSides|Decorations",
 		"fileName":"Furnitures/woodpic03_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
-		"replicateMode":1,
+		"replicateMode":0,
 		"qtyInPool": 50,
 		"scaleVariation":1,
 		"defaultValue":0

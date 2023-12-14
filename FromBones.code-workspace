@@ -17,6 +17,7 @@
 		},
 		"cmake.automaticReconfigure": false,
 		"cmake.skipConfigureIfCachePresent": true,
-		"cmake.configureOnEdit": false
+		"cmake.configureOnEdit": false,
+		"todo.timer.statusbar.color": ""
 	}
 }

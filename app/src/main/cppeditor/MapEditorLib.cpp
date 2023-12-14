@@ -837,8 +837,7 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
     uiMaxOpacity_(0.9f),
     pickMode_(PICK_GEOMETRIES),
     clickMode_(CLICK_NONE),
-    spawnCategory_(SPAWN_NONE),
-    spawnObject_(StringHash("GOT_Skeleton"))
+    spawnCategory_(SPAWN_NONE)
 {
     editor_ = this;
     editorLayerModifier_ = 1;
@@ -849,7 +848,7 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
 
     scene_ = GameContext::Get().rootScene_.Get();
 
-    scene_->SetUpdateEnabled(false);
+//    scene_->SetUpdateEnabled(false);
 
     debugTextRootNode_ = scene_->GetChild("EditorDebugText", LOCAL);
     if (!debugTextRootNode_)
@@ -978,6 +977,19 @@ void MapEditorLibImpl::ResizeUI()
     UIElement* toolbar = uiPanels_[PANEL_MAINTOOLBAR];
     toolbar->SetFixedWidth(width);
     toolbar->SetPosition(0, height - SPAWNBAR_HEIGHT);
+    int categoryToPanelOffset = 0;
+    for (int spawnCategory=SPAWN_MONSTER; spawnCategory < MAX_SPAWNCATEGORIES; spawnCategory++)
+    {
+        if (spawnCategory == SPAWN_TILE)
+        {
+            categoryToPanelOffset = -1;
+            continue;
+        }
+
+        UIElement* panel = GetPanel(spawnCategory+categoryToPanelOffset);
+        IntVector2 posbutton = GetPanel(PANEL_MAINTOOLBAR)->GetChild(0)->GetChild(spawnCategory-1)->GetPosition();
+        panel->SetPosition(posbutton.x_, height - SPAWNBAR_HEIGHT - panel->GetSize().y_);
+    }
 
     // Resize inspector
     UIElement* inspector = uiPanels_[PANEL_INSPECTORWINDOW];
@@ -1306,7 +1318,7 @@ void MapEditorLibImpl::SetCategoryPopList(int spawnCategory)
     const String& defaulticon = SpawnCategoryNameStr[spawnCategory];
     UIElement* panel = GetPanel(panelid);
     IntVector2 posbutton = GetPanel(PANEL_MAINTOOLBAR)->GetChild(0)->GetChild(spawnCategory-1)->GetPosition();
-    panel->SetPosition(posbutton.x_, GameContext::Get().targetheight_ - (panel->GetSize().y_ + 60));
+    panel->SetPosition(posbutton.x_, GameContext::Get().GetSubsystem<Graphics>()->GetHeight() - SPAWNBAR_HEIGHT - panel->GetSize().y_);
 
     ListView* spritesList = static_cast<ListView*>(panel->GetChild("SpritesList", true));
     spritesList->RemoveAllItems();
@@ -2897,7 +2909,7 @@ void MapEditorLibImpl::Update(float timeStep)
         multiSelection_ = false;
 
         // Spawn Mode
-        if (clickMode_ == CLICK_SPAWN)
+        if (clickMode_ == CLICK_SPAWN && spawnCategory_ != SPAWN_NONE)
         {
             SpawnObject(position);
         }
@@ -2992,8 +3004,10 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
                 layerZ = editorLayerModifier_ > 1 ? FRONTBIOME : editorLayerModifier_ > 0 ? OUTERBIOME : BACKBIOME;
             else if (ViewManager::Get()->GetCurrentViewZ() == INNERVIEW)
                 layerZ = editorLayerModifier_ > 1 ? FRONTINNERBIOME : BACKINNERBIOME;
-            entity = World2D::GetWorld()->SpawnFurniture(spawnObject_, layerZ);
+            entity = World2D::GetWorld()->SpawnFurniture(spawnObject_, layerZ, spawnCategory_ == SPAWN_PLANT);
         }
+        else if (spawnCategory_ == SPAWN_COLLECTABLE)
+            entity = World2D::GetWorld()->SpawnCollectable(spawnObject_);
         else
             entity = World2D::GetWorld()->SpawnEntity(spawnObject_);
 
@@ -3062,7 +3076,7 @@ bool MapEditorLibImpl::MoveObjects(const Vector2& adjust)
 
                     if (newlayerZ != layerZ)
                     {
-                        node->SetVar(GOA::ONVIEWZ, newlayerZ);
+                        node->SetVar(GOA::ONVIEWZ, ViewManager::Get()->GetCurrentViewZ());
                         drawable->SetViewMask(ViewManager::GetLayerMask(newlayerZ));
                         drawable->SetLayer(newlayerZ);
                     }
@@ -3365,7 +3379,7 @@ void MapEditorLibImpl::HandleInspectorTagsSelect(StringHash eventType, VariantMa
 void MapEditorLibImpl::HandleInspectorEditAttribute(StringHash eventType, VariantMap& eventData)
 {
     // TODO : this part doesn't work for the moment
-    
+
     UIElement* attrEdit = static_cast<UIElement*>(eventData["Element"].GetPtr());
     UIElement* parent = attrEdit->GetParent();
 

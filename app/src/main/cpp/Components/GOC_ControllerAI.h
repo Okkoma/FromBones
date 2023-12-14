@@ -107,9 +107,9 @@ public :
         alwaysUpdate_ = state;
     }
     void SetDetectTarget(bool enable, float radius=2.f);
-    void SetTarget(unsigned targetID);
+    void SetTarget(unsigned targetID, bool reset=false);
     void SetBehavior(unsigned b);
-
+    void SetExternalController(GOC_Controller* controller) { externalController_ = controller; }
     bool IsStarted() const
     {
         return started_;
@@ -133,6 +133,10 @@ public :
 
     virtual void Start();
     virtual void Stop();
+
+    virtual void MountOn(Node* node);
+    virtual void Unmount();
+
     Behavior* StartBehavior(unsigned b=0, bool forced=false);
     void StopBehavior();
     void ResetOrder();
@@ -172,6 +176,7 @@ private :
     bool started_;
     bool targetDetection_;
     bool alwaysUpdate_;
+    GOC_Controller* externalController_;
 
     AInodeInfos aiInfos_;
 };

@@ -70,6 +70,7 @@
 #ifndef MPE_POLY2TRI_IMPLEMENTATION
 #define MPE_POLY2TRI_IMPLEMENTATION
 #endif
+
 #include "Libs/fastpoly2tri.h"
 
 #include "DefsFluids.h"
@@ -87,6 +88,7 @@
 #include "GOC_Collectable.h"
 #include "GOC_Destroyer.h"
 #include "GOC_ControllerPlayer.h"
+#include "GOC_ControllerAI.h"
 #include "GOC_Move2D.h"
 #include "GOC_Collide2D.h"
 #include "GOC_ZoneEffect.h"
@@ -1481,6 +1483,9 @@ void GameHelpers::SetControllabledNode(Node* node, int controlID, int movetype, 
 
 void GameHelpers::SetDrawableLayerView(Node* node, int viewZ)
 {
+    if (viewZ == THRESHOLDVIEW)
+        return;
+
     PODVector<Drawable2D*> drawables;
     node->GetDerivedComponents(drawables, true);
 
@@ -1515,14 +1520,64 @@ void GameHelpers::SetDrawableLayerView(Node* node, int viewZ)
                 int backlayermodifier = layermodifier ? drawableAlign : -1;
 
                 drawable->SetViewMask(ViewManager::GetLayerMask(drawableViewZ));
-                drawable->SetLayer2(IntVector2(drawableViewZ + layermodifier + drawableAlign, BACKACTORVIEW + backlayermodifier));
-//                URHO3D_LOGINFOF("GameHelpers() - SetDrawableLayerView : node=%s(%u) ... drawable=%u viewz=%d layer=%s layermodifier=%d ... OK !",
+                drawable->SetLayer2(IntVector2(drawableViewZ + layermodifier + drawableAlign, (drawableViewZ > BACKVIEW && drawableViewZ < OUTERVIEW ? INNERVIEW : BACKACTORVIEW) + backlayermodifier));
+//                URHO3D_LOGERRORF("GameHelpers() - SetDrawableLayerView : node=%s(%u) ... drawable=%u viewz=%d layer=%s layermodifier=%d ... OK !",
 //                                node->GetName().CString(), node->GetID(), drawable, drawableViewZ, drawable->GetLayer2().ToString().CString(), drawable->GetLayerModifier());
             }
         }
     }
 }
 
+
+void GameHelpers::MountNode(MountInfo& info)
+{
+    // Mount previous mounted entities
+    for (PODVector<GOC_Controller* >::Iterator it = info.mountedControllers_.Begin(); it != info.mountedControllers_.End(); ++it)
+        (*it)->MountOn(info.node_);
+
+    // Mount the node on the mount
+    if (info.mount_)
+        info.node_->GetDerivedComponent<GOC_Controller>()->MountOn(info.mount_);
+}
+
+void GameHelpers::UnmountNode(MountInfo& info)
+{
+    if (!info.node_)
+        return;
+
+    // check if the node is mounted on an entity
+    if (!info.mount_)
+    {
+        unsigned mountid = info.node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+        if (mountid)
+            info.mount_ = info.node_->GetScene()->GetNode(mountid);
+    }
+
+    // check if the node has entities mounted on it
+    if (!info.mountedControllers_.Size())
+    {
+        // Get the entities that are mounted on the node
+        for (Vector<SharedPtr<Node> >::ConstIterator it = info.node_->GetChildren().Begin(); it != info.node_->GetChildren().End(); ++it)
+        {
+            Node* child = (*it);
+            GOC_Controller* mountedcontroller = child->GetDerivedComponent<GOC_Controller>();
+            if (mountedcontroller)
+            {
+                URHO3D_LOGINFOF("GameHelpers() - Unmount : node=%s(%u) ... children umount controller %s(%u) !",
+                                    info.node_->GetName().CString(), info.node_->GetID(), child->GetName().CString(), child->GetID());
+                info.mountedControllers_.Push(mountedcontroller);
+            }
+        }
+    }
+
+    // Unmount the node
+    if (info.mount_)
+        info.node_->GetDerivedComponent<GOC_Controller>()->Unmount();
+
+    // Unmount the entities that are mounted on the node
+    for (PODVector<GOC_Controller* >::Iterator it = info.mountedControllers_.Begin(); it != info.mountedControllers_.End(); ++it)
+        (*it)->Unmount();
+}
 
 
 void GameHelpers::GetInputPosition(int& x, int& y, UIElement** uielt)
@@ -1759,25 +1814,22 @@ void GameHelpers::SetPhysicFlipX(Node* node)
                 {
                     CollisionBox2D* box = StaticCast<CollisionBox2D>(shape);
                     if (box->GetCenter().x_ != 0.f)
-                    {
                         box->SetCenter(Vector2(-box->GetCenter().x_, box->GetCenter().y_));
-                    }
                     if (box->GetAngle() != 0.f)
-                    {
                         box->SetAngle(-box->GetAngle());
-                    }
                 }
                 else if (shape->IsInstanceOf<CollisionCircle2D>())
                 {
                     CollisionCircle2D* circle = StaticCast<CollisionCircle2D>(shape);
                     if (circle->GetCenter().x_ != 0.f)
-                    {
                         circle->SetCenter(Vector2(-circle->GetCenter().x_, circle->GetCenter().y_));
-                    }
                 }
             }
         }
     }
+    // TODO : do we need this part ? when body is disable ?
+    // bad when entity is mounted : if we use this code, when the entity unmounts then the collisionshapes become illformed !
+    // Box2D error ? so disable this part
     else
     {
         PODVector<CollisionShape2D*> shapes;
@@ -1812,7 +1864,7 @@ void GameHelpers::SetPhysicFlipX(Node* node)
                     }
                 }
 
-                shape->ReleaseFixture();
+//                shape->ReleaseFixture();
             }
         }
     }
@@ -2405,6 +2457,30 @@ void GameHelpers::GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, Equip
     }
 }
 
+void GameHelpers::CleanCharacterMapping(AnimatedSprite2D* animatedSprite)
+{
+    if (!animatedSprite->HasCharacterMapping())
+        return;
+
+    if (animatedSprite->HasCharacterMap(CMAP_ARMOR) && !animatedSprite->IsCharacterMapApplied(CMAP_ARMOR))
+        animatedSprite->ApplyCharacterMap(CMAP_NOARMOR);
+    if (animatedSprite->HasCharacterMap(CMAP_HELMET) && !animatedSprite->IsCharacterMapApplied(CMAP_HELMET))
+        animatedSprite->ApplyCharacterMap(CMAP_NOHELMET);
+    if (animatedSprite->HasCharacterMap(CMAP_WEAPON1) && !animatedSprite->IsCharacterMapApplied(CMAP_WEAPON1))
+        animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON1);
+    if (animatedSprite->HasCharacterMap(CMAP_WEAPON2) && !animatedSprite->IsCharacterMapApplied(CMAP_WEAPON2))
+        animatedSprite->ApplyCharacterMap(CMAP_NOWEAPON2);
+    if (animatedSprite->HasCharacterMap(CMAP_BELT) && !animatedSprite->IsCharacterMapApplied(CMAP_BELT))
+        animatedSprite->ApplyCharacterMap(CMAP_NOBELT);
+    if (animatedSprite->HasCharacterMap(CMAP_CAPE) && !animatedSprite->IsCharacterMapApplied(CMAP_CAPE))
+        animatedSprite->ApplyCharacterMap(CMAP_NOCAPE);
+    if (animatedSprite->HasCharacterMap(CMAP_HEADBAND) && !animatedSprite->IsCharacterMapApplied(CMAP_HEADBAND))
+        animatedSprite->ApplyCharacterMap(CMAP_NOHEADBAND);
+
+    PurgeRedundantAppliedCharacterMaps(animatedSprite);
+}
+
+
 void GameHelpers::SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist)
 {
     if (!animatedSprite || !equipmentlist)
@@ -2441,6 +2517,8 @@ void GameHelpers::SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentLi
             URHO3D_LOGINFOF("GameHelpers() - SetEquipmentList : Remove MapName=%s ...", part.mapname_.CString());
         }
     }
+
+    CleanCharacterMapping(animatedSprite);
 
     animatedSprite->ResetAnimation();
 
@@ -2821,7 +2899,11 @@ int GameHelpers::RemoveTile(const WorldMapPosition& position, bool addeffects, b
     if (result)
     {
         if (onsameview && layerZ != viewZ)
+        {
+//            URHO3D_LOGINFOF("GameHelpers - RemoveTile : mpoint=%s x=%d y=%d z=%d layerZ=%d feat=%s ... can't remove 1 !", map->GetMapPoint().ToString().CString(), wpos.mPosition_.x_,
+//                        wpos.mPosition_.y_, viewZ, layerZ, MapFeatureType::GetName(feat));
             return -1;
+        }
 
         // only remove a Tile in BackGround if it's a TileModifier
         // => keep the landscape so no problem with MapTopography and DrawableScroller
@@ -2833,7 +2915,11 @@ int GameHelpers::RemoveTile(const WorldMapPosition& position, bool addeffects, b
         if (viewZ == INNERVIEW && layerZ == BACKGROUND)
         {
             if (map->GetFeatures(map->GetViewId(FRONTVIEW))[wpos.tileIndex_] > MapFeatureType::NoRender)
+            {
+//                URHO3D_LOGINFOF("GameHelpers - RemoveTile : mpoint=%s x=%d y=%d z=%d layerZ=%d feat=%s ... can't remove 2 !", map->GetMapPoint().ToString().CString(), wpos.mPosition_.x_,
+//                        wpos.mPosition_.y_, viewZ, layerZ, MapFeatureType::GetName(feat));
                 return -1;
+            }
         }
 
         int viewid = map->GetViewId(layerZ);
@@ -2889,6 +2975,34 @@ int GameHelpers::RemoveTile(const WorldMapPosition& position, bool addeffects, b
                     entitydata.Set(GOT::GetIndex(COT::GetTypeFrom(DUNGEONTHRESHOLD, 0)), wpos.tileIndex_, dooratleft ? 127 : -127, -127, 0, THRESHOLDVIEW, false, !dooratleft, false);
                     Node* node = map->AddFurniture(entitydata);
                 }
+            }
+        }
+//        else
+//        {
+//            URHO3D_LOGINFOF("GameHelpers - RemoveTile : mpoint=%s x=%d y=%d z=%d layerZ=%d feat=%s ... can't remove 3 !", map->GetMapPoint().ToString().CString(), wpos.mPosition_.x_,
+//                        wpos.mPosition_.y_, viewZ, layerZ, MapFeatureType::GetName(feat));
+//        }
+    }
+    else if (feat <= MapFeatureType::NoRender)
+    {
+        URHO3D_LOGINFOF("GameHelpers - RemoveTile : mpoint=%s x=%d y=%d z=%d layerZ=%d feat=%s ... try remove entityTile ...", map->GetMapPoint().ToString().CString(), wpos.mPosition_.x_,
+                        wpos.mPosition_.y_, viewZ, layerZ, MapFeatureType::GetName(feat));
+
+        if (map->SetTileEntity(feat, wpos.tileIndex_, layerZ))
+        {
+            World2D::DestroyFurnituresAt(map, wpos.tileIndex_);
+
+            Vector2 position = map->GetWorldTilePosition(IntVector2(map->GetTileCoordX(wpos.tileIndex_), map->GetTileCoordY(wpos.tileIndex_)));
+
+            int viewid = map->GetViewId(layerZ);
+            int terrainid = map->GetTerrain(wpos.tileIndex_, viewid);
+            if (terrainid != -1)
+            {
+                const MapTerrain* terrain = &World2DInfo::currentAtlas_->GetTerrain(terrainid);
+                const Color& terraincolor = terrain ? terrain->GetColor() : Color::WHITE;
+
+                GameHelpers::SpawnScraps(StringHash(ScrapTerrain+String(terrainid)), 20, terraincolor, false, layerZ+LAYER_ACTOR, layerZ, ViewManager::GetLayerMask(layerZ), position,
+                                         Vector2(2.f,2.f), World2D::GetWorldInfo()->mTileWidth_, 5.f, 50.f, 100.f);
             }
         }
     }
@@ -4960,6 +5074,9 @@ void GameHelpers::DumpNode(unsigned id, bool withcomponentattr, bool rtt)
     }
     URHO3D_LOGINFOF("GameHelpers() - DumpNode : ---------------");
     URHO3D_LOGINFOF("GameHelpers() - DumpNode : %s(%u) ...", node->GetName().CString(), node->GetID());
+    URHO3D_LOGINFOF(" => position=%s worldpos=%s scale=%s worldscale=%s", node->GetPosition2D().ToString().CString(), node->GetWorldPosition2D().ToString().CString(),
+                    node->GetScale2D().ToString().CString(), node->GetWorldScale2D().ToString().CString());
+
     // Dump Variables
     {
         const VariantMap& variables = node->GetVars();

@@ -14,10 +14,11 @@
 const WorldMapPosition WorldMapPosition::EMPTY = WorldMapPosition();
 
 WorldMapPosition::WorldMapPosition(World2DInfo* winfo, const Vector2& position, int viewZ) :
-    defined_(false), viewMask_(0), drawOrder_(-1), viewZ_(viewZ)
+    defined_(false), viewMask_(0), drawOrder_(-1)
 {
     winfo->Convert2WorldMapPosition(position, *this, positionInTile_);
-    viewZIndex_ = ViewManager::Get() ? ViewManager::Get()->GetViewZIndex(viewZ) : -1;
+
+    SetViewZ(viewZ);
 }
 
 WorldMapPosition::WorldMapPosition(World2DInfo* winfo, const IntVector2& mpoint, const IntVector2& mposition, int viewZ) :
@@ -27,9 +28,17 @@ WorldMapPosition::WorldMapPosition(World2DInfo* winfo, const IntVector2& mpoint,
     mPoint_.y_ = mpoint.y_;
     mPosition_ = mposition;
     tileIndex_ = winfo->GetTileIndex(mposition);
-    viewZIndex_ = ViewManager::Get() ? ViewManager::Get()->GetViewZIndex(viewZ) : -1;
+
+    SetViewZ(viewZ);
 
     winfo->Convert2WorldPosition(*this, position_);
+}
+
+void WorldMapPosition::SetViewZ(int viewZ)
+{
+    // Assure to have a Real Switch ViewZ and so an existing ViewZIndex
+    viewZ_ = ViewManager::GetNearViewZ(viewZ);
+    viewZIndex_ = ViewManager::GetViewZIndex(viewZ_);
 }
 
 String WorldMapPosition::ToString() const

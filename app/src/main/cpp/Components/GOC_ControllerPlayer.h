@@ -25,6 +25,9 @@ public :
     virtual void Start();
     virtual void Stop();
 
+    virtual void MountOn(Node* node);
+    virtual void Unmount();
+
     void SetKeyControls(int controlID);
     void SetJoystickControls(int controlID);
     void SetTouchControls(int screenJoyId=-1);

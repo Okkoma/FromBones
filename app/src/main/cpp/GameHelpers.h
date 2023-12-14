@@ -34,6 +34,7 @@ using namespace Urho3D;
 
 class GOC_Destroyer;
 class GOC_Collectable;
+class GOC_Controller;
 class Player;
 class Map;
 class TextMessage;
@@ -118,6 +119,9 @@ public:
     static void SetDrawableLayerView(Node* node, int viewz=0);
     static void UpdateLayering(Node* node, int viewz=0);
 
+    static void MountNode(MountInfo& info);
+    static void UnmountNode(MountInfo& info);
+
     static void GetInputPosition(int& x, int& y, UIElement** uielt = 0);
     static RigidBody2D* GetBodyAtCursor();
 
@@ -145,6 +149,7 @@ public:
     static Sprite2D* GetSpriteForType(const StringHash& type, const StringHash& buildtype, const String& partname);
     static Sprite2D* GetSpriteForType(const StringHash& type, const StringHash& buildtype = StringHash::ZERO, int partIndex=-1);
     static void SetCollectableProperties(GOC_Collectable* collectable, const StringHash& type, VariantMap* slotData=0);
+    static void CleanCharacterMapping(AnimatedSprite2D* animatedSprite);
     static void GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
     static void SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
     static void PurgeRedundantAppliedCharacterMaps(AnimatedSprite2D* animatedSprite);

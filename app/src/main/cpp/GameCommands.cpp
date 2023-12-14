@@ -119,7 +119,6 @@ void GameCommands::Launch(Context* context, const String& input)
 
         World2D::GetWorld()->DumpEntitiesInMemory();
     }
-
     else if (inputLower == "worldvisibility")
     {
         if (GameContext::Get().stateManager_->GetActiveState()->GetStateId() != "Play")
@@ -802,7 +801,7 @@ void GameCommands::Launch(Context* context, const String& input)
         genstatus.cseed_ = ShortIntVector2(genstatus.x_, genstatus.y_).ToHash();
         genstatus.rseed_ = genstatus.wseed_ + genstatus.cseed_;
         genstatus.genSpots_ = false;
-        genstatus.viewZindexes_[genstatus.activeslot_] = ViewManager::Get()->GetViewZIndex(FRONTVIEW);
+        genstatus.viewZindexes_[genstatus.activeslot_] = ViewManager::GetViewZIndex(FRONTVIEW);
 
         AnlMappingRange& mappingRange = genstatus.mappingRange_;
         mappingRange.mapx0 = (float)genstatus.x_ - modelsize.x_ * 0.5f;

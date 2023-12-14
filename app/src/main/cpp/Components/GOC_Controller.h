@@ -68,11 +68,16 @@ public :
     {
         thinker_ = thinker;
     }
+
+    void CheckMountNode();
+    virtual void MountOn(Node* node);
+    virtual void Unmount();
+
     void ResetButtons();
     void ResetDirection();
     void SetControllerType(int type, bool force = false);
     void SetMainController(bool state);
-
+    void SetControlActionEnable(bool state) { controlActionEnable_ = state; }
     bool ChangeAvatar(unsigned type, unsigned char entityid);
 
     bool Update(unsigned buttons, bool forceUpdate);
@@ -117,6 +122,7 @@ protected :
     virtual void OnNodeSet(Node* node);
 
     bool mainController_;
+    bool controlActionEnable_;
     bool followPath_;
     bool lastimpulse_;
     bool noreverse_;

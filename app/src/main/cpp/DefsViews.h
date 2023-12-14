@@ -34,7 +34,7 @@ const int BACKSCROLL_5       = 5;
 
 const int BACKBIOME          = 19;
 const int BACKGROUND         = 20;
-const int BACKACTORVIEW      = 22;
+const int BACKACTORVIEW      = 23;
 const int INNERRAINLAYER     = 30;
 const int BACKVIEW           = 40;
 const int BACKINNERBIOME     = 50;

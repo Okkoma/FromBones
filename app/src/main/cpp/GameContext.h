@@ -189,6 +189,10 @@ enum
     NUMCURSORS
 };
 
+const String MOUNTNODE  = String("MT");
+const String TRIGATTACK = String("TA");
+const float DISTANCEFORMOUNT = 2.f;
+
 class FROMBONES_API GameContext : public Object
 {
     URHO3D_OBJECT(GameContext, Object);

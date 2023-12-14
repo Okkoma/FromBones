@@ -71,6 +71,9 @@ URHO3D_EVENT(WORLD_CAMERACHANGED, World_CameraChanged) { }
 /// => Subscribers : UIC_MiniMap
 URHO3D_EVENT(MAP_UPDATE, Map_Update) { }
 
+URHO3D_EVENT(MAP_ADDFURNITURE, Map_AddFurniture) { }
+URHO3D_EVENT(MAP_ADDCOLLECTABLE, Map_AddCollectable) { }
+
 /// Weather
 URHO3D_EVENT(WEATHER_DAWN, Weather_Dawn) { }
 URHO3D_EVENT(WEATHER_TWILIGHT, Weather_Twilight) { }
@@ -95,6 +98,7 @@ URHO3D_EVENT(NET_OBJECTCOMMAND, Net_ObjectCommand)
     URHO3D_PARAM(P_NODEIDFROM, NetNodeIDFrom);                              // ServerNodeFromID (Unsigned)
     URHO3D_PARAM(P_NODEPTRFROM, NetNodePtrFrom);                            // Node Ptr From (Pointer)
     URHO3D_PARAM(P_NODEISENABLED, NetNodeIsEnabled);                        // Bool
+    URHO3D_PARAM(P_CLIENTID, ClientID);                                     // Int
     URHO3D_PARAM(P_CLIENTOBJECTTYPE, ClientObjectType);                     // Unsigned
     URHO3D_PARAM(P_CLIENTOBJECTENTITYID, ClientObjectEntityID);             // Unsigned char
     URHO3D_PARAM(P_CLIENTOBJECTVIEWZ, ClientObjectViewZ);                   // Unsigned
@@ -158,6 +162,28 @@ URHO3D_EVENT(GO_DESTROY, Go_Destroy)
     URHO3D_PARAM(GO_TILE, GoTile);
     URHO3D_PARAM(GO_PTR, GoPtr);       // Node*
 }
+/// MOUNT Event
+/// => Sender : Player, GOB_MountOn
+/// => Subscribers : GameNetwork
+URHO3D_EVENT(GO_MOUNTEDON, Go_MountedOn) { } // the other Params see NET_OBJECTCOMMAND
+/// ITEMS STORAGE Event
+/// => Sender : GOC_DropZone
+/// => Subscribers : GameNetwork
+URHO3D_EVENT(GO_STORAGECHANGED, Go_StorageChanged)
+{
+    URHO3D_PARAM(GO_ACTIONTYPE, GoActionType);                  // 1=AddItem, 2=ThrowItems, 3=SetStorage
+    // the other Params see NET_OBJECTCOMMAND
+}
+
+/// KILLER Entity
+/// is sent to the killer node
+/// => Sender : GOC_Life
+/// => Subscribers : class Actor, Player
+URHO3D_EVENT(GO_KILLER, Go_Killer)
+{
+    URHO3D_PARAM(GO_ID, GoID);         // ID of the GO Killer
+    URHO3D_PARAM(GO_DEAD, GoDead);     // ID of the GO Dead
+}
 
 /// GOC_Controller
 /// Control Update Event
@@ -209,15 +235,7 @@ URHO3D_EVENT(GOC_LIFEEVENTS, GOC_Life_Events)
     URHO3D_PARAM(GO_MAINCONTROL, GoMainControl);
     URHO3D_PARAM(GO_WORLDCONTACTPOINT, GoWorldContactPoint);   // Vector2 (Last World contact point)
 }
-/// KILLER Entity
-/// is sent to the killer node
-/// => Sender : GOC_Life
-/// => Subscribers : class Actor, Player
-URHO3D_EVENT(GO_KILLER, Go_Killer)
-{
-    URHO3D_PARAM(GO_ID, GoID);         // ID of the GO Killer
-    URHO3D_PARAM(GO_DEAD, GoDead);     // ID of the GO Dead
-}
+
 /// GOC_Collide2D
 /// GO Touch Walls Event
 URHO3D_EVENT(GO_COLLIDEGROUND, Go_CollideGround) { }

@@ -2191,7 +2191,6 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         }
 
         SetVisibleUI(editorIsOff);
-        rootScene_->GetComponent<PhysicsWorld2D>()->SetUpdateEnabled(editorIsOff);
 
         GameContext::Get().forceCreateMode_ = !editorIsOff;
     }
@@ -2611,10 +2610,16 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Tip : Pause Without Window
         if (input.GetScancodePress(SCANCODE_P))
         {
-            rootScene_->SetUpdateEnabled(!rootScene_->IsUpdateEnabled());
+        #ifdef ACTIVE_CREATEMODE
+            if (!MapEditor::Get())
+        #endif
+            {
+                rootScene_->SetUpdateEnabled(!rootScene_->IsUpdateEnabled());
+                if (GameContext::Get().rttScene_)
+                    GameContext::Get().rttScene_->SetUpdateEnabled(rootScene_->IsUpdateEnabled());
+            }
             rootScene_->GetComponent<PhysicsWorld2D>()->SetUpdateEnabled(rootScene_->IsUpdateEnabled());
-            if (GameContext::Get().rttScene_)
-                GameContext::Get().rttScene_->SetUpdateEnabled(rootScene_->IsUpdateEnabled());
+
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : Key P pressed => Scene Updated = %s", rootScene_->IsUpdateEnabled() ? "enable" : "disable");
         }
 #ifdef ACTIVE_CREATEMODE

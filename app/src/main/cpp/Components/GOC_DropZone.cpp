@@ -16,6 +16,7 @@
 #include "GameEvents.h"
 #include "GameHelpers.h"
 #include "GameContext.h"
+#include "GameNetwork.h"
 
 #include "MapWorld.h"
 #include "ViewManager.h"
@@ -36,9 +37,8 @@
 GOC_DropZone::GOC_DropZone(Context* context) :
     Component(context), dropZone_(0),
     actived_(0), activeStorage_(0), activeThrow_(0), buildObjects_(0), removeParts_(0),
-    radius_(0), numHitsToTrig_(3), hitCount_(0), lastHitTime_(0),
-    linearVelocity_(10.f), angularVelocity_(3.f), impulse_(0.5f), throwDelay_(0.2f)
-{ ; }
+    throwItemsRunning_(false), radius_(0), numHitsToTrig_(3), hitCount_(0), lastHitTime_(0),
+    linearVelocity_(10.f), angularVelocity_(3.f), impulse_(0.5f), throwDelay_(0.2f) { }
 
 GOC_DropZone::~GOC_DropZone()
 {
@@ -329,23 +329,7 @@ void GOC_DropZone::SetStorageAttr(const VariantVector& value)
 
 VariantVector GOC_DropZone::GetStorageAttr() const
 {
-    VariantVector value;
-
-    value.Reserve(items_.Size());
-
-    for (unsigned i=0; i < items_.Size(); ++i)
-    {
-        const Slot& slot = items_[i];
-
-        if (!slot.quantity_)
-            continue;
-
-        if (!(GOT::GetTypeProperties(slot.type_) & GOT_Collectable))
-            continue;
-
-        value.Push(Slot::GetSlotAttr(slot));
-    }
-    return value;
+    return Slot::GetSlotDatas(items_);
 }
 
 void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
@@ -399,7 +383,7 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
 
 //        URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : csOther is collectable");
 
-        if (activeStorage_)
+        if (activeStorage_ && !GameContext::Get().ClientMode_)
         {
             if (AddItem(collectable->Get()))
             {
@@ -409,6 +393,15 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
                 GameHelpers::SpawnSound(GetNode(), "Sounds/096-Attack08.ogg");
                 hitCount_ = 0;
 
+                if (GameContext::Get().ServerMode_)
+                {
+                    VariantMap& eventData = context_->GetEventDataMap();
+                    eventData[Go_StorageChanged::GO_ACTIONTYPE] = 1;
+                    eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
+                    eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_);
+                    node_->SendEvent(GO_STORAGECHANGED, eventData);
+                }
+
                 other->GetNode()->SendEvent(GO_INVENTORYEMPTY);
 //                Dump();
             }
@@ -416,11 +409,11 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
     }
     else
     {
-//        URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : csOther is trigger");
+        URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : csOther is trigger");
 
         if (items_.Empty())
         {
-//            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : no items to throw out !", hitCount_);
+            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : no items to throw out !", hitCount_);
             return;
         }
 
@@ -429,21 +422,25 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
         {
             unsigned time = Time::GetSystemTime();
             unsigned delta = time - lastHitTime_;
-//            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : on Trig_Attack time=%u lashit=%u delta=%u(%u) hitcount=%u(%u)",
-//                     time, lastHitTime_, delta, DELAY_BETWEEN_HITS, hitCount_, numHitsToTrig_);
+            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : on Trig_Attack time=%u lashit=%u delta=%u(%u) hitcount=%u(%u)",
+                     time, lastHitTime_, delta, DELAY_BETWEEN_HITS, hitCount_, numHitsToTrig_);
 
             if (delta > DELAY_BETWEEN_HITS)
             {
                 hitCount_++;
                 lastHitTime_ = time;
-//                URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : hitCount=%u", hitCount_);
+                URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : hitCount=%u", hitCount_);
             }
 
             if (hitCount_ == numHitsToTrig_)
             {
                 hitCount_ = 0;
 
-                if (buildObjects_)
+                const bool skipBuild = GameContext::Get().ClientMode_ && other->GetNode()->GetVar(GOA::CLIENTID).GetInt() != GameNetwork::Get()->GetClientID();
+                if (skipBuild)
+                    URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : otherbody is not the client ! skip !");
+
+                if (buildObjects_ && !skipBuild)
                 {
                     Vector<StringHash> buildableObjectTypes;
                     SearchForBuildableObjects(items_, buildableObjectTypes);
@@ -500,7 +497,7 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
                     }
                 }
 
-                if (activeThrow_)
+                if (activeThrow_ && !throwItemsRunning_ && !GameContext::Get().ClientMode_)
                     ThrowOutItems();
             }
         }
@@ -517,9 +514,19 @@ void GOC_DropZone::ThrowOutItems()
 
     URHO3D_LOGINFOF("GOC_DropZone() - ThrowOutItems");
 
+    throwItemsRunning_ = true;
+
     throwItemsBeginIndex_ = 0;
     throwItemsEndIndex_ = 0;
     throwItemsTimer_ = 0;
+
+    if (GameContext::Get().ServerMode_)
+    {
+        VariantMap& eventData = context_->GetEventDataMap();
+        eventData[Go_StorageChanged::GO_ACTIONTYPE] = 2;
+        eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
+        node_->SendEvent(GO_STORAGECHANGED, eventData);
+    }
 
     SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_DropZone, HandleThrowOutItems));
     UnsubscribeFromEvent(E_PHYSICSBEGINCONTACT2D);
@@ -578,11 +585,57 @@ void GOC_DropZone::HandleThrowOutItems(StringHash eventType, VariantMap& eventDa
             if (!body->IsFixedRotation())
                 body->GetBody()->SetAngularDamping(1.5f);
         }
+
+        throwItemsRunning_ = false;
+
         Clear();
         UnsubscribeFromEvent(GetScene(), E_SCENEPOSTUPDATE);
         SubscribeToEvent(GetNode(), E_PHYSICSBEGINCONTACT2D, URHO3D_HANDLER(GOC_DropZone, HandleContact));
     }
 //    URHO3D_LOGINFOF("GOC_DropZone() - HandleThrowOutItems OK");
+}
+
+void GOC_DropZone::NetClientUpdateStorage(unsigned servernodeid, VariantMap& eventData)
+{
+    // TODO : Attention, il faut que le nodeid soit bien identique sur le serveur et les clients.
+    // ce qui ne sera pas le cas pour les Furnitures spawnées au fur et à mesure !
+    // il faudrait alors declaré un ObjectControl ? et utiliser GetServerObjectControl pour obtenir un node correspondant au servernodeid
+
+    int actiontype = eventData[Go_StorageChanged::GO_ACTIONTYPE].GetInt();
+    Node* node = GameContext::Get().rootScene_->GetNode(servernodeid);
+
+
+    URHO3D_LOGINFOF("GOC_DropZone() - NetClientUpdateStorage : servernodeid=%u actiontype=%d ...", servernodeid, actiontype);
+
+    if (!node)
+        return;
+
+    GOC_DropZone* dropzone = node->GetComponent<GOC_DropZone>();
+    if (!dropzone)
+        return;
+
+    if (actiontype == 1)
+    {
+        dropzone->Clear();
+        dropzone->SetStorageAttr(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+
+        Drawable2D* drawable = node->GetDerivedComponent<Drawable2D>();
+        GameHelpers::SpawnParticleEffect(GameContext::Get().context_, ParticuleEffect_[PE_GREENSPIRAL], drawable->GetLayer(), drawable->GetViewMask(), node->GetWorldPosition2D(), 90.f, 1.f, true, 0.5f, Color::WHITE, LOCAL);
+        GameHelpers::SpawnSound(node, "Sounds/096-Attack08.ogg");
+        dropzone->hitCount_ = 0;
+    }
+    else if (actiontype == 2)
+    {
+        if (!dropzone->throwItemsRunning_)
+        {
+            dropzone->ThrowOutItems();
+        }
+    }
+    else if (actiontype == 3)
+    {
+        dropzone->Clear();
+        dropzone->SetStorageAttr(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+    }
 }
 
 void GOC_DropZone::Dump()
@@ -682,17 +735,17 @@ int GOC_DropZone::SelectBuildableEntity(const StringHash& got, const Vector<Slot
             if (GOT_Part & GOT::GetTypeProperties(type))
                 continue;
 
-//            URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... try to find a entityid for type=%s", GOT::GetType(type).CString());
+            URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... try to find a entityid for type=%s", GOT::GetType(type).CString());
 
             HashMap<StringHash, unsigned >::ConstIterator jt = entityselection->Find(GOT::GetConstInfo(type).category_);
             if (jt != entityselection->End())
             {
                 entityid = (int)jt->second_;
-//                URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... find an entityid=%d", entityid);
+                URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... find an entityid=%d", entityid);
             }
         }
 
-//        URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... entityid=%d", entityid);
+        URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... entityid=%d", entityid);
     }
 
     // set the equipment list with the equipable items
@@ -760,6 +813,15 @@ void GOC_DropZone::RemovePartsOfBuildableObject(const StringHash& buildableObjec
 
             ++jt;
         }
+    }
+
+    if (GameContext::Get().ServerMode_)
+    {
+        VariantMap& eventData = context_->GetEventDataMap();
+        eventData[Go_StorageChanged::GO_ACTIONTYPE] = 3;
+        eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
+        eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_);
+        node_->SendEvent(GO_STORAGECHANGED, eventData);
     }
 //    Dump();
 

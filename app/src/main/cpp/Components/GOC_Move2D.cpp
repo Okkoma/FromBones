@@ -221,7 +221,7 @@ void GOC_Move2D::SetMoveType(MoveTypeMode type)
 {
     if (moveType_ != type)
     {
-//        URHO3D_LOGINFOF("GOC_Move2D() - SetMoveType MoveType = %s(%u) !", moveTypeModes[type], type);
+//        URHO3D_LOGINFOF("GOC_Move2D() - SetMoveType MoveType = %s(%u) ... OK !", moveTypeModes[type], type);
         lastMoveType_ = moveType_;
         moveType_ = type;
 

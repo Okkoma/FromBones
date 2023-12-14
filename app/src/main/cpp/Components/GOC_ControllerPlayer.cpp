@@ -106,6 +106,17 @@ void GOC_PlayerController::Stop()
     GOC_Controller::Stop();
 }
 
+void GOC_PlayerController::MountOn(Node* node)
+{
+    static_cast<Player*>(GetThinker())->MountOn(node, false);
+}
+
+void GOC_PlayerController::Unmount()
+{
+    static_cast<Player*>(GetThinker())->Unmount(false);
+}
+
+
 void GOC_PlayerController::HandleStop(StringHash eventType, VariantMap& eventData)
 {
 //    URHO3D_LOGINFOF("GOC_PlayerController() - HandleStop : node = %s(%u) ", node_->GetName().CString(), node_->GetID());
@@ -115,6 +126,8 @@ void GOC_PlayerController::HandleStop(StringHash eventType, VariantMap& eventDat
 void GOC_PlayerController::HandleLocalUpdate(StringHash eventType, VariantMap& eventData)
 {
     //URHO3D_LOGINFOF("GOC_PlayerController() - HandleLocalUpdate : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
+
+    CheckMountNode();
 
     if (!GameContext::Get().input_ || GameContext::Get().HasConsoleFocus())
         return;

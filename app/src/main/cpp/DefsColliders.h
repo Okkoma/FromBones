@@ -135,10 +135,6 @@ enum ExtraContactBits
 
 };
 
-
-const String TRIGATTACK = String("TA");
-
-
 enum MapColliderMode
 {
     FrontMode = 0,

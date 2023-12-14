@@ -45,6 +45,8 @@ struct WorldMapPosition
         return mPoint_ != p.mPoint_ || tileIndex_ != p.tileIndex_ || viewZIndex_ != p.viewZIndex_;
     }
 
+    void SetViewZ(int viewZ);
+
     String ToString() const;
 
     bool defined_;
@@ -162,4 +164,13 @@ struct ObjectMapedInfo
     void* ref_;
 };
 
+class GOC_Controller;
 
+struct MountInfo
+{
+    MountInfo(Node* node, Node* mount=0) : node_(node), mount_(mount) { }
+
+    Node* node_;
+    Node* mount_;
+    PODVector<GOC_Controller* > mountedControllers_;
+};

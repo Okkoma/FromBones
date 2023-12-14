@@ -82,8 +82,9 @@ public :
     bool ChangeAvatar(unsigned type, unsigned char entityid, bool instant=false);
     void ChangeAvatar(int avatarIndex, bool instant=false);
     void SwitchViewZ(int viewZ=0);
-    void MountOn(Node* target);
-    void Unmount();
+
+    void MountOn(Node* target, bool sendnetevent=false);
+    void Unmount(bool sendnetevent=false);
 
     bool AddAvatar(const StringHash& got);
     bool AddAvatar(int avatarIndex);
