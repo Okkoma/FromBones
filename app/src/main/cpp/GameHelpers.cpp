@@ -1533,11 +1533,11 @@ void GameHelpers::MountNode(MountInfo& info)
 {
     // Mount previous mounted entities
     for (PODVector<GOC_Controller* >::Iterator it = info.mountedControllers_.Begin(); it != info.mountedControllers_.End(); ++it)
-        (*it)->MountOn(info.node_);
+        bool ok = (*it)->MountOn(info.node_);
 
     // Mount the node on the mount
     if (info.mount_)
-        info.node_->GetDerivedComponent<GOC_Controller>()->MountOn(info.mount_);
+        bool ok = info.node_->GetDerivedComponent<GOC_Controller>()->MountOn(info.mount_);
 }
 
 void GameHelpers::UnmountNode(MountInfo& info)
@@ -1572,11 +1572,11 @@ void GameHelpers::UnmountNode(MountInfo& info)
 
     // Unmount the node
     if (info.mount_)
-        info.node_->GetDerivedComponent<GOC_Controller>()->Unmount();
+        bool ok = info.node_->GetDerivedComponent<GOC_Controller>()->Unmount();
 
     // Unmount the entities that are mounted on the node
     for (PODVector<GOC_Controller* >::Iterator it = info.mountedControllers_.Begin(); it != info.mountedControllers_.End(); ++it)
-        (*it)->Unmount();
+        bool ok = (*it)->Unmount();
 }
 
 

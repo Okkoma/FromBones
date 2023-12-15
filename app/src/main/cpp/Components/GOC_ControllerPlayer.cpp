@@ -106,16 +106,6 @@ void GOC_PlayerController::Stop()
     GOC_Controller::Stop();
 }
 
-void GOC_PlayerController::MountOn(Node* node)
-{
-    static_cast<Player*>(GetThinker())->MountOn(node, false);
-}
-
-void GOC_PlayerController::Unmount()
-{
-    static_cast<Player*>(GetThinker())->Unmount(false);
-}
-
 
 void GOC_PlayerController::HandleStop(StringHash eventType, VariantMap& eventData)
 {

@@ -7,7 +7,7 @@
 
 Todos:
 
-    ☐ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients
+    ✔ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients @done(23-12-15 09:07)
         plusieurs problemes surviennent alors :
         -> si un buildabletype est disponible coté serveur et que coté client il n'y a pas la part pour ce build,
             alors le pop se fera mais l'entity créée ne sera pas un follower de l'avatar client. donc pas de mount possible !
@@ -22,7 +22,7 @@ Todos:
         ===> OK ajout de GOC_DropZone::NetClientUpdateStorage, NetCommand UPDATEITEMSSTORAGE et GameEvents GO_STORAGECHANGED
         ===> voir si on ne peut pas ameliorer l'envoi ... reduire la taille des messages ...
 
-    ☐ 12/12/2023 : Monter une entité allié en reseau pose probleme
+    ✔ 12/12/2023 : Monter une entité allié en reseau pose probleme @done(23-12-15 09:07)
         -> il y a un décalage énorme qui se crée qui est du à GameHelpers::SetPhysicProperties qui gère le positionnement local (pas World)
         -> lorsque le node est mis en enfant, le PrepareControl va envoyer des positions World ...
         ==> correctif dans PrepareControl, utiliser le Positionnement local
@@ -30,7 +30,8 @@ Todos:
         -> il faut communiquer le montage au second client, pour que le node soit accroché à la monture.
         ==> OK : le server envoit aux autres clients la netcommand MOUNTENTITYON, (ajout Client_MountNode)
         -> quand on est monté le changement d'avatar n'est pas répliqué coté client distant.
-        ==> modifier GOC_Controller::ChangeAvatar pour integrer le mount et unmount.
+        ==> OK : modifier GOC_Controller::ChangeAvatar pour integrer le mount et unmount.
+        ==> OK : Mettre la logique principal dans GOC_Controller pour eviter les doublons
 
     ✔ 12/12/2023 : le spawn de furniture coté server -> client est à implementer
         -> ajout de World2D::NetSpawnFurniture, modification Map::AddFurniture pour l'ajout de l'objectcontrol
@@ -43,7 +44,8 @@ Todos:
 
     ☐ 12/12/2023 : coté client, le spawn d'eliegor seed pose probleme (c'est un exemple d'autres entités droppés par GOC_DropZone vont avoir ce probleme avec le storage initial)
         -> si le client n'a pas un état initial synchronisé avec le server (Snap Initial ok), alors coté client eliegorflower va spawner une graine que le server n'a plus en stock
-
+        ==> faire un snap en incluant les storage des composants GOC_Inventory, GOC_DropZone.
+        
     ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
 
     ☐ 07/12/2023 : les bosszones ne fonctionnent pas en reseau

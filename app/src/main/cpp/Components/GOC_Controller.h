@@ -70,8 +70,8 @@ public :
     }
 
     void CheckMountNode();
-    virtual void MountOn(Node* node);
-    virtual void Unmount();
+    virtual bool MountOn(Node* node);
+    virtual bool Unmount();
 
     void ResetButtons();
     void ResetDirection();

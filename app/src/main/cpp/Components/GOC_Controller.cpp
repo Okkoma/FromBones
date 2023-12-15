@@ -103,131 +103,149 @@ void GOC_Controller::CheckMountNode()
     if (mountid)
     {
         if (node_->GetParent() == GetScene() || node_->GetParent() == 0 || node_->GetParent()->GetVar(GOA::ISDEAD).GetBool())
-            Unmount();
+            bool ok = Unmount();
     }
 }
 
-void GOC_Controller::MountOn(Node* target)
+bool GOC_Controller::MountOn(Node* target)
 {
+    if (!target)
+        return false;
+
+    // already mounted on a node
+    const unsigned prevTargetID = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+    if (prevTargetID == target->GetID())
+        return false;
+
     URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ...",
                     node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
 
-    if (thinker_)
+    // unmount before mount on another target
+    if (prevTargetID)
+        bool ok = GOC_Controller::Unmount();
+
+    node_->SetVar(GOA::ISMOUNTEDON, target->GetID());
+
+    RigidBody2D* body = node_->GetComponent<RigidBody2D>();
+
+    Node* mountNode = target->GetChild(MOUNTNODE, true);
+    if (mountNode)
     {
-        static_cast<Player*>(thinker_)->MountOn(target);
+        body->SetEnabled(false);
+
+        node_->SetParent(mountNode);
+
+        node_->SetPosition2D(Vector2::ZERO);
     }
     else
     {
-        node_->SetVar(GOA::ISMOUNTEDON, target->GetID());
+        // Normally, we don't have to disable body, but with network it's lagging ...
+        body->SetEnabled(false);
 
-        Node* mountNode = target->GetChild(MOUNTNODE, true);
-        if (mountNode)
-        {
-            node_->GetComponent<RigidBody2D>()->SetEnabled(false);
-            node_->SetParent(mountNode);
-            node_->SetPosition2D(Vector2::ZERO);
-            node_->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
-            node_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
-            node_->GetDerivedComponent<Drawable2D>()->SetLayer(target->GetDerivedComponent<Drawable2D>()->GetLayer());
-        }
+        // Divide Mass
+        body->SetMass(body->GetMass() * 0.5f);
+
+
+        node_->SetParent(target);
+
+        GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
+        if (targetdestroyer && targetdestroyer->GetShapesRect().Defined())
+            node_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
         else
-        {
-            // Divide Mass
-            RigidBody2D* body = node_->GetComponent<RigidBody2D>();
-            if (body)
-            {
-//                body->SetMass(body->GetMass() * 0.5f);
-                body->SetEnabled(false);
-            }
+            node_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
 
-            node_->SetParent(target);
-
-            GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
-            if (targetdestroyer && targetdestroyer->GetShapesRect().Defined())
-                node_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
-            else
-                node_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
-
-            ConstraintWeld2D* constraintWeld = node_->CreateComponent<ConstraintWeld2D>();
-            constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
-            constraintWeld->SetAnchor(node_->GetWorldPosition2D());
-            constraintWeld->SetFrequencyHz(4.0f);
-            constraintWeld->SetDampingRatio(0.5f);
-        }
+        ConstraintWeld2D* constraintWeld = node_->CreateComponent<ConstraintWeld2D>();
+        constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
+        constraintWeld->SetAnchor(node_->GetWorldPosition2D());
+        constraintWeld->SetFrequencyHz(4.0f);
+        constraintWeld->SetDampingRatio(0.5f);
     }
+
+    node_->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
+    node_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
+    node_->GetDerivedComponent<Drawable2D>()->SetLayer(target->GetDerivedComponent<Drawable2D>()->GetLayer());
+    if (target->GetComponent<GOC_Animator2D>())
+        node_->GetComponent<GOC_Animator2D>()->SetDirection(target->GetComponent<GOC_Animator2D>()->GetDirection());
+
+    node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+
+    if (thinker_)
+        static_cast<Player*>(thinker_)->OnMount(target);
 
     URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ... OK !",
                     node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
+
+    return true;
 }
 
-void GOC_Controller::Unmount()
+bool GOC_Controller::Unmount()
 {
-    URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ...", node_->GetName().CString(), node_->GetID());
+    const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
 
-    if (thinker_)
+    URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... targetid=%u ...", node_->GetName().CString(), node_->GetID(), targetid);
+
+    if (node_->GetParent()->GetName().StartsWith(MOUNTNODE))
     {
-        static_cast<Player*>(thinker_)->Unmount();
+        node_->SetParent(node_->GetScene());
+        node_->GetComponent<RigidBody2D>()->SetEnabled(true);
     }
     else
     {
-        if (node_->GetParent()->GetName().StartsWith(MOUNTNODE))
+        if (targetid)
         {
-            node_->SetParent(node_->GetScene());
-            node_->GetComponent<RigidBody2D>()->SetEnabled(true);
-        }
-        else
-        {
-            const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
-            if (targetid)
+            // Get Contraints on the node and remove
+            PODVector<ConstraintWeld2D* > contraints;
+            node_->GetComponents<ConstraintWeld2D>(contraints);
+            for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
             {
-                // Get Contraints on the node and remove
-                PODVector<ConstraintWeld2D* > contraints;
-                node_->GetComponents<ConstraintWeld2D>(contraints);
-                for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
+                ConstraintWeld2D* constraint = *it;
+                if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
                 {
-                    ConstraintWeld2D* constraint = *it;
-                    if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
-                    {
-                        constraint->ReleaseJoint();
-                        constraint->Remove();
-                    }
-                }
-                // Get the Contraints on the parent and remove
-                contraints.Clear();
-                node_->GetParent()->GetComponents<ConstraintWeld2D>(contraints);
-                for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
-                {
-                    ConstraintWeld2D* constraint = *it;
-                    if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == node_->GetID())
-                    {
-                        constraint->ReleaseJoint();
-                        constraint->Remove();
-                    }
+                    constraint->ReleaseJoint();
+                    constraint->Remove();
                 }
             }
-            // Restore the mass
-            RigidBody2D* body = node_->GetComponent<RigidBody2D>();
-            if (body)
+            // Get the Contraints on the parent and remove
+            contraints.Clear();
+            node_->GetParent()->GetComponents<ConstraintWeld2D>(contraints);
+            for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
             {
-//                body->SetMass(body->GetMass() * 2.f);
-                body->SetEnabled(true);
+                ConstraintWeld2D* constraint = *it;
+                if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == node_->GetID())
+                {
+                    constraint->ReleaseJoint();
+                    constraint->Remove();
+                }
             }
-            // Set Parent
-            node_->SetParent(node_->GetScene());
         }
 
-        node_->SetVar(GOA::ISMOUNTEDON, 0U);
-
-        GOC_Move2D* move2d = node_->GetComponent<GOC_Move2D>();
-        if (move2d)
-            move2d->SetMoveType(move2d->GetLastMoveType());
-
-        node_->GetComponent<GOC_Animator2D>()->ResetState();
-
-        node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+        // Restore the mass
+        RigidBody2D* body = node_->GetComponent<RigidBody2D>();
+        if (body)
+        {
+            body->SetMass(body->GetMass() * 2.f);
+            body->SetEnabled(true);
+        }
+        // Set Parent
+        node_->SetParent(node_->GetScene());
     }
 
+    node_->SetVar(GOA::ISMOUNTEDON, 0U);
+
+    GOC_Move2D* move2d = node_->GetComponent<GOC_Move2D>();
+    if (move2d)
+        move2d->SetMoveType(move2d->GetLastMoveType());
+
+    node_->GetComponent<GOC_Animator2D>()->ResetState();
+
+    node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+
+    if (thinker_)
+        static_cast<Player*>(thinker_)->OnUnmount(targetid);
+
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... OK !", node_->GetName().CString(), node_->GetID());
+
+    return true;
 }
 
 

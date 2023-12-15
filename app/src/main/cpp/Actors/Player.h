@@ -83,9 +83,6 @@ public :
     void ChangeAvatar(int avatarIndex, bool instant=false);
     void SwitchViewZ(int viewZ=0);
 
-    void MountOn(Node* target, bool sendnetevent=false);
-    void Unmount(bool sendnetevent=false);
-
     bool AddAvatar(const StringHash& got);
     bool AddAvatar(int avatarIndex);
     int GetAvatarIndex() const
@@ -138,6 +135,9 @@ public :
 
     void Start();
     void Stop();
+
+    void OnMount(Node* target);
+    void OnUnmount(unsigned targetid);
 
     virtual void StartSubscribers();
     virtual void StopSubscribers();

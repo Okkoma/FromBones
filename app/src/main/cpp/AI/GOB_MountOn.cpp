@@ -43,45 +43,18 @@ void GOB_MountOn::Start(GOC_AIController& controller)
 // UNMOUNT From a target
 void GOB_MountOn::Stop(GOC_AIController& controller)
 {
-    Node* node = controller.GetNode();
-
-    if (!node->GetVar(GOA::ISMOUNTEDON).GetUInt())
-        return;
-
     URHO3D_LOGINFO("GOB_MountOn() - Stop : unmount ...");
 
+    if (controller.GOC_Controller::Unmount())
+        OnUnmount(controller);
+
+    URHO3D_LOGINFOF("GOB_MountOn() - Stop : unmount ... OK !");
+}
+
+void GOB_MountOn::OnUnmount(GOC_AIController& controller)
+{
+    Node* node = controller.GetNode();
     AInodeInfos& aiInfos = controller.GetaiInfos();
-
-    unsigned parentid = node->GetVar(GOA::ISMOUNTEDON).GetUInt();
-
-    node->SetVar(GOA::ISMOUNTEDON, unsigned(0));
-
-    PODVector<ConstraintWeld2D* > contraints;
-
-    // Get Contraints on the node and remove
-    node->GetComponents<ConstraintWeld2D>(contraints);
-    for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
-    {
-        ConstraintWeld2D* constraint = *it;
-        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == parentid)
-        {
-            constraint->ReleaseJoint();
-            constraint->Remove();
-        }
-    }
-    // Get the Contraints on the parent and remove
-    contraints.Clear();
-    node->GetParent()->GetComponents<ConstraintWeld2D>(contraints);
-    for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
-    {
-        ConstraintWeld2D* constraint = *it;
-        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == node->GetID())
-        {
-            constraint->ReleaseJoint();
-            constraint->Remove();
-        }
-    }
-
     if (aiInfos.lastParent)
     {
         node->SetParent(aiInfos.lastParent);
@@ -92,17 +65,8 @@ void GOB_MountOn::Stop(GOC_AIController& controller)
         node->SetParent(GameContext::Get().rootScene_);
     }
 
-//    URHO3D_LOGINFOF("GOB_MountOn() - Stop : ... restore lastmovetype=%d", aiInfos.lastMoveType);
     node->GetComponent<GOC_Move2D>()->SetMoveType(aiInfos.lastMoveType);
     node->GetComponent<AnimatedSprite2D>()->SetLayer2(IntVector2(aiInfos.lastLayer,-1));
-
-    // Restore Mass
-    RigidBody2D* body = node->GetComponent<RigidBody2D>();
-    if (body)
-    {
-        body->SetMass(body->GetMass() * 2.f);
-        body->SetEnabled(true);
-    }
 
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
     if (inventory)
@@ -117,8 +81,6 @@ void GOB_MountOn::Stop(GOC_AIController& controller)
         destroyer->SetEnableUnstuck(true);
         destroyer->SetViewZ();
     }
-
-    URHO3D_LOGINFOF("GOB_MountOn() - Stop : unmount ... OK !");
 }
 
 // MOUNT ON A TARGET AND DESACTIVE CONTROLLER
@@ -126,74 +88,29 @@ void GOB_MountOn::MountOn(GOC_AIController& controller, Node* target)
 {
     Node* node = controller.GetNode();
 
-    // Entity can not mount on itself or on void
-    if (target == node || !target)
-    {
-        URHO3D_LOGERRORF("GOB_MountOn() - MountOn : %s Mount on target=%u node=%u !", node->GetName().CString(), target, node);
-        return;
-    }
-
-    Stop(controller);
-
-    URHO3D_LOGINFOF("GOB_MountOn() - MountOn : %s Mount on %s ...", node->GetName().CString(), target->GetName().CString());
-
     AInodeInfos& aiInfos = controller.GetaiInfos();
+    aiInfos.lastParent = node->GetParent();
+    aiInfos.lastMoveType = node->GetComponent<GOC_Move2D>()->GetMoveType();
+    aiInfos.lastLayer = node->GetComponent<AnimatedSprite2D>()->GetLayer();
 
-    node->SetVar(GOA::ISMOUNTEDON, target->GetID());
+    if (controller.GOC_Controller::MountOn(target))
+        OnMount(controller);
+}
+
+void GOB_MountOn::OnMount(GOC_AIController& controller)
+{
+    Node* node = controller.GetNode();
 
     GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
     if (destroyer)
     {
-        destroyer->SetViewZ();
         destroyer->SetEnablePositionUpdate(false);
         destroyer->SetEnableUnstuck(false);
     }
 
-    RigidBody2D* body = node->GetComponent<RigidBody2D>();
-
-    Node* mountNode = target->GetChild(MOUNTNODE, true);
-    if (mountNode)
-    {
-        body->SetEnabled(false);
-        node->SetParent(mountNode);
-        node->SetPosition2D(Vector2::ZERO);
-    }
-    else
-        node->SetParent(target);
-
-    aiInfos.lastParent = node->GetParent();
-
-    aiInfos.lastMoveType = node->GetComponent<GOC_Move2D>()->GetMoveType();
-    aiInfos.lastLayer = node->GetComponent<AnimatedSprite2D>()->GetLayer();
-
-    node->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
-    node->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
-    node->GetComponent<GOC_Animator2D>()->SetDirection(target->GetComponent<GOC_Animator2D>()->GetDirection());
-
-    // Divide Mass
-    body->SetMass(body->GetMass() * 0.5f);
-    body->SetEnabled(false);
-
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
     if (inventory)
         inventory->SetEnabled(false);
-
-    if (!mountNode)
-    {
-        GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
-        if (targetdestroyer && targetdestroyer->GetShapesRect().Defined())
-            node->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
-        else
-            node->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
-
-        ConstraintWeld2D* constraintWeld = node->CreateComponent<ConstraintWeld2D>();
-        constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
-        constraintWeld->SetAnchor(node->GetWorldPosition2D());
-        constraintWeld->SetFrequencyHz(4.0f);
-        constraintWeld->SetDampingRatio(0.5f);
-    }
-
-    URHO3D_LOGINFOF("GOB_MountOn() - MountOn : %s Mount on %s ... !", node->GetName().CString(), target->GetName().CString());
 }
 
 void GOB_MountOn::Update(GOC_AIController& controller)

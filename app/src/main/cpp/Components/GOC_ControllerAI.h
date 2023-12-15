@@ -134,8 +134,8 @@ public :
     virtual void Start();
     virtual void Stop();
 
-    virtual void MountOn(Node* node);
-    virtual void Unmount();
+    virtual bool MountOn(Node* node);
+    virtual bool Unmount();
 
     Behavior* StartBehavior(unsigned b=0, bool forced=false);
     void StopBehavior();

@@ -851,78 +851,20 @@ void Player::SwitchViewZ(int newViewZ)
 }
 
 
-void Player::MountOn(Node* target, bool sendnetevent)
+void Player::OnMount(Node* target)
 {
     if (!avatar_ || !target)
         return;
 
-    // Entity can not mount on itself
-    if (target == avatar_)
-        return;
-
-    // Already Mounted on this target
-    if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt() == target->GetID())
-        return;
-
-    // if the player is a CPU
-    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
-    if (aicontroller)
-    {
-        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior Mount on Target=%s(%u) ...", avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID());
-        aicontroller->GetaiInfos().target = target;
-        aicontroller->StartBehavior(GOB_MOUNTON);
-        return;
-    }
-
-    // Mounted on another target -> unmount
-    if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt())
-        Unmount();
-
-    avatar_->SetVar(GOA::ISMOUNTEDON, target->GetID());
-
-    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
-
-    Node* mountNode = target->GetChild(MOUNTNODE, true);
-
-    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) mountNode=%s...",
-                    avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID(), mountNode?"true":"false");
-    if (mountNode)
-    {
-        body->SetEnabled(false);
-
-        avatar_->SetParent(mountNode);
-        avatar_->SetPosition2D(Vector2::ZERO);
-    }
-    else
-    {
-        // If not MountNode exists, set the position of the node on the top of the target
-
-//        body->SetEnabled(false);
-        // Divide Mass
-        body->SetMass(body->GetMass() * 0.5f);
-
-        avatar_->SetParent(target);
-
-        GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
-        if (targetdestroyer)
-            avatar_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
-        else
-            avatar_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
-
-        ConstraintWeld2D* constraintWeld = avatar_->CreateComponent<ConstraintWeld2D>();
-        constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
-        constraintWeld->SetAnchor(avatar_->GetWorldPosition2D());
-        constraintWeld->SetFrequencyHz(4.0f);
-        constraintWeld->SetDampingRatio(0.5f);
-    }
-
-    avatar_->GetComponent<GOC_Move2D>()->SetMoveType(MOVE2D_MOUNT);
-    avatar_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
-    if (target->GetComponent<GOC_Animator2D>())
-        avatar_->GetComponent<GOC_Animator2D>()->SetDirection(target->GetComponent<GOC_Animator2D>()->GetDirection());
-
-    gocDestroyer_->SetViewZ();
-
+//    // if the player is a CPU
+//    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
+//    if (aicontroller)
+//    {
+//        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior Mount on Target=%s(%u) ...", avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID());
+//        aicontroller->GetaiInfos().target = target;
+//        aicontroller->StartBehavior(GOB_MOUNTON);
+//        return;
+//    }
 
     // if Player only (not netplayer who doesn't need to set these attributes)
     if (gocController->GetControllerType() == GO_Player)
@@ -942,87 +884,26 @@ void Player::MountOn(Node* target, bool sendnetevent)
     if (targetcontroller)
         targetcontroller->SetExternalController(avatar_->GetDerivedComponent<GOC_Controller>());
 
-    if (GameContext::Get().ServerMode_ && sendnetevent)
-    {
-        VariantMap& eventData = context_->GetEventDataMap();
-        eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
-        eventData[Net_ObjectCommand::P_NODEPTRFROM] = target->GetID();
-        eventData[Net_ObjectCommand::P_CLIENTID] = clientID_;
-        avatar_->SendEvent(GO_MOUNTEDON, eventData);
-    }
-
-    URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) Mount on Target=%s(%u) position=%s worldposition=%s... OK !",
+    URHO3D_LOGINFOF("Player() - OnMount : Player=%s(%u) Mount on Target=%s(%u) position=%s worldposition=%s... OK !",
                      avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID(),
                      avatar_->GetPosition().ToString().CString(), avatar_->GetWorldPosition().ToString().CString());
 }
 
-void Player::Unmount(bool sendnetevent)
+void Player::OnUnmount(unsigned targetid)
 {
     if (!avatar_)
         return;
 
-    if (!avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt())
-        return;
-
     // if the player is a CPU
-    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
-    if (aicontroller)
-    {
-        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior for Umount and Follow ...", avatar_->GetName().CString(), avatar_->GetID());
-        aicontroller->StartBehavior(GOB_FOLLOW);
-        return;
-    }
+//    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
+//    if (aicontroller)
+//    {
+//        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior for Umount and Follow ...", avatar_->GetName().CString(), avatar_->GetID());
+//        aicontroller->StartBehavior(GOB_FOLLOW);
+//        return;
+//    }
 
-    URHO3D_LOGINFOF("Player() - Unmount : ...");
-
-//    UnsubscribeFromEvent(avatar_, GOC_CONTROLUPDATE);
-
-    unsigned targetid = avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt();
-
-    // Get Contraints on the node and remove
-    PODVector<ConstraintWeld2D* > contraints;
-    avatar_->GetComponents<ConstraintWeld2D>(contraints);
-    for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
-    {
-        ConstraintWeld2D* constraint = *it;
-        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
-        {
-            constraint->ReleaseJoint();
-            constraint->Remove();
-        }
-    }
-    // Get the Contraints on the parent and remove
-    contraints.Clear();
-    avatar_->GetParent()->GetComponents<ConstraintWeld2D>(contraints);
-    for (PODVector<ConstraintWeld2D* >::Iterator it=contraints.Begin(); it!=contraints.End(); ++it)
-    {
-        ConstraintWeld2D* constraint = *it;
-        if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == avatar_->GetID())
-        {
-            constraint->ReleaseJoint();
-            constraint->Remove();
-        }
-    }
-
-    // Restore to RootScene
-    avatar_->SetVar(GOA::ISMOUNTEDON, unsigned(0));
-    avatar_->SetParent(GameContext::Get().rootScene_);
-    avatar_->GetComponent<GOC_Animator2D>()->ResetState();
-
-    // Restore Body
-    RigidBody2D* body = avatar_->GetComponent<RigidBody2D>();
-    if (body)
-    {
-        body->SetMass(body->GetMass() * 2.f);
-        body->SetEnabled(true);
-    }
-
-    gocDestroyer_->SetViewZ();
-
-    GOC_Move2D* move2d = avatar_->GetComponent<GOC_Move2D>();
-    if (move2d)
-        move2d->SetMoveType(move2d->GetLastMoveType());
-
+    URHO3D_LOGINFOF("Player() - OnUnmount : ...");
 
     GOC_Inventory* inventory = avatar_->GetComponent<GOC_Inventory>();
     if (inventory)
@@ -1038,21 +919,15 @@ void Player::Unmount(bool sendnetevent)
     avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(true);
 
     // for the target reset the External Controller.
-    Node* target = GetScene()->GetNode(targetid);
-    GOC_AIController* targetcontroller = target ? target->GetComponent<GOC_AIController>() : 0;
-    if (targetcontroller)
-        targetcontroller->SetExternalController(0);
-
-    if (GameContext::Get().ServerMode_, sendnetevent)
+    if (targetid)
     {
-        VariantMap& eventData = context_->GetEventDataMap();
-        eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
-        eventData[Net_ObjectCommand::P_NODEPTRFROM] = 0U;
-        eventData[Net_ObjectCommand::P_CLIENTID] = clientID_;
-        avatar_->SendEvent(GO_MOUNTEDON, eventData);
+        Node* target = GetScene()->GetNode(targetid);
+        GOC_AIController* targetcontroller = target ? target->GetComponent<GOC_AIController>() : 0;
+        if (targetcontroller)
+            targetcontroller->SetExternalController(0);
     }
 
-    URHO3D_LOGINFOF("Player() - Unmount : ... OK !");
+    URHO3D_LOGINFOF("Player() - OnUnmount : ... OK !");
 }
 
 
@@ -2489,44 +2364,76 @@ void Player::OnEntitySelection(StringHash eventType, VariantMap& eventData)
     unsigned type = eventData[Go_Selected::GO_TYPE].GetUInt();
     unsigned selectedID = eventData[Go_Selected::GO_ID].GetUInt();
 
+    URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) selectedid=%u type=%u...", avatar_->GetName().CString(), avatar_->GetID(), selectedID, type);
+
     if (selectedID < 2)
         return;
 
     Node* selectedNode = avatar_->GetScene()->GetNode(selectedID);
     if (!selectedNode)
+    {
+        URHO3D_LOGERRORF("Player() - OnEntitySelection : %s(%u) Select node=0 !", avatar_->GetName().CString(), avatar_->GetID());
         return;
+    }
 
     if (selectedNode == avatar_)
+    {
+        URHO3D_LOGERRORF("Player() - OnEntitySelection : %s(%u) Select node=avatar ! ", avatar_->GetName().CString(), avatar_->GetID());
         return;
+    }
 
     if (type == GO_AI_Enemy)
     {
-        URHO3D_LOGINFOF("Player() - OnEntitySelection : ID=%u Select Enemy node=%s(%u)",
-                        GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
+        URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) Select Enemy node=%s(%u)",
+                        avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
 
         // TODO if need
 
     }
     else if (type & (GO_Player|GO_AI_Ally))
     {
+        bool mountok = false;
+        unsigned mountid = 0U;
+
+        const unsigned mountedon = avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+        const unsigned selectionmountedon = selectedNode->GetVar(GOA::ISMOUNTEDON).GetUInt();
+
+        URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) mountedon=%u selectionmountedon=%u ...",
+                         avatar_->GetName().CString(), avatar_->GetID(), mountedon, selectionmountedon);
+
         // if not mounted
-        if (!avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt() && selectedNode->GetVar(GOA::ISMOUNTEDON).GetUInt() != avatar_->GetID())
+        if (!mountedon && selectionmountedon != avatar_->GetID())
         {
             Vector2 delta = selectedNode->GetWorldPosition2D() - avatar_->GetWorldPosition2D();
 
+            URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) mount on target %s(%u) pos=%s spos=%s...",
+                            avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID(),
+                            avatar_->GetWorldPosition2D().ToString().CString(), selectedNode->GetWorldPosition2D().ToString().CString());
             // Mount if near
             if (delta.LengthSquared() <= DISTANCEFORMOUNT)
             {
                 URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) mount on target %s(%u) ...",
                                 avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
-                MountOn(selectedNode, true);
+
+                mountok = gocController->MountOn(selectedNode);
+                mountid = selectedNode->GetID();
             }
         }
-        else if (avatar_->GetVar(GOA::ISMOUNTEDON).GetUInt() == selectedNode->GetID())
+        else if (mountedon == selectedNode->GetID())
         {
             URHO3D_LOGINFOF("Player() - OnEntitySelection : %s(%u) unmount from target %s(%u) ...",
                                 avatar_->GetName().CString(), avatar_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
-            Unmount(true);
+
+            mountok = gocController->Unmount();
+        }
+
+        if (GameContext::Get().ServerMode_ && mountok)
+        {
+            VariantMap& eventData = context_->GetEventDataMap();
+            eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
+            eventData[Net_ObjectCommand::P_NODEPTRFROM] = mountid;
+            eventData[Net_ObjectCommand::P_CLIENTID] = clientID_;
+            avatar_->SendEvent(GO_MOUNTEDON, eventData);
         }
     }
 }

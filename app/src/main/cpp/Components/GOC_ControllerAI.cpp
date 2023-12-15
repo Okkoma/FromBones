@@ -271,16 +271,20 @@ void GOC_AIController::Stop()
     started_ = false;
 }
 
-void GOC_AIController::MountOn(Node* node)
+bool GOC_AIController::MountOn(Node* node)
 {
     SetTarget(node->GetID(), true);
     StartBehavior(GOB_MOUNTON, true);
+
+    return true;
 }
 
-void GOC_AIController::Unmount()
+bool GOC_AIController::Unmount()
 {
     SetTarget(0, true);
     StopBehavior();
+
+    return true;
 }
 
 void GOC_AIController::ResetOrder()

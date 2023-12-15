@@ -1178,7 +1178,7 @@ void GameNetwork::Client_MountNode(VariantMap& eventData)
         URHO3D_LOGINFOF("GameNetwork() - Client_MountNode : node=%s(%u) target=%u ... unmount !", node->GetName().CString(), node->GetID(), targetid);
         GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
         if (controller)
-            controller->Unmount();
+            bool ok = controller->Unmount();
     }
     // Mount
     else if (!isMounted)
@@ -1186,7 +1186,7 @@ void GameNetwork::Client_MountNode(VariantMap& eventData)
         URHO3D_LOGINFOF("GameNetwork() - Client_MountNode : node=%s(%u) target=%u ... mount !", node->GetName().CString(), node->GetID(), targetid);
         GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
         if (controller)
-            controller->MountOn(target);
+            bool ok = controller->MountOn(target);
     }
 }
 

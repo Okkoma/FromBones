@@ -13,6 +13,9 @@ public :
     GOB_MountOn(Context* context) : Behavior(context) { }
     virtual ~GOB_MountOn() { }
 
+    void OnMount(GOC_AIController& controller);
+    void OnUnmount(GOC_AIController& controller);
+
     void MountOn(GOC_AIController& controller, Node* target);
 
     virtual void Start(GOC_AIController& controller);
