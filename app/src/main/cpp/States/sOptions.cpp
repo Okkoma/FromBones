@@ -1689,7 +1689,7 @@ void OptionState::HandleLoad(StringHash eventType, VariantMap& eventData)
     CloseFrame();
     uioptionsframe_->SetVisible(false);
 
-    GameCommands::Launch(context_, String("load"));
+    GameCommands::Launch("load");
 }
 
 void OptionState::HandleSave(StringHash eventType, VariantMap& eventData)
@@ -1698,7 +1698,7 @@ void OptionState::HandleSave(StringHash eventType, VariantMap& eventData)
 
     CloseFrame();
 
-    GameCommands::Launch(context_, String("save"));
+    GameCommands::Launch("save");
 }
 
 void OptionState::HandleQuit(StringHash eventType, VariantMap& eventData)

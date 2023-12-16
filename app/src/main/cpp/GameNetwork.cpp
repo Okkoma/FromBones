@@ -6,6 +6,7 @@
 #include <Urho3D/Urho3D.h>
 
 #include <Urho3D/IO/Log.h>
+#include <Urho3D/IO/MemoryBuffer.h>
 
 #include <Urho3D/Core/CoreEvents.h>
 
@@ -27,7 +28,7 @@
 #include "GameStateManager.h"
 #include "GameContext.h"
 #include "GameHelpers.h"
-
+#include "GameCommands.h"
 #include "GameStateManager.h"
 #include "sPlay.h"
 
@@ -94,8 +95,8 @@
 const String NET_DEFAULT_SERVERIP = String("localhost");
 const int NET_DEFAULT_SERVERPORT  = 2345;
 
-const float NET_DELAYCHECKCONNECTION = 10.f;
-const float NET_DELAYCONNECTSERVER   = 50.f;
+const float NET_DELAYCHECKCONNECTION = 5.f;
+const float NET_DELAYCONNECTSERVER   = 25.f;
 
 //const float DELAY_UPDATENETPOSITIONS = 2.f;
 
@@ -416,19 +417,24 @@ bool GameNetwork::LocalMode()
     return !network_;
 }
 
-void GameNetwork::AddGraphicMessage(Context* context, const String& msg, const IntVector2& position, int colortype, float delaystart)
+void GameNetwork::AddGraphicMessage(Context* context, const String& msg, const IntVector2& position, int colortype, float duration, float delaystart)
 {
 #ifdef ACTIVE_NETWORK_GRAPHICMESSAGES
     TextMessage* netMessage = new TextMessage(context);
 
     if (colortype == WHITEGRAY30)
     {
-        netMessage->Set(msg, GameContext::Get().txtMsgFont_, 30, 2.f, position, 1.f, true, delaystart);
+        netMessage->Set(msg, GameContext::Get().txtMsgFont_, 30, duration, position, 1.5f, true, delaystart);
         netMessage->SetColor(Color::WHITE, Color::WHITE, Color::GRAY, Color::GRAY);
     }
-    else// if (colortype == REDYELLOW35)
+    else if (colortype == MAGENTABLACK30)
     {
-        netMessage->Set(msg, GameContext::Get().txtMsgFont_, 35, 2.f, position, 1.f, true, delaystart);
+        netMessage->Set(msg, GameContext::Get().txtMsgFont_, 30, duration, position, 1.f, true, delaystart);
+        netMessage->SetColor(Color::BLACK, Color::BLACK, Color::MAGENTA, Color::MAGENTA);
+    }
+    else
+    {
+        netMessage->Set(msg, GameContext::Get().txtMsgFont_, 35, duration, position, 1.f, true, delaystart);
         netMessage->SetColor(Color::RED, Color::RED, Color::YELLOW, Color::YELLOW);
     }
 #endif
@@ -495,7 +501,7 @@ void GameNetwork::TryConnection()
     SubscribeToEvent(E_SERVERCONNECTED, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
     SubscribeToEvent(E_UPDATE, URHO3D_HANDLER(GameNetwork, HandleSearchServer));
     net_->Connect(serverIP_, serverPort_, GameContext::Get().rootScene_);
-    AddGraphicMessage(context_, "Searching.Network...", IntVector2(20, -1), WHITEGRAY30);
+    AddGraphicMessage(context_, "Searching.Network...", IntVector2(0, -10), WHITEGRAY30, 5.f);
 }
 
 void GameNetwork::StartServer()
@@ -517,7 +523,7 @@ void GameNetwork::StartServer()
 
     URHO3D_LOGINFOF("GameNetwork() - ServerMode !");
 
-    AddGraphicMessage(context_, "Server.Mode.", IntVector2(20, -1), REDYELLOW35);
+    AddGraphicMessage(context_, "Server.Mode.", IntVector2(20, -10), REDYELLOW35);
 
     SendEvent(NET_MODECHANGED);
 }
@@ -548,7 +554,7 @@ void GameNetwork::StartClient()
 
     URHO3D_LOGINFOF("GameNetwork() - ClientMode !");
 
-    AddGraphicMessage(context_, "Client.Mode.", IntVector2(20, -1), REDYELLOW35);
+    AddGraphicMessage(context_, "Client.Mode.", IntVector2(20, -10), REDYELLOW35);
 
     SendEvent(NET_MODECHANGED);
 }
@@ -567,7 +573,7 @@ void GameNetwork::StartLocal()
 
     URHO3D_LOGINFOF("GameNetwork() - LocalMode !");
 
-    AddGraphicMessage(context_, "Local.Mode.", IntVector2(20, -1), REDYELLOW35, 3.f);
+    AddGraphicMessage(context_, "Local.Mode.", IntVector2(20, -10), REDYELLOW35);
 
     // TODO Player respawn in local
     SendEvent(NET_MODECHANGED);
@@ -1159,6 +1165,67 @@ void GameNetwork::Client_TransferItem(VariantMap& eventData)
     }
 }
 
+void GameNetwork::Client_SetWorldObjects(VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("GameNetwork() - Client_SetWorldObjects ...");
+
+    // Set World Objects
+    World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+
+    // Add NoNetSpawnable Server Objects
+    {
+        MemoryBuffer buffer(eventData[Net_ObjectCommand::P_SERVEROBJECTS].GetBuffer());
+        buffer.Seek(0);
+        ObjectControlInfo tinfo;
+        ObjectControlInfo* oinfo;
+
+        while (buffer.Tell() < buffer.GetSize())
+        {
+            unsigned char type = buffer.ReadUByte();
+
+    #ifdef ACTIVE_SHORTHEADEROBJECTCONTROL
+            const int nodeclientid = buffer.ReadUByte();
+            unsigned servernodeid = buffer.ReadUShort();
+            unsigned clientnodeid = buffer.ReadUShort();
+            if (servernodeid) servernodeid += FIRST_LOCAL_ID;
+            if (clientnodeid) clientnodeid += FIRST_LOCAL_ID;
+    #else
+            const int nodeclientid = buffer.ReadInt();
+            const unsigned servernodeid = buffer.ReadUInt();
+            const unsigned clientnodeid = buffer.ReadUInt();
+    #endif
+            // copy the data to temporary object control
+            tinfo.Read(buffer);
+
+            if (!tinfo.GetReceivedControl().HasNetSpawnMode())
+            {
+                const unsigned spawnid = tinfo.GetReceivedControl().states_.spawnid_;
+
+                // get the current server object control for the server nodeid
+                ObjectControlInfo& oinfo = GetOrCreateServerObjectControl(servernodeid, 0, nodeclientid);
+
+                // create the node
+                if (!oinfo.node_)
+                {
+                    oinfo.clientId_ = nodeclientid;
+                    // copy the temporary object control in receivedcontrol before add object
+                    tinfo.CopyReceivedControlTo(oinfo.GetReceivedControl());
+
+                    bool ok = NetAddEntity(oinfo);
+                }
+
+                if (oinfo.node_)
+                    oinfo.SetEnable(true);
+            }
+        }
+    }
+
+    // Reconciliate spawnstamps with the server
+    localSpawnStamps_[0] = receivedSpawnStamps_[0];
+
+    URHO3D_LOGINFOF("GameNetwork() - Client_SetWorldObjects : spawnstamp[SERVER]=%u !", localSpawnStamps_[0]);
+}
+
 void GameNetwork::Client_MountNode(VariantMap& eventData)
 {
     Node* node = GameContext::Get().rootScene_->GetNode(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
@@ -1491,7 +1558,7 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         WeatherManager::Get()->SetNetWorldInfos(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
         break;
     case SETWORLD:
-        World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+        Client_SetWorldObjects(eventData);
         break;
     case TRIGCLICKED:
     {
@@ -1513,7 +1580,6 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
 //    URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) for nodeid=%u ... OK !",
 //                      cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", eventData[Net_ObjectCommand::P_NODEID].GetUInt());
 }
-
 
 /// Spawn Controls
 
@@ -2117,7 +2183,19 @@ void GameNetwork::Server_SendWeatherInfos(ClientInfo& clientInfo)
 void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
 {
     ObjectCommand& cmd = *objCmdPool_.Get();
-    cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects();
+    cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects(clientInfo);
+
+    // Get the Server ObjectControls
+    {
+        VectorBuffer buffer;
+        for (Vector<ObjectControlInfo>::Iterator it = serverObjectControls_.Begin(); it != serverObjectControls_.End(); ++it)
+        {
+            ObjectControlInfo& oinfo = *it;
+            if (oinfo.clientId_ != clientInfo.clientID_)
+                oinfo.Write(buffer);
+        }
+        cmd.cmd_[Net_ObjectCommand::P_SERVEROBJECTS] = buffer;
+    }
     PushObjectCommand(SETWORLD, cmd, false, clientInfo.clientID_);
 }
 
@@ -2139,6 +2217,34 @@ void GameNetwork::Server_SendInventories(ClientInfo& clientInfo)
             sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
             PushObjectCommand(SETFULLEQUIPMENT, 0, false, clientInfo.clientID_);
             sServerEventData_.Clear();
+        }
+    }
+    // send objects storages (inventory, dropzone) to the client
+    {
+        // TODO : which mappoint ?
+        ShortIntVector2 mappoint;
+        PODVector<Node*> objects;
+        World2D::GetFilteredEntities(mappoint, objects, GO_Entity); // don't get Ais and players
+        for (unsigned i = 0; i < objects.Size(); i++)
+        {
+            GOC_Inventory* inventory = objects[i]->GetComponent<GOC_Inventory>();
+            if (inventory)
+            {
+                sServerEventData_[Net_ObjectCommand::P_NODEID] = inventory->GetNode()->GetID();
+                sServerEventData_[Net_ObjectCommand::P_INVENTORYTEMPLATE] = inventory->GetTemplateHashName().Value();
+                sServerEventData_[Net_ObjectCommand::P_INVENTORYSLOTS] = inventory->GetInventoryAttr();
+                PushObjectCommand(SETFULLINVENTORY, 0, true, 0);
+                sServerEventData_.Clear();
+            }
+            GOC_DropZone* dropzone   = objects[i]->GetComponent<GOC_DropZone>();
+            if (dropzone)
+            {
+                sServerEventData_[Go_StorageChanged::GO_ACTIONTYPE] = 3;
+                sServerEventData_[Net_ObjectCommand::P_NODEID] = dropzone->GetNode()->GetID();
+                sServerEventData_[Net_ObjectCommand::P_DATAS] = dropzone->GetStorageAttr();
+                PushObjectCommand(UPDATEITEMSSTORAGE, 0, true, 0);
+                sServerEventData_.Clear();
+            }
         }
     }
     // remote clients players : send equipment to the client
@@ -3112,6 +3218,7 @@ void GameNetwork::HandleSearchServer(StringHash eventType, VariantMap& eventData
             {
                 // Try Connection to Server
                 URHO3D_LOGINFOF("GameNetwork() - HandleSearchServer : connecting to Server=%s:%d ...", serverIP_.CString(), serverPort_);
+                AddGraphicMessage(context_, "Searching.Network...", IntVector2(0, -10), WHITEGRAY30, 5.f);
                 net_->Connect(serverIP_, serverPort_, GameContext::Get().rootScene_);
             }
 
@@ -3143,7 +3250,7 @@ void GameNetwork::HandleConnectionStatus(StringHash eventType, VariantMap& event
         Client_RemoveObjects();
         Client_PurgeConnection();
 
-        AddGraphicMessage(context_, "No.Server.!", IntVector2(20, -1), REDYELLOW35, 0.f);
+        AddGraphicMessage(context_, "No.Server.!", IntVector2(20, -60), MAGENTABLACK30, 5.f, 0.f);
 
         if (clientMode_)
             StartLocal();
@@ -3199,7 +3306,7 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
     {
         Connection* lostConnection = static_cast<Connection*>(eventData[ClientConnected::P_CONNECTION].GetPtr());
 
-        AddGraphicMessage(context_, String("Client." + lostConnection->GetAddress() + ":" + String(lostConnection->GetPort()) + ".Disconnected.!"), IntVector2(20, -1), REDYELLOW35, 1.f);
+        AddGraphicMessage(context_, String("Client." + lostConnection->GetAddress() + ":" + String(lostConnection->GetPort()) + ".Disconnected.!"), IntVector2(20, -10), MAGENTABLACK30, 4.f, 1.f);
 
         Server_PurgeConnection(lostConnection);
     }
@@ -3226,6 +3333,13 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
         if (clientNewStatus == NOGAMESTATE)
         {
 //            URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u NOGAMESTATE !", clientInfo.clientID_, clientInfo.lastReceivedTimeStamp_, timeStamp);
+            return;
+        }
+
+        // Launch Server in PlayState
+        if (clientNewStatus > MENUSTATE && clientNewStatus < PLAYSTATE_SYNCHRONIZING && gameStatus_ == MENUSTATE)
+        {
+            GameCommands::Launch("playarena");
             return;
         }
 
@@ -3344,7 +3458,7 @@ void GameNetwork::HandleClient_MessagesFromServer(StringHash eventType, VariantM
         {
             clientID_ = eventData[Net_GameStatusChanged::P_CLIENTID].GetInt();
 
-            AddGraphicMessage(context_, ToString("ClientID=%d", clientID_), IntVector2(20, -40), REDYELLOW35);
+            AddGraphicMessage(context_, ToString("ClientID=%d", clientID_), IntVector2(20, -60), REDYELLOW35);
         }
 
         GameStatus serverGameStatus = (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt();
@@ -4264,7 +4378,7 @@ void GameNetwork::HandlePlayClient_ReceiveServerControls(StringHash eventType, V
         return;
     }
 
-    // Receive the object commands & controls
+    // Receive the object controls
     do
     {
         int type = buffer.ReadUByte();
@@ -5387,6 +5501,16 @@ void GameNetwork::DumpNetObjects() const
     URHO3D_LOGINFOF("GameNetwork() - DumpNetObjects : objCmdPoolFree=%u/%u objCmdPckPoolFree=%u/%u ", objCmdPool_.FreeSize(), objCmdPool_.Size(), objCmdPckPool_.FreeSize(), objCmdPckPool_.Size());
 }
 
+void GameNetwork::DumpSpawnStamps() const
+{
+    URHO3D_LOGINFOF("GameNetwork() - DumpSpawnStamps : localSpawnStamps_.Size=%u ", localSpawnStamps_.Size());
+    for (unsigned i = 0; i < localSpawnStamps_.Size(); i++)
+        URHO3D_LOGINFOF("   client=%u localstamp=%u ", i, localSpawnStamps_[i]);
+    URHO3D_LOGINFOF("GameNetwork() - DumpSpawnStamps : receivedSpawnStamps_.Size=%u ", receivedSpawnStamps_.Size());
+    for (unsigned i = 0; i < receivedSpawnStamps_.Size(); i++)
+        URHO3D_LOGINFOF("   client=%u receivedstamp=%u ", i, receivedSpawnStamps_[i]);
+}
+
 #ifdef ACTIVE_NETWORK_LOGSTATS
 void DumpLogStatNetObject(int clientid, const LogStatNetObject& logstats)
 {
@@ -5437,6 +5561,7 @@ void GameNetwork::Dump() const
     URHO3D_LOGINFOF("GameNetwork() - Dump : netgamestatus=%s", gameStatusNames[(int)gameStatus_]);
     DumpClientInfos();
     DumpNetObjects();
+    DumpSpawnStamps();
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     DumpLogStatNetObject(clientID_, logStats_);

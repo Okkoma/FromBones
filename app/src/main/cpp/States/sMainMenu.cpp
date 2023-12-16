@@ -476,14 +476,16 @@ void MenuState::BeginNewLevel(GameLevelMode mode, unsigned seed)
 
 void MenuState::Launch(int selection)
 {
+    if (!IsNetworkReady())
+        return;
+
     URHO3D_LOGINFOF("MenuState() - Launch %d", selection);
 
     switch (selection)
     {
     // ARENA
     case 1:
-        if (IsNetworkReady())
-            BeginNewLevel(LVL_ARENA);
+        BeginNewLevel(LVL_ARENA);
         break;
 
     // WORLD

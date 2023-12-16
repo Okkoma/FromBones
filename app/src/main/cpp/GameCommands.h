@@ -8,6 +8,6 @@ using namespace Urho3D;
 class FROMBONES_API GameCommands
 {
 public:
-    static void Launch(Context* context, const String& input);
+    static void Launch(const String& input);
 
 };

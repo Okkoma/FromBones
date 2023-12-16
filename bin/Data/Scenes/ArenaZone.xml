@@ -49,10 +49,11 @@
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Vampire|GOT_Sorceress|GOT_Darkren" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Kigrat" />			 -->
 
-			<attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_Vampire|GOT_TreasureChest" />
-            <attribute name="Map - Num Entities" value="20 25" />
+			<!-- <attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_Vampire|GOT_TreasureChest" /> -->
+			<attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />
+            <attribute name="Map - Num Entities" value="10 15" />
 			
-			<attribute name="Map - Add Objects" value="false" />
+			<attribute name="Map - Add Objects" value="true" />
 			<attribute name="Map - Add Furnitures" value="true" />
 
 			<attribute name="Map - Ground Level" value="90" />

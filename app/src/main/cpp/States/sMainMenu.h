@@ -26,6 +26,7 @@ public:
     virtual void Begin();
     virtual void End();
 
+    void Launch(int selection);
     void BeginNewLevel(GameLevelMode mode=LVL_NEW, unsigned seed=0);
 
 private:
@@ -41,8 +42,6 @@ private:
 
     void SubscribeToMenuEvents();
     void UnsubscribeToMenuEvents();
-
-    void Launch(int selection);
 
     void HandlePreloadingFinished(StringHash eventType, VariantMap& eventData);
     void HandleMenuButton(StringHash eventType, VariantMap& eventData);

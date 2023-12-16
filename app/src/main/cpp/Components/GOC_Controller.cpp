@@ -145,7 +145,6 @@ bool GOC_Controller::MountOn(Node* target)
         // Divide Mass
         body->SetMass(body->GetMass() * 0.5f);
 
-
         node_->SetParent(target);
 
         GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();

@@ -271,7 +271,7 @@ ObjectControl& ObjectControlInfo::GetPreparedControl()
     return preparedControl_;
 }
 
-void ObjectControlInfo::Read(VectorBuffer& msg)
+void ObjectControlInfo::Read(Deserializer& msg)
 {
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
     msg.Read(&receivedPackedControl_, sizeof(PackedObjectControl));
@@ -281,7 +281,7 @@ void ObjectControlInfo::Read(VectorBuffer& msg)
 #endif
 }
 
-void ObjectControlInfo::ReadAck(VectorBuffer& msg)
+void ObjectControlInfo::ReadAck(Deserializer& msg)
 {
 #ifdef ACTIVE_PACKEDOBJECTCONTROL
     receivedControls_[0].states_.totalDpsReceived_ = half_to_float(msg.ReadUShort());
@@ -291,7 +291,7 @@ void ObjectControlInfo::ReadAck(VectorBuffer& msg)
 }
 
 // Write preparedControl_ to msg
-bool ObjectControlInfo::Write(VectorBuffer& msg)
+bool ObjectControlInfo::Write(Serializer& msg)
 {
     msg.WriteUByte(OBJECTCONTROL);
 
@@ -320,7 +320,7 @@ bool ObjectControlInfo::Write(VectorBuffer& msg)
     return true;
 }
 
-bool ObjectControlInfo::WriteAck(VectorBuffer& msg)
+bool ObjectControlInfo::WriteAck(Serializer& msg)
 {
     msg.WriteUByte(OBJECTCONTROL);
 
@@ -354,14 +354,14 @@ void ObjectControlInfo::Dump() const
 
 const ObjectCommand ObjectCommand::EMPTY = ObjectCommand();
 
-void ObjectCommand::Read(VectorBuffer& msg)
+void ObjectCommand::Read(Deserializer& msg)
 {
     clientId_ = msg.ReadInt();
     broadCast_ = msg.ReadBool();
     cmd_ = msg.ReadVariantMap();
 }
 
-void ObjectCommand::Write(VectorBuffer& msg, int toclient) const
+void ObjectCommand::Write(Serializer& msg, int toclient) const
 {
     msg.WriteUByte(OBJECTCOMMAND);
     msg.WriteInt(clientId_);

@@ -161,10 +161,10 @@ struct ObjectControlInfo
 
     bool IsEnable() const { return GetReceivedControl().IsEnabled(); }
 
-    void Read(VectorBuffer& msg);
-    void ReadAck(VectorBuffer& msg);
-    bool Write(VectorBuffer& msg);
-    bool WriteAck(VectorBuffer& msg);
+    void Read(Deserializer& msg);
+    void ReadAck(Deserializer& msg);
+    bool Write(Serializer& msg);
+    bool WriteAck(Serializer& msg);
 
     void Dump() const;
 
@@ -192,12 +192,12 @@ class ObjectCommand : public PoolObject
 {
 public:
     ObjectCommand() { Clear(); }
-    ObjectCommand(VectorBuffer& msg) { Read(msg); }
+    ObjectCommand(Deserializer& msg) { Read(msg); }
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
-    void Read(VectorBuffer& msg);
+    void Read(Deserializer& msg);
 
-    void Write(VectorBuffer& msg, int toclient=0) const;
+    void Write(Serializer& msg, int toclient=0) const;
     void CopyTo(ObjectCommand& cmd) const;
     void Dump() const;
 

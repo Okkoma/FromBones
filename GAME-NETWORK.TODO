@@ -7,6 +7,14 @@
 
 Todos:
 
+    ☐ 16/12/2023 : separer Client_SetWorldObjects en 2 : l'un pour les serverobjects et l'un pour les mapdata
+        -> les mapdata doivent etre setté pendant le LOADING (à la génération du monde)
+        --> verifier dans mapcreator quand doivent-etre setté les MapData pour le chargement.
+        -> les serverobjects peuvent être settés plus tard.
+
+    ✔ 15/12/2023 : demarrer automatique en PlayState le server si au moins un client envoie son état en PlayState
+        -> Demarrage en Arena OK, voir pour modifier ça par la suite
+
     ✔ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients @done(23-12-15 09:07)
         plusieurs problemes surviennent alors :
         -> si un buildabletype est disponible coté serveur et que coté client il n'y a pas la part pour ce build,
@@ -42,10 +50,10 @@ Todos:
 
     ✔ 12/12/2023 : ajout du spawn de collectables : le drop d'item n'est pas suffisant, l'editeur a besoin d'un spawn specifique notamment pour les collectableparts @done(23-12-13 09:58)
 
-    ☐ 12/12/2023 : coté client, le spawn d'eliegor seed pose probleme (c'est un exemple d'autres entités droppés par GOC_DropZone vont avoir ce probleme avec le storage initial)
+    ✔ 12/12/2023 : coté client, le spawn d'eliegor seed pose probleme (c'est un exemple d'autres entités droppés par GOC_DropZone vont avoir ce probleme avec le storage initial)
         -> si le client n'a pas un état initial synchronisé avec le server (Snap Initial ok), alors coté client eliegorflower va spawner une graine que le server n'a plus en stock
-        ==> faire un snap en incluant les storage des composants GOC_Inventory, GOC_DropZone.
-        
+        ==> OK 15/12/2023 : ajout dabs le snap des storage des composants GOC_Inventory, GOC_DropZone.
+
     ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
 
     ☐ 07/12/2023 : les bosszones ne fonctionnent pas en reseau
@@ -333,8 +341,13 @@ Todos:
         ✔ 16/11/2023 : ajout de GameNetwork::Server_SendSnap et GameNetwork::Server_SendInventories
         ✔ 23/11/2023 : ajout de Weather => GameNetwork::Server_SendWeatherInfos @done(23-11-28 15:04)
         ✔ 28/11/2023 : ajout des TileModifiers => GameNetwork::Server_SendWorldObjects @done(23-11-28 15:04)
-        ☐ ajout des entities/furnitures et des states initiaux (d'animation principalement pour les lumieres) pour ceux qui n'ont pas de GOC_Controller uniquement ?
+        ☐ ajout des entities/furnitures et des states initiaux (d'animation principalement pour les lumieres)
             => il faut la liste des nodes effacés par rapport à la génération initiale.
+        ☐ envoyer les serverObjects qui ne sont pas NetSpawnable.
+            => attention, il ne faut pas utiliser de nouveaux spawnstamp et les spawnstamp doivent etre synchronisés
+            ==> utilisé GameNetwork::NetAddEntity et pas GameNetwork::NetSpawnEntity
+            ==> reconciliation des spawnstamps dans GameNetwork::Client_SetWorldObjects
+            ==> cela fonctionne en arena, mais en world cela va surement poser probleme pour la prise de nodeid.
 
     ✔ 14/11/2023 : ajouter deux modes reseau : arena (salle d'attente, redirection vers une partie en attente, synchronisation des autres clients, lancement) et world (pas d'attente) @done(23-12-06 16:15)
         avec le NetSimulator activé, pour le moment il y a un probleme pour mode reseau sans attente, car en arena si on lance un serveur et un client en playstate. Puis on ajoute un second client et playstate

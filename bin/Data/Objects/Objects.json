@@ -530,7 +530,7 @@
 		"fileName":"Objects/coffre.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 10,
+		"qtyInPool": 20,
 		"defaultValue":0
 	}
 	, "GOT_TreasureChestBoss":{
@@ -538,7 +538,7 @@
 		"fileName":"Objects/coffreboss.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 0,
+		"qtyInPool": 5,
 		"defaultValue":0
 	}	
 	, "GOT_MonsterSpawner":{
@@ -546,7 +546,7 @@
 		"fileName":"Objects/monsterspawner.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 0,
+		"qtyInPool": 5,
 		"defaultValue":0
 	}
 }

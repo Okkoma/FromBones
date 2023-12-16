@@ -138,9 +138,6 @@ void TextMessage::Set(const String& message, const char *fontName, int fontSize,
     type_ = 0;
     fadescale_ = fadescale;
 
-    Font* font = GetSubsystem<ResourceCache>()->GetResource<Font>(fontName);
-    Graphics* graphics = GetSubsystem<Graphics>();
-
     text_ = GetSubsystem<UI>()->GetRoot()->CreateChild<Text>();
     if (!text_)
     {
@@ -149,21 +146,12 @@ void TextMessage::Set(const String& message, const char *fontName, int fontSize,
     }
 
     text_->SetText(message);
-    text_->SetFont(font, fontSize);
+    text_->SetFont(GetSubsystem<ResourceCache>()->GetResource<Font>(fontName), fontSize);
 
-    if (position.x_ == 0)
-        text_->SetHorizontalAlignment(HA_CENTER);
-    if (position.y_ == 0)
-        text_->SetVerticalAlignment(VA_CENTER);
-    if (position.x_ < 0)
-        position.x_ += graphics->GetWidth() - fontSize;
-    if (position.y_ < 0)
-        position.y_ = graphics->GetHeight() - fontSize + position.y_;
-
-    text_->SetPosition(position);
+    position_ = position;
 
     SetColor(defaultTxtMsgColor_[0], defaultTxtMsgColor_[1], defaultTxtMsgColor_[2], defaultTxtMsgColor_[3]);
-//
+
 //    text_->SetTextEffect(TE_STROKE);
 //    text_->SetEffectStrokeThickness(2);
 //    text_->SetEffectRoundStroke(false);
@@ -210,6 +198,22 @@ void TextMessage::SetColor(const Color& colorTL, const Color& colorTR, const Col
     }
 }
 
+void TextMessage::UpdatePosition()
+{
+    IntVector2 position = position_;
+
+    if (position.x_ == 0)
+        text_->SetHorizontalAlignment(HA_CENTER);
+    if (position.y_ == 0)
+        text_->SetVerticalAlignment(VA_CENTER);
+    if (position.x_ < 0)
+        position.x_ = GetSubsystem<UI>()->GetRoot()->GetSize().x_ - text_->GetWidth() + position.x_;
+    if (position.y_ < 0)
+        position.y_ = GetSubsystem<UI>()->GetRoot()->GetSize().y_ - text_->GetFontSize() + position.y_;
+
+    text_->SetPosition(position);
+}
+
 void TextMessage::OnRemove(StringHash eventType, VariantMap& eventData)
 {
 //    URHO3D_LOGINFOF("TextMessage() - OnRemove : %u", this);
@@ -219,6 +223,7 @@ void TextMessage::OnRemove(StringHash eventType, VariantMap& eventData)
 void TextMessage::handleUpdate1(StringHash eventType, VariantMap& eventData)
 {
     timer_ += eventData[TextMessageUpdateNameSpace::P_TIMESTEP].GetFloat();
+
     if (timer_ > expirationTime1_)
     {
         UnsubscribeFromEvent(TextMessageUpdateEvent);
@@ -235,6 +240,8 @@ void TextMessage::handleUpdate1(StringHash eventType, VariantMap& eventData)
         // bug in BringFront()
         // instead use SetPriority
 //        text_->SetPriority(M_MAX_INT-1);
+
+        UpdatePosition();
 
         URHO3D_LOGERRORF("TextMessage() - handleUpdate1 : %s", text_->GetText().CString());
 
@@ -338,6 +345,9 @@ void TextMessage::handleUpdate1_3D(StringHash eventType, VariantMap& eventData)
 void TextMessage::handleUpdate2(StringHash eventType, VariantMap& eventData)
 {
     timer_ += eventData[TextMessageUpdateNameSpace::P_TIMESTEP].GetFloat();
+
+    UpdatePosition();
+
     if (timer_ > expirationTime2_)
     {
         UnsubscribeFromEvent(TextMessageUpdateEvent);

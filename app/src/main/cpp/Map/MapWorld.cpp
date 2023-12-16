@@ -1336,6 +1336,7 @@ Node* World2D::SpawnEntity(const StringHash& got, int entityid, int id, unsigned
                          physicInfo.positionx_, physicInfo.positiony_, mpoint.ToString().CString());
         return 0;
     }
+
     URHO3D_LOGINFOF("World2D() - SpawnEntity : id=%u got=%s(%u) effectiveType=%s(%u) position=%F %F mpoint=%s viewZ=%d deferredAdd=%s",
                     id, GOT::GetType(got).CString(), got.Value(),GOT::GetType(got).CString(), got.Value(),
                     physicInfo.positionx_, physicInfo.positiony_,
@@ -1370,6 +1371,7 @@ Node* World2D::NetSpawnEntity(ObjectControlInfo& info, Node* holder, VariantMap*
         scinfo.faction_ = holder ? (holder->GetVar(GOA::NOCHILDFACTION).GetBool() ? 0 : holder->GetVar(GOA::FACTION).GetUInt()) : 0;
 //        scinfo.zindex_ = ;
         scinfo.clientId_ = info.clientId_;
+        scinfo.skipNetSpawn_ = control.HasNetSpawnMode() == 0;
         scinfo.objectControlInfo_ = &info;
         node = SpawnEntity(got, (int)control.states_.entityid_, info.serverNodeID_, info.serverNodeID_, control.states_.viewZ_, *((PhysicEntityInfo*) &control.physics_), scinfo, slotData);
 
@@ -1555,14 +1557,18 @@ void World2D::SetNetWorldObjects(const VariantVector& objects)
     }
 }
 
-const VariantVector& World2D::GetNetWorldObjects()
+const VariantVector& World2D::GetNetWorldObjects(ClientInfo& clientinfo)
 {
-    PrepareNetWorldObjects();
+    PrepareNetWorldObjects(clientinfo);
+
     return worldObjectState_.datas_;
 }
 
-void World2D::PrepareNetWorldObjects()
+void World2D::PrepareNetWorldObjects(ClientInfo& clientinfo)
 {
+    // TODO : Get the Maps Set of the world to be prepared
+    // in ClientInfo, we must find the mapposition in the world and get the MapBufferRect
+
     const HashMap<ShortIntVector2, Map* >& maps = mapStorage_->GetMapsInMemory();
     if (!maps.Size())
     {
@@ -1734,7 +1740,7 @@ IntRect World2D::GetVisibleAreas(const Vector2& wposition)
 
 const Vector2& World2D::GetCurrentMapOrigin(int viewport)
 {
-    return world_->viewinfos_[viewport].currentMap_ ? world_->viewinfos_[viewport].currentMap_->GetTopography().maporigin_ : Vector2::ZERO;
+    return world_ && world_->viewinfos_[viewport].currentMap_ ? world_->viewinfos_[viewport].currentMap_->GetTopography().maporigin_ : Vector2::ZERO;
 }
 
 Map* World2D::GetMapAt(const ShortIntVector2& mPoint, bool createIfMissing)
@@ -1886,6 +1892,9 @@ bool World2D::GetNearestBlockTile(const Vector2& wposition, int viewZ, ShortIntV
 
 void World2D::GetCollisionShapesAt(const ShortIntVector2& mpoint, unsigned tileindex, int viewZ, Vector<CollisionShape2D*>& cshapes)
 {
+    if (!world_)
+        return;
+
     Map* map = world_->GetMapAt(mpoint);
     if (!map)
         return;
@@ -2000,6 +2009,9 @@ PODVector<unsigned>* World2D::GetLosTable(const ShortIntVector2& mPoint)
 
 void World2D::GetFilteredEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, int skipControllerType)
 {
+    if (!world_)
+        return;
+
     entities.Clear();
 
     List<unsigned>& ids = mapEntities_[mPoint].entities_;
@@ -2025,6 +2037,9 @@ void World2D::GetFilteredEntities(const ShortIntVector2& mPoint, PODVector<Node*
 
 void World2D::GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, const StringHash& type)
 {
+    if (!world_)
+        return;
+
     entities.Clear();
 
     List<unsigned>& ids = mapEntities_[mPoint].entities_;
@@ -2047,6 +2062,9 @@ void World2D::GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entit
 
 void World2D::GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, const char* name)
 {
+    if (!world_)
+        return;
+
     entities.Clear();
 
     List<unsigned>& ids = mapEntities_[mPoint].entities_;
@@ -2072,6 +2090,9 @@ void World2D::GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entit
 
 void World2D::GetVisibleEntities(PODVector<Node*>& entities)
 {
+    if (!world_)
+        return;
+
     Scene* scene = world_->GetScene();
     Node* node;
     ShortIntVector2 mpoint;
@@ -2145,6 +2166,9 @@ Node* World2D::GetEntitiesNode(const ShortIntVector2& mPoint, CreateMode mode)
 PODVector<Node*> World2D::FindEntitiesAt(const String& entityName, const ShortIntVector2& mPoint, int viewZ)
 {
     PODVector<Node*> entities;
+    if (!world_)
+        return entities;
+
     world_->GetEntities(mPoint, entities, entityName);
 
     if (!entities.Size())

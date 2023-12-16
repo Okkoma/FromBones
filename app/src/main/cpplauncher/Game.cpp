@@ -1016,7 +1016,7 @@ void Game::SetupSubSystems()
 
     if (config->networkMode_ == "local")
     {
-        GameNetwork::AddGraphicMessage(context_, "Local.Mode.", IntVector2(1, 10), WHITEGRAY30, 0.f);
+        GameNetwork::AddGraphicMessage(context_, "Local.Mode.", IntVector2(0, -10), WHITEGRAY30, 5.f, 0.f);
 
         GetSubsystem<Network>()->Stop();
     }
@@ -1260,6 +1260,6 @@ void Game::HandleConsoleCommand(StringHash eventType, VariantMap& eventData)
     if (eventData[P_ID].GetString() != GetTypeName())
         return;
 
-    GameCommands::Launch(context_, eventData[P_COMMAND].GetString());
+    GameCommands::Launch(eventData[P_COMMAND].GetString());
 }
 

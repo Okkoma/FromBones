@@ -1177,7 +1177,10 @@ void GOC_Inventory::OnSetEnabled()
                 SubscribeToEvent(node_, receiveEvent_, URHO3D_HANDLER(GOC_Inventory, HandleReceive));
 
             if (GameContext::Get().ClientMode_)
+            {
+                GOC_Inventory::LoadInventory(node_, false);
                 return;
+            }
 
             if (enableGive_ && enableGiveEvent_)
                 SubscribeToEvent(node_, enableGiveEvent_, URHO3D_HANDLER(GOC_Inventory, OnEnableGive));
@@ -1384,33 +1387,29 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
 
     URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) ... ", node->GetName().CString(), node->GetID());
 
-    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
-    if (!controller)
-    {
-        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) no controller ...", node->GetName().CString(), node->GetID());
-        return;
-    }
-
-    bool process = false;
-
-    Player* player = static_cast<Player*>(controller->GetThinker());
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
+    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
+    Player* player = controller ? static_cast<Player*>(controller->GetThinker()) : 0;
+
+    bool apply = false;
+    bool applyequipment = false;
 
     if (GameContext::Get().ClientMode_)
     {
-        if (player && inventory && IsNetworkInventoryAvailable(node))
+        if (inventory && IsNetworkInventoryAvailable(node))
         {
             // Get Full Inventory
             URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
             inventory->SetInventoryAttr(clientInventories_[node->GetID()]);
             clientInventories_.Erase(node->GetID());
-            process = true;
+            apply = true;
+            applyequipment = player;
         }
-        else if (IsNetworkEquipmentSetAvailable(node))
+        else if (controller && IsNetworkEquipmentSetAvailable(node))
         {
             // Get Full EquipmentSet : will be done in the process block below with NetClientSetEquipment
             URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientEquipmentSets_ !", node->GetName().CString(), node->GetID());
-            process = true;
+            apply = applyequipment = true;
         }
     }
     else
@@ -1464,7 +1463,7 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
                 if (inventory)
                 {
                     inventory->Set(inventorySrc->Get());
-                    process = true;
+                    apply = true;
                 }
 
                 // Remove the temporary node
@@ -1491,32 +1490,35 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
         }
     }
 
-    if (process)
+    if (apply)
     {
-        // Apply Equipment
-
-        // TODO : entityid ?
-        int entityid = 0;
-        AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
-        GameHelpers::SetEntityVariation(animatedSprite, entityid);
-
-        if (player)
+        if (applyequipment)
         {
-            // Add to Equipement
-            player->equipment_->Clear();
-            player->equipment_->Update(false);
-            player->UpdateUI();
-        }
-        else if (GameContext::Get().ClientMode_)
-        {
-            NetClientSetEquipment(node);
+            // Apply Equipment
+
+            // TODO : entityid ?
+            int entityid = 0;
+            AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
+            GameHelpers::SetEntityVariation(animatedSprite, entityid);
+
+            if (player)
+            {
+                // Add to Equipement
+                player->equipment_->Clear();
+                player->equipment_->Update(false);
+                player->UpdateUI();
+            }
+            else if (GameContext::Get().ClientMode_)
+            {
+                NetClientSetEquipment(node);
+            }
         }
 
         URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) OK !", node->GetName().CString(), node->GetID());
     }
     else
     {
-        URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) not process ...", node->GetName().CString(), node->GetID());
+        URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
         RegisterClientNode(node);
     }
 }

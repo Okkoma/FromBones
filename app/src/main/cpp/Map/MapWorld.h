@@ -24,6 +24,7 @@ class MapSimulatorLiquid;
 class ViewManager;
 class Actor;
 struct ActorInfo;
+struct ClientInfo;
 
 using namespace Urho3D;
 
@@ -356,9 +357,9 @@ public:
 /// For Network Snapshot
 public:
     void SetNetWorldObjects(const VariantVector& objects);
-    const VariantVector& GetNetWorldObjects();
+    const VariantVector& GetNetWorldObjects(ClientInfo& clientinfo);
 private:
-    void PrepareNetWorldObjects();
+    void PrepareNetWorldObjects(ClientInfo& clientinfo);
 
 /// Serializers
 private:

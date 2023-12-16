@@ -45,7 +45,7 @@
 #include "GameCommands.h"
 
 
-void GameCommands::Launch(Context* context, const String& input)
+void GameCommands::Launch(const String& input)
 {
     String inputLower = input.ToLower().Trimmed();
     if (inputLower.Empty())
@@ -471,7 +471,7 @@ void GameCommands::Launch(Context* context, const String& input)
                 const VariantMap& vars = node->GetVars();
                 for (VariantMap::ConstIterator it=vars.Begin(); it!=vars.End(); ++it)
                 {
-                    const String& attrName = context->GetUserAttributeName(it->first_);
+                    const String& attrName = GameContext::Get().context_->GetUserAttributeName(it->first_);
                     URHO3D_LOGINFOF(" => Var %s(%u) = %s(%s)", attrName.CString(), it->first_.Value(), it->second_.ToString().CString(), it->second_.GetTypeName().CString());
                 }
             }
@@ -729,6 +729,12 @@ void GameCommands::Launch(Context* context, const String& input)
         else if (stateId == "Play")
             ((PlayState*)GameContext::Get().stateManager_->GetActiveState())->ReloadLevel();
     }
+    else if (input0 == "playarena")
+    {
+        const String& stateId = GameContext::Get().stateManager_->GetActiveState()->GetStateId();
+        if (stateId == "MainMenu")
+            ((MenuState*)GameContext::Get().stateManager_->GetActiveState())->Launch(1);
+    }
     else if (input0 == "levelwin")
     {
         const String& stateId = GameContext::Get().stateManager_->GetActiveState()->GetStateId();
@@ -782,7 +788,7 @@ void GameCommands::Launch(Context* context, const String& input)
 
 //        AnlWorldModel* anlmodel = context->GetSubsystem<ResourceCache>()->GetResource<AnlWorldModel>(DATALEVELSDIR + "anltest.xml");
 //        AnlWorldModel* anlmodel = context->GetSubsystem<ResourceCache>()->GetResource<AnlWorldModel>(DATALEVELSDIR + "anlworldVM-ellipsoid-zone2.xml");
-        AnlWorldModel* anlmodel = context->GetSubsystem<ResourceCache>()->GetResource<AnlWorldModel>(DATALEVELSDIR + "anlworldVM-asteroid1.xml");
+        AnlWorldModel* anlmodel = GameContext::Get().context_->GetSubsystem<ResourceCache>()->GetResource<AnlWorldModel>(DATALEVELSDIR + "anlworldVM-asteroid1.xml");
         if (!anlmodel)
             return;
 

@@ -122,6 +122,7 @@ URHO3D_EVENT(NET_OBJECTCOMMAND, Net_ObjectCommand)
     URHO3D_PARAM(P_TILEMAP, NetTileMap);                                    // uint : hash of shortIntVector2
     URHO3D_PARAM(P_TILEVIEW, NetTileView);                                  // uint : viewid
     URHO3D_PARAM(P_DATAS, NetDatas);                                        // VariantVector
+    URHO3D_PARAM(P_SERVEROBJECTS, NetServerObjects);                        // Buffer
 }
 /// GOC_Animator, GOC_Destroyer
 /// CHANGE STATE Event

@@ -5745,7 +5745,7 @@ void Map::HandleChangeViewIndex(StringHash eventType, VariantMap& eventData)
 
 /// ENTITIES SETTERS
 
-Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holderid, int viewZ, const PhysicEntityInfo& physicInfo, const SceneEntityInfo& sceneInfo, VariantMap* slotData, bool outsidePool)
+Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned holderid, int viewZ, const PhysicEntityInfo& physicInfo, const SceneEntityInfo& sceneInfo, VariantMap* slotData, bool outsidePool)
 {
 #ifdef HANDLE_ENTITIES
 
@@ -5758,7 +5758,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
 
     ObjectPool::SetForceLocalMode(false);
 
-    Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, id, viewZ, 0, false, &category, outsidePool) : 0;
+    Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, nodeid, viewZ, 0, false, &category, outsidePool) : 0;
     if (!node)
     {
         URHO3D_LOGERRORF("Map() - AddEntity : mPoint=%s type=%s(%u) ObjectPool Error !", GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value());
@@ -5882,10 +5882,9 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int id, unsigned holde
 
     node->SetVar(GOA::FACTION, sceneInfo.faction_);
 
-    bool netusage = category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_;
-    if (netusage)
+    if (!GameContext::Get().LocalMode_)
     {
-        if (id == LOCAL && !sceneInfo.objectControlInfo_)
+        if (category && category->HasReplicatedMode() && nodeid == LOCAL && sceneInfo.objectControlInfo_ == 0)
         {
             Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
             ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);

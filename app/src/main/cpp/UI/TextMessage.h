@@ -39,6 +39,8 @@ public :
 private :
     void OnRemove(StringHash eventType, VariantMap& eventData);
 
+    void UpdatePosition();
+
     void handleUpdate1(StringHash eventType, VariantMap& eventData);
     void handleUpdate2(StringHash eventType, VariantMap& eventData);
     void handleUpdate1_3D(StringHash eventType, VariantMap& eventData);
@@ -48,6 +50,7 @@ private :
     WeakPtr<Text> text_;
     WeakPtr<Node> node_;
     Text3D* text3D_;
+    IntVector2 position_;
     StringHash expireEvent_;
     int type_;
     bool autoRemove_;

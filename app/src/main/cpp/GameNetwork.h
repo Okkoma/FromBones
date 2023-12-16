@@ -116,6 +116,7 @@ struct ClientInfo
 enum
 {
     WHITEGRAY30,
+    MAGENTABLACK30,
     REDYELLOW35,
 };
 
@@ -136,7 +137,7 @@ public:
     static bool ServerMode();
     static bool LocalMode();
 
-    static void AddGraphicMessage(Context* context, const String& msg, const IntVector2& position, int colortype, float delaystart=1.f);
+    static void AddGraphicMessage(Context* context, const String& msg, const IntVector2& position, int colortype, float duration=4.f, float delaystart=1.f);
 
     void Start();
     void Stop();
@@ -288,6 +289,7 @@ public:
 
     void DumpClientInfos() const;
     void DumpNetObjects() const;
+    void DumpSpawnStamps() const;
     void Dump() const;
 
     template< typename T > static bool CheckNewStamp(T stamp, T stampRef, T maxdelta);
@@ -354,6 +356,7 @@ private:
     void Client_CommandRemoveObject(VariantMap& eventData, bool skipIfNotDead=false);
     void Client_DisableObjectControl(VariantMap& eventData);
     void Client_TransferItem(VariantMap& eventData);
+    void Client_SetWorldObjects(VariantMap& eventData);
     void Client_MountNode(VariantMap& eventData);
     void Client_ApplyObjectCommand(VariantMap& eventData);
 

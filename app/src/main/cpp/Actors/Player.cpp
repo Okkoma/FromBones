@@ -856,16 +856,6 @@ void Player::OnMount(Node* target)
     if (!avatar_ || !target)
         return;
 
-//    // if the player is a CPU
-//    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
-//    if (aicontroller)
-//    {
-//        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior Mount on Target=%s(%u) ...", avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID());
-//        aicontroller->GetaiInfos().target = target;
-//        aicontroller->StartBehavior(GOB_MOUNTON);
-//        return;
-//    }
-
     // if Player only (not netplayer who doesn't need to set these attributes)
     if (gocController->GetControllerType() == GO_Player)
     {
@@ -893,15 +883,6 @@ void Player::OnUnmount(unsigned targetid)
 {
     if (!avatar_)
         return;
-
-    // if the player is a CPU
-//    GOC_AIController* aicontroller = avatar_->GetComponent<GOC_AIController>();
-//    if (aicontroller)
-//    {
-//        URHO3D_LOGINFOF("Player() - MountOn : Player=%s(%u) is a CPU use the Behavior for Umount and Follow ...", avatar_->GetName().CString(), avatar_->GetID());
-//        aicontroller->StartBehavior(GOB_FOLLOW);
-//        return;
-//    }
 
     URHO3D_LOGINFOF("Player() - OnUnmount : ...");
 
