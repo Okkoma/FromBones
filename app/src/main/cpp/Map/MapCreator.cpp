@@ -297,7 +297,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
     {
         if (map->GetStatus() == Uninitialized)
         {
-            if (MapStorage::Get()->InitializeMap(map->GetMapPoint()))
+            if (!MapStorage::Get()->InitializeMap(map->GetMapPoint()))
             {
                 URHO3D_LOGERRORF("MapCreator() - CreateMap at %s map=%u ... status=%s[%d] ... Can't Initialize the Map !", map->GetMapPoint().ToString().CString(), map, mapStatusNames[map->GetStatus()], map->GetStatus());
                 return false;
@@ -312,7 +312,8 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         }
         else if (map->GetStatus() == Loading_Map)
         {
-            if (!MapStorage::GetMapSerializer()->IsInQueue(map->GetMapPoint()))
+            // in ClientMode always wait server for MapDatas sending
+            if (!GameContext::Get().ClientMode_ && !MapStorage::GetMapSerializer()->IsInQueue(map->GetMapPoint()))
             {
                 map->SetStatus(Generating_Map);
                 URHO3D_LOGWARNINGF("MapCreator() - CreateMap at %s map=%u ... status=%s[%d] ... Skip Loading ...", map->GetMapPoint().ToString().CString(), map, mapStatusNames[map->GetStatus()], map->GetStatus());

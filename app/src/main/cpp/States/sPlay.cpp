@@ -820,7 +820,7 @@ void PlayState::InitLevel(bool init, bool restart)
         }
 #endif
 
-        world_->Set(toLoadGame_);
+        world_->SetWorld(toLoadGame_);
     }
 
     // Stop the update of the physics (prevent crash)
@@ -2610,9 +2610,9 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Tip : Pause Without Window
         if (input.GetScancodePress(SCANCODE_P))
         {
-        #ifdef ACTIVE_CREATEMODE
-            if (!MapEditor::Get())
-        #endif
+//        #ifdef ACTIVE_CREATEMODE
+//            if (!MapEditor::Get())
+//        #endif
             {
                 rootScene_->SetUpdateEnabled(!rootScene_->IsUpdateEnabled());
                 if (GameContext::Get().rttScene_)

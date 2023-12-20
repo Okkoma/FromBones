@@ -5433,12 +5433,12 @@ bool Map::SetVisibleEntities(bool visible, HiresTimer* timer)
                 }
                 else
                 {
-                    if (node->GetVar(GOA::KEEPVISIBLE).GetBool())
-                        visible = true;
-                    node->SetEnabledRecursive(visible);
+                    node->SetEnabledRecursive(visible | node->GetVar(GOA::KEEPVISIBLE).GetBool());
 //                node->SetEnabledRecursive(visible && !dynamicObjectFromServer);
 
                     GameHelpers::UpdateLayering(node);
+
+//                    URHO3D_LOGINFOF("Map() - SetVisibleEntities : mPoint=%s visible=%s node=%s(%u) ... set enable=%s !", GetMapPoint().ToString().CString(), visible ? "show":"hide", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
                 }
             }
 
@@ -6191,10 +6191,6 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
             GameHelpers::SetCollectableProperties(node->GetComponent<GOC_Collectable>(), got, 0);
 
-            URHO3D_LOGINFOF("Map() - SetEntities Add : Map=%s ... Entities[%d] : id=%u type=%s(%u) enabled=%s position=%s viewZ=%d parentNodePool=%s(%u)",
-                            GetMapPoint().ToString().CString(), i, node->GetID(), GOT::GetType(got).CString(), got.Value(), node->IsEnabled() ? "true":"false",
-                            position.ToString().CString(), viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID());
-
             GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
             if (controller)
             {
@@ -6208,6 +6204,10 @@ bool Map::SetEntities_Add(HiresTimer* timer)
             node->SetEnabledRecursive(mapvisible);
 
             GameHelpers::UpdateLayering(node);
+
+            URHO3D_LOGERRORF("Map() - SetEntities Add : Map=%s ... Entities[%d] : nodeid=%u type=%s(%u) enabled=%s mapvisible=%s position=%s viewZ=%d parentNodePool=%s(%u)",
+                            GetMapPoint().ToString().CString(), i, node->GetID(), GOT::GetType(got).CString(), got.Value(), node->IsEnabled() ? "true":"false", mapvisible ? "true":"false",
+                            position.ToString().CString(), viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID());
 
 //            mapData_->AddEntityData(node, &entitydata, false);
 

@@ -15,7 +15,7 @@
 		<attribute name="Variables" />
 		<component type="World2D">
 			<attribute name="WorldPoint" value="0 3" />
-			<attribute name="WorldSize" value="1 1" />
+			<attribute name="WorldSize" value="4 1" />
 			<attribute name="ChunkNum" value="8 8" />
 			<attribute name="Default Map Point" value="0 0" />
 			

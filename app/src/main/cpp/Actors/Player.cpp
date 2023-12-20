@@ -533,6 +533,12 @@ void Player::UpdateAvatar(bool forced)
                     avatarIndex_, GOT::GetType(type).CString(), type.Value(), avatar_ ? avatar_->GetName().CString() : "none", avatar_ ? avatar_->GetID() : 0, avatar_ ? avatar_->GetDerivedComponent<AnimatedSprite2D>()->GetViewMask() : 0);
 }
 
+void Player::UpdateEquipment()
+{
+    if (equipment_)
+        equipment_->Update(false);
+}
+
 void Player::UpdateControls(bool restartcontroller)
 {
     if (!avatar_)

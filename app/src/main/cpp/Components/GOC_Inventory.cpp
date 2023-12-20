@@ -1405,7 +1405,7 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
             apply = true;
             applyequipment = player;
         }
-        else if (controller && IsNetworkEquipmentSetAvailable(node))
+        else if (IsNetworkEquipmentSetAvailable(node))
         {
             // Get Full EquipmentSet : will be done in the process block below with NetClientSetEquipment
             URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientEquipmentSets_ !", node->GetName().CString(), node->GetID());

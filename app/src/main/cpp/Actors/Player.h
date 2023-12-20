@@ -116,6 +116,7 @@ public :
     void DebugDrawUI();
 
     void UpdateAvatar(bool forced=false);
+    void UpdateEquipment();
     void UpdateControls(bool restartcontroller=false);
 
     void UseWeaponAbilityAt(const StringHash& abi, const Vector2& position);

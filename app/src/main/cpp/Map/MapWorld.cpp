@@ -636,9 +636,9 @@ void World2D::SaveWorld(bool saveEntities)
 //const Vector2 WorldEllipseParallax(0.095f, 0.f);
 const Vector2 WorldEllipseParallax(0.f, 0.f);
 
-void World2D::Set(bool load)
+void World2D::SetWorld(bool load)
 {
-    URHO3D_LOGINFOF("World2D() - Set ...");
+    URHO3D_LOGINFOF("World2D() - SetWorld ...");
 
     worldObjectState_.stamp_ = 0U;
 
@@ -649,7 +649,7 @@ void World2D::Set(bool load)
     int index = MapStorage::GetWorldIndex(worldPoint_);
     info_ = index != -1 ? &MapStorage::GetWorld2DInfo(index) : 0;
     if (!info_)
-        URHO3D_LOGWARNINGF("World2D() - Set : no World2DInfo for worldPoint_=%s", worldPoint_.ToString().CString());
+        URHO3D_LOGWARNINGF("World2D() - SetWorld : no World2DInfo for worldPoint_=%s", worldPoint_.ToString().CString());
 
 //	MapStorage::DumpRegisterWorldPath();
 
@@ -706,7 +706,7 @@ void World2D::Set(bool load)
     else
         GameContext::Get().octree_->SetSize(BoundingBox(Vector3(worldFloatBounds_.min_.x_, worldFloatBounds_.min_.y_, -5.f), Vector3(worldFloatBounds_.max_.x_, worldFloatBounds_.max_.y_, 5.f)), 16);
 
-    URHO3D_LOGINFOF("World2D() - Set : scale=%s worldMapUpdate_=%u mWidth_=%F mHeight_=%F mTileWidth_=%F mTileHeight_=%F",
+    URHO3D_LOGINFOF("World2D() - SetWorld : scale=%s worldMapUpdate_=%u mWidth_=%F mHeight_=%F mTileWidth_=%F mTileHeight_=%F",
                     scale.ToString().CString(), worldMapUpdate_, mWidth_, mHeight_, mTileWidth_, mTileHeight_);
 
     viewManager_ = ViewManager::Get();
@@ -733,7 +733,7 @@ void World2D::Set(bool load)
         MapSimulatorLiquid::SetSimulationMode(FLUID_SIMULATION, FLUID_ITERATIONS);
     }
 
-    URHO3D_LOGINFOF("World2D() - Set : Defined ActiveFluid mapLiquid_=%u fluidenable_=%s debugFluid=%s (use fluidenable in cmdline to enable/disable)",
+    URHO3D_LOGINFOF("World2D() - SetWorld : Defined ActiveFluid mapLiquid_=%u fluidenable_=%s debugFluid=%s (use fluidenable in cmdline to enable/disable)",
                     mapLiquid_, GameContext::Get().gameConfig_.fluidEnabled_ ? "true" :"false", GameContext::Get().gameConfig_.debugFluid_ ? "true" :"false");
 
 #ifdef ACTIVE_WORLDELLIPSES
@@ -789,7 +789,7 @@ void World2D::Set(bool load)
     SetGeneratorNumEntities(generatorNumEntities_);
     SetGeneratorAuthorizedCategories(generatorAuthorizedCategories_);
 
-    URHO3D_LOGINFOF("World2D() - Set ... OK !");
+    URHO3D_LOGINFOF("World2D() - SetWorld ... OK !");
 
     UpdateTextureLevels();
 
@@ -1369,14 +1369,14 @@ Node* World2D::NetSpawnEntity(ObjectControlInfo& info, Node* holder, VariantMap*
     {
         SceneEntityInfo scinfo;
         scinfo.faction_ = holder ? (holder->GetVar(GOA::NOCHILDFACTION).GetBool() ? 0 : holder->GetVar(GOA::FACTION).GetUInt()) : 0;
-//        scinfo.zindex_ = ;
         scinfo.clientId_ = info.clientId_;
-        scinfo.skipNetSpawn_ = control.HasNetSpawnMode() == 0;
+//        scinfo.skipNetSpawn_ = control.HasNetSpawnMode() == 0;
         scinfo.objectControlInfo_ = &info;
         node = SpawnEntity(got, (int)control.states_.entityid_, info.serverNodeID_, info.serverNodeID_, control.states_.viewZ_, *((PhysicEntityInfo*) &control.physics_), scinfo, slotData);
 
-        URHO3D_LOGINFOF("World2D() - NetSpawnEntity : Node=%s(%u) spawned dir=%f rot=%f velx=%f... OK !",
-                        node->GetName().CString(), node->GetID(), control.physics_.direction_, control.physics_.rotation_, control.physics_.velx_);
+        if (node)
+            URHO3D_LOGINFOF("World2D() - NetSpawnEntity : Node=%s(%u) spawned dir=%f rot=%f velx=%f... OK !",
+                            node->GetName().CString(), node->GetID(), control.physics_.direction_, control.physics_.rotation_, control.physics_.velx_);
     }
 
     if (!node)

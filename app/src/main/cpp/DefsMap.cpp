@@ -1519,21 +1519,24 @@ bool MapData::Load(Deserializer& source)
     if (prefab_)
         prefabMaps_.Resize(MAP_NUMMAXVIEWS+2);
 
-//    URHO3D_LOGINFOF("MapData() - Load : this=%u map=%u ... read mpoint=%s width=%d height=%d seed=%u numviews=%u OK !",
-//                     this, map_, mpoint_.ToString().CString(), width_, height_, seed_, numviews_);
+    URHO3D_LOGINFOF("MapData() - Load : this=%u map=%u ... read mpoint=%s width=%d height=%d seed=%u numviews=%u OK !",
+                     this, map_, mpoint_.ToString().CString(), width_, height_, seed_, numviews_);
 
     unsigned layersize = width_ * height_ * sizeof(FeatureType);
 
     // Load Sections : each section is compressed
     while (!source.IsEof())
     {
-        int sid = source.ReadInt();
-        unsigned num = source.ReadUInt();
+        const int sid = source.ReadInt();
+        const unsigned num = source.ReadUInt();
+
+        if (sid == -1 && num == 0U)
+            break;
 
         // Get Decompression source/destination sizes
 
-        unsigned decompSize = source.ReadUInt();
-        unsigned compSize = source.ReadUInt();
+        const unsigned decompSize = source.ReadUInt();
+        const unsigned compSize = source.ReadUInt();
 
         dataSize_ += 4 * sizeof(unsigned) + decompSize;
 
@@ -1882,6 +1885,9 @@ bool MapData::Save(Serializer& dest)
             sid++;
         }
     }
+
+    dest.WriteInt(-1);
+    dest.WriteUInt(0);
 
 //    Dump();
 

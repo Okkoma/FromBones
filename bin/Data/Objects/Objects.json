@@ -350,7 +350,7 @@
 		"fileName":"Objects/newskel.xml",
 		"typeProperty":"GOT_Buildable|GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":250,
 		"scaleVariation":6,
 		"entityVariation":1,
 		"mappingVariation":1,
@@ -364,7 +364,7 @@
 		"fileName":"Objects/elsarion.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":250,
 		"scaleVariation":6,
 		"defaultValue":25,
 		"typePartName":"ElsarionMeat",
@@ -375,7 +375,7 @@
 		"fileName":"Objects/merchant.xml",
 		"typeProperty":"GOT_None",
 		"replicateMode":1,
-		"qtyInPool":2,
+		"qtyInPool":20,
 		"defaultValue":0
 	}
 	, "GOT_Goblin":{
@@ -383,7 +383,7 @@
 		"fileName":"Objects/goblin.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":500,
 		"scaleVariation":4,
 		"mappingVariation":1,		
 		"defaultValue":15
@@ -393,7 +393,7 @@
 		"fileName":"Objects/shuktuk.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":500,
 		"scaleVariation":4,
 		"defaultValue":15
 	}
@@ -402,7 +402,7 @@
 		"fileName":"Objects/lizard.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":500,
 		"scaleVariation":4,
 		"entityVariation":1,
 		"mappingVariation":1,
@@ -413,7 +413,7 @@
 		"fileName":"Objects/bat.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":500,
 		"scaleVariation":4,
 		"defaultValue":10
 	}
@@ -422,7 +422,7 @@
 		"fileName":"Objects/chapanze.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":250,
 		"scaleVariation":4,
 		"defaultValue":50
 	}
@@ -431,7 +431,7 @@
 		"fileName":"Objects/raignee.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":50,
+		"qtyInPool":500,
 		"scaleVariation":4,
 		"defaultValue":10
 	}
@@ -440,7 +440,7 @@
 		"fileName":"Objects/bitroll.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":25,
+		"qtyInPool":250,
 		"scaleVariation":4,
 		"defaultValue":100
 	}
@@ -457,7 +457,7 @@
 		"fileName": "Objects/sorceress.xml",
 		"typeProperty": "GOT_Spawnable",
 		"replicateMode": 1,
-		"qtyInPool": 25,
+		"qtyInPool": 250,
 		"scaleVariation":3,
 		"mappingVariation":1,		
 		"defaultValue": 500
@@ -467,7 +467,7 @@
 		"fileName":"Objects/kigrat.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":25,
+		"qtyInPool":250,
 		"entityVariation":1,
 		"mappingVariation":1,
 		"scaleVariation":3,
@@ -487,7 +487,7 @@
 		"fileName":"Objects/rockgolem.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":5,
+		"qtyInPool":250,
 		"defaultValue":1000
 	}
 	, "EliegorGolem":{
@@ -495,7 +495,7 @@
 		"fileName":"Objects/rockgolem-flore.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":2,
+		"qtyInPool":20,
 		"defaultValue":2000
 	}
 	, "GOT_RedLord":{
@@ -503,7 +503,7 @@
 		"fileName":"Objects/redlord.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":25,
+		"qtyInPool":250,
 		"scaleVariation":3,
 		"defaultValue":500
 	}
@@ -512,7 +512,7 @@
 		"fileName":"Objects/darkren.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":5,
+		"qtyInPool":50,
 		"scaleVariation":3,
 		"defaultValue":1000
 	}
@@ -521,7 +521,7 @@
 		"fileName":"Objects/mirubil.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool":5,
+		"qtyInPool":50,
 		"scaleVariation":3,
 		"defaultValue":1000
 	}
@@ -530,7 +530,7 @@
 		"fileName":"Objects/coffre.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 20,
+		"qtyInPool": 200,
 		"defaultValue":0
 	}
 	, "GOT_TreasureChestBoss":{

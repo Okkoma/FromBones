@@ -1,5 +1,12 @@
 Todos:
 
+    ✔ 19/12/2023 : mise en evidence d'un probleme qui doit dater ...
+        -> en arena avec 4 maps, les entités (pas les furnitures) sur les maps non visible sont detruites des le lancement.
+        -> leurs GOC_Destroyer signalent qu'elles sont hors du monde et les detruits
+        -> le physic est toujours actif et les entités tombent ...
+        ==> erreur induite dans Map::SetVisibleEntities par la proprieté GOA::KEEPVISIBLE des arbres L_Tree qui va ensuite laisser toutes les autres entités en visible/enable alors qu'il fallait les cacher pour le HideMap
+        ===> 20/12/2023 : OK correctif Map::SetVisibleEntities
+
     ✔ 08/12/2023 : crash avec le composant GOC_DropZone au moment du ThrowItems @done(23-12-09 11:31)
         => il s'agit du destroyer du holder (le sanctuaire) qui n'a pas son shapeRect de défini
         ==> correctif de GameHelpers::GetDropPoint() et GOC_Destroyer::GetWorldShapesRect()

@@ -46,6 +46,9 @@
 
 #include "MAN_Weather.h"
 #include "Player.h"
+
+#include "Map.h"
+#include "MapStorage.h"
 #include "MapWorld.h"
 #include "ViewManager.h"
 
@@ -103,6 +106,40 @@ const float NET_DELAYCONNECTSERVER   = 25.f;
 extern const char* gameStatusNames[];
 extern const char* netCommandNames[];
 
+
+
+inline bool IsNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxstamp=STAMP_MAXDELTASHORT)
+{
+    // delta = a - b;
+    // (delta >= 0) check if it's an acceptable gap
+    // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >65535-MAX_DELTASTAMP)
+    int delta = stamp-(int)stampref;
+    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (65535U + delta < maxstamp));
+}
+
+inline bool IsNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxstamp=STAMP_MAXDELTABYTE)
+{
+    // delta = a - b;
+    // (delta >= 0) check if it's an acceptable gap
+    // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >255-MAX_DELTASTAMP)
+    int delta = stamp-(int)stampref;
+    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (255U + delta < maxstamp));
+}
+
+inline bool IsNewOrEqualStamp(unsigned char stamp, unsigned char stampref, unsigned char maxstamp=STAMP_MAXDELTABYTE)
+{
+    // delta = a - b;
+    // (delta >= 0) check if it's an acceptable gap
+    // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >255-MAX_DELTASTAMP)
+    int delta = stamp-(int)stampref;
+    return !delta ? true : (delta > 0 ? (delta < maxstamp) : (255U + delta < maxstamp));
+}
+
+template< typename T > bool GameNetwork::CheckNewStamp(T stamp, T stampref, T maxdelta) { return IsNewStamp(stamp, stampref, maxdelta); }
+template bool GameNetwork::CheckNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxdelta);
+template bool GameNetwork::CheckNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxdelta);
+
+
 void LogStatNetObject::Clear()
 {
     memset(stats_, 0, 9 * sizeof(unsigned int));
@@ -132,10 +169,11 @@ void ObjectCommandInfo::Clear()
 ClientInfo::ClientInfo() :
     clientID_(0),
     gameStatus_(MENUSTATE),
-    timeStamp_(0),
-    lastReceivedTimeStamp_(0),
+    lastSentServerGameStatus_(NOGAMESTATE),
+    statusToClientStamp_(255),
     playersStarted_(false),
-    requestPlayers_(0)
+    requestPlayers_(0),
+    mapsDirty_(true)
 {
 #ifdef ACTIVE_NETWORK_LOGSTATS
     logStats_.Clear();
@@ -183,6 +221,8 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
 
     GOC_Inventory::LoadInventory(avatar, false);
 
+    player->UpdateEquipment();
+
     objects_.Push(WeakPtr<Node>(avatar));
 
     URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... for clientid=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
@@ -208,7 +248,9 @@ void ClientInfo::Clear()
     URHO3D_LOGINFOF("ClientInfo() - Clear : ...");
 
     gameStatus_ = MENUSTATE;
-    timeStamp_ = lastReceivedTimeStamp_ = 0;
+//    statusToClientStamp_ = 255;
+    lastSentServerGameStatus_ = NOGAMESTATE;
+    mapsDirty_ = true;
 
     objCmdInfo_.Clear();
 
@@ -336,8 +378,8 @@ bool ClientInfo::ContainsObject(Node* node) const
 
 void ClientInfo::Dump() const
 {
-    URHO3D_LOGINFOF("ClientInfo() - Dump : clientID=%d connection=%u status=%s(%d) playersStarted=%s requestPlayers=%d ... numplayers=%u numobjects=%u ts=%u lts=%u !",
-                    clientID_, connection_.Get(), gameStatusNames[gameStatus_], gameStatus_, playersStarted_?"true":"false" , requestPlayers_, players_.Size(), objects_.Size(), timeStamp_, lastReceivedTimeStamp_);
+    URHO3D_LOGINFOF("ClientInfo() - Dump : clientID=%d connection=%u status=%s(%d) playersStarted=%s requestPlayers=%d ... numplayers=%u numobjects=%u ts=%u !",
+                    clientID_, connection_.Get(), gameStatusNames[gameStatus_], gameStatus_, playersStarted_?"true":"false" , requestPlayers_, players_.Size(), objects_.Size(), statusToClientStamp_);
 }
 
 
@@ -643,7 +685,8 @@ void GameNetwork::Reset()
     timerCheckForServer_ = timerCheckForConnection_ = 0.f;
 
     /// Client TimeStamps
-    timeStamp_ = lastReceivedTimeStamp_ = 0;
+    statusToServerStamp_ = 255;
+    lastSentClientGameStatus_ = NOGAMESTATE;
 
     /// Spawn Controls & Stamps
     spawnControls_.Resize(GameContext::Get().MAX_NUMNETPLAYERS);
@@ -1165,14 +1208,37 @@ void GameNetwork::Client_TransferItem(VariantMap& eventData)
     }
 }
 
+void GameNetwork::Client_SetWorldMaps(VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("GameNetwork() - Client_SetWorldMaps ...");
+
+    // Load MapDatas
+    {
+        MemoryBuffer buffer(eventData[Net_ObjectCommand::P_DATAS].GetBuffer());
+        buffer.Seek(0);
+
+        while (buffer.Tell() < buffer.GetSize())
+        {
+            ShortIntVector2 mpoint;
+            mpoint.x_ = buffer.ReadShort();
+            mpoint.y_ = buffer.ReadShort();
+            MapData* mapdata = MapStorage::GetMapDataAt(mpoint, true);
+            mapdata->Load(buffer);
+            mapdata->state_ = MAPASYNC_LOADSUCCESS;
+            if (mapdata->map_ && mapdata->map_->GetStatus() == Loading_Map)
+                mapdata->map_->SetStatus(mapdata->savedmapstate_);
+        }
+    }
+}
+
 void GameNetwork::Client_SetWorldObjects(VariantMap& eventData)
 {
     URHO3D_LOGINFOF("GameNetwork() - Client_SetWorldObjects ...");
 
     // Set World Objects
-    World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+    //World2D::GetWorld()->SetNetWorldObjects(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
 
-    // Add NoNetSpawnable Server Objects
+    // Set NoNetSpawnable Server Objects
     {
         MemoryBuffer buffer(eventData[Net_ObjectCommand::P_SERVEROBJECTS].GetBuffer());
         buffer.Seek(0);
@@ -1556,6 +1622,9 @@ void GameNetwork::Client_ApplyObjectCommand(VariantMap& eventData)
         break;
     case SETWEATHER:
         WeatherManager::Get()->SetNetWorldInfos(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
+        break;
+    case SETMAPDATAS:
+        Client_SetWorldMaps(eventData);
         break;
     case SETWORLD:
         Client_SetWorldObjects(eventData);
@@ -1960,37 +2029,43 @@ void GameNetwork::Server_SendGameStatus(int status, Connection* specificConnecti
     if (specificConnection)
     {
         ClientInfo& clientinfo = serverClientInfos_.Find(specificConnection)->second_;
-
-        clientinfo.timeStamp_ = (clientinfo.timeStamp_+1) % 256;
-        if (!clientinfo.timeStamp_) clientinfo.timeStamp_ = 1;
+        if (status != clientinfo.lastSentServerGameStatus_)
+        {
+            clientinfo.lastSentServerGameStatus_ = (GameStatus)status;
+            clientinfo.statusToClientStamp_++;
+        }
 
         VariantMap& remoteEventData = context_->GetEventDataMap();
-        remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = clientinfo.timeStamp_;
+        remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = clientinfo.statusToClientStamp_;
         remoteEventData[Net_GameStatusChanged::P_STATUS] = status;
         remoteEventData[Net_GameStatusChanged::P_CLIENTID] = clientinfo.clientID_;
 
         clientinfo.connection_->SendRemoteEvent(NET_GAMESTATUSCHANGED, true, remoteEventData);
 
-//        URHO3D_LOGINFOF("GameNetwork() - Server_SendGameStatus : Send Server Status=%s(%d) to ClientID=%d !", gameStatusNames[status], status, clientinfo.clientID_);
+//        URHO3D_LOGINFOF("GameNetwork() - Server_SendGameStatus : Send Server NET_GAMESTATUSCHANGED Status=%s(%d) to ClientID=%d statusStamp=%u !", gameStatusNames[status], status, clientinfo.clientID_, clientinfo.statusToClientStamp_);
     }
     else
     {
         for (HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
         {
             ClientInfo& clientinfo = it->second_;
-
             if (!clientinfo.connection_)
                 continue;
 
-            clientinfo.timeStamp_ = (clientinfo.timeStamp_+1) % 256;
-            if (!clientinfo.timeStamp_) clientinfo.timeStamp_ = 1;
+            if (status != clientinfo.lastSentServerGameStatus_)
+            {
+                clientinfo.lastSentServerGameStatus_ = (GameStatus)status;
+                clientinfo.statusToClientStamp_++;
+            }
 
             VariantMap& remoteEventData = context_->GetEventDataMap();
-            remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = clientinfo.timeStamp_;
+            remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = clientinfo.statusToClientStamp_;
             remoteEventData[Net_GameStatusChanged::P_STATUS] = status;
             remoteEventData[Net_GameStatusChanged::P_CLIENTID] = clientinfo.clientID_;
 
             clientinfo.connection_->SendRemoteEvent(NET_GAMESTATUSCHANGED, true, remoteEventData);
+
+//            URHO3D_LOGINFOF("GameNetwork() - Server_SendGameStatus : Send Server NET_GAMESTATUSCHANGED Status=%s(%d) to ClientID=%d statusStamp=%u !", gameStatusNames[status], status, clientinfo.clientID_, clientinfo.statusToClientStamp_);
         }
 
 //        if (serverClientInfos_.Size())
@@ -2180,12 +2255,48 @@ void GameNetwork::Server_SendWeatherInfos(ClientInfo& clientInfo)
     sServerEventData_.Clear();
 }
 
+void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
+{
+    URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ...");
+
+    ObjectCommand& cmd = *objCmdPool_.Get();
+
+    // Write MapDatas
+    // TODO : get only the mapdatas required by clientinfo
+    {
+        VectorBuffer buffer;
+        const HashMap<ShortIntVector2, Map*>& mapStorage = MapStorage::Get()->GetMapsInMemory();
+        for (HashMap<ShortIntVector2, Map*>::ConstIterator it = mapStorage.Begin(); it != mapStorage.End(); ++it)
+        {
+            Map* map = it->second_;
+            if (map && map->IsSerializable())
+            {
+                // update MapData
+                map->UpdateMapData(0);
+
+                // save MapData in memory buffer
+                buffer.WriteShort(it->first_.x_);
+                buffer.WriteShort(it->first_.y_);
+                map->GetMapData()->Save(buffer);
+            }
+        }
+
+        cmd.cmd_[Net_ObjectCommand::P_DATAS] = buffer;
+    }
+
+    clientInfo.mapsDirty_ = false;
+
+    PushObjectCommand(SETMAPDATAS, cmd, false, clientInfo.clientID_);
+}
+
 void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
 {
-    ObjectCommand& cmd = *objCmdPool_.Get();
-    cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects(clientInfo);
+    URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldObjects ...");
 
-    // Get the Server ObjectControls
+    ObjectCommand& cmd = *objCmdPool_.Get();
+    //cmd.cmd_[Net_ObjectCommand::P_DATAS] = World2D::GetWorld()->GetNetWorldObjects(clientInfo);
+
+    // Write the Server ObjectControls
     {
         VectorBuffer buffer;
         for (Vector<ObjectControlInfo>::Iterator it = serverObjectControls_.Begin(); it != serverObjectControls_.End(); ++it)
@@ -2194,8 +2305,10 @@ void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
             if (oinfo.clientId_ != clientInfo.clientID_)
                 oinfo.Write(buffer);
         }
+
         cmd.cmd_[Net_ObjectCommand::P_SERVEROBJECTS] = buffer;
     }
+
     PushObjectCommand(SETWORLD, cmd, false, clientInfo.clientID_);
 }
 
@@ -2638,22 +2751,20 @@ void GameNetwork::Client_SendGameStatus()
     if (!clientSideConnection_)
         return;
 
-    timeStamp_ = (timeStamp_+1) % 256;
-    if (!timeStamp_)
-        timeStamp_ = 1;
+    if (gameStatus_ != lastSentClientGameStatus_)
+    {
+        lastSentClientGameStatus_ = gameStatus_;
+        statusToServerStamp_++;
+    }
 
     VariantMap& remoteEventData = context_->GetEventDataMap();
-    remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = timeStamp_;
+    remoteEventData[Net_GameStatusChanged::P_TIMESTAMP] = statusToServerStamp_;
     remoteEventData[Net_GameStatusChanged::P_STATUS] = (int)gameStatus_;
     remoteEventData[Net_GameStatusChanged::P_NUMPLAYERS] = GameContext::Get().numPlayers_;
     clientSideConnection_->SendRemoteEvent(NET_GAMESTATUSCHANGED, true, remoteEventData);
 
-    if (gameStatus_ != lastGameStatus_)
-    {
-        URHO3D_LOGINFOF("GameNetwork() - Client_SendGameStatus : send NET_GAMESTATUSCHANGED to Server : gameStatus_=%s(%d) timeStamp=%u !",
-                        gameStatusNames[gameStatus_], gameStatus_, timeStamp_);
-        lastGameStatus_ = gameStatus_;
-    }
+//    URHO3D_LOGINFOF("GameNetwork() - Client_SendGameStatus : send NET_GAMESTATUSCHANGED to Server : gameStatus_=%s(%d) statusStamp=%u !",
+//                    gameStatusNames[gameStatus_], gameStatus_, statusToServerStamp_);
 }
 
 void GameNetwork::Client_AddServerControllable(Node*& node, ObjectControlInfo& info)
@@ -3030,8 +3141,7 @@ void GameNetwork::SubscribeToEvents()
         SubscribeToEvent(E_CLIENTDISCONNECTED, URHO3D_HANDLER(GameNetwork, HandleServer_MessagesFromClient));
         SubscribeToEvent(NET_GAMESTATUSCHANGED, URHO3D_HANDLER(GameNetwork, HandleServer_MessagesFromClient));
     }
-    else
-        // Generic Events ClientMode
+    else // Generic Events ClientMode
     {
         SubscribeToEvent(NET_GAMESTATUSCHANGED, URHO3D_HANDLER(GameNetwork, HandleClient_MessagesFromServer));
     }
@@ -3260,20 +3370,17 @@ void GameNetwork::HandleConnectionStatus(StringHash eventType, VariantMap& event
 
 /// GameNetwork Handle Server Receive Messages
 
-GameStatus CheckReceivedGameStatus(GameStatus currentStatus, unsigned receivedStamp, GameStatus receivedStatus, unsigned char& lastReceivedStamp)
+GameStatus CheckReceivedGameStatus(GameStatus currentStatus, GameStatus receivedStatus, unsigned char newstamp, unsigned char& lastStamp)
 {
-    // Only Based on GameStatus Values, not on timeStamp
-
-    unsigned stamp = lastReceivedStamp;
-
-    // check if timestamp is synchronized
-    int sDelta = (int)receivedStamp - (int)stamp;
-    bool sync = ((sDelta >= 0 && sDelta < 16) || (255 + sDelta < 16));
-
-    lastReceivedStamp = sync ? receivedStamp : stamp%256;
+    bool sync = IsNewOrEqualStamp(newstamp, lastStamp);
+    if (sync)
+        lastStamp = newstamp;
 
     if (receivedStatus == KILLCLIENTS)
         return KILLCLIENTS;
+
+    if (sync && currentStatus == NOGAMESTATE && receivedStatus >= MENUSTATE)
+        return receivedStatus;
 
     if (sync && receivedStatus == MENUSTATE && currentStatus > MENUSTATE)
         return MENUSTATE;
@@ -3318,66 +3425,75 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
         if (connection && !serverClientInfos_.Contains(connection))
             Server_AddConnection(connection, false);
 
-        unsigned timeStamp = eventData[Net_GameStatusChanged::P_TIMESTAMP].GetUInt();
-        if (!timeStamp || timeStamp > 255)
-            return;
-
+        unsigned char clientStatusStamp = (unsigned char)eventData[Net_GameStatusChanged::P_TIMESTAMP].GetUInt();
         ClientInfo& clientInfo = serverClientInfos_[connection];
 
-//        URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u currentStatus=%d receivedStatus=%d...",
-//                        clientInfo.clientID_, clientInfo.lastReceivedTimeStamp_, timeStamp, clientInfo.gameStatus_, (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt());
-
         // Check timeStamp and Get GameStatus
-        GameStatus clientNewStatus = CheckReceivedGameStatus(clientInfo.gameStatus_, timeStamp, (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt(), clientInfo.lastReceivedTimeStamp_);
+        GameStatus clientNewStatus = (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt();
 
-        if (clientNewStatus == NOGAMESTATE)
-        {
-//            URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u NOGAMESTATE !", clientInfo.clientID_, clientInfo.lastReceivedTimeStamp_, timeStamp);
-            return;
-        }
+        clientNewStatus = CheckReceivedGameStatus(clientInfo.gameStatus_, clientNewStatus, clientStatusStamp, clientInfo.statusToClientStamp_);
 
-        // Launch Server in PlayState
-        if (clientNewStatus > MENUSTATE && clientNewStatus < PLAYSTATE_SYNCHRONIZING && gameStatus_ == MENUSTATE)
-        {
-            GameCommands::Launch("playarena");
-            return;
-        }
+//        URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u currentStatus=%d receivedStatus=%d... checkstatus=%d",
+//                        clientInfo.clientID_, clientInfo.statusToClientStamp_, clientStatusStamp, clientInfo.gameStatus_, (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt(), clientNewStatus);
 
-        if (clientNewStatus == PLAYSTATE_SYNCHRONIZING && clientInfo.gameStatus_ >= PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS && clientInfo.gameStatus_ <= PLAYSTATE_SYNCHRONIZING && gameStatus_ == PLAYSTATE_RUNNING)
+//        if (clientNewStatus != clientInfo.gameStatus_)
         {
-            Server_SendGameStatus(PLAYSTATE_RUNNING, connection);
-            clientInfo.gameStatus_ = clientNewStatus;
-//            URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : send PLAYSTATE_RUNNING to clientID=%d !", clientInfo.clientID_);
-            return;
-        }
-
-        // Set Num Players for the connection
-        if (clientNewStatus >= PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS && clientNewStatus <= PLAYSTATE_SYNCHRONIZING)
-        {
-            int numRequestPlayers = eventData[Net_GameStatusChanged::P_NUMPLAYERS].GetInt();
-            if (clientInfo.requestPlayers_ <= numRequestPlayers)
+            if (clientNewStatus == NOGAMESTATE)
             {
-                clientInfo.requestPlayers_ = numRequestPlayers;
-//                URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d request %d players (numactiveplayers=%d) !", clientInfo.clientID_, numRequestPlayers, clientInfo.GetNumActivePlayers());
-//                clientInfo.Dump();
+    //            URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u NOGAMESTATE !", clientInfo.clientID_, clientInfo.statusToClientStamp_, timeStamp);
+                return;
             }
-        }
 
-        else if (clientNewStatus == PLAYSTATE_STARTGAME)
-        {
-            URHO3D_LOGERRORF("GameNetwork() - HandleServer_MessagesFromClient : Connection=%u PLAYSTATE_STARTGAME !", connection);
-            Server_SetEnablePlayers(clientInfo, true);
-            Server_SetEnableAllActiveObjectsToClient(clientInfo);
-        }
+            // Launch Server in PlayState
+            if (clientNewStatus > MENUSTATE && clientNewStatus < PLAYSTATE_SYNCHRONIZING && gameStatus_ == MENUSTATE)
+            {
+                GameCommands::Launch("playarena");
+                clientInfo.gameStatus_ = clientNewStatus;
+                return;
+            }
 
-        else if (clientNewStatus == MENUSTATE && clientInfo.gameStatus_ > MENUSTATE)
-        {
-            URHO3D_LOGERRORF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d MENUSTATE !", clientInfo.clientID_);
-            Server_RemovePlayers(clientInfo);
-            Server_CleanUpConnection(connection);
-        }
+            if (clientNewStatus >= PLAYSTATE_INITIALIZING && clientNewStatus <= PLAYSTATE_LOADING && gameStatus_ >= PLAYSTATE_READY)
+            {
+                if (clientInfo.mapsDirty_)
+                    Server_SendWorldMaps(clientInfo);
 
-        clientInfo.gameStatus_ = clientNewStatus;
+                clientInfo.gameStatus_ = clientNewStatus;
+                return;
+            }
+
+            if (clientNewStatus == PLAYSTATE_SYNCHRONIZING && clientInfo.gameStatus_ >= PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS && clientInfo.gameStatus_ <= PLAYSTATE_SYNCHRONIZING && gameStatus_ == PLAYSTATE_RUNNING)
+            {
+                Server_SendGameStatus(PLAYSTATE_RUNNING, connection);
+                clientInfo.gameStatus_ = clientNewStatus;
+    //            URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : send PLAYSTATE_RUNNING to clientID=%d !", clientInfo.clientID_);
+                return;
+            }
+            // Set Num Players for the connection
+            if (clientNewStatus >= PLAYSTATE_CLIENT_LOADING_SERVEROBJECTS && clientNewStatus <= PLAYSTATE_SYNCHRONIZING)
+            {
+                int numRequestPlayers = eventData[Net_GameStatusChanged::P_NUMPLAYERS].GetInt();
+                if (clientInfo.requestPlayers_ <= numRequestPlayers)
+                {
+                    clientInfo.requestPlayers_ = numRequestPlayers;
+    //                URHO3D_LOGINFOF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d request %d players (numactiveplayers=%d) !", clientInfo.clientID_, numRequestPlayers, clientInfo.GetNumActivePlayers());
+    //                clientInfo.Dump();
+                }
+            }
+            else if (clientNewStatus == PLAYSTATE_STARTGAME)
+            {
+                URHO3D_LOGERRORF("GameNetwork() - HandleServer_MessagesFromClient : Connection=%u PLAYSTATE_STARTGAME !", connection);
+                Server_SetEnablePlayers(clientInfo, true);
+                Server_SetEnableAllActiveObjectsToClient(clientInfo);
+            }
+            else if (clientNewStatus == MENUSTATE && clientInfo.gameStatus_ > MENUSTATE)
+            {
+                URHO3D_LOGERRORF("GameNetwork() - HandleServer_MessagesFromClient : clientID=%d MENUSTATE !", clientInfo.clientID_);
+                Server_RemovePlayers(clientInfo);
+                Server_CleanUpConnection(connection);
+            }
+
+            clientInfo.gameStatus_ = clientNewStatus;
+        }
     }
 }
 
@@ -3449,10 +3565,7 @@ void GameNetwork::HandleClient_MessagesFromServer(StringHash eventType, VariantM
 {
     if (eventType == NET_GAMESTATUSCHANGED)
     {
-        unsigned timeStamp = eventData[Net_GameStatusChanged::P_TIMESTAMP].GetUInt();
-
-        if (!timeStamp || timeStamp > 255)
-            return;
+        unsigned char clientStatusStamp = (unsigned char)eventData[Net_GameStatusChanged::P_TIMESTAMP].GetUInt();
 
         if (!clientID_)
         {
@@ -3462,54 +3575,12 @@ void GameNetwork::HandleClient_MessagesFromServer(StringHash eventType, VariantM
         }
 
         GameStatus serverGameStatus = (GameStatus) eventData[Net_GameStatusChanged::P_STATUS].GetInt();
+        serverGameStatus = CheckReceivedGameStatus(serverGameStatus_, serverGameStatus, clientStatusStamp, statusToServerStamp_);
 
-//        URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u currentserverstatus=%d receivedserverstatus=%d currentstatus=%d ...",
-//                         clientID_, lastReceivedTimeStamp_, timeStamp, serverGameStatus_, serverGameStatus, gameStatus_);
+//        URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u currentserverstatus=%d receivedserverstatus=%d ... checkedServerStatus=%d",
+//                         clientID_, statusToServerStamp_, clientStatusStamp, serverGameStatus_, eventData[Net_GameStatusChanged::P_STATUS].GetInt(), serverGameStatus);
 
-        serverGameStatus = CheckReceivedGameStatus(serverGameStatus_, timeStamp, serverGameStatus, lastReceivedTimeStamp_);
-
-        if (serverGameStatus == KILLCLIENTS)
-        {
-            URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d receive KILLCLIENTS !", clientID_);
-            SendEvent(E_SERVERDISCONNECTED);
-            return;
-        }
-
-        if (serverGameStatus == NOGAMESTATE)
-        {
-//            URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u DESYNC !", clientID_, lastReceivedTimeStamp_, timeStamp);
-            return;
-        }
-
-        serverGameStatus_ = serverGameStatus;
-
-        if (serverGameStatus == PLAYSTATE_WINGAME)
-            gameStatus_ = PLAYSTATE_WINGAME;
-
-        if (serverGameStatus >= PLAYSTATE_RUNNING && gameStatus_ >= PLAYSTATE_RUNNING)
-            return;
-
-        // When GO_Network send this message the client is disconnect From the Server
-        if (serverGameStatus == MENUSTATE)
-        {
-            if (gameStatus_ == MENUSTATE)
-            {
-                PurgeObjects();
-            }
-            else
-            {
-                Client_RemoveObjects();
-                GameContext::Get().stateManager_->PopStack();
-            }
-
-            if (clientSideConnection_)
-            {
-                SetEnabledServerObjectControls(clientSideConnection_, false);
-                SetEnabledClientObjectControls(clientSideConnection_, false);
-                clientSideConnection_->ResetObjectControlAndCommands();
-            }
-        }
-        else if (serverGameStatus >= PLAYSTATE_SYNCHRONIZING && serverGameStatus <= PLAYSTATE_RUNNING)
+        if (serverGameStatus >= PLAYSTATE_SYNCHRONIZING && serverGameStatus <= PLAYSTATE_RUNNING)
         {
             if (gameStatus_ == PLAYSTATE_SYNCHRONIZING)
             {
@@ -3531,6 +3602,51 @@ void GameNetwork::HandleClient_MessagesFromServer(StringHash eventType, VariantM
             }
 
             Client_SendGameStatus();
+        }
+
+        if (serverGameStatus != serverGameStatus_)
+        {
+            serverGameStatus_ = serverGameStatus;
+
+            if (serverGameStatus == KILLCLIENTS)
+            {
+                URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d receive KILLCLIENTS !", clientID_);
+                SendEvent(E_SERVERDISCONNECTED);
+                return;
+            }
+
+            if (serverGameStatus == NOGAMESTATE)
+            {
+    //            URHO3D_LOGINFOF("GameNetwork() - HandleClient_MessagesFromServer : NET_GAMESTATUSCHANGED clientID=%d currStamp=%u received=%u DESYNC !", clientID_, statusToServerStamp_, timeStamp);
+                return;
+            }
+
+            if (serverGameStatus == PLAYSTATE_WINGAME)
+                gameStatus_ = PLAYSTATE_WINGAME;
+
+            if (serverGameStatus >= PLAYSTATE_RUNNING && gameStatus_ >= PLAYSTATE_RUNNING)
+                return;
+
+            // When GO_Network send this message the client is disconnect From the Server
+            if (serverGameStatus == MENUSTATE)
+            {
+                if (gameStatus_ == MENUSTATE)
+                {
+                    PurgeObjects();
+                }
+                else
+                {
+                    Client_RemoveObjects();
+                    GameContext::Get().stateManager_->PopStack();
+                }
+
+                if (clientSideConnection_)
+                {
+                    SetEnabledServerObjectControls(clientSideConnection_, false);
+                    SetEnabledClientObjectControls(clientSideConnection_, false);
+                    clientSideConnection_->ResetObjectControlAndCommands();
+                }
+            }
         }
     }
 }
@@ -4095,28 +4211,6 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
     return true;
 }
 
-
-inline bool IsNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxstamp=STAMP_MAXDELTASHORT)
-{
-    // delta = a - b;
-    // (delta >= 0) check if it's an acceptable gap
-    // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >65535-MAX_DELTASTAMP)
-    int delta = stamp-(int)stampref;
-    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (65535U + delta < maxstamp));
-}
-
-inline bool IsNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxstamp=STAMP_MAXDELTABYTE)
-{
-    // delta = a - b;
-    // (delta >= 0) check if it's an acceptable gap
-    // (delta < 0) check if it's an acceptable overflow (a<MAX_DELTASTAMP && b >255-MAX_DELTASTAMP)
-    int delta = stamp-(int)stampref;
-    return !delta ? false : (delta > 0 ? (delta < maxstamp) : (255U + delta < maxstamp));
-}
-
-template< typename T > bool GameNetwork::CheckNewStamp(T stamp, T stampref, T maxdelta) { return IsNewStamp(stamp, stampref, maxdelta); }
-template bool GameNetwork::CheckNewStamp(unsigned short int stamp, unsigned short int stampref, unsigned short int maxdelta);
-template bool GameNetwork::CheckNewStamp(unsigned char stamp, unsigned char stampref, unsigned char maxdelta);
 
 /// GameNetwork Handle Receive Object Controls
 

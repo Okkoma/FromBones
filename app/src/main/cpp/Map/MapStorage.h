@@ -228,10 +228,7 @@ public:
     {
         return &mapModels_[model];
     }
-    static MapData* GetMapDataAt(const ShortIntVector2& mpoint)
-    {
-        return storage_->mapDatas_[mpoint];
-    }
+    static MapData* GetMapDataAt(const ShortIntVector2& mpoint, bool createIfMissing = false);
     static bool RemoveMapDataAt(const ShortIntVector2& mpoint)
     {
         return storage_->mapDatas_.Erase(mpoint);

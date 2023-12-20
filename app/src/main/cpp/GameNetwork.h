@@ -96,12 +96,13 @@ struct ClientInfo
     WeakPtr<Connection> connection_;
 
     int clientID_;
-    GameStatus gameStatus_;
-    unsigned char timeStamp_;
-    unsigned char lastReceivedTimeStamp_;
+    GameStatus gameStatus_, lastSentServerGameStatus_;
+    unsigned char statusToClientStamp_;
 
     bool playersStarted_;
     int requestPlayers_;
+
+    bool mapsDirty_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     LogStatNetObject logStats_, tmpLogStats_;
@@ -301,6 +302,7 @@ private:
     void StartLocal();
 
     void Server_SendWeatherInfos(ClientInfo& clientInfo);
+    void Server_SendWorldMaps(ClientInfo& clientInfo);
     void Server_SendWorldObjects(ClientInfo& clientInfo);
     void Server_SendInventories(ClientInfo& clientInfo);
 
@@ -356,6 +358,7 @@ private:
     void Client_CommandRemoveObject(VariantMap& eventData, bool skipIfNotDead=false);
     void Client_DisableObjectControl(VariantMap& eventData);
     void Client_TransferItem(VariantMap& eventData);
+    void Client_SetWorldMaps(VariantMap& eventData);
     void Client_SetWorldObjects(VariantMap& eventData);
     void Client_MountNode(VariantMap& eventData);
     void Client_ApplyObjectCommand(VariantMap& eventData);
@@ -378,7 +381,7 @@ private:
     // the number assigned by the server for this client
     int clientID_;
 
-    GameStatus gameStatus_, lastGameStatus_;
+    GameStatus gameStatus_, lastGameStatus_, lastSentClientGameStatus_;
     GameNetworkMode networkMode_;
 
     bool serverMode_, clientMode_, started_;
@@ -409,7 +412,7 @@ private:
     GameStatus serverGameStatus_;
 //    PODVector<unsigned> clientNodeIDs_;
     WeakPtr<Connection> clientSideConnection_;
-    unsigned char timeStamp_, lastReceivedTimeStamp_;
+    unsigned char statusToServerStamp_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     bool logStatEnable_;

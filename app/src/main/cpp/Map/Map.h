@@ -43,7 +43,7 @@ class World2DInfo;
 struct ChunkInfo;
 class ViewManager;
 class GOC_Destroyer;
-
+class GameNetwork;
 
 class FROMBONES_API MapBase
 {
@@ -51,6 +51,7 @@ class FROMBONES_API MapBase
     friend class ObjectMaped;
     friend class MapCreator;
     friend class MapStorage;
+    friend class GameNetwork;
 
 public:
     MapBase();

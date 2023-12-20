@@ -353,8 +353,8 @@ void GOT::InitDefaultTables()
     Register("GOT_Default", COT::OBJECTS, String::EMPTY);
     Register("All", COT::OBJECTS, String::EMPTY, GOT_Collectable);
     Register("Part", COT::OBJECTS, "Data/Objects/part.xml", GOT_None, false, GOT_ObjectPool, 600);
-    Register("BuildablePart", COT::OBJECTS, "Data/Objects/part_buildable.xml", GOT_None, true, GOT_ObjectPool, 400);
-    Register("CollectablePart", COT::OBJECTS, "Data/Objects/part_collectable.xml", GOT_None, true, GOT_ObjectPool, 2000);
+    Register("BuildablePart", COT::OBJECTS, "Data/Objects/part_buildable.xml", GOT_None, true, GOT_ObjectPool, 5000);
+    Register("CollectablePart", COT::OBJECTS, "Data/Objects/part_collectable.xml", GOT_None, true, GOT_ObjectPool, 7000);
 
     /// Money
     Register("Money", COT::MONEY, "Data/Objects/money.xml", GOT_Collectable|GOT_Droppable, true, GOT_ObjectPool, 20, 0, false, false, 1, 1000);

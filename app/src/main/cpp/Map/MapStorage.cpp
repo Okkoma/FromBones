@@ -943,15 +943,28 @@ Map* MapStorage::InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer)
             // if the map will be loaded, the next state of the map will be "Generating_Map"
             map->SetStatus(Generating_Map);
 
-#ifdef MAPSTORAGE_ONLYSERIALIZEATSTARTANDEND
-            if (!mapdata->IsLoaded() || (GameContext::Get().allMapsPrefab_ && !mapdata->IsSectionSet(MAPDATASECTION_LAYER)))
-#else
-            if (!mapdata->IsSectionSet(MAPDATASECTION_LAYER))
-#endif
+            if (GameContext::Get().ClientMode_)
             {
-                // Load the map data if a map file exists and the mapdata is new
-                // Change to Loading_Map status
-                bool success = mapSerializer_->LoadMapData(mapdata);
+//                if (!mapdata->IsLoaded())
+                {
+                    mapdata->savedmapstate_ = Generating_Map;
+                    mapdata->state_ = MAPASYNC_LOADING;
+                    map->SetStatus(Loading_Map);
+                    URHO3D_LOGERRORF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... ClientMode ... put map in loading state ... Wait !", mPoint.ToString().CString(), map);
+                }
+            }
+            else
+            {
+            #ifdef MAPSTORAGE_ONLYSERIALIZEATSTARTANDEND
+                if (!mapdata->IsLoaded() || (GameContext::Get().allMapsPrefab_ && !mapdata->IsSectionSet(MAPDATASECTION_LAYER)))
+            #else
+                if (!mapdata->IsSectionSet(MAPDATASECTION_LAYER))
+            #endif
+                {
+                    // Load the map data if a map file exists and the mapdata is new
+                    // Change to Loading_Map status
+                    bool success = mapSerializer_->LoadMapData(mapdata);
+                }
             }
         }
 //        // the mapdata is currently in a serializing state
@@ -1211,6 +1224,20 @@ bool MapStorage::SaveMaps(bool saveEntities, bool async)
     return true;
 }
 
+MapData* MapStorage::GetMapDataAt(const ShortIntVector2& mpoint, bool createIfMissing)
+{
+    MapData*& mapdata = storage_->mapDatas_[mpoint];
+    if (!mapdata && createIfMissing)
+    {
+        if (storage_->mapDatasPool_.Capacity() <= storage_->mapDatasPool_.Size())
+            URHO3D_LOGERRORF("MapStorage() - GetMapDataAt : MapDatasPool Size Over defined Capacity !");
+        storage_->mapDatasPool_.Resize(storage_->mapDatasPool_.Size()+1);
+        mapdata = &storage_->mapDatasPool_.Back();
+    }
+
+    return mapdata;
+}
+
 const IntVector2& MapStorage::GetWorldPoint(int worldindex)
 {
     return registeredWorldPoint_[worldindex];
@@ -1429,6 +1456,13 @@ inline void MapStorage::PushMapToLoad(const ShortIntVector2& mPoint)
     /// if not in memory, push it
     if (!mapsInMemory_.Contains(mPoint) && !mapsToLoadInMemory_.Contains(mPoint))
     {
+        // TODO : new MapData Request to the server
+        if (GameContext::Get().ClientMode_)
+        {
+            // do a request of the needed mapdatas.
+            // mark mapcreator to not generate the map until the client receives the mapdata.
+            // set map status to loading ?
+        }
         mapsToLoadInMemory_.Push(mPoint);
         URHO3D_LOGINFOF("MapStorage() - PushMapToLoad mPoint=%s", mPoint.ToString().CString());
     }
@@ -1689,8 +1723,8 @@ bool MapStorage::UpdateMapsInMemory(HiresTimer* timer)
     {
         while (mapsToLoadInMemory_.Size())
         {
-//            URHO3D_LOGINFOF("MapStorage() - UpdateMapsInMemory : ToLoad mPoint = %s ... mpoint=%s",
-//                             mapsToLoadInMemory_.Back().ToString().CString(), mapsToLoadInMemory_.Back().ToString().CString());
+            //            URHO3D_LOGINFOF("MapStorage() - UpdateMapsInMemory : ToLoad mPoint = %s ... mpoint=%s",
+                             //                             mapsToLoadInMemory_.Back().ToString().CString(), mapsToLoadInMemory_.Back().ToString().CString());
 
             if (!InitializeMap(mapsToLoadInMemory_.Back(), timer))
                 break;
@@ -1839,8 +1873,9 @@ void MapStorage::DumpMapsMemory() const
     for (HashMap<ShortIntVector2, Map* >::ConstIterator it=mapsInMemory_.Begin(); it!=mapsInMemory_.End(); ++it,++i)
     {
         Map* map = it->second_;
-        URHO3D_LOGINFOF("mapsInMemory_[%u] : mPoint=%s Map*=%u status=%s(%d) visible=%s counters=%s",
-                        i, it->first_.ToString().CString(), map, mapStatusNames[map->mapStatus_.status_], map->mapStatus_.status_, map->GetVisibleState(), map->mapStatus_.DumpMapCounters().CString());
+        URHO3D_LOGINFOF("mapsInMemory_[%u] : mPoint=%s Map*=%u status=%s(%d) visible=%s counters=%s mapdataSize=%u=>%u",
+                        i, it->first_.ToString().CString(), map, mapStatusNames[map->mapStatus_.status_], map->mapStatus_.status_,
+                        map->GetVisibleState(), map->mapStatus_.DumpMapCounters().CString(), map->GetMapData() ? map->GetMapData()->GetDataSize() : 0, map->GetMapData() ? map->GetMapData()->GetCompressedDataSize() : 0);
     }
 
     i=0;

@@ -7,10 +7,14 @@
 
 Todos:
 
-    ☐ 16/12/2023 : separer Client_SetWorldObjects en 2 : l'un pour les serverobjects et l'un pour les mapdata
+    ✔ 16/12/2023 : separer Client_SetWorldObjects en 2 : l'un pour les serverobjects et l'un pour les mapdata
         -> les mapdata doivent etre setté pendant le LOADING (à la génération du monde)
-        --> verifier dans mapcreator quand doivent-etre setté les MapData pour le chargement.
         -> les serverobjects peuvent être settés plus tard.
+        ==> OK : creation de Server_SendWorldMaps qui sera lancer et envoyer dans la phase de LOADING du client (cf HandleServer_MessagesFromClient)
+        ==> OK : creation de Client_SetWorldMaps.
+        ==> OK : modification de MapStorage::InitializeMap et MapCreator::CreateMap pour attendre la reception des MapDatas du server.
+        ==> RAF : pour le mode World, il faut voir pour n'envoyer que les maps necessaire au client (dans son mapbuffer, ... quadrant)...
+                   cf MapStorage::PushMapToLoad pour envoyer une nouvelle requete de MapData ? voir pour la gestion de ClientInfo::mapsDirty_ ...
 
     ✔ 15/12/2023 : demarrer automatique en PlayState le server si au moins un client envoie son état en PlayState
         -> Demarrage en Arena OK, voir pour modifier ça par la suite
