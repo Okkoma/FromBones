@@ -906,6 +906,7 @@ void GOC_Collide2D::HandleDead(StringHash eventType, VariantMap& eventData)
 //    URHO3D_LOGINFOF("GOC_Collide2D() - HandleDead : Node=%s(%u) ... disable topcontact and updatefilterbits for dead", node_->GetName().CString(), node_->GetID());
 
     SetCollidersEnable(false, CONTACT_BOTTOM, true);
+    ClearContacts();
 
 //    GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
 //    if (destroyer)

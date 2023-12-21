@@ -126,6 +126,9 @@ public :
     void SetTemplateSectionAttr(const String& value);
     void AddToSlotAttr(const String& value);
     void AddToSlot(const String& value);
+
+    void SetSlots(const VariantVector& value, bool skipEmpty);
+
     void SetInventoryAttr(const VariantVector& value = Variant::emptyVariantVector);
 
     void SetReceiveTriggerEvent(const String& s);

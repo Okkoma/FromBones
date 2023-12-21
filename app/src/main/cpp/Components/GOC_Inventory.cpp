@@ -583,6 +583,31 @@ bool GOC_Inventory::CheckEmpty()
     return false;
 }
 
+void GOC_Inventory::SetSlots(const VariantVector& value, bool skipEmpty)
+{
+    URHO3D_LOGINFOF("GOC_Inventory() - SetSlots : Node=%s(%u) empty=%s values.Size=%u",
+                        node_->GetName().CString(), node_->GetID(), empty_ ? "true" : "false", value.Size());
+    ResetSlots();
+
+    if (value.Size())
+    {
+        if (skipEmpty)
+            for (unsigned i=0; i < value.Size(); ++i)
+                AddToSlot(value[i].GetString());
+        else
+            for (unsigned i=0; i < value.Size(); ++i)
+            {
+                Slot slot;
+                Slot::SetSlotAttr(value[i].GetString(), slot);
+                AddCollectableFromSlot(slot, i, slot.quantity_, false, false, i);
+            }
+
+        CheckEmpty();
+
+        Dump();
+    }
+}
+
 void GOC_Inventory::SetInventoryAttr(const VariantVector& value)
 {
     if (!currentTemplate)
@@ -591,30 +616,7 @@ void GOC_Inventory::SetInventoryAttr(const VariantVector& value)
         return;
     }
 
-    ResetSlots();
-
-//    URHO3D_LOGINFOF("GOC_Inventory() - SetInventoryAttr : Node=%s(%u) empty=%s values.Size=%u",
-//                        node_->GetName().CString(), node_->GetID(), empty_ ? "true" : "false", value.Size());
-
-    if (value.Size())
-    {
-        for (unsigned i=0; i < value.Size(); ++i)
-            AddToSlot(value[i].GetString());
-
-        CheckEmpty();
-
-//        Dump();
-    }
-//    else
-//    {
-//        URHO3D_LOGINFOF("GOC_Inventory() - SetInventoryAttr : Node=%s(%u) empty=%s valuesToPopulate.Size=%u",
-//                        node_->GetName().CString(), node_->GetID(), empty_ ? "true" : "false", value.Size());
-//
-//        for (unsigned i=0; i < valuesToPopulate_.Size(); ++i)
-//            AddToSlot(valuesToPopulate_[i].GetString());
-//    }
-
-//    URHO3D_LOGINFOF("GOC_Inventory() - SetInventoryAttr ... empty=%s ... OK !", empty_ ? "true" : "false");
+    SetSlots(value, true);
 }
 
 VariantVector GOC_Inventory::GetInventoryAttr() const
@@ -622,9 +624,8 @@ VariantVector GOC_Inventory::GetInventoryAttr() const
     if (valuesToPopulate_.Size())
         return valuesToPopulate_;
 
-    return Slot::GetSlotDatas(slots_);
+    return Slot::GetSlotDatas(slots_, false);
 }
-
 
 bool GOC_Inventory::GetSectionSlots(const String& section, VariantVector& set)
 {
@@ -1060,7 +1061,7 @@ void GOC_Inventory::TransferSlotTo(unsigned idSlot, Node* node, unsigned int qua
     {
         if (idSlot >= slots_.Size()) return;
 
-        URHO3D_LOGINFOF("GOC_Inventory() - TransferSlotToNode : node=%s(%u) to node=%s(%u)", node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
+        URHO3D_LOGINFOF("GOC_Inventory() - TransferSlotTo : node=%s(%u) to node=%s(%u)", node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
 
         GOC_Inventory* toInventory = node->GetComponent<GOC_Inventory>();
         if (toInventory)
@@ -1075,7 +1076,7 @@ void GOC_Inventory::TransferSlotTo(unsigned idSlot, Node* node, unsigned int qua
     }
     else
     {
-        URHO3D_LOGINFOF("GOC_Inventory() - TransferSlotToNode : node=%s(%u) to node=0", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGINFOF("GOC_Inventory() - TransferSlotTo : node=%s(%u) to node=0", node_->GetName().CString(), node_->GetID());
 
         GOC_Collectable::DropSlotFrom(node_, slots_[idSlot]);
         CheckEmpty();
@@ -1298,7 +1299,11 @@ void GOC_Inventory::HandleGive(StringHash eventType, VariantMap& eventData)
         // lock the inventory
         UnsubscribeFromEvent(E_PHYSICSBEGINCONTACT2D);
 
+        //Dump();
+
         TransferAllSlotsTo(other->GetNode());
+
+        //Dump();
 
         // Unlocked if not Empty
         if (!CheckEmpty())
@@ -1400,10 +1405,12 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
         {
             // Get Full Inventory
             URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
-            inventory->SetInventoryAttr(clientInventories_[node->GetID()]);
+            inventory->SetSlots(clientInventories_[node->GetID()], false);
             clientInventories_.Erase(node->GetID());
             apply = true;
             applyequipment = player;
+
+            //inventory->Dump();
         }
         else if (IsNetworkEquipmentSetAvailable(node))
         {

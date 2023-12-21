@@ -29,7 +29,9 @@ GOC_AIController::GOC_AIController(Context* context) :
     lastBehavior_(0),
     targetID_(0),
     started_(0),
-    targetDetection_(false)
+    targetDetection_(false),
+    alwaysUpdate_(false),
+    externalController_(0)
 {
     SetMainController(true);
     aiInfos_.buttons = 0;

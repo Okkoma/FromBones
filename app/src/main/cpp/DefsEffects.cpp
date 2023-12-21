@@ -360,8 +360,8 @@ void BossZone::OnFinished()
     }
     else
     {
-    zonedata_->state_ = BOSSZONE_END;
-    zonedata_->nodeid_ = 0;
+        zonedata_->state_ = BOSSZONE_END;
+        zonedata_->nodeid_ = 0;
     }
     zonedata_->lastEnabled_ = Time::GetSystemTime();
 

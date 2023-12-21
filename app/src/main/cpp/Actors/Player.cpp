@@ -257,6 +257,10 @@ void Player::SetScene(Scene* scene, const Vector2& position, int viewZ, bool loa
         return;
     }
 
+    URHO3D_LOGINFOF("---------------------------------------------------");
+    URHO3D_LOGINFOF("- Player() - SetScene : player ID=%u ... ", GetID());
+    URHO3D_LOGINFOF("---------------------------------------------------");
+
     if (!loadmode)
     {
         if (!forceposition)
@@ -299,9 +303,25 @@ void Player::SetScene(Scene* scene, const Vector2& position, int viewZ, bool loa
     if (restartmode && gocLife)
         gocLife->Reset();
 
+    if (GameContext::Get().ServerMode_)
+    {
+        URHO3D_LOGINFOF("- Player() - SetScene : player ID=%u ... Set Net Equipment ...", GetID());
+        GOC_Inventory::LoadInventory(avatar_, false);
+        UpdateEquipment();
+    }
+    else
+    {
+        URHO3D_LOGINFOF("- Player() - SetScene : player ID=%u ... Set Local Equipment ...", GetID());
+        equipment_->SetHolder(this, true);
+    }
+
     UpdateUI();
 
     SaveState();
+
+    URHO3D_LOGINFOF("---------------------------------------------------");
+    URHO3D_LOGINFOF("- Player() - SetScene : player ID=%u ... OK !", GetID());
+    URHO3D_LOGINFOF("---------------------------------------------------");
 }
 
 void Player::SetFaction(unsigned faction)

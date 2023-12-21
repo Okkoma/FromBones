@@ -49,6 +49,7 @@ void Slot::Set(StringHash type)
         effect_ = templatenode->GetVar(GOA::EFFECTID1).GetInt();
     }
 }
+
 void Slot::Set(const StringHash& type, unsigned int quantity, const StringHash& fromtype, const ResourceRef& spriteRef)
 {
     partfromtype_ = fromtype;
@@ -427,7 +428,7 @@ void Slot::GetSlotData(const Slot& slot, VariantMap& slotData, unsigned qty)
     slotData[Net_ObjectCommand::P_SLOTCOLOR] = slot.color_;
 }
 
-VariantVector Slot::GetSlotDatas(const Vector<Slot>& slots)
+VariantVector Slot::GetSlotDatas(const Vector<Slot>& slots, bool skipEmpty)
 {
     VariantVector datas;
 
@@ -437,7 +438,7 @@ VariantVector Slot::GetSlotDatas(const Vector<Slot>& slots)
         for (unsigned i=0; i < slots.Size(); ++i)
         {
             const Slot& slot = slots[i];
-            if (!slot.quantity_)
+            if (skipEmpty && !slot.quantity_)
                 continue;
 
             datas.Push(Slot::GetSlotAttr(slot));

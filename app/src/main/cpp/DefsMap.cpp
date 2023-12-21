@@ -1072,7 +1072,7 @@ int ZoneData::GetNumPlayersInside() const
     for (int i=0; i < GameContext::Get().MAX_NUMPLAYERS; i++)
     {
         Node* node = GameContext::Get().playerAvatars_[i];
-        if (node && node->IsEnabled())
+        if (node && node->IsEnabled() && !node->GetVar(GOA::ISDEAD).GetBool())
         {
             const WorldMapPosition& position = node->GetComponent<GOC_Destroyer>()->GetWorldMapPosition();
             if (IsInside(position.mPosition_, position.viewZIndex_))

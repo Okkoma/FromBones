@@ -218,11 +218,6 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
     player->SetFaction((clientID_ << 8) + GO_Player);
 
     Node* avatar = player->GetAvatar();
-
-    GOC_Inventory::LoadInventory(avatar, false);
-
-    player->UpdateEquipment();
-
     objects_.Push(WeakPtr<Node>(avatar));
 
     URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... for clientid=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
@@ -1157,8 +1152,8 @@ void GameNetwork::Client_SpawnItem(VariantMap& eventData)
 
 void GameNetwork::Client_TransferItem(VariantMap& eventData)
 {
-    URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : Dump eventData ...");
-//    GameHelpers::DumpVariantMap(eventData);
+    //URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : Dump eventData ...");
+    //GameHelpers::DumpVariantMap(eventData);
 
     // TODO : verifier si les ClientID pour nodeGiver et nodeGetter
     // TODO :
@@ -1186,9 +1181,16 @@ void GameNetwork::Client_TransferItem(VariantMap& eventData)
     GOC_Inventory* inventory = nodeGiver->GetComponent<GOC_Inventory>();
     if (inventory)
     {
-        inventory->TransferSlotTo(eventData[Go_InventoryGet::GO_IDSLOTSRC].GetUInt(), nodeGetter, qty);
+        unsigned slotid = eventData[Go_InventoryGet::GO_IDSLOTSRC].GetUInt();
+
+        URHO3D_LOGINFOF("GameNetwork() - Client_TransferItem : inventory giver transferslot slotid=%u qty=%u ...", slotid, qty);
+
+        // how to be sure to have the slot setted from the server, in case of not good replication of the inventories client/server ?
+        //inventory->Dump();
+
+        inventory->TransferSlotTo(slotid, nodeGetter, qty);
 //        bool ok = inventory->CheckEmpty();
-        URHO3D_LOGINFOF("GameNetwork() - Client_TransferItem : inventory giver transferslot qty=%u ...", qty);
+
         return;
     }
 
@@ -3522,8 +3524,12 @@ void GameNetwork::HandlePlayServer_Messages(StringHash eventType, VariantMap& ev
         URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_Messages : TRANSFERITEM giver(node=%u/nodeid=%u/clientid=%d) getter(node=%u/nodeid=%u/clientid=%d) !",
                         giver, givernodeid, giverclientid, getter, getternodeid, getterclientid);
 
+        //URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_Messages : TRANSFERITEM Dump eventData ...");
+        //GameHelpers::DumpVariantMap(eventData);
+
         if (giverclientid)
             PushObjectCommand(TRANSFERITEM, &eventData, false, giverclientid);
+
         if (getterclientid && getterclientid != giverclientid)
             PushObjectCommand(TRANSFERITEM, &eventData, false, getterclientid);
     }

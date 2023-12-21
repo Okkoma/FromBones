@@ -7,6 +7,13 @@
 
 Todos:
 
+    ✔ 21/12/2023 : sur un client qui se connecte apres les autres (le contenu des coffres a deja ete pris en partie), 
+                lorque ce client tente de prendre un coffre qui n'est pourtant pas vide, il ne va rien se passer.
+                Les slots deja pris sont vides et le probleme se situe dans le SetInventory durant le lancement de partie du client
+                qui va skipper ces slots du coup il n'y aura plus de correspondance de slotid entre les inventaires client et server lors du INVENTORY_GET -> Client_TransferItem
+        => GOC_Inventory::SetInventoryAttr() skip les slots vides, creation d'une nouvelle version GOC_Inventory::SetSlots permettant de ne pas les skipper
+        ==> utilisation de GOC_Inventory::SetSlots(VariantVector& , skip=false) dans GOC_Inventory::LoadInventory
+
     ✔ 16/12/2023 : separer Client_SetWorldObjects en 2 : l'un pour les serverobjects et l'un pour les mapdata
         -> les mapdata doivent etre setté pendant le LOADING (à la génération du monde)
         -> les serverobjects peuvent être settés plus tard.

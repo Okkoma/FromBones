@@ -329,7 +329,7 @@ void GOC_DropZone::SetStorageAttr(const VariantVector& value)
 
 VariantVector GOC_DropZone::GetStorageAttr() const
 {
-    return Slot::GetSlotDatas(items_);
+    return Slot::GetSlotDatas(items_, true);
 }
 
 void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
@@ -398,7 +398,7 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
                     VariantMap& eventData = context_->GetEventDataMap();
                     eventData[Go_StorageChanged::GO_ACTIONTYPE] = 1;
                     eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
-                    eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_);
+                    eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_, true);
                     node_->SendEvent(GO_STORAGECHANGED, eventData);
                 }
 
@@ -820,7 +820,7 @@ void GOC_DropZone::RemovePartsOfBuildableObject(const StringHash& buildableObjec
         VariantMap& eventData = context_->GetEventDataMap();
         eventData[Go_StorageChanged::GO_ACTIONTYPE] = 3;
         eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
-        eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_);
+        eventData[Net_ObjectCommand::P_DATAS] = Slot::GetSlotDatas(items_, true);
         node_->SendEvent(GO_STORAGECHANGED, eventData);
     }
 //    Dump();
