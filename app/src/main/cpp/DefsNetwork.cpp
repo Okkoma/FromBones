@@ -48,6 +48,7 @@ const char* netCommandNames[] =
     "SETWEATHER=15",
     "SETMAPDATAS=16",
     "SETWORLD=17",
+    "REQUESTMAP=18",
     "TRIGCLICKED=18",
     "ENTITYSELECTED=19",
     "MOUNTENTITYON=20",

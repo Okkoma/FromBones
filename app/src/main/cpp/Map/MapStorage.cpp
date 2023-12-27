@@ -949,6 +949,12 @@ Map* MapStorage::InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer)
                     mapdata->state_ = MAPASYNC_LOADING;
                     map->SetStatus(Loading_Map);
                     URHO3D_LOGERRORF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... ClientMode ... put map in loading state ... Wait !", mPoint.ToString().CString(), map);
+
+                    // Add Map Request
+                    VariantMap& eventdata = GameNetwork::Get()->GetClientEventData();
+                    eventdata.Clear();
+                    eventdata[Net_ObjectCommand::P_TILEMAP] = mPoint.ToHash();
+                    GameNetwork::Get()->PushObjectCommand(REQUESTMAP, &eventdata, false, GameNetwork::Get()->GetClientID());
                 }
             }
             else
@@ -1469,89 +1475,6 @@ bool MapStorage::IsInsideBufferedArea(const ShortIntVector2& mPoint) const
             return true;
     }
     return false;
-}
-
-void MapStorage::GetNewBufferMapPoints(const BufferExpandInfo& expandinfo, Vector<ShortIntVector2>& newmappoints)
-{
-    Vector<ShortIntVector2> tmpMapPoints;
-
-    const int centerx = expandinfo.x_;
-    const int centery = expandinfo.y_;
-    const int expX = expandinfo.dx_;
-    const int expY = expandinfo.dy_;
-
-    const int dirX = expX ? expX / Abs(expX) : 1;
-    const int dirY = expY ? expY / Abs(expY) : 1;
-
-    // if expX != 0 it's an first expansion following X otherwise is an first expansion following Y
-    int expDirX;
-    int expDirY;
-    int& exp1 = expX ? expDirX : expDirY; // First Expansion Direction
-    int& exp2 = expX ? expDirY : expDirX; // Second Expansion Direction
-
-    // rear expansion only if new position is far from current position
-    if ((!expX && !expY) || (Abs(expX) >= 3*bOffset_) || (Abs(expY) >= 3*bOffset_))
-    {
-        if (expX)
-        {
-            for (exp2 = bOffset_; exp2 > 0; exp2--)
-                for (exp1 = bOffset_; exp1 > 0; exp1--)
-                {
-                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
-                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery + dirY*expDirY));
-                }
-        }
-        else
-        {
-            for (exp2 = bOffset_; exp2 > 0; exp2--)
-                for (exp1 = bOffset_; exp1 > 0; exp1--)
-                {
-                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
-                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery - dirY*expDirY));
-                }
-        }
-
-        exp2 = 0;
-        for (exp1 = bOffset_; exp1 > 0; exp1--)
-            tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
-    }
-
-    // sides expansion
-    {
-        if (expX)
-        {
-            for (exp2 = bOffset_; exp2 > 0; exp2--)
-                for (exp1 = bOffset_; exp1 >= 0; exp1--)
-                {
-                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery - dirY*expDirY));
-                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
-                }
-        }
-        else
-        {
-            for (exp2 = bOffset_; exp2 > 0; exp2--)
-                for (exp1 = bOffset_; exp1 >= 0; exp1--)
-                {
-                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery + dirY*expDirY));
-                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
-                }
-        }
-    }
-
-    // front expansion, including New Centered Map
-    exp2 = 0;
-    for (exp1 = bOffset_; exp1 >= 0; exp1--)
-        tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
-
-    newmappoints.Clear();
-    for (Vector<ShortIntVector2>::Iterator it = tmpMapPoints.Begin(); it != tmpMapPoints.End(); ++it)
-    {
-        if (!World2D::IsInsideWorldBounds(*it))
-            continue;
-//        if (mapsInMemory_.Contains(*it) || mapsToLoadInMemory_.Contains(*it))
-//            continue;
-        newmappoints.Push(*it);
-    }
 }
 
 void MapStorage::UpdateBufferedArea()

@@ -3126,11 +3126,6 @@ bool TravelerNodeInfo::Update()
                 mPosExpand_.dy_ = dy;
                 change = true;
             }
-            if (change && clientInfo_)
-            {
-                MapStorage::Get()->GetNewBufferMapPoints(mPosExpand_, clientInfo_->mapRequests_);
-                URHO3D_LOGERRORF("TravelerNodeInfo() - Update : add maprequests at mpoint=%s => requestsize=%u !", mPoint_.ToString().CString(), clientInfo_->mapRequests_.Size());
-            }
         }
 
         // Visible Map Area

@@ -1565,6 +1565,21 @@ void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventD
         bool ok = ChangeTile(eventData);
     }
         break;
+    case REQUESTMAP:
+    {
+        ClientInfo* clientinfo = serverClientID2Infos_[fromclientid];
+        if (clientinfo)
+        {
+            ShortIntVector2 mpoint(eventData[Net_ObjectCommand::P_TILEMAP].GetUInt());
+            if (!clientinfo->mapRequests_.Contains(mpoint))
+            {
+                clientinfo->mapRequests_.Push(mpoint);
+                URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) mpoint=%s !",
+                              cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", mpoint.ToString().CString());
+            }
+        }
+    }
+        break;
     case TRIGCLICKED:
     {
         Node* node = GameContext::Get().rootScene_->GetNode(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
@@ -2275,8 +2290,6 @@ void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
 
     if (clientInfo.mapsDirty_)
     {
-        URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ... MapsDirty ...");
-
         const HashMap<ShortIntVector2, Map*>& mapStorage = MapStorage::Get()->GetMapsInMemory();
         for (HashMap<ShortIntVector2, Map*>::ConstIterator it = mapStorage.Begin(); it != mapStorage.End(); ++it)
         {
@@ -2299,8 +2312,6 @@ void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
     }
     else if (clientInfo.mapRequests_.Size())
     {
-        URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ... MapRequests ...");
-
         Vector<ShortIntVector2>::Iterator it = clientInfo.mapRequests_.Begin();
         while (it != clientInfo.mapRequests_.End())
         {
@@ -2324,6 +2335,8 @@ void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
 
     if (buffer.GetSize())
     {
+        URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps to clientid=%d", clientInfo.clientID_);
+
         ObjectCommand& cmd = *objCmdPool_.Get();
         cmd.cmd_[Net_ObjectCommand::P_DATAS] = buffer;
         PushObjectCommand(SETMAPDATAS, cmd, false, clientInfo.clientID_);
