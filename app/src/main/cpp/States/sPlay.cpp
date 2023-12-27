@@ -570,7 +570,7 @@ void PlayState::BeginNewLevel(GameLevelMode mode, unsigned seed)
         initMode_ = true;
         GameContext::Get().numPlayers_ = 0;
         GameContext::Get().createModeOn_ = true;
-        World2D::SavePositionFocus();
+        World2D::GetWorld()->SaveFocusPositions();
     }
 #endif
     else if (mode == LVL_CHANGE)

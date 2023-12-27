@@ -41,33 +41,40 @@ struct MapFurnitureRef
 // indexed par tileindex
 typedef HashMap<unsigned, List<MapFurnitureRef> > MapFurnitureLocation;
 
-struct WorldViewInfo
+struct TravelerViewportInfo
 {
-    WorldViewInfo();
+    TravelerViewportInfo();
 
+    bool Update();
     void Clear();
 
-    int viewport_;
+    IntRect GetReducedArea(const IntRect& area);
+    void GetMapsToShow(Vector<ShortIntVector2>& mapsToShow);
 
-    Camera* camera_;
     Map* currentMap_;
+
+    ShortIntVector2 mPoint_;
+    IntVector2 mPosition_;
+    BufferExpandInfo mPosExpand_;
+
+    Rect visibleRect_;
+    IntRect bufferArea_;
+    IntRect visibleArea_, lastVisibleArea_;
+
+    int viewport_;
+    Camera* camera_;
+
     CollisionChain2D* visibleCollideBorder_;
 
     float camOrtho_;
     float camRatio_;
     bool cameraFocusEnabled_;
-
-    /// the current map point of the camera in this World
-    ShortIntVector2 mPoint_;
-    IntVector2 mPosition_;
+    Vector2 focusPosition_;
 
     /// the Default Map coord
     ShortIntVector2 dMapPoint_;
     Vector2 dMapPosition_;
 
-    IntRect visibleMapArea_;
-    IntRect visibleMapAreaMinimized_;
-    Rect visibleRect_;
     Rect extVisibleRect_;
     Rect tiledVisibleRect_;
 
@@ -75,9 +82,29 @@ struct WorldViewInfo
     bool isUnderground_;
     bool needUpdateCurrentMap_;
 
-    Vector<ShortIntVector2> mapsToShow_;
-    Vector<ShortIntVector2> mapsToHide_;
-    Vector<Map*> visibleAreaMaps_;
+    static const unsigned MaxVisibleMaps;
+};
+
+struct TravelerNodeInfo
+{
+    TravelerNodeInfo();
+
+    bool Update();
+
+    WeakPtr<Node> node_;
+
+    Map* currentMap_;
+    ClientInfo* clientInfo_;
+
+    ShortIntVector2 mPoint_;
+    IntVector2 mPosition_;
+    BufferExpandInfo mPosExpand_;
+
+    Rect visibleRect_;
+    IntRect bufferArea_;
+    IntRect visibleArea_;
+
+    static Vector2 visibleRectHalfSize_;
 };
 
 struct NetObjectsState
@@ -89,6 +116,8 @@ struct NetObjectsState
 class FROMBONES_API World2D : public Component
 {
     URHO3D_OBJECT(World2D, Component);
+
+friend class MapStorage;
 
 public:
     static void RegisterObject(Context* context);
@@ -123,156 +152,66 @@ public:
     void SetGeneratorAuthorizedCategories(const String& authorizedCategories);
 
 /// Attributes Getters
-    const IntVector2& GetWorldPoint() const
-    {
-        return worldPoint_;
-    }
-    const IntVector2& GetChunkNum() const
-    {
-        return chunkNum_;
-    }
-    IntVector2 GetDefaultMapPoint() const
-    {
-        return IntVector2(viewinfos_[0].dMapPoint_.x_, viewinfos_[0].dMapPoint_.y_);    // TODO : viewport
-    }
-    const ShortIntVector2& GetDefaultMapPointShort() const
-    {
-        return viewinfos_[0].dMapPoint_;    // TODO : viewport
-    }
-    IntVector2 GetWorldMapSize() const
-    {
-        return IntVector2(info_->mapWidth_,info_->mapHeight_);
-    }
-    const IntVector2& GetWorldSize() const
-    {
-        return worldSize_;
-    }
-    int GetMapGroundLevelAttr() const
-    {
-        return info_->simpleGroundLevel_;
-    }
-    bool GetColliderForceShapeTypeAttr() const
-    {
-        return info_->forcedShapeType_;
-    }
-    ColliderShapeTypeMode GetColliderShapeTypeAttr() const
-    {
-        return info_->shapeType_;
-    }
-    bool GetMapAddObjectAttr() const
-    {
-        return info_->addObject_;
-    }
-    bool GetMapAddFurnitureAttr() const
-    {
-        return info_->addFurniture_;
-    }
-    bool GetMapAddBorderAttr() const
-    {
-        return addBorder_;
-    }
-    const String& GetMapAddImageLayerAttr() const
-    {
-        return String::EMPTY;
-    }
-    const StringVector& GetMapAddImageLayersAttr() const
-    {
-        return imageLayersInfos_;
-    }
+    const IntVector2& GetWorldPoint() const { return worldPoint_; }
+    const IntVector2& GetChunkNum() const { return chunkNum_; }
+    IntVector2 GetDefaultMapPoint() const { return IntVector2(viewinfos_[0].dMapPoint_.x_, viewinfos_[0].dMapPoint_.y_); }   // TODO : viewport
+    const ShortIntVector2& GetDefaultMapPointShort() const { return viewinfos_[0].dMapPoint_; }   // TODO : viewport
+    IntVector2 GetWorldMapSize() const { return IntVector2(info_->mapWidth_,info_->mapHeight_); }
+    const IntVector2& GetWorldSize() const { return worldSize_; }
+    int GetMapGroundLevelAttr() const { return info_->simpleGroundLevel_; }
+    bool GetColliderForceShapeTypeAttr() const { return info_->forcedShapeType_; }
+    ColliderShapeTypeMode GetColliderShapeTypeAttr() const { return info_->shapeType_; }
+    bool GetMapAddObjectAttr() const { return info_->addObject_; }
+    bool GetMapAddFurnitureAttr() const { return info_->addFurniture_; }
+    bool GetMapAddBorderAttr() const { return addBorder_; }
+    const String& GetMapAddImageLayerAttr() const { return String::EMPTY; }
+    const StringVector& GetMapAddImageLayersAttr() const { return imageLayersInfos_; }
     const String& GetAnlWorldModelAttr() const;
     const String& GetMapGeneratorAttr() const;
     const String& GetMapGeneratorParams() const;
-    unsigned GetGeneratorSeed() const
-    {
-        return generatorSeed_;
-    }
+    unsigned GetGeneratorSeed() const { return generatorSeed_; }
     const IntVector2& GetGeneratorNumEntities() const;
-    const String& GetGeneratorAuthorizedCategories() const
-    {
-        return generatorAuthorizedCategories_;
-    }
-    const String& GetEmptyStr() const
-    {
-        return String::EMPTY;
-    }
+    const String& GetGeneratorAuthorizedCategories() const { return generatorAuthorizedCategories_; }
+    const String& GetEmptyStr() const { return String::EMPTY; }
 
 /// Getters
-    static World2D* GetWorld()
-    {
-        return world_;
-    }
-    static World2DInfo* GetWorldInfo()
-    {
-        return info_;
-    }
-    static MapStorage* GetStorage()
-    {
-        return mapStorage_;
-    }
-    static ViewManager* GetViewManager()
-    {
-        return world_->viewManager_;
-    }
-
     bool IsVisible() const;
+    void GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const;
+    void SetVisibleListDirty(bool dirty);
+    void PushVisibleArea(const IntRect& visibleArea);
 
-    static void SetAllowClearMaps(bool state)
-    {
-        world_->allowClearMaps_ = state;
-    }
-    static bool AllowClearMaps()
-    {
-        return world_->allowClearMaps_;
-    }
+    static World2D* GetWorld() { return world_; }
+    static World2DInfo* GetWorldInfo() { return info_; }
+    static MapStorage* GetStorage() { return mapStorage_; }
+    static ViewManager* GetViewManager() { return world_->viewManager_; }
 
-    static bool IsInfinite()
-    {
-        return noBounds_;
-    }
+    static void SetAllowClearMaps(bool state) { world_->allowClearMaps_ = state; }
+    static bool AllowClearMaps() { return world_->allowClearMaps_; }
+
+    static bool IsInfinite() { return noBounds_; }
     static bool IsInsideWorldBounds(const Vector2& worldPosition);
     static bool IsInsideWorldBounds(const ShortIntVector2& mPoint);
     static bool IsInsideVisibleAreas(const ShortIntVector2& mPoint);
-    static bool IsInsideVisibleAreasMinimized(const ShortIntVector2& mPoint);
-    static bool IsVisibleRectInFullBackGround(int viewport=0)
-    {
-        return world_->viewinfos_[viewport].visibleRectInFullBackground_;
-    }
-    static bool IsUnderground(int viewport=0)
-    {
-        return world_->viewinfos_[viewport].isUnderground_;
-    }
+    static bool IsVisibleRectInFullBackGround(int viewport=0) { return world_->viewinfos_[viewport].visibleRectInFullBackground_; }
+    static bool IsUnderground(int viewport=0) { return world_->viewinfos_[viewport].isUnderground_; }
 
     static Rect GetMapBounds(const Vector2& worldPosition);
-    static const IntRect& GetWorldBounds()
-    {
-        return worldBounds_;
-    }
-    static const Rect& GetWorldFloatBounds()
-    {
-        return worldFloatBounds_;
-    }
+    static const IntRect& GetWorldBounds() { return worldBounds_; }
+    static const Rect& GetWorldFloatBounds() { return worldFloatBounds_; }
+    static float GetWorldMapWidth() { return mWidth_; }
+    static float GetWorldMapHeight() { return mHeight_; }
+    static float GetWorldMapTileWidth() { return mTileWidth_; }
+    static float GetWorldMapTileHeight() { return mTileHeight_; }
 
     static const Rect& GetExtendedVisibleRect(int viewport=0);
     static const Rect& GetTiledVisibleRect(int viewport=0);
     static Rect GetVisibleRect(int viewport=0);
-    static const IntRect& GetVisibleAreas(int viewport=0)
-    {
-        return world_->viewinfos_[viewport].visibleMapAreaMinimized_;
-    }
+    static const IntRect& GetVisibleAreas(int viewport=0) { return world_->viewinfos_[viewport].visibleArea_; }
     static IntRect GetVisibleAreas(const Vector2& wposition);
-    static const Vector<ShortIntVector2>& GetKeepedVisibleMaps()
-    {
-        return keepedVisibleMaps_;
-    }
+    static const Vector<ShortIntVector2>& GetKeepedVisibleMaps() { return keepedVisibleMaps_; }
 
-    static const ShortIntVector2& GetCurrentMapPoint(int viewport=0)
-    {
-        return world_->viewinfos_[viewport].mPoint_;
-    }
-    static Map* GetCurrentMap(int viewport=0)
-    {
-        return world_->viewinfos_[viewport].currentMap_;
-    }
+    static const ShortIntVector2& GetCurrentMapPoint(int viewport=0) { return world_->viewinfos_[viewport].mPoint_; }
+    static Map* GetCurrentMap(int viewport=0) { return world_->viewinfos_[viewport].currentMap_; }
     static const Vector2& GetCurrentMapOrigin(int viewport=0);
 
     static Map* GetMapAt(const ShortIntVector2& mPoint, bool createIfMissing=false);
@@ -296,14 +235,8 @@ public:
     static void GetFilteredEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, int skipControllerType);
     static void GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, const StringHash& type);
     static void GetEntities(const ShortIntVector2& mPoint, PODVector<Node*>& entities, const char* name);
-    static List<unsigned>& GetEntities(const ShortIntVector2& mPoint)
-    {
-        return mapEntities_[mPoint].entities_;
-    }
-    static MapEntityInfo& GetEntitiesInfo(const ShortIntVector2& mPoint)
-    {
-        return mapEntities_[mPoint];
-    }
+    static List<unsigned>& GetEntities(const ShortIntVector2& mPoint) { return mapEntities_[mPoint].entities_; }
+    static MapEntityInfo& GetEntitiesInfo(const ShortIntVector2& mPoint) { return mapEntities_[mPoint]; }
     static void GetVisibleEntities(PODVector<Node*>& entities); // TODO : viewport
     static PODVector<Node*> FindEntitiesAt(const String& entityName, const ShortIntVector2& mPoint, int viewZ);
     static List<MapFurnitureRef> FindFurnituresAt(const ShortIntVector2& mPoint, unsigned tileindex);
@@ -315,20 +248,24 @@ public:
     void SetInfo(World2DInfo* info);
     void SetUpdateLoadingDelay(int delay = MAP_MAXDELAY);
     void SetCamera(float zoom=1.f, const Vector2& focus=Vector2::ZERO);
-    void ResetPosition(const Vector2& focus=Vector2::ZERO); // TODO : viewport
+    void ResetFocusPositions();
+    void SaveFocusPositions();
     void AddScrollers(int viewport);
 
     void GoToMap(const ShortIntVector2& mpoint, const IntVector2& mposition, int viewZ=-1, int viewport=0);
     void GoToMap(const ShortIntVector2& mpoint, int viewport=0);
     void GoCameraToDestinationMap(int viewport=0, bool updateinstant=true);
 
+    static void SetWorldViewportInfos();
+
     static void SetKeepedVisibleMaps(bool state);
-    static void ResetPositionFocus();
-    static void SavePositionFocus();
 
     static void ReinitWorld(const IntVector2& wPoint);
     static void ReinitAllWorlds();
     static void SaveWorld(bool saveEntities=false);
+
+    static void AddTraveler(ClientInfo* clientinfo, Node* node);
+    static void RemoveTraveler(Node* node);
 
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
     static void AddEntity(const ShortIntVector2& mPoint, unsigned id);
@@ -383,8 +320,8 @@ public:
 private:
     void UpdateWorldBounds();
     void UpdateTextureLevels();
-    void UpdateVisibleLists(int viewport=0);
-    void UpdateVisibleArea(int viewport=0, HiresTimer* timer=0);
+    void UpdateVisibleLists();
+    void UpdateVisibleAreas(HiresTimer* timer=0);
     void UpdateVisibleCollideBorders();
     void UpdateActors(HiresTimer* timer);
     void UpdateMaps(HiresTimer* timer);
@@ -434,10 +371,11 @@ private :
 
     Rect originMapRect_; /// DrawDebug : origin Map Marker
 
-    WorldViewInfo viewinfos_[MAX_VIEWPORTS];
-
-    Vector<ShortIntVector2> mapsToShow_;
-    Vector<ShortIntVector2> mapsToHide_;
+    Vector<TravelerViewportInfo> viewinfos_;
+    Vector<TravelerNodeInfo> travelerInfos_;
+    bool visibleMapsListDirty_;
+    HashSet<ShortIntVector2> mapsToShow_;
+    HashSet<ShortIntVector2> mapsToHide_;
 
     MapSimulatorLiquid* mapLiquid_;
     ViewManager* viewManager_;
@@ -446,8 +384,6 @@ private :
 
     /// Cached extended visible rect
     static Rect extVisibleRectCached_;
-    /// Save Position (for createmode)
-    static Vector2 focusPosition_;
 
     /// The Point of this World On the WorldMap
     static IntVector2 worldPoint_;

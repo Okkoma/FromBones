@@ -7,7 +7,11 @@
 
 Todos:
 
-    ✔ 21/12/2023 : sur un client qui se connecte apres les autres (le contenu des coffres a deja ete pris en partie), 
+    ☐ 21/12/2023 : il faut activer les maps du server des qu'un joueur est dessus ou bien que toutes les maps server soient activées par défaut.
+        => coté Box2D ca va suivre ?
+        => cote World2D il faut ajouter des nodes à suivre en plus des viewports, pour gérer le chargement/déchargement et la visibilité des maps.
+
+    ✔ 21/12/2023 : sur un client qui se connecte apres les autres (le contenu des coffres a deja ete pris en partie),
                 lorque ce client tente de prendre un coffre qui n'est pourtant pas vide, il ne va rien se passer.
                 Les slots deja pris sont vides et le probleme se situe dans le SetInventory durant le lancement de partie du client
                 qui va skipper ces slots du coup il n'y aura plus de correspondance de slotid entre les inventaires client et server lors du INVENTORY_GET -> Client_TransferItem
@@ -24,7 +28,7 @@ Todos:
                    cf MapStorage::PushMapToLoad pour envoyer une nouvelle requete de MapData ? voir pour la gestion de ClientInfo::mapsDirty_ ...
 
     ✔ 15/12/2023 : demarrer automatique en PlayState le server si au moins un client envoie son état en PlayState
-        -> Demarrage en Arena OK, voir pour modifier ça par la suite
+        -> OK : Demarrage en Arena par defaut, voir pour modifier ça par la suite
 
     ✔ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients @done(23-12-15 09:07)
         plusieurs problemes surviennent alors :

@@ -1735,54 +1735,61 @@ void OptionState::HandleWorldNameChanged(StringHash eventType, VariantMap& event
         // Reload the last parameters from anlworlmodel
         sOptionsWorldIndex_ = MapStorage::GetWorldIndex(IntVector2(0, GameContext::Get().MAX_NUMLEVELS + GameContext::Get().testZoneId_));
 
-        World2DInfo& info = MapStorage::GetWorld2DInfo(sOptionsWorldIndex_);
-
-        if (GameContext::Get().testZoneId_ == 2)
+        if (sOptionsWorldIndex_ != -1)
         {
-            SetDefaultWorldParameters();
+            World2DInfo& info = MapStorage::GetWorld2DInfo(sOptionsWorldIndex_);
+
+            if (GameContext::Get().testZoneId_ == 2)
+            {
+                SetDefaultWorldParameters();
+            }
+            else
+            {
+                optionParameters_[OPTION_WorldModel].control_->SetEditable(true);
+                optionParameters_[OPTION_WorldSize].control_->SetEditable(true);
+                optionParameters_[OPTION_WorldSeed].control_->SetEditable(true);
+
+                if (info.worldModel_)
+                {
+                    sOptionsWorldModelFilename_ = GetNativePath(RemoveTrailingSlash("Data/" + info.worldModel_->GetName()));
+                    int selection = 0;
+                    if (sOptionsWorldModelFilename_.Contains("ellipsoid-zone2"))
+                        selection = 1;
+                    else if (sOptionsWorldModelFilename_.Contains("circle"))
+                        selection = 2;
+                    optionParameters_[OPTION_WorldModel].control_->SetSelection(selection);
+
+                    sOptionsWorldModelSize_ = info.worldModel_->GetRadius();
+                    selection = 0;
+                    if (sOptionsWorldModelSize_ == 2.f)
+                        selection = 1;
+                    else if (sOptionsWorldModelSize_ == 4.f)
+                        selection = 2;
+                    else if (sOptionsWorldModelSize_ == 10.f)
+                        selection = 3;
+                    else if (sOptionsWorldModelSize_ == 16.f)
+                        selection = 4;
+                    optionParameters_[OPTION_WorldSize].control_->SetSelection(selection);
+
+                    sOptionsWorldModelSeed_ = info.worldModel_->GetSeed();
+                    selection = 0;
+                    if (sOptionsWorldModelSeed_ == 1000)
+                        selection = 1;
+                    else if (sOptionsWorldModelSeed_ == 2000)
+                        selection = 2;
+                    else if (sOptionsWorldModelSeed_ == 66536)
+                        selection = 3;
+                    optionParameters_[OPTION_WorldSeed].control_->SetSelection(selection);
+                }
+
+                snapshotdirty_ = true;
+
+                ApplyWorldChange();
+            }
         }
         else
         {
-            optionParameters_[OPTION_WorldModel].control_->SetEditable(true);
-            optionParameters_[OPTION_WorldSize].control_->SetEditable(true);
-            optionParameters_[OPTION_WorldSeed].control_->SetEditable(true);
-
-            if (info.worldModel_)
-            {
-                sOptionsWorldModelFilename_ = GetNativePath(RemoveTrailingSlash("Data/" + info.worldModel_->GetName()));
-                int selection = 0;
-                if (sOptionsWorldModelFilename_.Contains("ellipsoid-zone2"))
-                    selection = 1;
-                else if (sOptionsWorldModelFilename_.Contains("circle"))
-                    selection = 2;
-                optionParameters_[OPTION_WorldModel].control_->SetSelection(selection);
-
-                sOptionsWorldModelSize_ = info.worldModel_->GetRadius();
-                selection = 0;
-                if (sOptionsWorldModelSize_ == 2.f)
-                    selection = 1;
-                else if (sOptionsWorldModelSize_ == 4.f)
-                    selection = 2;
-                else if (sOptionsWorldModelSize_ == 10.f)
-                    selection = 3;
-                else if (sOptionsWorldModelSize_ == 16.f)
-                    selection = 4;
-                optionParameters_[OPTION_WorldSize].control_->SetSelection(selection);
-
-                sOptionsWorldModelSeed_ = info.worldModel_->GetSeed();
-                selection = 0;
-                if (sOptionsWorldModelSeed_ == 1000)
-                    selection = 1;
-                else if (sOptionsWorldModelSeed_ == 2000)
-                    selection = 2;
-                else if (sOptionsWorldModelSeed_ == 66536)
-                    selection = 3;
-                optionParameters_[OPTION_WorldSeed].control_->SetSelection(selection);
-            }
-
-            snapshotdirty_ = true;
-
-            ApplyWorldChange();
+            URHO3D_LOGERRORF("OptionState() - HandleWorldNameChanged ! name = %s ... ERROR no world index !", worldname.CString());
         }
     }
 }
@@ -2080,6 +2087,9 @@ void OptionState::UpdateSnapShotGrid()
 
 void OptionState::ApplyWorldChange()
 {
+    if (sOptionsWorldIndex_ == -1)
+        return;
+
     // Get the world point for test
     World2DInfo& info = MapStorage::GetWorld2DInfo(sOptionsWorldIndex_);
 
@@ -2159,6 +2169,8 @@ void OptionState::ApplyWorldChange()
 
         UpdateSnapShots(false);
 //		UpdateSnapShots(GameContext::Get().testZoneId_ == 3);
+
+        URHO3D_LOGINFOF("OptionState() - ApplyWorldChange ... sOptionsWorldSnapShotMaxMaps_=%d !", sOptionsWorldSnapShotMaxMaps_);
     }
 }
 

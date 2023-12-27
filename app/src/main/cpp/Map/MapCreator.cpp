@@ -234,13 +234,13 @@ void MapCreator::PurgeMapsOutsideVisibleAreas()
             continue;
         }
 
-        if (World2D::GetStorage()->IsInsideBufferedAreas(*it))
+        if (World2D::GetStorage()->IsInsideBufferedArea(*it))
         {
             it++;
             continue;
         }
 
-        if (World2D::IsInsideVisibleAreasMinimized(*it))
+        if (World2D::IsInsideVisibleAreas(*it))
         {
             it++;
             continue;

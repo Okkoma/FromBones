@@ -54,6 +54,8 @@ public:
     {
         return x_ != rhs.x_ || y_ != rhs.y_;
     }
+    bool operator < (const ShortIntVector2& rhs) const { return y_ != rhs.y_ ? y_ < rhs.y_ : x_ < rhs.x_; }
+
     /// Add a vector.
     ShortIntVector2 operator + (const ShortIntVector2& rhs) const
     {

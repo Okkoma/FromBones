@@ -223,6 +223,9 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
     URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... for clientid=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
                     clientID_, connection_.Get(), playerID, avatar->GetID(), avatar->GetWorldPosition().ToString().CString(), player->GetFaction());
 
+    if (avatar)
+        World2D::AddTraveler(this, avatar);
+
     return avatar;
 }
 
@@ -246,6 +249,7 @@ void ClientInfo::Clear()
 //    statusToClientStamp_ = 255;
     lastSentServerGameStatus_ = NOGAMESTATE;
     mapsDirty_ = true;
+    mapRequests_.Clear();
 
     objCmdInfo_.Clear();
 
@@ -263,14 +267,18 @@ void ClientInfo::ClearObjects()
     {
         if (objects_[i])
         {
+            Node* node = objects_[i];
             if (connection_)
-                objects_[i]->CleanupConnection(connection_);
+                node->CleanupConnection(connection_);
 
             // Umount if need
-            MountInfo mountinfo(objects_[i]);
+            MountInfo mountinfo(node);
             GameHelpers::UnmountNode(mountinfo);
 
-            objects_[i]->Remove();
+            if (node->HasTag("Player"))
+                World2D::RemoveTraveler(node);
+
+            node->Remove();
         }
     }
 
@@ -1012,6 +1020,9 @@ void GameNetwork::CleanObjectCommandInfo(ObjectCommandInfo& info)
     info.Clear();
 }
 
+VariantMap& GameNetwork::GetClientEventData() { return sClientEventData_; }
+VariantMap& GameNetwork::GetServerEventData() { return sServerEventData_; }
+
 // Send Command
 // if broadcast and client=0  : server send to all clients
 // if broadcast and client>0  : send to all clients but exclude client
@@ -1057,6 +1068,7 @@ void GameNetwork::PushObjectCommand(VariantMap& cmdvar, bool broadcast, int clie
     URHO3D_LOGERRORF("GameNetwork() - PushObjectCommand : clientid=%d(from:%d) broadcast=%s cmd=%s nodeid=%u !",
                      cmd.clientId_, clientID_, broadcast?"true":"false", netCommandNames[pcmd], cmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt());
 }
+
 
 void GameNetwork::ExplodeNode(VariantMap& eventData)
 {
@@ -1524,7 +1536,7 @@ void GameNetwork::Client_DisableObjectControl(VariantMap& eventData)
         URHO3D_LOGERRORF("GameNetwork() - Client_DisableObjectControl : unsatisfied requirements for clientObjectControl nodeid=%u !", id);
 }
 
-void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
+void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventData)
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
 
@@ -1559,7 +1571,7 @@ void GameNetwork::Server_ApplyObjectCommand(VariantMap& eventData)
         if (node)
             node->SendEvent(NET_TRIGCLICKED);
         else
-            URHO3D_LOGERRORF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) nodeid=%u no node !",
+            URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) nodeid=%u no node !",
                               cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", eventData[Net_ObjectCommand::P_NODEID].GetUInt());
     }
         break;
@@ -2259,14 +2271,12 @@ void GameNetwork::Server_SendWeatherInfos(ClientInfo& clientInfo)
 
 void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
 {
-    URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ...");
+    VectorBuffer buffer;
 
-    ObjectCommand& cmd = *objCmdPool_.Get();
-
-    // Write MapDatas
-    // TODO : get only the mapdatas required by clientinfo
+    if (clientInfo.mapsDirty_)
     {
-        VectorBuffer buffer;
+        URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ... MapsDirty ...");
+
         const HashMap<ShortIntVector2, Map*>& mapStorage = MapStorage::Get()->GetMapsInMemory();
         for (HashMap<ShortIntVector2, Map*>::ConstIterator it = mapStorage.Begin(); it != mapStorage.End(); ++it)
         {
@@ -2281,14 +2291,43 @@ void GameNetwork::Server_SendWorldMaps(ClientInfo& clientInfo)
                 buffer.WriteShort(it->first_.y_);
                 map->GetMapData()->Save(buffer);
             }
+            else if (!clientInfo.mapRequests_.Contains(it->first_))
+                clientInfo.mapRequests_.Push(it->first_);
         }
 
-        cmd.cmd_[Net_ObjectCommand::P_DATAS] = buffer;
+        clientInfo.mapsDirty_ = false;
+    }
+    else if (clientInfo.mapRequests_.Size())
+    {
+        URHO3D_LOGINFOF("GameNetwork() - Server_SendWorldMaps ... MapRequests ...");
+
+        Vector<ShortIntVector2>::Iterator it = clientInfo.mapRequests_.Begin();
+        while (it != clientInfo.mapRequests_.End())
+        {
+            Map* map = World2D::GetWorld()->GetMapAt(*it);
+            if (map && map->IsSerializable())
+            {
+                // update MapData
+                map->UpdateMapData(0);
+
+                // save MapData in memory buffer
+                buffer.WriteShort(it->x_);
+                buffer.WriteShort(it->y_);
+                map->GetMapData()->Save(buffer);
+
+                it = clientInfo.mapRequests_.Erase(it);
+            }
+            else
+                it++;
+        }
     }
 
-    clientInfo.mapsDirty_ = false;
-
-    PushObjectCommand(SETMAPDATAS, cmd, false, clientInfo.clientID_);
+    if (buffer.GetSize())
+    {
+        ObjectCommand& cmd = *objCmdPool_.Get();
+        cmd.cmd_[Net_ObjectCommand::P_DATAS] = buffer;
+        PushObjectCommand(SETMAPDATAS, cmd, false, clientInfo.clientID_);
+    }
 }
 
 void GameNetwork::Server_SendWorldObjects(ClientInfo& clientInfo)
@@ -3456,8 +3495,7 @@ void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantM
 
             if (clientNewStatus >= PLAYSTATE_INITIALIZING && clientNewStatus <= PLAYSTATE_LOADING && gameStatus_ >= PLAYSTATE_READY)
             {
-                if (clientInfo.mapsDirty_)
-                    Server_SendWorldMaps(clientInfo);
+                Server_SendWorldMaps(clientInfo);
 
                 clientInfo.gameStatus_ = clientNewStatus;
                 return;
@@ -4535,9 +4573,12 @@ void GameNetwork::HandlePlayClient_ReceiveServerControls(StringHash eventType, V
                     oinfo = GetServerObjectControl(servernodeid);
 
                 // net spawn mode allowed ?
-                if (!oinfo || !oinfo->active_)
+                if ((!oinfo || !oinfo->active_) && sDumpObject_.GetReceivedControl().HasNetSpawnMode() && sDumpObject_.IsEnable())
                 {
-                    if (sDumpObject_.GetReceivedControl().HasNetSpawnMode() && sDumpObject_.IsEnable())
+                    ShortIntVector2 mpoint;
+                    World2D::GetWorldInfo()->Convert2WorldMapPoint(sDumpObject_.GetReceivedControl().physics_.positionx_, sDumpObject_.GetReceivedControl().physics_.positiony_, mpoint);
+                    Map* map = World2D::GetAvailableMapAt(mpoint);
+                    if (map)
                     {
 //                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%d servernodeid=%u oinfo=%u spawnid=%u(holder=%u,stamp=%u) spawncontrol=%s ... spawn entity ...",
 //                                        clientID_, nodeclientid, servernodeid, oinfo, spawnid, GetSpawnHolder(spawnid), GetSpawnStamp(spawnid), spawncontrol?"true":"false");
@@ -4817,7 +4858,7 @@ void GameNetwork::HandlePlayServer_ReceiveCommands(StringHash eventType, Variant
                         URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_ReceiveCommands : apply ObjectCommand from clientid=%d cmdstamp=%u serverObjCmdAck=%u ... OK !", sObjCmd_.clientId_);
                 #endif
                         // Apply ObjectCommand
-                        Server_ApplyObjectCommand(sObjCmd_.cmd_);
+                        Server_ApplyObjectCommand(sObjCmd_.clientId_, sObjCmd_.cmd_);
 
                         // Relay Client BroadCasted Command
                         if (sObjCmd_.broadCast_ && sObjCmd_.clientId_)
@@ -5262,6 +5303,12 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
 //        URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : Prepare ObjectCommands ... ");
 
         HashMap<int, ObjectCommandPacket* > newpackets;
+
+        for (HashMap<Connection*, ClientInfo>::Iterator it = serverClientInfos_.Begin(); it != serverClientInfos_.End(); ++it)
+        {
+            // Send Requested MapDatas if exist
+            Server_SendWorldMaps(it->second_);
+        }
 
         // Prepare the new ObjectCommand Packets from the pool
         if (objCmdNew_.Size())

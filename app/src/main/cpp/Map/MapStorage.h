@@ -27,6 +27,7 @@ class MapPool;
 class MapCreator;
 class MapStorage;
 
+
 enum MapCreatingMode
 {
     MCM_ASYNCHRONOUS = 0,
@@ -107,13 +108,10 @@ public:
 
     void Clear();
     void SetMapSeed(unsigned seed);
+    void SetBufferDirty(bool dirty);
     void SetMapBufferOffset(int offset);
-    void SetBufferedArea(int viewport, const ShortIntVector2& centeredMap);
     void SetNode(Node* node);
-    void SetCreatingMode(MapCreatingMode mode)
-    {
-        creatingMode_ = (int)mode;
-    }
+    void SetCreatingMode(MapCreatingMode mode) { creatingMode_ = (int)mode; }
 
     Map* InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer=0);
     void ForceMapToUnload(Map* map);
@@ -122,56 +120,23 @@ public:
     bool LoadMaps(bool loadEntities, bool async=true);
     bool SaveMaps(bool saveEntities, bool async=true);
 
-    int GetCreatingMode() const
-    {
-        return creatingMode_;
-    }
-    unsigned GetCurrentWorldIndex() const
-    {
-        return currentWorldIndex_;
-    }
-    const String& GetCurrentWorldName() const
-    {
-        return worldName_;
-    }
+    int GetCreatingMode() const { return creatingMode_; }
+    unsigned GetCurrentWorldIndex() const { return currentWorldIndex_; }
+    const String& GetCurrentWorldName() const { return worldName_; }
     Map* GetMapAt(const ShortIntVector2& mPoint) const;
     Map* GetAvailableMapAt(const ShortIntVector2& mPoint) const;
-    int GetNumMapsToLoad() const
-    {
-        return mapsToLoadInMemory_.Size();
-    }
-    unsigned GetNumMaxMaps() const
-    {
-        return maxMapsInMemory_;
-    }
-    const IntRect& GetBufferedArea(int viewport) const
-    {
-        return bufferedArea_[viewport];
-    }
-    const Rect& GetBufferedAreaRect(int viewport) const
-    {
-        return bufferedAreaRect_[viewport];
-    }
-    const HashMap<ShortIntVector2, Map* >& GetMapsInMemory() const
-    {
-        return mapsInMemory_;
-    }
-    unsigned GetMapSeed() const
-    {
-        return sseed_;
-    }
-    Node* GetNode() const
-    {
-        return node_;
-    }
-    const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const
-    {
-        return storage_->mapDatas_;
-    }
+    int GetNumMapsToLoad() const { return mapsToLoadInMemory_.Size(); }
+    unsigned GetNumMaxMaps() const { return maxMapsInMemory_; }
+    const Rect& GetBufferedAreaRect(int viewport) const { return bufferedAreaRect_[viewport]; }
+    const HashMap<ShortIntVector2, Map* >& GetMapsInMemory() const { return mapsInMemory_; }
+    unsigned GetMapSeed() const { return sseed_; }
+    Node* GetNode() const { return node_; }
+    const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const { return storage_->mapDatas_; }
 
-    bool IsInsideBufferedAreas(const ShortIntVector2& mPoint);
+    bool IsInsideBufferedArea(const ShortIntVector2& mPoint) const;
+    void GetNewBufferMapPoints(const BufferExpandInfo& expandinfo, Vector<ShortIntVector2>& newmappoints);
 
-    void UpdateBufferedArea(int viewport, const ShortIntVector2& newCenterPoint);
+    void UpdateBufferedArea();
     void UpdateAllMaps();
     bool UpdateMapsInMemory(HiresTimer* timer=0);
 
@@ -187,52 +152,19 @@ public:
     static const IntVector2& CheckWorld2DPoint(Context* context, const IntVector2& worldPoint, World2DInfo* info);
 
     static int GetWorldIndex(const IntVector2& worldPoint);
-    static World2DInfo& GetWorld2DInfo(unsigned index)
-    {
-        return registeredWorld2DInfo_[index];
-    }
-    static String& GetWorldName(unsigned index)
-    {
-        return registeredWorldName_[index];
-    }
+    static World2DInfo& GetWorld2DInfo(unsigned index) { return registeredWorld2DInfo_[index]; }
+    static String& GetWorldName(unsigned index) { return registeredWorldName_[index]; }
 
-    static Vector<World2DInfo>& GetAllWorld2DInfos()
-    {
-        return registeredWorld2DInfo_;
-    }
-    static const Vector<IntVector2>& GetAllWorldPoints()
-    {
-        return registeredWorldPoint_;
-    }
-    static MapStorage* Get()
-    {
-        return storage_;
-    }
-    static MapPool* GetPool()
-    {
-        return mapPool_;
-    }
-    static MapCreator* GetCreator()
-    {
-        return mapCreator_;
-    }
-    static MapSerializer* GetMapSerializer()
-    {
-        return mapSerializer_;
-    }
-    static TerrainAtlas* GetAtlas()
-    {
-        return atlas_;
-    }
-    static MapModel* GetMapModel(int model)
-    {
-        return &mapModels_[model];
-    }
+    static Vector<World2DInfo>& GetAllWorld2DInfos() { return registeredWorld2DInfo_; }
+    static const Vector<IntVector2>& GetAllWorldPoints() { return registeredWorldPoint_; }
+    static MapStorage* Get() { return storage_; }
+    static MapPool* GetPool() { return mapPool_; }
+    static MapCreator* GetCreator() { return mapCreator_; }
+    static MapSerializer* GetMapSerializer() { return mapSerializer_; }
+    static TerrainAtlas* GetAtlas() { return atlas_; }
+    static MapModel* GetMapModel(int model) { return &mapModels_[model]; }
     static MapData* GetMapDataAt(const ShortIntVector2& mpoint, bool createIfMissing = false);
-    static bool RemoveMapDataAt(const ShortIntVector2& mpoint)
-    {
-        return storage_->mapDatas_.Erase(mpoint);
-    }
+    static bool RemoveMapDataAt(const ShortIntVector2& mpoint) { return storage_->mapDatas_.Erase(mpoint); }
     static const IntVector2& GetWorldPoint(int worldindex);
     static String GetMapFileName(const String& worldName, const ShortIntVector2& mPoint, const char* ext);
     static const String& GetWorldName(const IntVector2& worldPoint);
@@ -268,9 +200,7 @@ private:
     unsigned maxMapsInMemory_;
     int bOffset_;
     bool bufferedAreaDirty_;
-    ShortIntVector2 centeredPoint_[MAX_VIEWPORTS];
-    IntRect bufferedArea_[MAX_VIEWPORTS];
-    Rect bufferedAreaRect_[MAX_VIEWPORTS];     // BufferArea Marker For DrawDebug
+
     IntRect wBounds_;
     ShortIntVector2 forcedMapToUnload_;
 
@@ -281,6 +211,10 @@ private:
 
     Vector<MapData> mapDatasPool_;
     HashMap<ShortIntVector2, MapData* > mapDatas_;
+
+    Rect bufferedAreaRect_[MAX_VIEWPORTS];     // BufferArea Marker For DrawDebug
+    Vector<BufferExpandInfo> bufferExpandInfos_;
+    Vector<IntRect> bufferAreas_;
 
     HashMap<ShortIntVector2, Map* > mapsInMemory_;
 #ifdef USE_LOADINGLISTS

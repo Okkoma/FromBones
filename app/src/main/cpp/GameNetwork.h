@@ -103,6 +103,7 @@ struct ClientInfo
     int requestPlayers_;
 
     bool mapsDirty_;
+    Vector<ShortIntVector2> mapRequests_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     LogStatNetObject logStats_, tmpLogStats_;
@@ -338,6 +339,9 @@ public:
     void ClearObjectCommands();
     void CleanObjectCommandInfo(ObjectCommandInfo& info);
 
+    VariantMap& GetClientEventData();
+    VariantMap& GetServerEventData();
+
     void PushObjectCommand(NetCommand pcmd, VariantMap* eventDataPtr=0, bool broadcast=true, int toclient=0);
     void PushObjectCommand(NetCommand pcmd, ObjectCommand& cmd, bool broadcast=true, int client=0);
     void PushObjectCommand(VariantMap& cmdvar, bool broadcast=true, int client=0);
@@ -350,7 +354,7 @@ public:
     void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);
 private:
     /// Server commands from clients
-    void Server_ApplyObjectCommand(VariantMap& eventData);
+    void Server_ApplyObjectCommand(int fromclientid, VariantMap& eventData);
 
     /// Client commands from server
     void Client_CommandAddObject(VariantMap& eventData);

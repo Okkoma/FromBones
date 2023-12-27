@@ -1991,9 +1991,10 @@ void Player::Stop()
     active = false;
 
     if (GameNetwork::Get() && avatar_)
-    {
         GameNetwork::Get()->SetEnableObject(false, avatar_->GetID(), true);
-    }
+
+    if (GameContext::Get().ServerMode_ && avatar_)
+        World2D::RemoveTraveler(avatar_);
 
     GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 

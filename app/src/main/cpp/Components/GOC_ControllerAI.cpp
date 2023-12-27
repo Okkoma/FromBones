@@ -162,8 +162,8 @@ Behavior* GOC_AIController::StartBehavior(unsigned b, bool forced)
 
     if (behavior_ && behavior_ != b)
     {
-        URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : node=%s(%u) ... stop previous behavior",
-                        node_->GetName().CString(), node_->GetID());
+//        URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : node=%s(%u) ... stop previous behavior",
+//                        node_->GetName().CString(), node_->GetID());
         StopBehavior();
     }
 
@@ -176,8 +176,8 @@ Behavior* GOC_AIController::StartBehavior(unsigned b, bool forced)
             SetBehavior(b);
 
             behavior->Start(*this);
-            URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : %s(%u) behavior=%s ... OK !", node_->GetName().CString(), node_->GetID(),
-                                    behavior ? behavior->GetTypeName().Substring(4).CString() : "unknow");
+//            URHO3D_LOGINFOF("GOC_AIController() - StartBehavior : %s(%u) behavior=%s ... OK !", node_->GetName().CString(), node_->GetID(),
+//                                    behavior ? behavior->GetTypeName().Substring(4).CString() : "unknow");
         }
     }
 

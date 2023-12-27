@@ -30,6 +30,7 @@
 #include "GameEvents.h"
 #include "GameHelpers.h"
 #include "GameContext.h"
+#include "GameNetwork.h"
 #include "GameOptions.h"
 #include "GameOptionsTest.h"
 
@@ -410,7 +411,7 @@ void MapStorage::InitTable(Context* context)
     RegisterWorldPath(context, "ArenaZone", IntVector2(0, 3), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_arena.xml");
     RegisterWorldPath(context, "TestZone1", IntVector2(0, 4), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "anlworldVM-ellipsoid-zone1.xml");
     RegisterWorldPath(context, "TestZone2", IntVector2(0, 5), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "anlworldVM-ellipsoid-zone2.xml");
-//    RegisterWorldPath(context, "World", IntVector2(0, 6), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "nodefault");
+    RegisterWorldPath(context, "Custom", IntVector2(0, 6), WORLD_TILE_WIDTH, WORLD_TILE_HEIGHT, "atlas_world_1.xml", "nodefault");
 
     URHO3D_LOGINFOF("MapStorage() - InitTable ... Tileset Water ...");
 
@@ -656,6 +657,11 @@ void MapStorage::SetMapSeed(unsigned seed)
     URHO3D_LOGINFOF("MapStorage() - SetMapSeed() ... Set Seed=%u !", sseed_);
 }
 
+void MapStorage::SetBufferDirty(bool dirty)
+{
+    bufferedAreaDirty_ = dirty;
+}
+
 /// num offset maps around centerMapPoint
 void MapStorage::SetMapBufferOffset(int offset)
 {
@@ -684,17 +690,9 @@ void MapStorage::SetMapBufferOffset(int offset)
     mapsToUnloadFromMemory_.Reserve(maxMapsInMemory_ * MAX_VIEWPORTS);
 #endif
 
-    bufferedAreaDirty_ = true;
+    SetBufferDirty(true);
 
     URHO3D_LOGINFOF("MapStorage() - SetMapBufferOffset : offset = %d numMaxMapsInMemory = %d ... OK !", bOffset_, maxMapsInMemory_);
-}
-
-void MapStorage::SetBufferedArea(int viewport, const ShortIntVector2& centerPoint)
-{
-    centeredPoint_[viewport] = centerPoint;
-    bufferedAreaDirty_ = true;
-
-    URHO3D_LOGINFOF("MapStorage() - SetBufferedArea : onmap=%s", centeredPoint_[viewport].ToString().CString());
 }
 
 // Set the World Node
@@ -1456,13 +1454,6 @@ inline void MapStorage::PushMapToLoad(const ShortIntVector2& mPoint)
     /// if not in memory, push it
     if (!mapsInMemory_.Contains(mPoint) && !mapsToLoadInMemory_.Contains(mPoint))
     {
-        // TODO : new MapData Request to the server
-        if (GameContext::Get().ClientMode_)
-        {
-            // do a request of the needed mapdatas.
-            // mark mapcreator to not generate the map until the client receives the mapdata.
-            // set map status to loading ?
-        }
         mapsToLoadInMemory_.Push(mPoint);
         URHO3D_LOGINFOF("MapStorage() - PushMapToLoad mPoint=%s", mPoint.ToString().CString());
     }
@@ -1470,118 +1461,195 @@ inline void MapStorage::PushMapToLoad(const ShortIntVector2& mPoint)
     /// Never remove in the mapsToUnloadFromMemory_, let the process to do it
 }
 
-bool MapStorage::IsInsideBufferedAreas(const ShortIntVector2& mPoint)
+bool MapStorage::IsInsideBufferedArea(const ShortIntVector2& mPoint) const
 {
-    unsigned numviewports = ViewManager::Get()->GetNumViewports();
-    IntVector2 point(mPoint.x_, mPoint.y_);
-    for (unsigned i = 0; i < numviewports; i++)
+    for (Vector<IntRect>::ConstIterator it = bufferAreas_.Begin(); it != bufferAreas_.End(); ++it)
     {
-        if (bufferedArea_[i].IsInside(point) == INSIDE)
+        if (it->IsInside(mPoint.x_, mPoint.y_) == INSIDE)
             return true;
     }
     return false;
 }
 
-void MapStorage::UpdateBufferedArea(int viewport, const ShortIntVector2& newCenterPoint)
+void MapStorage::GetNewBufferMapPoints(const BufferExpandInfo& expandinfo, Vector<ShortIntVector2>& newmappoints)
 {
-    if (newCenterPoint != centeredPoint_[viewport])
-        bufferedAreaDirty_ = true;
+    Vector<ShortIntVector2> tmpMapPoints;
 
-    if (!bufferedAreaDirty_)
-        return;
+    const int centerx = expandinfo.x_;
+    const int centery = expandinfo.y_;
+    const int expX = expandinfo.dx_;
+    const int expY = expandinfo.dy_;
 
-    const int centerx = newCenterPoint.x_;
-    const int centery = newCenterPoint.y_;
-
-    const int expX = newCenterPoint.x_ - centeredPoint_[viewport].x_;
-    const int expY = newCenterPoint.y_ - centeredPoint_[viewport].y_;
     const int dirX = expX ? expX / Abs(expX) : 1;
     const int dirY = expY ? expY / Abs(expY) : 1;
 
-    IntRect newBufferedArea;
-    newBufferedArea.left_ = centerx - bOffset_;
-    newBufferedArea.top_ = centery - bOffset_;
-    newBufferedArea.right_ = centerx + bOffset_;
-    newBufferedArea.bottom_ = centery + bOffset_;
+    // if expX != 0 it's an first expansion following X otherwise is an first expansion following Y
+    int expDirX;
+    int expDirY;
+    int& exp1 = expX ? expDirX : expDirY; // First Expansion Direction
+    int& exp2 = expX ? expDirY : expDirX; // Second Expansion Direction
 
-    URHO3D_LOGINFOF("MapStorage() - UpdateBufferedArea : viewport=%d onmap=%s with oldarea=%s newarea=%s dirX=%d dirY=%d",
-                    viewport, newCenterPoint.ToString().CString(), bufferedArea_[viewport].ToString().CString(), newBufferedArea.ToString().CString(), dirX, dirY);
-
-    centeredPoint_[viewport] = newCenterPoint;
-    bufferedArea_[viewport] = newBufferedArea;
-
-    currentWorld2DInfo_->ConvertMapRect2WorldRect(bufferedArea_[viewport], bufferedAreaRect_[viewport]);
-
-    /// Update Lists : just one time (first viewport)
-    if (viewport == 0)
+    // rear expansion only if new position is far from current position
+    if ((!expX && !expY) || (Abs(expX) >= 3*bOffset_) || (Abs(expY) >= 3*bOffset_))
     {
-        /// Set List to Unload
-        if (mapsInMemory_.Size())
+        if (expX)
         {
-            for (HashMap<ShortIntVector2, Map* >::Iterator it=mapsInMemory_.Begin(); it!=mapsInMemory_.End(); ++it)
-            {
-                const ShortIntVector2& mPoint = it->first_;
-                Map* map = it->second_;
-                if (map == 0)
-                    continue;
-
-#ifdef USE_LOADINGLISTS
-                List<ShortIntVector2>::Iterator jt;
-#else
-                Vector<ShortIntVector2>::Iterator jt;
-#endif
-                jt = mapsToUnloadFromMemory_.Find(mPoint);
-
-                if (IsInsideBufferedAreas(mPoint))
+            for (exp2 = bOffset_; exp2 > 0; exp2--)
+                for (exp1 = bOffset_; exp1 > 0; exp1--)
                 {
-                    // remove it from unloading the process.
-                    if (jt != mapsToUnloadFromMemory_.End())
-                    {
-                        mapsToUnloadFromMemory_.Erase(jt);
-                    }
+                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
+                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery + dirY*expDirY));
                 }
-                else
+        }
+        else
+        {
+            for (exp2 = bOffset_; exp2 > 0; exp2--)
+                for (exp1 = bOffset_; exp1 > 0; exp1--)
                 {
-                    // remove it from creation list because unloading process can be slow
-                    mapCreator_->PurgeMap(mPoint);
-
-                    if (jt == mapsToUnloadFromMemory_.End())
-                    {
-                        URHO3D_LOGINFOF("MapStorage() - UpdateBufferedArea : Push mPoint=%s to Unload !", mPoint.ToString().CString());
-                        mapsToUnloadFromMemory_.Push(mPoint);
-                    }
+                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
+                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery - dirY*expDirY));
                 }
-            }
         }
 
-        /// Purge List to Load
-        if (mapsToLoadInMemory_.Size())
-        {
-#ifdef USE_LOADINGLISTS
-            List<ShortIntVector2>::Iterator it;
-#else
-            Vector<ShortIntVector2>::Iterator it;
-#endif
-            it = mapsToLoadInMemory_.Begin();
-            while (it != mapsToLoadInMemory_.End())
-            {
-                if (!IsInsideBufferedAreas(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it))
-                {
-                    // if not in the load list, remove it from creation list
-                    mapCreator_->PurgeMap(*it);
+        exp2 = 0;
+        for (exp1 = bOffset_; exp1 > 0; exp1--)
+            tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery - dirY*expDirY));
+    }
 
-                    it = mapsToLoadInMemory_.Erase(it);
-                }
-                else
+    // sides expansion
+    {
+        if (expX)
+        {
+            for (exp2 = bOffset_; exp2 > 0; exp2--)
+                for (exp1 = bOffset_; exp1 >= 0; exp1--)
                 {
-                    it++;
+                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery - dirY*expDirY));
+                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
+                }
+        }
+        else
+        {
+            for (exp2 = bOffset_; exp2 > 0; exp2--)
+                for (exp1 = bOffset_; exp1 >= 0; exp1--)
+                {
+                    tmpMapPoints.Push(ShortIntVector2(centerx - dirX*expDirX, centery + dirY*expDirY));
+                    tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
+                }
+        }
+    }
+
+    // front expansion, including New Centered Map
+    exp2 = 0;
+    for (exp1 = bOffset_; exp1 >= 0; exp1--)
+        tmpMapPoints.Push(ShortIntVector2(centerx + dirX*expDirX, centery + dirY*expDirY));
+
+    newmappoints.Clear();
+    for (Vector<ShortIntVector2>::Iterator it = tmpMapPoints.Begin(); it != tmpMapPoints.End(); ++it)
+    {
+        if (!World2D::IsInsideWorldBounds(*it))
+            continue;
+//        if (mapsInMemory_.Contains(*it) || mapsToLoadInMemory_.Contains(*it))
+//            continue;
+        newmappoints.Push(*it);
+    }
+}
+
+void MapStorage::UpdateBufferedArea()
+{
+    if (!bufferedAreaDirty_)
+        return;
+
+    World2D::GetWorld()->GetBufferExpandInfos(bufferExpandInfos_);
+
+    // Set the new buffer Areas
+    bufferAreas_.Clear();
+    for (Vector<BufferExpandInfo>::ConstIterator it = bufferExpandInfos_.Begin(); it != bufferExpandInfos_.End(); ++it)
+    {
+        bufferAreas_.Resize(bufferAreas_.Size()+1);
+        IntRect& newBufferedArea = bufferAreas_.Back();
+        newBufferedArea.left_   = it->x_ - bOffset_;
+        newBufferedArea.top_    = it->y_ - bOffset_;
+        newBufferedArea.right_  = it->x_ + bOffset_;
+        newBufferedArea.bottom_ = it->y_ + bOffset_;
+    }
+
+//    currentWorld2DInfo_->ConvertMapRect2WorldRect(bufferedArea_[viewport], bufferedAreaRect_[viewport]);
+
+    /// Set List to Unload
+    if (mapsInMemory_.Size())
+    {
+        for (HashMap<ShortIntVector2, Map* >::Iterator it=mapsInMemory_.Begin(); it!=mapsInMemory_.End(); ++it)
+        {
+            const ShortIntVector2& mPoint = it->first_;
+            Map* map = it->second_;
+            if (map == 0)
+                continue;
+
+#ifdef USE_LOADINGLISTS
+            List<ShortIntVector2>::Iterator jt;
+#else
+            Vector<ShortIntVector2>::Iterator jt;
+#endif
+            jt = mapsToUnloadFromMemory_.Find(mPoint);
+
+            if (IsInsideBufferedArea(mPoint))
+            {
+                // remove it from unloading the process.
+                if (jt != mapsToUnloadFromMemory_.End())
+                {
+                    mapsToUnloadFromMemory_.Erase(jt);
+                }
+            }
+            else
+            {
+                // remove it from creation list because unloading process can be slow
+                mapCreator_->PurgeMap(mPoint);
+
+                if (jt == mapsToUnloadFromMemory_.End())
+                {
+                    URHO3D_LOGINFOF("MapStorage() - UpdateBufferedArea : Push mPoint=%s to Unload !", mPoint.ToString().CString());
+                    mapsToUnloadFromMemory_.Push(mPoint);
                 }
             }
         }
     }
 
-    /// Set List to Load (In Reverse Order : first pushed, last loaded)
+    /// Purge List to Load
+    if (mapsToLoadInMemory_.Size())
     {
+#ifdef USE_LOADINGLISTS
+        List<ShortIntVector2>::Iterator it;
+#else
+        Vector<ShortIntVector2>::Iterator it;
+#endif
+        it = mapsToLoadInMemory_.Begin();
+        while (it != mapsToLoadInMemory_.End())
+        {
+            if (!IsInsideBufferedArea(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it))
+            {
+                // if not in the load list, remove it from creation list
+                mapCreator_->PurgeMap(*it);
+
+                it = mapsToLoadInMemory_.Erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
+    }
+
+    /// Set List to Load (In Reverse Order : first pushed, last loaded)
+    for (Vector<BufferExpandInfo>::ConstIterator it = bufferExpandInfos_.Begin(); it != bufferExpandInfos_.End(); ++it)
+    {
+        const int centerx = it->x_;
+        const int centery = it->y_;
+        const int expX = it->dx_;
+        const int expY = it->dy_;
+
+        const int dirX = expX ? expX / Abs(expX) : 1;
+        const int dirY = expY ? expY / Abs(expY) : 1;
+
         // if expX != 0 it's an first expansion following X otherwise is an first expansion following Y
         int expDirX;
         int expDirY;
@@ -1863,9 +1931,9 @@ void MapStorage::DumpMapsMemory() const
     URHO3D_LOGINFOF("MapStorage() - DumpMapsMemory : mapsInMemory=%u/%u mapsToLoadInMemory=%u mapsToUnloadFromMemory_=%u",
                     mapsInMemory_.Size(), maxMapsInMemory_, mapsToLoadInMemory_.Size(), mapsToUnloadFromMemory_.Size());
 
-    URHO3D_LOGINFOF("centeredPoint_=%s", centeredPoint_[0].ToString().CString());
-    URHO3D_LOGINFOF("bufferedArea_=%s", bufferedArea_[0].ToString().CString());
-    URHO3D_LOGINFOF("bufferedAreaRect_=%s", bufferedAreaRect_[0].ToString().CString());
+//    URHO3D_LOGINFOF("centeredPoint_=%s", centeredPoint_[0].ToString().CString());
+//    URHO3D_LOGINFOF("bufferedArea_=%s", bufferedArea_[0].ToString().CString());
+//    URHO3D_LOGINFOF("bufferedAreaRect_=%s", bufferedAreaRect_[0].ToString().CString());
 
     mapCreator_->Dump();
 

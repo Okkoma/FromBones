@@ -311,9 +311,7 @@ void ViewManager::SetViewportLayout(int numviewports, bool force)
     GameContext::Get().camera_ = viewportInfos_[0].camera_;
     GameContext::Get().cameraNode_ = viewportInfos_[0].cameraNode_;
 
-    // update WorldViewInfos
-    if (World2D::GetWorld())
-        World2D::GetWorld()->OnViewportUpdated();
+    World2D::SetWorldViewportInfos();
 
     URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : numviewports=%d renderPathFilename_=%s ... OK !", numviewports, renderPathFilename_.CString());
 }

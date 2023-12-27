@@ -409,11 +409,11 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
     }
     else
     {
-        URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : csOther is trigger");
+//        URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : csOther is trigger");
 
         if (items_.Empty())
         {
-            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : no items to throw out !", hitCount_);
+//            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : no items to throw out !", hitCount_);
             return;
         }
 
@@ -422,14 +422,14 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
         {
             unsigned time = Time::GetSystemTime();
             unsigned delta = time - lastHitTime_;
-            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : on Trig_Attack time=%u lashit=%u delta=%u(%u) hitcount=%u(%u)",
-                     time, lastHitTime_, delta, DELAY_BETWEEN_HITS, hitCount_, numHitsToTrig_);
+//            URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : on Trig_Attack time=%u lashit=%u delta=%u(%u) hitcount=%u(%u)",
+//                     time, lastHitTime_, delta, DELAY_BETWEEN_HITS, hitCount_, numHitsToTrig_);
 
             if (delta > DELAY_BETWEEN_HITS)
             {
                 hitCount_++;
                 lastHitTime_ = time;
-                URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : hitCount=%u", hitCount_);
+//                URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : hitCount=%u", hitCount_);
             }
 
             if (hitCount_ == numHitsToTrig_)
@@ -437,8 +437,8 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
                 hitCount_ = 0;
 
                 const bool skipBuild = GameContext::Get().ClientMode_ && other->GetNode()->GetVar(GOA::CLIENTID).GetInt() != GameNetwork::Get()->GetClientID();
-                if (skipBuild)
-                    URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : otherbody is not the client ! skip !");
+//                if (skipBuild)
+//                    URHO3D_LOGINFOF("GOC_DropZone() - HandleContact : otherbody is not the client ! skip !");
 
                 if (buildObjects_ && !skipBuild)
                 {

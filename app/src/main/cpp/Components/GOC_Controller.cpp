@@ -71,7 +71,7 @@ void GOC_Controller::RegisterObject(Context* context)
 
 void GOC_Controller::Start()
 {
-    URHO3D_LOGINFOF("GOC_Controller() - Start : Type=%d", controlType_);
+//    URHO3D_LOGINFOF("GOC_Controller() - Start : Type=%d", controlType_);
     ResetButtons();
     ResetDirection();
 

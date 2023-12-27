@@ -248,6 +248,33 @@ public :
     static SharedPtr<Material> WATERMATERIAL_LINE;
 };
 
+struct BufferExpandInfo
+{
+    BufferExpandInfo() { }
+    BufferExpandInfo(short int x, short int y, short int dx, short int dy) : x_(x), y_(y), dx_(dx), dy_(dy) { }
+    BufferExpandInfo(const BufferExpandInfo& rhs) : value_(rhs.value_) { }
+
+    /// Test for equality with another vector.
+    bool operator == (const BufferExpandInfo& rhs) const
+    {
+        return value_ == rhs.value_;
+    }
+
+    unsigned ToHash() const { return value_; }
+
+    union
+    {
+        struct
+        {
+            unsigned int value_;
+        };
+        struct
+        {
+            short int x_, y_;
+            short int dx_, dy_;
+        };
+    };
+};
 
 inline bool HalfTimeOver(HiresTimer* timer, const long long& delay=World2DInfo::delayUpdateUsec_)
 {

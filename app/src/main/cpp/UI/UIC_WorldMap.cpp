@@ -149,7 +149,6 @@ void UIC_WorldMap::Start()
             SubscribeToEvent(switchMapButton, E_RELEASED, URHO3D_HANDLER(UIC_WorldMap, OnSwitchVisible));
         }
 
-
         SubscribeToEvent(E_SCENEPOSTUPDATE, URHO3D_HANDLER(UIC_WorldMap, HandleUpdate));
     }
     else
@@ -575,91 +574,91 @@ void UIC_WorldMap::HandleWorldSnapShotClicked(StringHash eventType, VariantMap& 
                 GameHelpers::TransferPlayersToMap(hovermap);
             }
             else
-    {
-        float scalefactor = 1.f;
-
-        // Mouse Right : Zoom In
-        if (GameContext::Get().cursorShape_ == CURSOR_ZOOMPLUS)
-        {
-            scalefactor = 0.5f;
-        }
-        // Mouse Middle : Zoom out
-        else if (GameContext::Get().cursorShape_ == CURSOR_ZOOMMINUS)
-        {
-            scalefactor = 2.f;
-        }
-
-        const int worldMapNumMapsLast = worldMapNumMaps_;
-        const float diameter = info->worldModel_->GetRadius() != 0.f ? 2.f * info->worldModel_->GetRadius() : 1.f;
-        const int worldMapNumMaps = CeilToInt(diameter * worldMapScale_ * scalefactor);
-
-        if ((scalefactor == 1.f || worldMapNumMapsLast != worldMapNumMaps) && worldMapNumMaps >= 1 && worldMapNumMaps <= worldMapMaxMaps_)
-        {
-            const int canevassize = canevas_->GetSize().x_;
-
-            IntVector2 mapcoordoffset;
-            const IntVector2 position = canevas_->ScreenToElement(IntVector2(eventData[ClickEnd::P_X].GetInt(), eventData[ClickEnd::P_Y].GetInt()));
-
-            if (GameContext::Get().cursorShape_ != CURSOR_ZOOMMINUS)
             {
-                const float threshold = 0.1f;
-                const int halfnummaps = CeilToInt((float)worldMapNumMaps / 2.f);
-                float posx, posy;
-                int dirx, diry;
+                float scalefactor = 1.f;
 
-                // Move
-                if (worldMapNumMaps > 1 || GameContext::Get().cursorShape_ != CURSOR_ZOOMPLUS)
+                // Mouse Right : Zoom In
+                if (GameContext::Get().cursorShape_ == CURSOR_ZOOMPLUS)
                 {
-                    posx = (float)position.x_ / canevassize - 0.5f;
-                    dirx = Sign(posx);
-                    posx = Abs(posx);
-                    if (posx > threshold)
-                        mapcoordoffset.x_ = dirx * CeilToInt(posx * halfnummaps);
-
-                    posy = (float)(canevassize-position.y_) / canevassize - 0.5f;
-                    diry = Sign(posy);
-                    posy = Abs(posy);
-                    if (posy > threshold)
-                        mapcoordoffset.y_ = diry * CeilToInt(posy * halfnummaps);
+                    scalefactor = 0.5f;
                 }
-                // Zoom In
-                else
+                // Mouse Middle : Zoom out
+                else if (GameContext::Get().cursorShape_ == CURSOR_ZOOMMINUS)
                 {
-                    posx = (float)position.x_ / canevassize - 0.5f;
-                    dirx = Sign(posx);
-                    posx = Abs(posx);
-                    if (posx > threshold)
-                        mapcoordoffset.x_ = dirx > 0 ? 0 : -1;
-
-                    posy = (float)(canevassize-position.y_) / canevassize - 0.5f;
-                    diry = Sign(posy);
-                    posy = Abs(posy);
-                    if (posy > threshold)
-                        mapcoordoffset.y_ = diry > 0 ? 1 : 0;
+                    scalefactor = 2.f;
                 }
 
-                URHO3D_LOGINFOF("UIC_WorldMap() - HandleWorldSnapShotClicked : scale=%F izoom=%d ... halfnummaps=%d dirx=%d posx=%F diry=%d posy=%F ... mapoffset=%d %d",
-                                worldMapScale_, worldMapNumMaps, halfnummaps, dirx, posx, diry, posy, mapcoordoffset.x_, mapcoordoffset.y_);
-            }
+                const int worldMapNumMapsLast = worldMapNumMaps_;
+                const float diameter = info->worldModel_->GetRadius() != 0.f ? 2.f * info->worldModel_->GetRadius() : 1.f;
+                const int worldMapNumMaps = CeilToInt(diameter * worldMapScale_ * scalefactor);
 
-            int mapzoomrecenter = RoundToInt(diameter * worldMapScale_ * (1.f - scalefactor) * 0.5f);
+                if ((scalefactor == 1.f || worldMapNumMapsLast != worldMapNumMaps) && worldMapNumMaps >= 1 && worldMapNumMaps <= worldMapMaxMaps_)
+                {
+                    const int canevassize = canevas_->GetSize().x_;
 
-            worldMapTopLeftMap_.x_ = worldMapTopLeftMap_.x_ + mapcoordoffset.x_ + mapzoomrecenter;
-            worldMapTopLeftMap_.y_ = worldMapTopLeftMap_.y_ + mapcoordoffset.y_ - mapzoomrecenter;
+                    IntVector2 mapcoordoffset;
+                    const IntVector2 position = canevas_->ScreenToElement(IntVector2(eventData[ClickEnd::P_X].GetInt(), eventData[ClickEnd::P_Y].GetInt()));
 
-            worldMapCenter_.x_ = (float)worldMapTopLeftMap_.x_ / worldMapNumMaps;
-            worldMapCenter_.y_ = (float)worldMapTopLeftMap_.y_ / worldMapNumMaps;
+                    if (GameContext::Get().cursorShape_ != CURSOR_ZOOMMINUS)
+                    {
+                        const float threshold = 0.1f;
+                        const int halfnummaps = CeilToInt((float)worldMapNumMaps / 2.f);
+                        float posx, posy;
+                        int dirx, diry;
 
-            worldMapScale_ *= scalefactor;
-            worldMapNumMaps_ = worldMapNumMaps;
+                        // Move
+                        if (worldMapNumMaps > 1 || GameContext::Get().cursorShape_ != CURSOR_ZOOMPLUS)
+                        {
+                            posx = (float)position.x_ / canevassize - 0.5f;
+                            dirx = Sign(posx);
+                            posx = Abs(posx);
+                            if (posx > threshold)
+                                mapcoordoffset.x_ = dirx * CeilToInt(posx * halfnummaps);
 
-            URHO3D_LOGINFOF("UIC_WorldMap() - HandleWorldSnapShotClicked : scale=%F izoom=%d mapoffset=%d %d maprecenter=%d map=%d %d defaultmap=%d %d anlcenter=%F %F", worldMapScale_, worldMapNumMaps_,
-                            mapcoordoffset.x_, mapcoordoffset.y_, mapzoomrecenter, worldMapTopLeftMap_.x_, worldMapTopLeftMap_.y_,
-                            GameContext::Get().testZoneCustomDefaultMap_.x_, GameContext::Get().testZoneCustomDefaultMap_.y_, worldMapCenter_.x_, worldMapCenter_.y_);
+                            posy = (float)(canevassize-position.y_) / canevassize - 0.5f;
+                            diry = Sign(posy);
+                            posy = Abs(posy);
+                            if (posy > threshold)
+                                mapcoordoffset.y_ = diry * CeilToInt(posy * halfnummaps);
+                        }
+                        // Zoom In
+                        else
+                        {
+                            posx = (float)position.x_ / canevassize - 0.5f;
+                            dirx = Sign(posx);
+                            posx = Abs(posx);
+                            if (posx > threshold)
+                                mapcoordoffset.x_ = dirx > 0 ? 0 : -1;
 
-            UpdateSnapShots();
+                            posy = (float)(canevassize-position.y_) / canevassize - 0.5f;
+                            diry = Sign(posy);
+                            posy = Abs(posy);
+                            if (posy > threshold)
+                                mapcoordoffset.y_ = diry > 0 ? 1 : 0;
+                        }
 
-            worldMapDirty_ = true;
+                        URHO3D_LOGINFOF("UIC_WorldMap() - HandleWorldSnapShotClicked : scale=%F izoom=%d ... halfnummaps=%d dirx=%d posx=%F diry=%d posy=%F ... mapoffset=%d %d",
+                                        worldMapScale_, worldMapNumMaps, halfnummaps, dirx, posx, diry, posy, mapcoordoffset.x_, mapcoordoffset.y_);
+                    }
+
+                    int mapzoomrecenter = RoundToInt(diameter * worldMapScale_ * (1.f - scalefactor) * 0.5f);
+
+                    worldMapTopLeftMap_.x_ = worldMapTopLeftMap_.x_ + mapcoordoffset.x_ + mapzoomrecenter;
+                    worldMapTopLeftMap_.y_ = worldMapTopLeftMap_.y_ + mapcoordoffset.y_ - mapzoomrecenter;
+
+                    worldMapCenter_.x_ = (float)worldMapTopLeftMap_.x_ / worldMapNumMaps;
+                    worldMapCenter_.y_ = (float)worldMapTopLeftMap_.y_ / worldMapNumMaps;
+
+                    worldMapScale_ *= scalefactor;
+                    worldMapNumMaps_ = worldMapNumMaps;
+
+                    URHO3D_LOGINFOF("UIC_WorldMap() - HandleWorldSnapShotClicked : scale=%F izoom=%d mapoffset=%d %d maprecenter=%d map=%d %d defaultmap=%d %d anlcenter=%F %F", worldMapScale_, worldMapNumMaps_,
+                                    mapcoordoffset.x_, mapcoordoffset.y_, mapzoomrecenter, worldMapTopLeftMap_.x_, worldMapTopLeftMap_.y_,
+                                    GameContext::Get().testZoneCustomDefaultMap_.x_, GameContext::Get().testZoneCustomDefaultMap_.y_, worldMapCenter_.x_, worldMapCenter_.y_);
+
+                    UpdateSnapShots();
+
+                    worldMapDirty_ = true;
                 }
             }
         }
@@ -710,50 +709,49 @@ void UIC_WorldMap::HandleUpdate(StringHash eventType, VariantMap& eventData)
         }
         else
         {
-        IntVector2 position;
-        GameHelpers::GetInputPosition(position.x_, position.y_);
-        position.x_ = position.x_ / GameContext::Get().uiScale_;
-        position.y_ = position.y_ / GameContext::Get().uiScale_;
-        position = canevas_->ScreenToElement(position);
+            IntVector2 position;
+            GameHelpers::GetInputPosition(position.x_, position.y_);
+            position.x_ = position.x_ / GameContext::Get().uiScale_;
+            position.y_ = position.y_ / GameContext::Get().uiScale_;
+            position = canevas_->ScreenToElement(position);
 
-        Vector2 normalizedposition;
-        normalizedposition.x_ = (float)position.x_ / canevassize - 0.5f;
-        normalizedposition.y_ = (float)(canevassize - position.y_) / canevassize - 0.5f;
+            Vector2 normalizedposition;
+            normalizedposition.x_ = (float)position.x_ / canevassize - 0.5f;
+            normalizedposition.y_ = (float)(canevassize - position.y_) / canevassize - 0.5f;
 
-        const float threshold = 0.25f;
-        if (normalizedposition.x_ < -threshold)
-        {
-            if (normalizedposition.y_ > threshold)
-                GameContext::Get().cursorShape_ = CURSOR_TOPLEFT;
-            else if (normalizedposition.y_ < -threshold)
-                GameContext::Get().cursorShape_ = CURSOR_BOTTOMLEFT;
-            else
-                GameContext::Get().cursorShape_ = CURSOR_LEFT;
-        }
-        else if (normalizedposition.x_ > threshold)
-        {
-            if (normalizedposition.y_ > threshold)
-                GameContext::Get().cursorShape_ = CURSOR_TOPRIGHT;
-            else if (normalizedposition.y_ < -threshold)
-                GameContext::Get().cursorShape_ = CURSOR_BOTTOMRIGHT;
-            else
-                GameContext::Get().cursorShape_ = CURSOR_RIGHT;
-        }
-        else
-        {
-            if (normalizedposition.y_ > threshold)
-                GameContext::Get().cursorShape_ = CURSOR_TOP;
-            else if (normalizedposition.y_ < -threshold)
-                GameContext::Get().cursorShape_ = CURSOR_BOTTOM;
+            const float threshold = 0.25f;
+            if (normalizedposition.x_ < -threshold)
+            {
+                if (normalizedposition.y_ > threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_TOPLEFT;
+                else if (normalizedposition.y_ < -threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_BOTTOMLEFT;
+                else
+                    GameContext::Get().cursorShape_ = CURSOR_LEFT;
+            }
+            else if (normalizedposition.x_ > threshold)
+            {
+                if (normalizedposition.y_ > threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_TOPRIGHT;
+                else if (normalizedposition.y_ < -threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_BOTTOMRIGHT;
+                else
+                    GameContext::Get().cursorShape_ = CURSOR_RIGHT;
+            }
             else
             {
-                if (normalizedposition.y_ > 0.f)
-                    GameContext::Get().cursorShape_ = CURSOR_ZOOMPLUS;
+                if (normalizedposition.y_ > threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_TOP;
+                else if (normalizedposition.y_ < -threshold)
+                    GameContext::Get().cursorShape_ = CURSOR_BOTTOM;
                 else
-                    GameContext::Get().cursorShape_ = CURSOR_ZOOMMINUS;
+                {
+                    if (normalizedposition.y_ > 0.f)
+                        GameContext::Get().cursorShape_ = CURSOR_ZOOMPLUS;
+                    else
+                        GameContext::Get().cursorShape_ = CURSOR_ZOOMMINUS;
+                }
             }
-        }
-
         }
 //		URHO3D_LOGINFOF("UIC_WorldMap() - HandleUpdate : canevassize=%F uiscale=%F position=%d %d cursor=%d worldMapTopLeftMap=%d %d worldMapNumMaps_=%d",
 //						canevassize, GameContext::Get().uiScale_, position.x_, position.y_, GameContext::Get().cursorShape_, worldMapTopLeftMap_.x_, worldMapTopLeftMap_.y_, worldMapNumMaps_);

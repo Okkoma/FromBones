@@ -604,7 +604,7 @@ void GOC_Inventory::SetSlots(const VariantVector& value, bool skipEmpty)
 
         CheckEmpty();
 
-        Dump();
+//        Dump();
     }
 }
 
