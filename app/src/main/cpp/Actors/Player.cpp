@@ -2758,11 +2758,9 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
 
         if (shape->IsTrigger())
         {
-//            VariantMap goEventData;
-            VariantMap& goEventData = context_->GetEventDataMap();
+            VariantMap goEventData;
             body->GetNode()->SendEvent(GO_TRIGCLICKED, goEventData);
             URHO3D_LOGINFOF("Player() - HandleClic : ID=%u - Clic on the Trigger of %s(%u) shapeviewz=%d nodepos=%s", GetID(), node->GetName().CString(), node->GetID(), shape->GetViewZ(), node->GetWorldPosition2D().ToString().CString());
-            return;
         }
         else
         {
