@@ -473,7 +473,6 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 
 #ifdef HANDLE_FURNITURES
         bool state = map->SetFurnitures(timer, map->GetMapData()->IsSectionSet(MAPDATASECTION_ENTITYATTR));
-
         if (!state)
         {
 #ifdef DUMP_ERROR_ON_TIMEOVER

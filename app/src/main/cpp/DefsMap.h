@@ -20,8 +20,6 @@
 #include "Spline2D.h"
 #include "Libs/AccidentalNoise/Imaging/mapping.h"
 
-//#define MAPDATA_SAVEFURNITURELIKEENTITIES
-
 using namespace Urho3D;
 
 struct ChunkInfo;
@@ -244,6 +242,7 @@ enum
     MAPDATASECTION_FLUIDVALUE,
     MAPDATASECTION_SPOT,
     MAPDATASECTION_ZONE,
+    MAPDATASECTION_NODEIDS,
     MAPDATASECTION_FURNITURE,
     MAPDATASECTION_ENTITY,
     MAPDATASECTION_ENTITYATTR,
@@ -900,9 +899,12 @@ public:
     PODVector<EntityData > furnitures_;
     // the entities informations
     PODVector<EntityData > entities_;
+
     // the zone informations
     PODVector<ZoneData > zones_;
 
+    // the entity ids
+    PODVector<unsigned> entitiesIds_;
     // the entities attributes
     Vector<NodeAttributes > entitiesAttributes_;
 

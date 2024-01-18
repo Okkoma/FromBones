@@ -482,7 +482,7 @@ void WeatherManager::Start()
             }
 #endif
         }
-        GameRand& ORand = GameRand::GetRandomizer(OBJRAND);
+        GameRand& ORand = GameRand::GetRandomizer(WEATHERRAND);
         SetRainTime(viewport, (float)ORand.Get(0, 24), (float)ORand.Get(1, 5), ORand.Get(100) < 50 ? 1 : -1, ORand.Get(2, 7));
 #endif
     }
@@ -802,7 +802,7 @@ void WeatherManager::Update()
                     viewdata.raineffect_->Stop();
 
                     // next rain time
-                    GameRand& ORand = GameRand::GetRandomizer(OBJRAND);
+                    GameRand& ORand = GameRand::GetRandomizer(WEATHERRAND);
                     SetRainTime(viewport, (float)ORand.Get(0, 24), (float)ORand.Get(1, 5), ORand.Get(100) < 50 ? 1 : -1, ORand.Get(2, 7));
                 }
             }

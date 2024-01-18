@@ -1975,10 +1975,10 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     /// TODO : when map ready, check position and unstuck entity if necessary
     if (sWaitForMap_)
     {
-        if (!currentMap_ || !currentMap_->IsVisible())
+        if (node_->IsEnabled() && (!currentMap_ || !currentMap_->IsVisible()))
         {
-            URHO3D_LOGWARNINGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s ChangeMapMode=%d WaitForMapReady => DISABLE node !", node_->GetName().CString(), node_->GetID(),
-                               mapWorldPosition_.position_.ToString().CString(), node_->GetWorldPosition().ToString().CString(), sMPosition_.mPoint_.ToString().CString(), (int)mode);
+//            URHO3D_LOGWARNINGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s ChangeMapMode=%d WaitForMapReady => DISABLE node !", node_->GetName().CString(), node_->GetID(),
+//                               mapWorldPosition_.position_.ToString().CString(), node_->GetWorldPosition().ToString().CString(), sMPosition_.mPoint_.ToString().CString(), (int)mode);
             node_->SetEnabledRecursive(false);
         }
     }

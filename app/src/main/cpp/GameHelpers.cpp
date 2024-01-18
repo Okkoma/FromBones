@@ -1775,7 +1775,7 @@ bool GameHelpers::SetPhysicProperties(Node* node, const PhysicEntityInfo& physic
         }
     }
 
-    URHO3D_LOGINFOF("GameHelpers() - SetPhysicProperties : node=%s(%u) init=true position=%s rotation=%F !", node->GetName().CString(), node->GetID(), node->GetPosition2D().ToString().CString(), node->GetRotation2D());
+//    URHO3D_LOGINFOF("GameHelpers() - SetPhysicProperties : node=%s(%u) init=true position=%s rotation=%F !", node->GetName().CString(), node->GetID(), node->GetPosition2D().ToString().CString(), node->GetRotation2D());
 
     return true;
 }

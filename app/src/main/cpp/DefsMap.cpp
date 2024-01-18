@@ -26,6 +26,8 @@
 #include "GameOptionsTest.h"
 #include "GameHelpers.h"
 #include "GameContext.h"
+#include "GameNetwork.h"
+#include "Player.h"
 
 #include "ViewManager.h"
 
@@ -90,9 +92,12 @@ const char* mapDataSectionNames[] =
     "MAPDATASECTION_TILEMODIFIER=1",
     "MAPDATASECTION_FLUIDVALUE=2",
     "MAPDATASECTION_SPOT=3",
-    "MAPDATASECTION_FURNITURE=4",
-    "MAPDATASECTION_ENTITY=5",
-    "MAPDATASECTION_ENTITYATTR=6"
+    "MAPDATASECTION_ZONE=4",
+    "MAPDATASECTION_NODEIDS=5",
+    "MAPDATASECTION_FURNITURE=6",
+    "MAPDATASECTION_ENTITY=7",
+    "MAPDATASECTION_ENTITYATTR=8",
+    0
 };
 
 const char* mapAsynStateNames[] =
@@ -1080,6 +1085,26 @@ int ZoneData::GetNumPlayersInside() const
         }
     }
 
+    // Detect ClientInfos Players
+    if (GameContext::Get().ServerMode_)
+    {
+        const HashMap<Connection*, ClientInfo>& clientinfos = GameNetwork::Get()->GetServerClientInfos();
+        for (HashMap<Connection*, ClientInfo>::ConstIterator it = clientinfos.Begin(); it != clientinfos.End(); ++it)
+        {
+            const ClientInfo& cinfo = it->second_;
+            for (Vector<SharedPtr<Player> >::ConstIterator jt = cinfo.players_.Begin(); jt != cinfo.players_.End(); ++jt)
+            {
+                Player* player = jt->Get();
+                if (!player->active)
+                    continue;
+
+                const WorldMapPosition& position = player->GetWorldMapPosition();
+                if (IsInside(position.mPosition_, position.viewZIndex_))
+                    num++;
+            }
+        }
+    }
+
     return num;
 }
 
@@ -1122,8 +1147,11 @@ void MapData::Clear()
     tilesModifiers_.Clear();
     fluidValues_.Clear();
     spots_.Clear();
+
     furnitures_.Clear();
     entities_.Clear();
+
+    entitiesIds_.Clear();
     entitiesAttributes_.Clear();
 
     entityInfos_.Clear();
@@ -1252,8 +1280,7 @@ void MapData::PurgeEntityDatas()
             if (it->gotindex_ == 0 || it->gotindex_ >= GOT::GetSize())
             {
 //                URHO3D_LOGERRORF("MapData() - PurgeEntityDatas : entities %u/%u", it-entities_.Begin(), furnitures_.Size());
-                unsigned index = it-entities_.Begin();
-                entities_.EraseSwap(index);
+                entities_.EraseSwap(it-entities_.Begin());
             }
             else
                 it++;
@@ -1487,8 +1514,6 @@ void MapData::UpdateEntityNode(Node* node, EntityData* entitydata)
         }
     }
 
-    PurgeEntityDatas();
-
     // TODO ViewZ
 //    int viewZ = ViewManager::GetLayerZ(entitydata->drawableprops_ & FlagLayerZIndex_);
 //    node->SetVar(GOA::ONVIEWZ, viewZ);
@@ -1643,6 +1668,14 @@ bool MapData::Load(Deserializer& source)
                 zones_.Resize(num);
                 buffer.Read(&(zones_.Front()), num * sizeof(ZoneData));
             }
+            else if (sid == MAPDATASECTION_NODEIDS)
+            {
+                if (!num)
+                    return false;
+
+                entitiesIds_.Resize(num);
+                buffer.Read(&(entitiesIds_.Front()), num * sizeof(unsigned));
+            }
             else if (sid == MAPDATASECTION_FURNITURE)
             {
                 if (!num)
@@ -1683,11 +1716,6 @@ bool MapData::Load(Deserializer& source)
             SetSection(sid, true);
         }
     }
-//#ifdef MAPDATA_SAVEFURNITURELIKEENTITIES
-//    // Test : always set Section Furniture (furniture are saved in section EntityAttr)
-//    SetSection(MAPDATASECTION_FURNITURE, true);
-//#endif
-//    Dump();
 
     return true;
 }
@@ -1771,12 +1799,14 @@ bool MapData::Save(Serializer& dest)
             srcBuffer = (const char*)(&zones_.Front());
             srcSize = num * sizeof(ZoneData);
         }
+        else if (sid == MAPDATASECTION_NODEIDS && entitiesIds_.Size())
+        {
+            num = entitiesIds_.Size();
+            srcBuffer = (const char*)(&entitiesIds_.Front());
+            srcSize = num * sizeof(unsigned);
+        }
         else if (sid == MAPDATASECTION_FURNITURE && furnitures_.Size())
         {
-#ifdef MAPDATA_SAVEFURNITURELIKEENTITIES
-            sid++;
-            continue;
-#else
             num = 0;
             srcVBuffer.Clear();
             for (unsigned i=0; i < furnitures_.Size(); i++)
@@ -1790,14 +1820,9 @@ bool MapData::Save(Serializer& dest)
             }
             srcBuffer = (const char*)(srcVBuffer.GetData());
             srcSize = srcVBuffer.GetBuffer().Size();
-#endif
         }
         else if (sid == MAPDATASECTION_ENTITY && entities_.Size())
         {
-#ifdef MAPDATA_SAVEFURNITURELIKEENTITIES
-            sid++;
-            continue;
-#else
             num = 0;
             srcVBuffer.Clear();
             for (unsigned i=0; i < entities_.Size(); i++)
@@ -1811,21 +1836,8 @@ bool MapData::Save(Serializer& dest)
             }
             srcBuffer = (const char*)(srcVBuffer.GetData());
             srcSize = srcVBuffer.GetBuffer().Size();
-#endif
         }
-//        else if (sid == MAPDATASECTION_FURNITURE && furnitures_.Size())
-//        {
-//            num = furnitures_.Size();
-//            srcBuffer = (const char*)(&furnitures_.Front());
-//            srcSize = num * sizeof(EntityData);
-//        }
-//        else if (sid == MAPDATASECTION_ENTITY && entities_.Size())
-//        {
-//            num = entities_.Size();
-//            srcBuffer = (const char*)(&entities_.Front());
-//            srcSize = num * sizeof(EntityData);
-//        }
-        else if (sid == MAPDATASECTION_ENTITYATTR && entitiesAttributes_.Size())// && !GameContext::Get().arenaZoneOn_)
+        else if (sid == MAPDATASECTION_ENTITYATTR && entitiesAttributes_.Size())
         {
             num = entitiesAttributes_.Size();
             srcVBuffer.Clear();

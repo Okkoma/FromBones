@@ -477,8 +477,10 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
     if (sprite)
         sprite->ForceUpdateBatches();
 
-    if (category && category->HasReplicatedMode())
-        ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, true, true);
+    if (category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_)
+    {
+        ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, true, true);
+    }
 
 #endif // HANDLE_FURNITURES
 
@@ -1678,6 +1680,9 @@ bool MapBase::UpdateMapData(HiresTimer* timer)
         return true;
 
     int& mcount = GetMapCounter(MAP_FUNC1);
+
+    if (!timer)
+        mcount = 0;
 
     if (mcount == 0)
     {
@@ -4768,6 +4773,7 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
     MapData* mapdata = GetMapData();
     Vector<NodeAttributes >& entitiesAttr = mapdata->entitiesAttributes_;
+    PODVector<unsigned>& entitiesIds = mapdata->entitiesIds_;
 
     int& mcount = GetMapCounter(MAP_FUNC2);
 
@@ -4776,14 +4782,16 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
         URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... entities=%u ...", GetMapPoint().ToString().CString(), entities.Size());
 
         entitiesAttr.Clear();
+        entitiesIds.Clear();
+
         if (!entities.Size())
-        {
-//			entitiesAttr.Clear();
             return true;
-        }
 
         if (entitiesAttr.Capacity() < entities.Size())
             entitiesAttr.Reserve(entities.Size());
+
+        if (entitiesIds.Capacity() < entities.Size())
+            entitiesIds.Reserve(entities.Size());
 
         mcount++;
 
@@ -4817,14 +4825,19 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
                 // Skip Save Player or Ally
                 if (GOManager::IsA(nodeId, GO_Player | GO_AI_Ally))
+                {
+//                    URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... skip player or ally nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
                     continue;
+                }
 
                 node = scene->GetNode(nodeId);
                 if (!node)
+                {
+//                    URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d ... skip no node for nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
                     continue;
+                }
 
                 // Furnitures
-#ifndef MAPDATA_SAVEFURNITURELIKEENTITIES
                 gotprops = GOT::GetTypeProperties(node->GetVar(GOA::GOT).GetStringHash());
                 if (gotprops & GOT_Furniture)
                 {
@@ -4840,7 +4853,6 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
                     else
                         continue;
                 }
-#endif
 
                 // Don't Update and Save Dead Entity
                 if (node->GetVars().Contains(GOA::ISDEAD) && node->GetVar(GOA::ISDEAD).GetBool())
@@ -4857,6 +4869,10 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
                 // Update Entity Attributes
                 entitiesAttr.Resize(entitiesAttr.Size()+1);
                 GameHelpers::SaveNodeAttributes(node, entitiesAttr.Back());
+
+                // Save Entity Node Id
+                entitiesIds.Resize(entitiesIds.Size()+1);
+                entitiesIds.Back() = nodeId;
 
                 if (TimeOver(timer))
                     return false;
@@ -5887,7 +5903,11 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
         if (category && category->HasReplicatedMode() && nodeid == LOCAL && sceneInfo.objectControlInfo_ == 0)
         {
             Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
-            ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
+            int clientid = holder ? holder->GetVar(GOA::CLIENTID).GetInt() : 0;
+
+            ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node->GetID()) : GameNetwork::Get()->GetServerObjectControl(node->GetID());
+            if (!oinfo)
+                oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
         }
     }
 
@@ -5930,9 +5950,11 @@ bool Map::SetEntities_Load(HiresTimer* timer)
 
     ObjectPool::SetForceLocalMode(false);
 
+    const unsigned numEntities = mapData_->entitiesAttributes_.Size();
+
     for (;;)
     {
-        if (i >= mapData_->entitiesAttributes_.Size())
+        if (i >= numEntities)
             break;
 
         NodeAttributes& nodeAttributes = mapData_->entitiesAttributes_.At(i);
@@ -5950,7 +5972,10 @@ bool Map::SetEntities_Load(HiresTimer* timer)
             continue;
         }
 
-//        URHO3D_LOGINFOF(" ... Load %d/%d name=%s", i+1, mapData_->entitiesAttributes_->Size(), varNodeName.GetString().CString());
+        const unsigned nodeid = GameContext::Get().ClientMode_ ? mapData_->entitiesIds_.At(i) : 0U;
+//        const unsigned nodeid = mapData_->entitiesIds_.At(i);
+
+//        URHO3D_LOGERRORF(" ... Load %d/%d nodeid=%u name=%s", i+1, mapData_->entitiesAttributes_.Size(), nodeid, varNodeName.GetString().CString());
 
         got = StringHash(varNodeName.GetString());
         gotprops = GOT::GetTypeProperties(got);
@@ -5982,11 +6007,11 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         /// so RandomMapping again only after the ApplyAttributes (because of AnimatedSprite2D::SetAppliedCharacterMapsAttr())
         /// remove this only when corrected !
         int entityid = RandomMappingFlag;
-        Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, 0, NOVIEW, &nodeAttributes, false, &category) : 0;
+        Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, nodeid, NOVIEW, &nodeAttributes, false, &category) : 0;
         if (node)
         {
-            URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s Entities[%d] : name=%s(%u) position=%s enabled=%s... OK !",
-                            GetMapPoint().ToString().CString(), i, node->GetName().CString(), node->GetID(), node->GetWorldPosition2D().ToString().CString(), node->IsEnabled() ? "true":"false");
+            URHO3D_LOGERRORF("Map() - SetEntities Load : Map=%s Entities[%d/%u] : reservedId=%u name=%s(%u) position=%s enabled=%s... OK !",
+                            GetMapPoint().ToString().CString(), i, numEntities, nodeid, node->GetName().CString(), node->GetID(), node->GetWorldPosition2D().ToString().CString(), node->IsEnabled() ? "true":"false");
 
             GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
             if (controller)
@@ -6068,8 +6093,16 @@ bool Map::SetEntities_Load(HiresTimer* timer)
 //                mapData_->AddEntityData(node, &mapData_->entities_[i]);
             }
 
-            if (category && category->HasReplicatedMode())
-                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true);
+            if (category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_)
+            {
+                int clientid = node->GetVar(GOA::CLIENTID).GetInt();
+
+                ObjectControlInfo& oinfo = GameNetwork::Get()->GetOrCreateServerObjectControl(node->GetID(), node->GetID(), clientid, node);
+
+//                ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node->GetID()) : GameNetwork::Get()->GetServerObjectControl(node->GetID());
+//                if (!oinfo)
+//                    oinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, mapvisible, false);
+            }
 
             node->ApplyAttributes();
             node->SetEnabledRecursive(mapvisible);
@@ -6105,6 +6138,9 @@ bool Map::SetEntities_Load(HiresTimer* timer)
 
     ObjectPool::SetForceLocalMode(true);
     mcount = 0;
+
+    if (GameContext::Get().ClientMode_)
+        GameNetwork::Get()->ResyncSpawnControlStamps();
 #endif
     return true;
 }
@@ -6198,8 +6234,16 @@ bool Map::SetEntities_Add(HiresTimer* timer)
                 controller->control_.type_ = got.Value();
             }
 
-            if (category && category->HasReplicatedMode())
-                ObjectControlInfo* cinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true);
+            if (category && category->HasReplicatedMode() && !GameContext::Get().LocalMode_)
+            {
+                int clientid = node->GetVar(GOA::CLIENTID).GetInt();
+
+                ObjectControlInfo& oinfo = GameNetwork::Get()->GetOrCreateServerObjectControl(node->GetID(), node->GetID(), clientid, node);
+
+//                ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node->GetID()) : GameNetwork::Get()->GetServerObjectControl(node->GetID());
+//                if (!oinfo)
+//                    oinfo = GameNetwork::Get()->AddSpawnControl(node, 0, true, mapvisible, false);
+            }
 
             node->SetEnabledRecursive(mapvisible);
 

@@ -52,17 +52,17 @@ bool GOManager::IsA(unsigned nodeId, int controllerType)
     if (!goManager_)
         return false;
 
-    if (controllerType & (GO_Player|GO_NetPlayer) && goManager_->player.Size())
+    if (controllerType & (GO_Player|GO_NetPlayer))
     {
-        return goManager_->player.Contains(nodeId);
+        return goManager_->player.Size() && goManager_->player.Contains(nodeId);
     }
-    if (controllerType & GO_AI_Enemy && goManager_->enemy.Size())
+    else if (controllerType & GO_AI_Enemy)
     {
-        return goManager_->enemy.Contains(nodeId);
+        return goManager_->enemy.Size() && goManager_->enemy.Contains(nodeId);
     }
-    if (controllerType & GO_AI_Ally && goManager_->activeAiNodes.Size())
+    else if (controllerType & GO_AI_Ally)
     {
-        return goManager_->activeAiNodes.Contains(nodeId);
+        return goManager_->activeAiNodes.Size() && goManager_->activeAiNodes.Contains(nodeId);
     }
 
     return false;

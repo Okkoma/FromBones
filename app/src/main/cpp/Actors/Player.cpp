@@ -714,21 +714,6 @@ void Player::UpdateComponents()
     if (!gocLife)
         URHO3D_LOGERROR("Player() - UpdateComponents : !gocLife");
 
-    gocInventory = avatar_->GetOrCreateComponent<GOC_Inventory>(LOCAL);
-    if (gocInventory)
-    {
-        if (!gocInventory->HasTemplate())
-            gocInventory->SetTemplate("InventoryTemplate_MoneySlot_15SlotsQ20_Equip1");
-        else
-            gocInventory->ResetTemplate(gocInventory->GetTemplate());
-
-        URHO3D_LOGINFOF("Player() - UpdateComponents : gocInventory^=%u use template=%s(%u)", gocInventory, gocInventory->GetTemplateName().CString(), gocInventory->GetTemplate());
-    }
-    else
-    {
-        URHO3D_LOGERROR("Player() - UpdateComponents : !gocInventory");
-    }
-
     // local player
     if (mainController_)
     {
@@ -752,6 +737,21 @@ void Player::UpdateComponents()
 
     avatarIndex_ = avatarAccumulatorIndex_ = GameContext::Get().playerState_[controlID_].avatar;
     gocController->control_.type_ = GOT::GetControllableType(avatarIndex_).Value();
+
+    gocInventory = avatar_->GetOrCreateComponent<GOC_Inventory>(LOCAL);
+    if (gocInventory)
+    {
+        if (!gocInventory->HasTemplate())
+            gocInventory->SetTemplate("InventoryTemplate_MoneySlot_15SlotsQ20_Equip1");
+        else
+            gocInventory->ResetTemplate(gocInventory->GetTemplate());
+
+        URHO3D_LOGINFOF("Player() - UpdateComponents : gocInventory^=%u use template=%s(%u)", gocInventory, gocInventory->GetTemplateName().CString(), gocInventory->GetTemplate());
+    }
+    else
+    {
+        URHO3D_LOGERROR("Player() - UpdateComponents : !gocInventory");
+    }
 
     SmoothedTransform* smooth = avatar_->GetOrCreateComponent<SmoothedTransform>(LOCAL);
 
@@ -1993,8 +1993,8 @@ void Player::Stop()
     if (GameNetwork::Get() && avatar_)
         GameNetwork::Get()->SetEnableObject(false, avatar_->GetID(), true);
 
-    if (GameContext::Get().ServerMode_ && avatar_)
-        World2D::RemoveTraveler(avatar_);
+//    if (GameContext::Get().ServerMode_ && avatar_)
+//        World2D::RemoveTraveler(avatar_);
 
     GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 

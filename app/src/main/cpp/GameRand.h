@@ -8,13 +8,14 @@
 
 using namespace Urho3D;
 
-const int NUM_GAMERANDRNG = 4;
+const int NUM_GAMERANDRNG = 5;
 enum GameRandRng
 {
     ALLRAND = 0,
     MAPRAND,
     TILRAND,
     OBJRAND,
+    WEATHERRAND,
 };
 
 class GameRand

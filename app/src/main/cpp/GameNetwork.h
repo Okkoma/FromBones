@@ -176,6 +176,7 @@ public:
     int GetServerPort() const { return serverPort_; }
 
     /// Spawn Controls
+    void ResyncSpawnControlStamps();
     unsigned GetSpawnID(unsigned holderid, unsigned char stamp) const;
     unsigned GetSpawnHolder(unsigned spawnID) const;
     unsigned char GetSpawnStamp(unsigned spawnID) const;

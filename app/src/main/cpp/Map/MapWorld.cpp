@@ -3452,11 +3452,10 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
 
     if (debug)
     {
-        unsigned numviewports = viewManager_ ? viewManager_->GetNumViewports() : 1;
-        for (unsigned viewport=0; viewport < numviewports; viewport++)
+        for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
         {
-            const TravelerViewportInfo& viewInfo = viewinfos_[viewport];
-            GameHelpers::DrawDebugRect(mapStorage_->GetBufferedAreaRect(viewport).Adjusted(5.f), debug, false, Color::GRAY);
+            const TravelerViewportInfo& viewInfo = *it;
+            GameHelpers::DrawDebugRect(mapStorage_->GetBufferedAreaRect(viewInfo.viewport_).Adjusted(5.f), debug, false, Color::GRAY);
 #ifdef ACTIVE_WORLD2D_DYNAMICZOOM
             Rect rect;
             rect.min_.x_ = viewInfo.visibleArea_.left_ * info_->mWidth_;
@@ -3465,11 +3464,17 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
             rect.max_.y_ = (viewInfo.visibleArea_.bottom_+1) * info_->mHeight_;
             GameHelpers::DrawDebugRect(rect, debug, false, Color::BLUE);
 #else
-            GameHelpers::DrawDebugRect(viewinfos_[viewport].extVisibleRect_, debug, false, Color::BLUE);
+            GameHelpers::DrawDebugRect(viewInfo.extVisibleRect_, debug, false, Color::BLUE);
             GameHelpers::DrawDebugRect(viewInfo.visibleRect_.Adjusted(-0.25f), debug, false, Color::BLUE);
 
 //            GameHelpers::DrawDebugRect(Rect(GameContext::Get().renderer2d_->GetFrustumBoundingBox().min_.ToVector2(), GameContext::Get().renderer2d_->GetFrustumBoundingBox().max_.ToVector2()).Adjusted(-0.25f), debug, false, Color::RED);
 #endif
+        }
+
+        for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
+        {
+            const TravelerNodeInfo& travelerInfo = *it;
+            GameHelpers::DrawDebugRect(travelerInfo.visibleRect_.Adjusted(-0.25f), debug, false, Color::BLUE);
         }
 
         if (delayTemporaryDrawRect_ > 0.f)
@@ -3483,8 +3488,8 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
             GameHelpers::DrawDebugRect(worldFloatBounds_, debug, false, Color::RED);
         else
         {
-            for (unsigned viewport=0; viewport < numviewports; viewport++)
-                GameHelpers::DrawDebugRect(world2DVisibleCollideRect_[viewport].Adjusted(-1.f), debug, false, Color::RED);
+            for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
+                GameHelpers::DrawDebugRect(world2DVisibleCollideRect_[it->viewport_].Adjusted(-1.f), debug, false, Color::RED);
         }
 
 #ifdef DRAWDEBUG_MAPBORDER

@@ -1177,7 +1177,8 @@ void GOC_Inventory::OnSetEnabled()
             if (receiveEvent_)
                 SubscribeToEvent(node_, receiveEvent_, URHO3D_HANDLER(GOC_Inventory, HandleReceive));
 
-            if (GameContext::Get().ClientMode_)
+            // Players handle this
+            if (GameContext::Get().ClientMode_ && !node_->GetComponent<GOC_PlayerController>())
             {
                 GOC_Inventory::LoadInventory(node_, false);
                 return;
@@ -1404,7 +1405,7 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
         if (inventory && IsNetworkInventoryAvailable(node))
         {
             // Get Full Inventory
-            URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
+            URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
             inventory->SetSlots(clientInventories_[node->GetID()], false);
             clientInventories_.Erase(node->GetID());
             apply = true;
@@ -1525,7 +1526,7 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
     }
     else
     {
-        URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
+        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
         RegisterClientNode(node);
     }
 }

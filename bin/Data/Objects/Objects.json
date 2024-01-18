@@ -123,7 +123,7 @@
 		"fileName":"Objects/eliegorseed.xml",
 		"typeProperty":"GOT_Collectable|GOT_Droppable",
 		"replicateMode":1,
-		"qtyInPool":5,
+		"qtyInPool":50,
 		"scaleVariation":2,
 		"defaultValue":50,
 		"maxDropQty":1
@@ -538,7 +538,7 @@
 		"fileName":"Objects/coffreboss.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 5,
+		"qtyInPool": 0,
 		"defaultValue":0
 	}	
 	, "GOT_MonsterSpawner":{
@@ -546,7 +546,7 @@
 		"fileName":"Objects/monsterspawner.xml",
 		"typeProperty":"GOT_Spawnable",
 		"replicateMode":1,
-		"qtyInPool": 5,
+		"qtyInPool": 0,
 		"defaultValue":0
 	}
 }

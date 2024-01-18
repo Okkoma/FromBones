@@ -88,6 +88,7 @@ URHO3D_EVENT(NET_GAMESTATUSCHANGED, Net_GameStatusChanged)
 {
     URHO3D_PARAM(P_TIMESTAMP, TimeStamp);           // TimeStamp
     URHO3D_PARAM(P_STATUS, PlayStatus);              // PlayStatus (Int)
+    URHO3D_PARAM(P_GAMEMODE, GameMode);              // GameMode (Int) (arena, world ...)
     URHO3D_PARAM(P_CLIENTID, ClientID);             // Client ID of this client (Int) (for setting GameNetwork::clientID_
     URHO3D_PARAM(P_NUMPLAYERS, NumPlayers);         // Num Players (Int)
 }

@@ -735,6 +735,12 @@ void GameCommands::Launch(const String& input)
         if (stateId == "MainMenu")
             ((MenuState*)GameContext::Get().stateManager_->GetActiveState())->Launch(1);
     }
+    else if (input0 == "playworld")
+    {
+        const String& stateId = GameContext::Get().stateManager_->GetActiveState()->GetStateId();
+        if (stateId == "MainMenu")
+            ((MenuState*)GameContext::Get().stateManager_->GetActiveState())->Launch(2);
+    }
     else if (input0 == "levelwin")
     {
         const String& stateId = GameContext::Get().stateManager_->GetActiveState()->GetStateId();

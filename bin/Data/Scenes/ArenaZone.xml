@@ -15,7 +15,7 @@
 		<attribute name="Variables" />
 		<component type="World2D">
 			<attribute name="WorldPoint" value="0 3" />
-			<attribute name="WorldSize" value="4 1" />
+			<attribute name="WorldSize" value="30 1" />
 			<attribute name="ChunkNum" value="8 8" />
 			<attribute name="Default Map Point" value="0 0" />
 			
@@ -49,11 +49,11 @@
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Vampire|GOT_Sorceress|GOT_Darkren" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Kigrat" />			 -->
 
-			<!-- <attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_Vampire|GOT_TreasureChest" /> -->
-			<attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />
+			<attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_Vampire|GOT_TreasureChest" />
+			<!--<attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />-->
             <attribute name="Map - Num Entities" value="10 15" />
 			
-			<attribute name="Map - Add Objects" value="true" />
+			<attribute name="Map - Add Objects" value="false" />
 			<attribute name="Map - Add Furnitures" value="true" />
 
 			<attribute name="Map - Ground Level" value="90" />
