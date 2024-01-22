@@ -160,7 +160,7 @@ public :
     }
     static void Reset(Node* node=0);
 
-    static Node* CreateChildIn(const StringHash& got, int& entityid, Node* parent=0, unsigned id=0, int viewZ=-1, const NodeAttributes* nodeAttr=0, bool applyAttr=false, ObjectPoolCategory** category=0, bool outsidePool=false);
+    static Node* CreateChildIn(const StringHash& got, int& entityid, Node* parent=0, unsigned id=0, int viewZ=-1, const NodeAttributes* nodeAttr=0, bool applyAttr=false, ObjectPoolCategory** category=0, bool* outsidePool=0);
     static void ChangeToReplicatedID(Node* node, unsigned newid);
     static void ChangeToID(Node* node, unsigned newid);
     static bool Free(Node* node, bool cleanDependences=false);

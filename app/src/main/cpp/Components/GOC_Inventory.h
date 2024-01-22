@@ -219,16 +219,15 @@ public :
     virtual void OnSetEnabled();
 
     static void ClearCache();
-    static void RegisterClientNode(Node* node);
-    static bool IsNetworkInventoryAvailable(Node* node) { return clientInventories_.Contains(node->GetID()); }
-    static bool IsNetworkEquipmentSetAvailable(Node* node) { return clientEquipmentSets_.Contains(node->GetID()); }
-    static void LoadInventory(Node* node, bool forceinitialstuff);
+    static bool IsNetworkInventoryAvailable(unsigned nodeid) { return clientInventories_.Contains(nodeid); }
+    static bool IsNetworkEquipmentSetAvailable(unsigned nodeid) { return clientEquipmentSets_.Contains(nodeid); }
+    static void LoadInventory(Node* node, unsigned nodeid=0, bool forceinitialstuff=false);
     static bool SetEquipmentSlot(AnimatedSprite2D* animatedSprite, unsigned idslot, const String& slotname, StringHash slotType, GOC_Inventory* inventory=0);
     static void LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, AnimatedSprite2D* animatedSprite, bool netSendMessage=false);
     static void NetClientSetEquipmentSlot(Node* node, VariantMap& eventData);
     static void NetClientSetInventory(unsigned nodeid, VariantMap& eventData);
     static void NetClientSetEquipment(unsigned nodeid, VariantMap& eventData);
-    static void NetClientSetEquipment(Node* node);
+    static void NetClientSetEquipment(Node* node, unsigned servernodeid);
     static void NetServerSetEquipmentSlot(Node* node, VariantMap& eventData);
     static void NetServerDropItem(Node* node, VariantMap& eventData);
 
@@ -263,7 +262,6 @@ private :
 
     static String tempSectionName_;
     // for GameNetwork client : saved equipment slots by nodeid;
-    static HashMap<unsigned int, Node* > clientNodes_;
     static HashMap<unsigned int, VariantVector > clientInventories_;
     static HashMap<unsigned int, VariantVector > clientEquipmentSets_;
 };

@@ -1054,7 +1054,10 @@ void PlayState::EndScene()
         if (weather_)
             weather_->Stop();
         if (effects_)
+        {
             effects_->Stop();
+            EffectAction::Clear();
+        }
     }
 
     if (ViewManager::Get())
@@ -2551,7 +2554,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Tip : Player1 LoadStuff
         if (input.GetKeyPress(KEY_F5))
         {
-            GOC_Inventory::LoadInventory(localPlayers_[activeviewport_]->GetAvatar(), false);
+            GOC_Inventory::LoadInventory(localPlayers_[activeviewport_]->GetAvatar());
         }
         // Save Scene
         if (input.GetKeyPress(KEY_F6))

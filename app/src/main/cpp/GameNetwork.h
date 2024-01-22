@@ -115,6 +115,12 @@ struct ClientInfo
     ObjectCommandInfo objCmdInfo_;
 };
 
+struct NetPlayerInfo
+{
+    WeakPtr<Node> node_;
+    IntVector3 zone_;
+};
+
 enum
 {
     WHITEGRAY30,
@@ -195,6 +201,7 @@ public:
     ObjectControlInfo* GetClientObjectControl(unsigned nodeid);
     ObjectControlInfo& GetOrCreateServerObjectControl(unsigned servernodeid, unsigned clientnodeid=0, int clientid=0, Node* node=0);
     ObjectControlInfo* GetOrCreateClientObjectControl(unsigned servernodeid, unsigned clientnodeid=0);
+    ObjectControlInfo* Client_GetServerObjectControlFromLocalNodeID(unsigned clientnodeid);
     const Vector<ObjectControlInfo>& GetServerObjectControls() const { return serverObjectControls_; }
     const Vector<ObjectControlInfo>& GetClientObjectControls() const { return clientObjectControls_; }
     void RemoveServerObject(ObjectControlInfo& cinfo);
@@ -276,10 +283,8 @@ public:
     GameStatus GetGameStatus(Connection* connection) const;
 
     /// Client Getters Only
-    // Return the connection of this client to server
-    Connection* GetConnection() const;
-    // Return the nodeid of the object "index" owned by this client and assigned by the server for this client
-//    unsigned GetClientObjectID(unsigned index) const { return index < clientNodeIDs_.Size() ? clientNodeIDs_[index] : 0; }
+    Connection* GetConnection() const; // Return the connection of this client to server
+    Vector<NetPlayerInfo >& GetNetPlayersInfos() { return netPlayersInfos_; }
 
     GameStatus GetGameStatus() const { return gameStatus_; }
 
@@ -415,9 +420,9 @@ private:
 
     /// Client Only
     GameStatus serverGameStatus_;
-//    PODVector<unsigned> clientNodeIDs_;
     WeakPtr<Connection> clientSideConnection_;
     unsigned char statusToServerStamp_;
+    Vector<NetPlayerInfo > netPlayersInfos_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     bool logStatEnable_;

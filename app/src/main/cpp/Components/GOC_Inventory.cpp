@@ -24,6 +24,7 @@
 #include "GameEvents.h"
 #include "GameContext.h"
 #include "GameHelpers.h"
+#include "GameNetwork.h"
 
 #include "GOC_Animator2D.h"
 #include "GOC_ZoneEffect.h"
@@ -1180,7 +1181,9 @@ void GOC_Inventory::OnSetEnabled()
             // Players handle this
             if (GameContext::Get().ClientMode_ && !node_->GetComponent<GOC_PlayerController>())
             {
-                GOC_Inventory::LoadInventory(node_, false);
+                ObjectControlInfo* oinfo = GameNetwork::Get()->Client_GetServerObjectControlFromLocalNodeID(node_->GetID());
+                if (oinfo)
+                    LoadInventory(node_, oinfo->serverNodeID_, false);
                 return;
             }
 
@@ -1363,27 +1366,16 @@ void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
 //    Dump();
 }
 
-HashMap<unsigned int, Node* > GOC_Inventory::clientNodes_;
 HashMap<unsigned int, VariantVector > GOC_Inventory::clientInventories_;
 HashMap<unsigned int, VariantVector > GOC_Inventory::clientEquipmentSets_;
 
 void GOC_Inventory::ClearCache()
 {
-    clientNodes_.Clear();
     clientInventories_.Clear();
     clientEquipmentSets_.Clear();
 }
 
-void GOC_Inventory::RegisterClientNode(Node* node)
-{
-    if (!clientNodes_.Contains(node->GetID()))
-    {
-        URHO3D_LOGINFOF("GOC_Inventory() - RegisterClientNode ... %s(%u) ... cached node !", node->GetName().CString(), node->GetID());
-        clientNodes_[node->GetID()] = node;
-    }
-}
-
-void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
+void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceInitialStuff)
 {
     if (!node)
     {
@@ -1402,18 +1394,21 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
 
     if (GameContext::Get().ClientMode_)
     {
-        if (inventory && IsNetworkInventoryAvailable(node))
+        if (!servernodeid)
+            servernodeid = node->GetID();
+
+        if (inventory && IsNetworkInventoryAvailable(servernodeid))
         {
             // Get Full Inventory
             URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
-            inventory->SetSlots(clientInventories_[node->GetID()], false);
-            clientInventories_.Erase(node->GetID());
+            inventory->SetSlots(clientInventories_[servernodeid], false);
+            clientInventories_.Erase(servernodeid);
             apply = true;
             applyequipment = player;
 
             //inventory->Dump();
         }
-        else if (IsNetworkEquipmentSetAvailable(node))
+        else if (IsNetworkEquipmentSetAvailable(servernodeid))
         {
             // Get Full EquipmentSet : will be done in the process block below with NetClientSetEquipment
             URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientEquipmentSets_ !", node->GetName().CString(), node->GetID());
@@ -1518,7 +1513,7 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
             }
             else if (GameContext::Get().ClientMode_)
             {
-                NetClientSetEquipment(node);
+                NetClientSetEquipment(node, servernodeid);
             }
         }
 
@@ -1527,7 +1522,6 @@ void GOC_Inventory::LoadInventory(Node* node, bool forceInitialStuff)
     else
     {
         URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
-        RegisterClientNode(node);
     }
 }
 
@@ -1696,49 +1690,49 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
     }
 }
 
-void GOC_Inventory::NetClientSetInventory(unsigned nodeid, VariantMap& eventData)
+void GOC_Inventory::NetClientSetInventory(unsigned servernodeid, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ...", nodeid);
+    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ...", servernodeid);
 
     if (eventData.Contains(Net_ObjectCommand::P_INVENTORYSLOTS))
     {
         // in case no node exists, we save the inventory for later use in GOC_Inventory::LoadInventory
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... save temporary inventory ", nodeid);
-        VariantVector& inventoryslots = clientInventories_[nodeid];
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ... save temporary inventory ", servernodeid);
+        VariantVector& inventoryslots = clientInventories_[servernodeid];
         inventoryslots = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
     }
 
-    if (clientNodes_.Contains(nodeid))
-        LoadInventory(clientNodes_[nodeid], false);
+    ObjectControlInfo* oinfo = GameNetwork::Get()->GetServerObjectControl(servernodeid);
+    if (oinfo && oinfo->node_)
+        LoadInventory(oinfo->node_, servernodeid, false);
     else
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory nodeid=%u ... no node exists ... inventory saved for later use !", nodeid);
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ... no clientnode exists ... inventory saved for later use !", servernodeid);
 }
 
-void GOC_Inventory::NetClientSetEquipment(unsigned nodeid, VariantMap& eventData)
+void GOC_Inventory::NetClientSetEquipment(unsigned servernodeid, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ...", nodeid);
+    URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment servernodeid=%u ...", servernodeid);
 
     if (eventData.Contains(Net_ObjectCommand::P_INVENTORYSLOTS))
     {
         // in case no node exists, we save the equipment for later use in GOC_Inventory::LoadInventory
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ... save equipmentset ", nodeid);
-        VariantVector& equipmentDataSet = clientEquipmentSets_[nodeid];
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment servernodeid=%u ... save equipmentset ", servernodeid);
+        VariantVector& equipmentDataSet = clientEquipmentSets_[servernodeid];
         equipmentDataSet = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
         // add the template inventory hash
         equipmentDataSet.Push(eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt());
     }
 
-    if (clientNodes_.Contains(nodeid))
-        NetClientSetEquipment(clientNodes_[nodeid]);
+    ObjectControlInfo* oinfo = GameNetwork::Get()->GetServerObjectControl(servernodeid);
+    if (oinfo && oinfo->node_)
+        NetClientSetEquipment(oinfo->node_, servernodeid);
     else
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment nodeid=%u ... no node exists ... equipmentset saved for later use !", nodeid);
+        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment servernodeid=%u ... no clientnode exists ... equipmentset saved for later use !", servernodeid);
 }
 
-void GOC_Inventory::NetClientSetEquipment(Node* node)
+void GOC_Inventory::NetClientSetEquipment(Node* node, unsigned servernodeid)
 {
-    GOC_Inventory::RegisterClientNode(node);
-
-    HashMap<unsigned int, VariantVector>::Iterator it = clientEquipmentSets_.Find(node->GetID());
+    HashMap<unsigned int, VariantVector>::Iterator it = clientEquipmentSets_.Find(servernodeid);
     if (it == clientEquipmentSets_.End())
     {
         URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No EquipmentSet exists !", node->GetName().CString(), node->GetID());

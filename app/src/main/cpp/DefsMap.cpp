@@ -1074,7 +1074,7 @@ int ZoneData::GetNumPlayersInside() const
 {
     int num = 0;
 
-    for (int i=0; i < GameContext::Get().MAX_NUMPLAYERS; i++)
+    for (int i=0; i < GameContext::Get().MAX_NUMPLAYERS; i++) // Detect Local Players
     {
         Node* node = GameContext::Get().playerAvatars_[i];
         if (node && node->IsEnabled() && !node->GetVar(GOA::ISDEAD).GetBool())
@@ -1085,8 +1085,7 @@ int ZoneData::GetNumPlayersInside() const
         }
     }
 
-    // Detect ClientInfos Players
-    if (GameContext::Get().ServerMode_)
+    if (GameContext::Get().ServerMode_) // Detect ClientInfos Players
     {
         const HashMap<Connection*, ClientInfo>& clientinfos = GameNetwork::Get()->GetServerClientInfos();
         for (HashMap<Connection*, ClientInfo>::ConstIterator it = clientinfos.Begin(); it != clientinfos.End(); ++it)
@@ -1099,6 +1098,21 @@ int ZoneData::GetNumPlayersInside() const
                     continue;
 
                 const WorldMapPosition& position = player->GetWorldMapPosition();
+                if (IsInside(position.mPosition_, position.viewZIndex_))
+                    num++;
+            }
+        }
+    }
+    else if (GameContext::Get().ClientMode_)  // Detect Visible NetPlayers
+    {
+
+        Vector<NetPlayerInfo >& netPlayersInfos = GameNetwork::Get()->GetNetPlayersInfos();
+        for (Vector<NetPlayerInfo >::Iterator it = netPlayersInfos.Begin(); it != netPlayersInfos.End(); ++it)
+        {
+            Node* node = it->node_.Get();
+            if (node && node->IsEnabled() && !node->GetVar(GOA::ISDEAD).GetBool())
+            {
+                const WorldMapPosition& position = node->GetComponent<GOC_Destroyer>()->GetWorldMapPosition();
                 if (IsInside(position.mPosition_, position.viewZIndex_))
                     num++;
             }

@@ -306,7 +306,7 @@ void Player::SetScene(Scene* scene, const Vector2& position, int viewZ, bool loa
     if (GameContext::Get().ServerMode_)
     {
         URHO3D_LOGINFOF("- Player() - SetScene : player ID=%u ... Set Net Equipment ...", GetID());
-        GOC_Inventory::LoadInventory(avatar_, false);
+        GOC_Inventory::LoadInventory(avatar_);
         UpdateEquipment();
     }
     else
@@ -404,7 +404,7 @@ void Player::InitAvatar(Scene* root, const Vector2& position, int viewZ)
     GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 
 #ifdef PLAYER_ACTIVEINITIALSTUFF
-    GOC_Inventory::LoadInventory(avatar_, false);
+    GOC_Inventory::LoadInventory(avatar_);
 #endif
 
     URHO3D_LOGINFOF("---------------------------------------------------------");
@@ -806,11 +806,6 @@ void Player::UpdateTriggerAttacks()
     triggerAttackNode->SetEnabled(false);
 }
 
-void Player::UpdateZones()
-{
-    if (gocDestroyer_->GetCurrentMap())
-        EffectAction::Update(GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0, gocDestroyer_->GetCurrentMap(), gocDestroyer_->GetWorldMapPosition(), zone_);
-}
 
 void Player::UseWeaponAbilityAt(const StringHash& abi, const Vector2& position)
 {
@@ -1096,9 +1091,9 @@ void Player::LoadState()
         if (gocLife)
             gocLife->Set(playerstate.energyLost, playerstate.invulnerability);
 
-        if (GameContext::Get().ClientMode_ && GOC_Inventory::IsNetworkInventoryAvailable(avatar_))
+        if (GameContext::Get().ClientMode_ && GOC_Inventory::IsNetworkInventoryAvailable(avatar_->GetID()))
         {
-            GOC_Inventory::LoadInventory(avatar_, false);
+            GOC_Inventory::LoadInventory(avatar_);
         }
         else
         {
@@ -1893,8 +1888,6 @@ void Player::TransferCollectableToUI(const Variant& varpos, UIElement* dest, uns
 
 void Player::Start()
 {
-    zone_.z_ = -1;
-
     if (!avatar_)
     {
         URHO3D_LOGWARNINGF("Player() - Start : player ID=%u NoAvatar => ResetAvatar at position=%s", GetID(), GameContext::Get().playerState_[controlID_].position.ToString().CString());
@@ -1964,6 +1957,9 @@ void Player::Start()
     if (gocDestroyer_)
         gocDestroyer_->UpdateFilterBits();
 
+    if (!GameContext::Get().ServerMode_)
+        World2D::AddTraveler(0, avatar_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+
     URHO3D_LOGINFOF("----------------------------------------");
     URHO3D_LOGINFOF("- Player() - Start : player ID=%u viewZ=%d ... OK   -", GetID(), GetViewZ());
     URHO3D_LOGINFOF("----------------------------------------");
@@ -1993,8 +1989,8 @@ void Player::Stop()
     if (GameNetwork::Get() && avatar_)
         GameNetwork::Get()->SetEnableObject(false, avatar_->GetID(), true);
 
-//    if (GameContext::Get().ServerMode_ && avatar_)
-//        World2D::RemoveTraveler(avatar_);
+    if (!GameContext::Get().ServerMode_ && avatar_)
+        World2D::RemoveTraveler(avatar_);
 
     GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 
@@ -2040,7 +2036,7 @@ void Player::StartSubscribers()
 
     if (mainController_)
     {
-        if (controlID_ == 0)
+        if (controlID_ == 0 || GameContext::Get().gameConfig_.multiviews_)
         {
             SubscribeToEvent(E_RELEASED, URHO3D_HANDLER(Player, HandleClic));
             SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Player, HandleClic));
@@ -2116,7 +2112,7 @@ void Player::StopSubscribers()
 
     if (mainController_)
     {
-        if (controlID_ == 0)
+        if (controlID_ == 0 || GameContext::Get().gameConfig_.multiviews_)
         {
             UnsubscribeFromEvent(E_RELEASED);
             UnsubscribeFromEvent(E_MOUSEBUTTONUP);
@@ -2233,8 +2229,6 @@ void Player::OnPostUpdate(StringHash eventType, VariantMap& eventData)
 {
     // Update the Change of Avatar if dirtyPlayer_
     UpdateAvatar();
-
-    UpdateZones();
 }
 
 
@@ -2740,9 +2734,11 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
     }
 
     int viewportid = ViewManager::Get()->GetViewportAt(x, y);
+    if (GameContext::Get().gameConfig_.multiviews_ && viewportid != controlID_)
+        return;
+
     Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(viewportid);
     Ray ray = viewport->GetScreenRay(x, y);
-
     Vector3 wpoint3 = viewport->ScreenToWorldPoint(x, y, ray.HitDistance(GameContext::Get().GroundPlane_));
     Vector2 wpoint = Vector2(wpoint3.x_, wpoint3.y_);
 
@@ -2773,14 +2769,12 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
                 if (gocdestroyer)
                     gocdestroyer->DumpWorldMapPositions();
 
-//                VariantMap goEventData;
-                VariantMap& goEventData = context_->GetEventDataMap();
+                VariantMap goEventData;
                 goEventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
                 goEventData[Go_Selected::GO_ID] = node->GetID();
                 goEventData[Go_Selected::GO_TYPE] = node->GetVar(GOA::TYPECONTROLLER).GetInt();
                 goEventData[Go_Selected::GO_ACTION] = 0;
                 avatar_->SendEvent(GO_SELECTED, goEventData);
-                return;
             }
             else if (!dialogInteractor_)
             {
@@ -2824,7 +2818,7 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
         Ability* ability = abilities_->GetActiveAbility();
         if (ability)
         {
-            URHO3D_LOGINFOF("Player() - HandleClic : ID=%u at %d %d", GetID(), x, y);
+            URHO3D_LOGINFOF("Player() - HandleClic : ID=%u at %d %d viewport=%d controlID=%d", GetID(), x, y, viewportid, controlID_);
 
             StringHash abi(ability->GetType());
             if (abi == ABI_Grapin::GetTypeStatic() || abi == ABI_Shooter::GetTypeStatic() || abi == ABIBomb::GetTypeStatic() || abi == ABI_AnimShooter::GetTypeStatic())

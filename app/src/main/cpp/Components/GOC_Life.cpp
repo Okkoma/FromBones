@@ -15,6 +15,8 @@
 #include "GameContext.h"
 #include "GameHelpers.h"
 
+#include "ViewManager.h"
+
 #include "GOC_Animator2D.h"
 #include "GOC_Controller.h"
 
@@ -123,7 +125,7 @@ GOC_Life::GOC_Life(Context* context) :
 
 GOC_Life::~GOC_Life()
 {
-    SetLifeBar(false);
+    SetLifeBars(false);
     UnsubscribeFromAllEvents();
 //    ClearCustomTemplate();
 }
@@ -548,7 +550,7 @@ void GOC_Life::OnSetEnabled()
 //        URHO3D_LOGINFOF("GOC_Life() - OnSetEnabled : %s(%u) Unsubcribe from LifeUpdate !", node_->GetName().CString(), node_->GetID());
         UnsubscribeFromEvent(node_, GOC_LIFEUPDATE);
 
-        SetLifeBar(false);
+        SetLifeBars(false);
     }
 }
 
@@ -607,7 +609,7 @@ void GOC_Life::HandleLifeUpdate(StringHash eventType, VariantMap& eventData)
         }
     }
 
-    UpdateLifeBar();
+    UpdateLifeBars();
 }
 
 bool GOC_Life::IsImmune(const StringHash& effectelt, float value)
@@ -745,18 +747,22 @@ void GOC_Life::ApplyForceEffect(const Vector2& impactPoint, float strength)
 //                    impactPoint.ToString().CString(), force.ToString().CString());
 }
 
-void GOC_Life::UpdateLifeBar()
+void GOC_Life::UpdateLifeBars()
 {
-    if (!lifebarui_ && !lifebarnode_)
+    if (!lifebarsui_.Size() && !lifebarnode_)
         return;
 
     float liferatio = currentTemplate ? 1.f - props.totalDpsReceived / (currentTemplate->energyMax * (float)currentTemplate->lifeMax) : 1.f;
 
-    if (lifebarui_)
+    if (lifebarsui_.Size())
     {
-        BorderImage* healthBar = lifebarui_->GetChildStaticCast<BorderImage>(String("HealthBar"), true);
-        if (healthBar)
-            healthBar->SetSize(currentTemplate ? int(liferatio * healthBar->GetMaxSize().x_) : healthBar->GetMaxSize().x_, healthBar->GetMaxSize().y_);
+        for (HashMap<int, WeakPtr<UIElement> >::Iterator it = lifebarsui_.Begin(); it != lifebarsui_.End(); ++it)
+        {
+            WeakPtr<UIElement>& lifebarui = it->second_;
+            BorderImage* healthBar = lifebarui->GetChildStaticCast<BorderImage>(String("HealthBar"), true);
+            if (healthBar)
+                healthBar->SetSize(currentTemplate ? int(liferatio * healthBar->GetMaxSize().x_) : healthBar->GetMaxSize().x_, healthBar->GetMaxSize().y_);
+        }
     }
     else if (lifebarnode_)
     {
@@ -764,20 +770,45 @@ void GOC_Life::UpdateLifeBar()
     }
 }
 
-void GOC_Life::SetLifeBar(bool enable, bool follow, const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign)
+void GOC_Life::SetLifeBars(bool enable, bool follow, int viewport)
 {
     if (enable)
     {
         // use UI
         if (!follow)
         {
-            if (!lifebarui_)
-            {
-                lifebarui_ = GameHelpers::AddUIElement(String("UI/LifeBarUI.xml"), position, hAlign, vAlign);
-                lifebarui_->SetName("LifeBar");
-            }
+            const unsigned numViewports = ViewManager::Get()->GetNumViewports();
 
-            lifebarui_->SetVisible(true);
+            if (viewport == -1) // all viewport
+            {
+                for (unsigned i = 0; i < numViewports; i++)
+                {
+                    WeakPtr<UIElement>& lifebarui = lifebarsui_[i];
+                    if (!lifebarui)
+                    {
+                        const IntRect& viewportRect = ViewManager::Get()->GetViewportRect(i);
+                        lifebarui = GameHelpers::AddUIElement(String("UI/LifeBarUI.xml"), IntVector2::ZERO, HA_LEFT, VA_TOP);
+                        lifebarui->SetPosition(IntVector2((viewportRect.left_ + (viewportRect.Width() - lifebarui->GetWidth())/2) / GameContext::Get().uiScale_, (viewportRect. top_ + 200) / GameContext::Get().uiScale_));
+                        lifebarui->SetName("LifeBar");
+                    }
+
+                    lifebarui->SetVisible(true);
+                }
+            }
+            else
+            {
+                WeakPtr<UIElement>& lifebarui = lifebarsui_[viewport];
+                if (!lifebarui)
+                {
+                    const IntRect& viewportRect = ViewManager::Get()->GetViewportRect(viewport);
+                    lifebarui = GameHelpers::AddUIElement(String("UI/LifeBarUI.xml"), IntVector2::ZERO, HA_LEFT, VA_TOP);
+                    lifebarui->SetPosition(IntVector2((viewportRect.left_ + (viewportRect.Width() - lifebarui->GetWidth())/2) / GameContext::Get().uiScale_, (viewportRect. top_ + 200) / GameContext::Get().uiScale_));
+                    lifebarui->SetName("LifeBar");
+                    URHO3D_LOGINFOF("GOC_Life() - SetLifeBars : node=%s(%u) viewport=%d add ui lifebar !", node_->GetName().CString(), node_->GetID(), viewport);
+                }
+
+                lifebarui->SetVisible(true);
+            }
         }
         // use node
         else
@@ -793,16 +824,39 @@ void GOC_Life::SetLifeBar(bool enable, bool follow, const IntVector2& position, 
             lifebarnode_->SetEnabled(true);
         }
 
-        UpdateLifeBar();
+        UpdateLifeBars();
     }
     else
     {
-        if (lifebarui_)
-            lifebarui_->Remove();
+        if (lifebarsui_.Size())
+        {
+            if (viewport == -1)
+            {
+                for (HashMap<int, WeakPtr<UIElement> >::Iterator it = lifebarsui_.Begin(); it != lifebarsui_.End(); ++it)
+                {
+                    WeakPtr<UIElement>& lifebarui = it->second_;
+                    if (lifebarui)
+                        lifebarui->Remove();
+                }
+                lifebarsui_.Clear();
+            }
+            else
+            {
+                HashMap<int, WeakPtr<UIElement> >::Iterator it = lifebarsui_.Find(viewport);
+                if (it != lifebarsui_.End())
+                {
+                    WeakPtr<UIElement>& lifebarui = it->second_;
+                    if (lifebarui)
+                        lifebarui->Remove();
+
+                    lifebarsui_.Erase(it);
+                }
+            }
+        }
+
         if (lifebarnode_)
             lifebarnode_->Remove();
 
-        lifebarui_.Reset();
         lifebarnode_.Reset();
     }
 }

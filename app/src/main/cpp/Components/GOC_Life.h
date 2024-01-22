@@ -66,7 +66,7 @@ public :
     void Reset();
     bool ReceiveEffectFrom(Node* sender, StringHash effectElt, float value, const Vector2& point, bool applyinvulnerability);
 
-    void SetLifeBar(bool enable, bool follow=true, const IntVector2& position=IntVector2::ZERO, HorizontalAlignment hAlign=HA_CENTER, VerticalAlignment vAlign=VA_CENTER);
+    void SetLifeBars(bool enable, bool follow=true, int viewport=-1);
 
     bool CheckChangeTemplate(const String& newTemplateName);
 
@@ -130,7 +130,7 @@ private :
     void ApplyForceEffect(const Vector2& impactPoint, float strength);
 
     void UpdateProperties();
-    void UpdateLifeBar();
+    void UpdateLifeBars();
 
     void HandleInvulnerabilityUpdate(StringHash eventType, VariantMap& eventData);
     void HandleLifeUpdate(StringHash eventType, VariantMap& eventData);
@@ -148,7 +148,7 @@ private :
     Node* haloInvulnerability_;
     Vector2 lastDpsContactPoint_;
     WeakPtr<Node> killerPtr;
-    WeakPtr<UIElement> lifebarui_;
+    HashMap<int, WeakPtr<UIElement> > lifebarsui_;
     WeakPtr<Node> lifebarnode_;
 };
 

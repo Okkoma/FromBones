@@ -94,6 +94,10 @@ struct TravelerNodeInfo
     WeakPtr<Node> node_;
 
     Map* currentMap_;
+
+    int viewport_;
+    IntVector3 zone_;
+
     ClientInfo* clientInfo_;
 
     ShortIntVector2 mPoint_;
@@ -264,7 +268,7 @@ public:
     static void ReinitAllWorlds();
     static void SaveWorld(bool saveEntities=false);
 
-    static void AddTraveler(ClientInfo* clientinfo, Node* node);
+    static void AddTraveler(ClientInfo* clientinfo, Node* node, int viewport=0);
     static void RemoveTraveler(Node* node);
 
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
@@ -324,6 +328,7 @@ private:
     void UpdateVisibleAreas(HiresTimer* timer=0);
     void UpdateVisibleCollideBorders();
     void UpdateActors(HiresTimer* timer);
+    void UpdateZones();
     void UpdateMaps(HiresTimer* timer);
 
 /// Handlers

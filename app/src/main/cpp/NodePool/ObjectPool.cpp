@@ -831,7 +831,7 @@ ObjectPoolCategory* ObjectPool::GetCategory(const StringHash& got)
     return it != categories_.End() ? &(it->second_) : 0;
 }
 
-Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* parent, unsigned id, int viewZ, const NodeAttributes* nodeAttr, bool applyAttr, ObjectPoolCategory** retcategory, bool outsidePool)
+Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* parent, unsigned nodeid, int viewZ, const NodeAttributes* nodeAttr, bool applyAttr, ObjectPoolCategory** retcategory, bool* outsidePool)
 {
     if (!got.Value())
     {
@@ -850,34 +850,31 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
     if (retcategory)
         *retcategory = category;
 
-    if (!category && !outsidePool)
-    {
-        URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=%s(%u) entityid=%d ... no category !", GOT::GetType(got).CString(), got.Value(), entityid);
-        return 0;
-    }
-
 #ifdef OBJECTPOOL_LOCALIDSONLY
-    if (id < FIRST_LOCAL_ID)
+    if (nodeid < FIRST_LOCAL_ID)
     {
 #else
-    if (forceLocalMode_ && id < FIRST_LOCAL_ID)
+    if (forceLocalMode_ && nodeid < FIRST_LOCAL_ID)
     {
         URHO3D_LOGWARNINGF("ObjectPool() - CreateChildIn node id=%u => force change to LOCAL !", id);
 #endif // OBJECTPOOL_LOCALIDSONLY
-        id = LOCAL;
+        nodeid = LOCAL;
     }
 
     Node* node = 0;
 
     if (category)
-        node = category->GetPoolNode(id);
+        node = category->GetPoolNode(nodeid);
 
     if (!node)
     {
-        if (outsidePool)
+        if (outsidePool && nodeid != LOCAL && !category && GOT::GetConstInfo(got).replicatedMode_)
+            *outsidePool = true;
+
+        if (outsidePool && *outsidePool)
         {
             Node* templateNode = GOT::GetObject(got);
-            node = GameContext::Get().rootScene_->CreateChild(String::EMPTY, LOCAL);
+            node = GameContext::Get().rootScene_->CreateChild(String::EMPTY, LOCAL, nodeid);
             if (templateNode)
             {
                 GameHelpers::CopyAttributes(templateNode, node, false, false);
@@ -899,9 +896,9 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
             return 0;
         }
     }
-    else
+    else if (outsidePool)
     {
-        outsidePool = false;
+        *outsidePool = false;
     }
 
     if (node->GetID() == 0)
@@ -943,7 +940,7 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
 
     GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
     if (destroyer)
-        destroyer->SetDestroyMode(outsidePool ? FREEMEMORY : POOLRESTORE);
+        destroyer->SetDestroyMode(outsidePool && *outsidePool ? FREEMEMORY : POOLRESTORE);
 
     if (applyAttr)
     {

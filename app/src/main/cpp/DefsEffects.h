@@ -92,20 +92,28 @@ public:
     static void RegisterEffectActionLibrary(Context* context);
     static void Clear();
     static void Clear(const IntVector3& zone);
-    static void Update(int viewport, MapBase* map, const WorldMapPosition& position, IntVector3& zone);
-    static void ApplyActionOn(unsigned actiontype, MapBase* map, unsigned zoneid, int viewport=0);
+    static void Update(Node* node, IntVector3& zone, int viewport);
+    static EffectAction* Get(const IntVector3& zone);
+    static EffectAction* GetOrCreate(unsigned zoneid, unsigned actiontype, MapBase* map);
     static void PurgeFinishedActions();
 
-    void Set(int viewport, MapBase* map, unsigned zone);
+    void Set(MapBase* map, unsigned zone);
+    void AddViewportUser(int viewport, Object* user);
+    void RemoveViewportUser(int viewport, Object* user);
+
     bool IsZoneValid();
 
     virtual bool Apply();
     virtual void OnFinished();
+    virtual void OnEnterZone(int viewport) = 0;
+    virtual void OnExitZone(int viewport) = 0;
 
     void MarkFinished();
 
+    HashMap<int, PODVector<Object*> > viewportUsers_;
+
 protected:
-    int viewport_;
+
     MapBase* map_;
     IntVector3 zone_;
     ZoneData* zonedata_;
@@ -113,7 +121,7 @@ protected:
     bool finished_;
 
 private:
-    static HashMap<IntVector3, SharedPtr<EffectAction> > runningEffectActions_;
+    static HashMap<IntVector3, EffectAction* > runningEffectActions_;
 };
 
 class BossZone : public EffectAction
@@ -128,6 +136,10 @@ public :
 
     virtual bool Apply();
     virtual void OnFinished();
+    virtual void OnEnterZone(int viewport);
+    virtual void OnExitZone(int viewport);
+
+    static void SetEnableLifeBar(Node* boss, bool enable, int viewport=-1);
 
     static void RemoveBoss(const IntVector3& zone, Node* boss);
 

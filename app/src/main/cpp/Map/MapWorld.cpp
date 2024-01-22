@@ -2881,6 +2881,28 @@ void World2D::UpdateActors(HiresTimer* timer)
     }
 }
 
+void World2D::UpdateZones()
+{
+    if (GameContext::Get().ClientMode_)
+    {
+        // Get Visible NetPlayers
+        Vector<NetPlayerInfo >& netPlayersInfos = GameNetwork::Get()->GetNetPlayersInfos();
+        for (Vector<NetPlayerInfo >::Iterator it = netPlayersInfos.Begin(); it != netPlayersInfos.End(); ++it)
+        {
+            Node* node = it->node_.Get();
+            if (node && node->IsEnabled())
+                EffectAction::Update(node, it->zone_, -1);
+        }
+    }
+
+    for (Vector<TravelerNodeInfo>::Iterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
+    {
+        TravelerNodeInfo& traveler = *it;
+        if (traveler.node_ && traveler.node_->IsEnabled())
+            EffectAction::Update(traveler.node_.Get(), traveler.zone_, traveler.viewport_);
+    }
+}
+
 void World2D::UpdateMaps(HiresTimer* timer)
 {
 #ifdef ACTIVE_WORLD2D_PROFILING
@@ -3081,12 +3103,15 @@ bool TravelerViewportInfo::Update()
 
 Vector2 TravelerNodeInfo::visibleRectHalfSize_;
 
-TravelerNodeInfo::TravelerNodeInfo() : currentMap_(0), clientInfo_(0), mPoint_(-1000, -1000), visibleArea_(-1000, -1000, -1000, -1000) { }
+TravelerNodeInfo::TravelerNodeInfo() : currentMap_(0), viewport_(0), clientInfo_(0), mPoint_(-1000, -1000), visibleArea_(-1000, -1000, -1000, -1000) { zone_.z_ = -1; }
 
 bool TravelerNodeInfo::Update()
 {
     if (!node_ || !node_->IsEnabled())
+    {
+        zone_.z_ = -1;
         return false;
+    }
 
     bool change = false;
     Vector2 position = node_->GetWorldPosition2D();
@@ -3196,7 +3221,7 @@ void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const
     hashexpand.GetValues(mappoints);
 }
 
-void World2D::AddTraveler(ClientInfo* clientinfo, Node* node)
+void World2D::AddTraveler(ClientInfo* clientinfo, Node* node, int viewport)
 {
     for (Vector<TravelerNodeInfo>::Iterator it = world_->travelerInfos_.Begin(); it != world_->travelerInfos_.End(); ++it)
     {
@@ -3208,6 +3233,7 @@ void World2D::AddTraveler(ClientInfo* clientinfo, Node* node)
     TravelerNodeInfo& tinfo = world_->travelerInfos_.Back();
     tinfo.node_ = node;
     tinfo.clientInfo_ = clientinfo;
+    tinfo.viewport_ = viewport;
 
     URHO3D_LOGINFOF("World2D() - AddTraveler : ... node=%s(%u) tinfo.node_=%u !", node->GetName().CString(), node->GetID(), tinfo.node_.Get());
 }
@@ -3280,6 +3306,8 @@ void World2D::UpdateStep(float timestep)
         UpdateVisibleRectInfos(it->viewport_);
 
     UpdateActors(&timer_);
+
+    UpdateZones();
 
 //    if ((int)(timer_.GetUSec(false) / 1000) > (int)(World2DInfo::delayUpdateUsec_/1000))
 //        URHO3D_LOGWARNINGF("World2D() - UpdateStep : timer=%d/%d", (int)(timer_.GetUSec(false) / 1000), (int)(World2DInfo::delayUpdateUsec_/1000));

@@ -53,6 +53,7 @@ const char* netCommandNames[] =
     "ENTITYSELECTED=19",
     "MOUNTENTITYON=20",
     "UPDATEITEMSSTORAGE=21",
+    "UPDATEZONEDATA=22",
     0
 };
 

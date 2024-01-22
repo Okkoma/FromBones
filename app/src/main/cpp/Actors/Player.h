@@ -180,7 +180,6 @@ private :
     virtual void UpdateComponents();
 
     void UpdateTriggerAttacks();
-    void UpdateZones();
     void UpdateNativeAbilities();
     void UpdateLineOfSight();
 
@@ -198,7 +197,6 @@ private :
 
     bool dirtyPlayer_;
     bool missionEnable_;
-    IntVector3 zone_;
 
     unsigned faction_;
     // index avatar

@@ -7,15 +7,33 @@
 
 Todos:
 
+    ☐ 22/01/2024 : les objets deposés au sol par un netplayer disparaissent de la map lorsque l'avatar est éloigné de l'objet
+        => cela doit etre du à la gestion de la visiblité des entités ...
+        => le probleme c'est que le setenabled des objets du client va s'appliquer à l'ensemble des autres clients/server ...
+        ==> solution temporaire : seuls les controller pourront etre setenabled par le network => modification dans GameNetwork::UpdateControl()
+            donc les objet collectable dropper de l'inventaire seront toujours visible
+            par contre un familier ça ne marchera plus...
+
+    ☐ 22/01/2024 : attention Map::AddEntity a été modifié pour le besoin des bosszones, il faut verifier que tout fonctionne bien coté spawn d'entités.
+
+    ☐ 22/01/2024 : les blocks de fermeture des zone de boss s'ils sont detruits par un netplayer doit etre repercuté sur le reseau.
+
+    ☐ 22/11/2023 : mettre à jour network.svg
+        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
+        Mettre des cas d'usage précis
+        voir pour la synchronisation des spawnstamp
+
+    ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
+
     ✔ 17/01/2024 : crash du serveur avec 2 clients : en spawnant plus de 255 lames avec le premier client puis en reiterant avec le second.
         -> crash dans GameNetwork::PushObjectCommand : probleme de saturation de la pool d'objectcommand
-        ==> OK : il faut pouvoir liberer la pool quand c'est necessaire. Restauration de la Pool objCmdPool_ pour le serveur. Restauration par element pour le client.
+        ==> OK : il faut pouvoir liberer la pool quand c'est necessaire. Restauration entiere de la Pool objCmdPool_ pour le serveur. Restauration par element pour le client.
 
     ✔ 13/01/2024 : il y a des problemes de spawn des lames en arena si server+client + entities enable.
         -> les lames ne poppent pas forcement au debut. Est-ce une saturation ?
         -> apres un certain nombre de spawn, il arrive un crashboucle infinie ?
         => OK : la boucle infinie provient de GameNetwork::HandlePlayClient_ReceiveCommands() lorsque head > 255, il repasse à 0 mais tant que le state est APPLIED ça boucle sans fin -> correctif
-        --> implique ensuite un pb coté serveur : resend continu des packets car le deltapackets devient tres grand :
+        --> implique ensuite un pb coté serveur : resend continu des packets car le deltapackets devient tres grand.
             [Tue Jan 16 10:46:33 2024] INFO: GameNetwork() - HandlePlayServer_NetworkUpdate : objcmd=0 clientid=1 numCmdPackets=1 deltapackets=0 sendbuffer.Size()=30
             [Tue Jan 16 10:46:33 2024] INFO: GameNetwork() - HandlePlayServer_NetworkUpdate : objcmd=0 clientid=1 numCmdPackets=1 deltapackets=65280 sendbuffer.Size()=30
             Connection::GetDeltaObjectCommandPackets() renvoit un int, il doit y avoir une confusion entre les stampAck envoyés/recus dans Connection (qui sont des shorts) et les Stamp des ObjectCommand (qui sont des bytes)
@@ -43,22 +61,22 @@ Todos:
         ==> ajout d'un nouveau Rand : WEATHERRAND car OBJRAND est déjà utiliser par les Biomes, les Entity etc... donc tres aleatoire.
         ==> autre methode non utilisé : envoyer un NetMessage.
 
-    ☐ 22/11/2023 : mettre à jour network.svg
-        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
-        Mettre des cas d'usage précis
-        voir pour la synchronisation des spawnstamp
-
-    ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
-
-    ☐ 07/12/2023 : les bosszones ne fonctionnent pas en reseau
-        -> il faut que le server fasse popper les boss, prenne en compte les netplayers dans la detection.
-        ==> modification de ZoneData::GetNumPlayersInside()
-        ===> si un client n'est pas dans la meme map et qu'il arrive ensuite, le boss n'est pas à la bonne echelle ... n'est pas considerer comme boss et repop d'un nouveau.
+     ✔ 07/12/2023 : les bosszones ne fonctionnent pas en reseau
+        => modification de ZoneData::GetNumPlayersInside()
+        --> si un client n'est pas dans la meme map et qu'il arrive ensuite, le boss n'est pas à la bonne echelle ... n'est pas considerer comme boss et repop d'un nouveau.
+        ===> gestion locale meme coté client : ajout de GameNetwork::GetNetPlayersNodes(), pop du boss (Client : attente de la reception du zonedata.nodeid_ envoyé par le serveur)
+        ====> ajout ObjectCommand UPDATEZONEDATA
+        ===> OK : modification de ZoneData::GetNumPlayersInside() pour ajouter pour le mode Client, les Netplayers.
+        ===> OK : mettre la gestion des Zones dans World2D.
+        ===> verifier pour la destruction du boss et l'apparition du coffre si ok en reseau.
+        ====> OK : modification du Spawning Map::AddEntity et ObjectPool::CreateChildIn pour gerer le mode outpool, pour les Boss (no NetSpawning : utilise le nodeid obtenu dans zonedata.nodeid_) et les Chest (Netspawning)
+        ====> OK : la barre de vie du boss ne doit s'afficher que si le joueur est dans la zone, gerer la life bar sur plusieurs viewports.
+        ===> 22/01/2024 OK : en passant en mode editeur, les EffectActions running semblent etre effacés : ne pas inclure EffectAction::Clear() dans EffectsManager::Stop()
 
     ✔ 12/01/2024 : lorsque le player meurt, ensuite repop, il y a la perte du NodeTravelerInfo coté serveur @done(24-01-12 17:23)
         -> Player::Stop utilise World2D::RemoveTraveler, etant donner que dans Player::Start on n'utilise pas World2D::AddTraveler, il faut le supprimer
 
-    ☐ 28/12/2023 : coté client, lors du changement de map, les entités sauvegardées dans MapData et reinstanciées ne sont pas liés automatiquement à un ObjectControl au serveur.
+    ✔ 28/12/2023 : coté client, lors du changement de map, les entités sauvegardées dans MapData et reinstanciées ne sont pas liés automatiquement à un ObjectControl au serveur. @done(24-01-19 08:44)
         -> c'est le cas pour les eliegorseeds (à priori elles ne sont pas netspawnable. Rappel: netspawnable == créé coté client via la reception d'un ObjectControl).
         => avec un gobelin (qui est netspawnable), cela fonctionne correctement.
         -> le NetSpawning n'est possible que si les compteurs de spawn entre client et serveur sont synchronisés (localSpawnStamps_ et receivedSpawnStamps_).
@@ -108,7 +126,7 @@ Todos:
             ==> ajout de GameNetwork::ResyncSpawnControlStamps() et utilisation dans Map::SetEntities_Load
 
         ✔ 12/01/2024 : un probleme de link entre serveur/client à corriger :
-            Dump coté client :
+            Dump coté client :.
             [Fri Jan 12 15:46:10 2024] INFO: MapData() - Load : this=3827583760 map=3842034320 ... read mpoint=24 19 width=64 height=64 seed=1639419 numviews=5 OK !
             [Fri Jan 12 15:46:10 2024] INFO: MapData() - Load : this=3827583760 mpoint=24 19 map=3842034320 ... read sid=MAPDATASECTION_FLUIDVALUE=2(2) num=2 compSize=43 decompSize=8192  ...
             [Fri Jan 12 15:46:10 2024] INFO: MapData() - Load : this=3827583760 mpoint=24 19 map=3842034320 ... read sid=MAPDATASECTION_SPOT=3(3) num=51 compSize=374 decompSize=1428  ...
@@ -123,8 +141,6 @@ Todos:
             => Peut-etre faut-il supprimer le spawncontrol s'il existe, ou bien simplement creer un ObjectControl sans passer par SpawnControl dans Map::SetEntities_Add et Map::SetEntities_Load.
             ==> Remplacement du code autour de GameNetwork::AddSpawnControl() dans Map::SetEntities_Add et Map::SetEntities_Load, par GameNetwork::GetOrCreateObjectControl() etant donné que les nodeids server et client seront identiques dans ce cadre.
             => ResyncSpawnControlStamps est-il encore necessaire du coup ?
-
-    ☐ 27/12/2023 : En World + Reseau, il ne faut pas utiliser ACTIVE_PACKEDOBJECTCONTROL car le manque de précision conduit à une secousse incessantes des entités.
 
     ✔ 21/12/2023 : il faut activer les maps du server des qu'un joueur est dessus ou bien que toutes les maps server soient activées par défaut. @done(23-12-28 12:44)
         => coté Box2D ca va suivre ?
@@ -151,7 +167,7 @@ Todos:
                    cf MapStorage::PushMapToLoad pour envoyer une nouvelle requete de MapData ? voir pour la gestion de ClientInfo::mapsDirty_ ...
         ===> OK utilisation de REQUESTMAP
 
-    ✔ 15/12/2023 : demarrer automatique en PlayState le server si au moins un client envoie son état en PlayState
+    ✔ 15/12/2023 : demarrage automatique en PlayState le server si au moins un client envoie son état en PlayState
         -> OK : Demarrage en Arena par defaut, voir pour modifier ça par la suite
 
     ✔ 13/12/2023 : GOC_DropZone n'a pas le meme storage entre serveur et clients @done(23-12-15 09:07)
@@ -664,7 +680,7 @@ Todos:
         => teleporter uniquement les nodes locaux, les autres clients ou serveur s'occupent des autres nodes.
         ==> RAF : verifier avec les entités montées.
 
-    ☐ 03/07/2021 : suite à la modification du spawning effectuer coté client (le client spawn desormais toujours sans attendre la reponse du serveur),
+    ✘ 03/07/2021 : suite à la modification du spawning effectuer coté client (le client spawn desormais toujours sans attendre la reponse du serveur), @cancelled(24-01-19 08:46)
         le spawn d'une bombe par exemple coté client fait apparaitre le pb de "snapping" des synchronisation avec le serveur.
         La bombe revient en arriere est prend la position du serveur avec le double de decalage (puisque latence client->serveur, puis serveur-client).
         => il faut introduire les concepts de client prediction+server reconciliation et lag compensation pour diminuer les effets de la latence (cf. https://www.gabrielgambetta.com/lag-compensation.html)
@@ -721,13 +737,13 @@ Todos:
     ☐ 19/08/2019 : le marchand coté client n'est pas un actor donc ne peut pas intéragir avec le joueur.
         -> voir pour l'ajout d'actor avec ObjectPool via le network
 
-    ☐ 18/08/2019 : Comment assurer la corrélation entre les numeros d'entités, les maps en mémoires sur l'ensemble des clients connectés avec le serveur
+    ✘ 18/08/2019 : Comment assurer la corrélation entre les numeros d'entités, les maps en mémoires sur l'ensemble des clients connectés avec le serveur @cancelled(24-01-19 08:45)
 
     ✘ CharacterMapping: @cancelled(23-11-14 11:10)
         --> envoyer un RemoteEvent des changements d'equipment ou bien via ObjectControl => OK, en cours
         --> 19/08/2019 : lors du pop coté clients d'entités à synchroniser avec le serveur, le charactermapping n'est pas communiqué.
 
-    ☐ GOB_MountOn : l'entité portée ne doit pas avoir de mouvement relatif / entité porteuse
+    ✘ GOB_MountOn : l'entité portée ne doit pas avoir de mouvement relatif / entité porteuse @cancelled(24-01-19 08:45)
         -> ajouter idparentnode dans ObjectControl ou bien RemoteSendEvent
 
     ✘ affichage du mauvais avatar pour les seconds joueurs locaux @cancelled(23-11-14 11:28)
@@ -1345,6 +1361,8 @@ Archive:
 
 
 Notes:
+    - 27/12/2023 : En World + Reseau, il ne faut pas utiliser ACTIVE_PACKEDOBJECTCONTROL car le manque de précision conduit à une secousse incessantes des entités.
+
     - 22/11/2023 : si l'on appelle Context::GetEventDataMap() attention car lors de la creation de Node Urho3D va aussi l'appeler écrasant son contenu (cf Node::AddChild)...
         c'est le cas lorsque l'on fait appelle à ObjectPool::CreateChild() par exemple qui est appelé par Map::AddEntity() <= World::SpawnEntity()
         donc si on veut garder le contenu, il faudra utiliser une autre VariantMap. C'est ce qui est fait dans GOC_Collectable::DropSlotFrom() pour slotData qui aurait été effacé dans Map::AddEntity

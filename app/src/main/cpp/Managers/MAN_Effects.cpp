@@ -64,8 +64,6 @@ void EffectsManager::Start()
 void EffectsManager::Stop()
 {
     UnsubscribeFromAllEvents();
-
-    EffectAction::Clear();
 }
 
 Vector<EffectInstance>::Iterator EffectsManager::GetEffectInstanceFor(GOC_ZoneEffect* zone, Node* node, EffectType* effect)
