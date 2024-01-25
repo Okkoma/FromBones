@@ -1148,7 +1148,8 @@ const StringHash COT::MELEEWEAPONS          = StringHash("MeleeWeapons");
 const StringHash COT::RANGEDWEAPONS         = StringHash("RangedWeapons");
 const StringHash COT::ARMORS                = StringHash("Armors");
 const StringHash COT::HELMETS               = StringHash("Helmets");
-
+const StringHash COT::GLOVES                = StringHash("Gloves");
+const StringHash COT::BOOTS                 = StringHash("Boots");
 const StringHash COT::BELTS                 = StringHash("Belts");
 const StringHash COT::CAPES                 = StringHash("Capes");
 const StringHash COT::HEADBANDS             = StringHash("Headbands");

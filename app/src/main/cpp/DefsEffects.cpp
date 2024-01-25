@@ -226,8 +226,6 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
     IntVector3 newzone(destroyer->GetWorldMapPosition().mPoint_.x_, destroyer->GetWorldMapPosition().mPoint_.y_, -1);
 
     Map* map = destroyer->GetCurrentMap();
-//    if (!map)
-//        map = World2D::GetWorld()->GetAvailableMapAt(destroyer->GetWorldMapPosition().mPoint_);
 
     if (!map)
         return;
@@ -237,6 +235,9 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
         const PODVector<ZoneData>& zones = map->GetMapData()->zones_;
         if (zones.Size())
         {
+//            URHO3D_LOGINFOF("EffectAction() - Update : try finding a zone for node=%s(%u) at position=%s ...",
+//                            node->GetName().CString(), node->GetID(), destroyer->GetWorldMapPosition().ToString().CString());
+
             for (unsigned i=0; i < zones.Size(); i++)
             {
                 if (zones[i].IsInside(destroyer->GetWorldMapPosition().mPosition_, destroyer->GetWorldMapPosition().viewZIndex_))

@@ -1502,7 +1502,7 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
             // TODO : entityid ?
             int entityid = 0;
             AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
-            GameHelpers::SetEntityVariation(animatedSprite, entityid);
+            GameHelpers::SetEntityVariation(animatedSprite, servernodeid, entityid);
 
             if (player)
             {
@@ -1523,6 +1523,36 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
     {
         URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
     }
+}
+
+void GOC_Inventory::NetServerSaveEquipment(unsigned servernodeid, const EquipmentList& equipmentlist)
+{
+    URHO3D_LOGINFOF("GOC_Inventory() - NetServerSaveEquipment servernodeid=%u ...", servernodeid);
+
+    VariantVector& equipmentSet = clientEquipmentSets_[servernodeid];
+    equipmentSet.Clear();
+
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(EQUIPMENTTEMPLATE);
+
+    // add item for each slot of EQUIPMENTTEMPLATE
+    equipmentSet.Resize(inventoryTemplate->slotNames_.Size());
+    for (unsigned i=0; i < equipmentlist.Size(); i++)
+    {
+        int slotid = equipmentlist[i].slotid_;
+        equipmentSet[slotid] = equipmentlist[i].objecttype_.Value();
+    }
+
+    NetServerSendEquipment(servernodeid, equipmentSet);
+}
+
+void GOC_Inventory::NetServerSendEquipment(unsigned servernodeid, const VariantVector& equipmentSet)
+{
+    VariantMap& eventdata = GameNetwork::Get()->GetServerEventData();
+    eventdata.Clear();
+    eventdata[Net_ObjectCommand::P_NODEID] = servernodeid;
+    eventdata[Net_ObjectCommand::P_INVENTORYTEMPLATE] = EQUIPMENTTEMPLATE;
+    eventdata[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
+    GameNetwork::Get()->PushObjectCommand(SETFULLEQUIPMENT, &eventdata, true, 0);
 }
 
 static const String EffectFlame("effects_flame");

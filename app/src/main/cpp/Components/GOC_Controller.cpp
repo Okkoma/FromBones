@@ -324,78 +324,88 @@ void GOC_Controller::SetMainController(bool maincontroller)
     }
 }
 
-bool GOC_Controller::ChangeAvatar(unsigned type, unsigned char entityid)
+bool GOC_Controller::ChangeAvatarOrEntity(unsigned type, unsigned char entityid)
 {
     if (thinker_)
     {
         return static_cast<Player*>(thinker_)->ChangeAvatar(type, entityid, true);
     }
-    else
+    else if (control_.type_ != type || control_.entityid_ != entityid)
     {
-        if (control_.type_ == type)
-            return false;
+        bool ok = false;
 
-        Node* templateNode = GOT::GetControllableTemplate(StringHash(type));
-        if (templateNode && node_->GetNumComponents() >= templateNode->GetNumComponents())
+        if (control_.type_ != type && type)
         {
-            URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatar : nodeid=%u from %s(%u) to type=%s(%u) ... CopyAttributes From Template", node_->GetID(),
-                            GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
-                            GOT::GetType(StringHash(type)).CString(), type);
+            Node* templateNode = GOT::GetControllableTemplate(StringHash(type));
+            if (templateNode && node_->GetNumComponents() >= templateNode->GetNumComponents())
+            {
+                URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatarOrEntity : nodeid=%u from %s(%u) to type=%s(%u) entityid=%u ... CopyAttributes From Template", 
+                                node_->GetID(), GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
+                                GOT::GetType(StringHash(type)).CString(), type, entityid);
 
-            // unmount if mounted
-            MountInfo mountinfo(node_);
-            GameHelpers::UnmountNode(mountinfo);
+                // unmount if mounted
+                MountInfo mountinfo(node_);
+                GameHelpers::UnmountNode(mountinfo);
 
-            // Important in Networking : Backup Position/layering before changing avatar for the SpawnEffect
-            Vector2 position = node_->GetWorldPosition2D();
-            Drawable2D* drawable = node_->GetDerivedComponent<Drawable2D>();
-            int clientid = node_->GetVar(GOA::CLIENTID).GetInt();
-            int layer = drawable->GetLayer();
-            unsigned viewmask = drawable->GetViewMask();
+                // Important in Networking : Backup Position/layering before changing avatar for the SpawnEffect
+                Vector2 position = node_->GetWorldPosition2D();
+                Drawable2D* drawable = node_->GetDerivedComponent<Drawable2D>();
+                int clientid = node_->GetVar(GOA::CLIENTID).GetInt();
+                int layer = drawable->GetLayer();
+                unsigned viewmask = drawable->GetViewMask();
 
-            GameHelpers::CopyAttributes(templateNode, node_, false, true);
+                GameHelpers::CopyAttributes(templateNode, node_, false, true);
 
-            // Prevent apparition of Children like AileDark or SpiderThread (see TODO BEHAVIOR:26/04/2020)
-//            node_->RemoveAllChildren();
+                // Prevent apparition of Children like AileDark or SpiderThread (see TODO BEHAVIOR:26/04/2020)
+    //            node_->RemoveAllChildren();
 
-            SetControllerType(GO_NetPlayer, true);
+                SetControllerType(GO_NetPlayer, true);
 
-            GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
-            if (destroyer)
-                destroyer->SetDestroyMode(DISABLE);
+                GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
+                if (destroyer)
+                    destroyer->SetDestroyMode(DISABLE);
 
-            ResetDirection();
+                ResetDirection();
+
+                int eid = entityid;
+                GameHelpers::SetEntityVariation(node_->GetComponent<AnimatedSprite2D>(), LOCAL, eid);
+                control_.type_ = type;
+                control_.entityid_ = eid;
+
+                node_->SetVar(GOA::CLIENTID, clientid);
+
+                node_->SetEnabled(true);
+
+                Light* light = node_->GetComponent<Light>();
+                if (light)
+                    light->SetEnabled(false);
+
+                node_->ApplyAttributes();
+
+                node_->AddTag("Player");
+
+                // remount if was mounted
+                GameHelpers::MountNode(mountinfo);
+
+                // Spawn Effect
+                GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], layer, viewmask, position, 0.f, 1.f, true, 1.f, Color::BLUE, LOCAL);
+
+                ok = true;
+            }
+        }
+        if (!ok && control_.type_ && control_.entityid_ != entityid)
+        {
+//            URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatarOrEntity : node=%s(%u) from entityid=%u to %u ...", node_->GetName().CString(), node_->GetID(), control_.entityid_, entityid);
 
             int eid = entityid;
-            GameHelpers::SetEntityVariation(node_->GetComponent<AnimatedSprite2D>(), eid);
+            const GOTInfo& gotinfo = GOT::GetConstInfo(StringHash(control_.type_));
+            GameHelpers::SetEntityVariation(node_->GetComponent<AnimatedSprite2D>(), LOCAL, eid, &gotinfo);
+            control_.entityid_ = entityid;
 
-            control_.type_ = type;
-            control_.entityid_ = eid;
-
-            node_->SetVar(GOA::CLIENTID, clientid);
-
-            node_->SetEnabled(true);
-
-            Light* light = node_->GetComponent<Light>();
-            if (light)
-                light->SetEnabled(false);
-
-            node_->ApplyAttributes();
-
-            node_->AddTag("Player");
-
-            // remount if was mounted
-            GameHelpers::MountNode(mountinfo);
-
-            // Spawn Effect
-            GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], layer, viewmask, position, 0.f, 1.f, true, 1.f, Color::BLUE, LOCAL);
-
-            return true;
+            ok = true;
         }
-        else
-            URHO3D_LOGERRORF("GOC_Controller() - ChangeAvatar : nodeid=%u from %s(%u) to type=%s(%u) ... templateNode=%u NOK !",
-                             node_->GetID(), GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
-                             GOT::GetType(StringHash(type)).CString(), type, templateNode);
+
+        return ok;
     }
 
     return false;

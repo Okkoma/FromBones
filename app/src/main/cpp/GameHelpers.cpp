@@ -89,6 +89,7 @@
 #include "GOC_Destroyer.h"
 #include "GOC_ControllerPlayer.h"
 #include "GOC_ControllerAI.h"
+#include "GOC_Inventory.h"
 #include "GOC_Move2D.h"
 #include "GOC_Collide2D.h"
 #include "GOC_ZoneEffect.h"
@@ -2413,48 +2414,58 @@ void GameHelpers::SetCollectableProperties(GOC_Collectable* collectable, const S
     }
 }
 
-void GameHelpers::GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist)
+void GameHelpers::GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, int rand, EquipmentList* equipmentlist)
 {
     equipmentlist->Clear();
 
     if (animatedSprite->HasCharacterMap(CMAP_WEAPON1))
     {
-        const StringHash& weapon1 = GameRand::GetRand(OBJRAND, 100) > 35 ? COT::GetRandomTypeFrom(COT::MELEEWEAPONS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Weapon1", weapon1));
+        const StringHash& weapon1 = GetRand(rand, 100) > 35 ? COT::GetRandomTypeFrom(COT::MELEEWEAPONS, rand) : StringHash::ZERO;
+        equipmentlist->Push(EquipmentPart(0, "Weapon1", weapon1));
     }
     if (animatedSprite->HasCharacterMap(CMAP_WEAPON2))
     {
         bool canshoot = animatedSprite->HasAnimation("shoot0");
-        const StringHash& weapon2 = canshoot ? COT::GetRandomTypeFrom(COT::RANGEDWEAPONS, GameRand::GetRand(OBJRAND, 100)) :
-                                    (GameRand::GetRand(OBJRAND, 100) > 50 ? COT::GetRandomTypeFrom(COT::MELEEWEAPONS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO);
+        const StringHash& weapon2 = canshoot ? COT::GetRandomTypeFrom(COT::RANGEDWEAPONS, rand) :
+                                    (GetRand(rand, 100) > 50 ? COT::GetRandomTypeFrom(COT::MELEEWEAPONS, rand) : StringHash::ZERO);
 
-        equipmentlist->Push(EquipmentPart("Weapon2", weapon2));
+        equipmentlist->Push(EquipmentPart(1, "Weapon2", weapon2));
     }
     if (animatedSprite->HasCharacterMap(CMAP_ARMOR))
     {
-        const StringHash& armor = GameRand::GetRand(OBJRAND, 100) > 50 ? COT::GetRandomTypeFrom(COT::ARMORS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Armor", armor));
+        const StringHash& armor = GetRand(rand*2, 100) > 50 ? COT::GetRandomTypeFrom(COT::ARMORS, rand) : StringHash::ZERO;
+        equipmentlist->Push(EquipmentPart(2, "Armor", armor));
     }
     if (animatedSprite->HasCharacterMap(CMAP_HELMET))
     {
-        const StringHash& helmet = GameRand::GetRand(OBJRAND, 100) > 65 ? COT::GetRandomTypeFrom(COT::HELMETS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Helmet", helmet));
+        const StringHash& helmet = GetRand(rand*3, 100) > 65 ? COT::GetRandomTypeFrom(COT::HELMETS, rand) : StringHash::ZERO;
+        equipmentlist->Push(EquipmentPart(3, "Helmet", helmet));
     }
-    if (animatedSprite->HasCharacterMap(CMAP_BELT))
+    if (animatedSprite->HasCharacterMap(CMAP_GLOVES))
     {
-        const StringHash& belt = GameRand::GetRand(OBJRAND, 100) > 35 ? COT::GetRandomTypeFrom(COT::BELTS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Belt", belt));
+        const StringHash& armor = GetRand(rand*4, 100) > 50 ? COT::GetRandomTypeFrom(COT::GLOVES, rand) : StringHash::ZERO;
+        equipmentlist->Push(EquipmentPart(4, "Gloves", armor));
     }
-    if (animatedSprite->HasCharacterMap(CMAP_CAPE))
+    if (animatedSprite->HasCharacterMap(CMAP_BOOTS))
     {
-        const StringHash& cape = GameRand::GetRand(OBJRAND, 100) > 65 ? COT::GetRandomTypeFrom(COT::CAPES, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Cape", cape));
+        const StringHash& helmet = GetRand(rand*5, 100) > 65 ? COT::GetRandomTypeFrom(COT::BOOTS, rand) : StringHash::ZERO;
+        equipmentlist->Push(EquipmentPart(5, "Boots", helmet));
     }
-    if (animatedSprite->HasCharacterMap(CMAP_HEADBAND))
-    {
-        const StringHash& headband = GameRand::GetRand(OBJRAND, 100) > 65 ? COT::GetRandomTypeFrom(COT::HEADBANDS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
-        equipmentlist->Push(EquipmentPart("Headband", headband));
-    }
+//    if (animatedSprite->HasCharacterMap(CMAP_BELT))
+//    {
+//        const StringHash& belt = GameRand::GetRand(OBJRAND, 100) > 35 ? COT::GetRandomTypeFrom(COT::BELTS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
+//        equipmentlist->Push(EquipmentPart(6, "Belt", belt));
+//    }
+//    if (animatedSprite->HasCharacterMap(CMAP_CAPE))
+//    {
+//        const StringHash& cape = GameRand::GetRand(OBJRAND, 100) > 65 ? COT::GetRandomTypeFrom(COT::CAPES, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
+//        equipmentlist->Push(EquipmentPart(7, "Cape", cape));
+//    }
+//    if (animatedSprite->HasCharacterMap(CMAP_HEADBAND))
+//    {
+//        const StringHash& headband = GameRand::GetRand(OBJRAND, 100) > 65 ? COT::GetRandomTypeFrom(COT::HEADBANDS, GameRand::GetRand(OBJRAND, 100)) : StringHash::ZERO;
+//        equipmentlist->Push(EquipmentPart(8, "Headband", headband));
+//    }
 }
 
 void GameHelpers::CleanCharacterMapping(AnimatedSprite2D* animatedSprite)
@@ -2499,7 +2510,7 @@ void GameHelpers::SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentLi
 
         if (part.objecttype_)
         {
-            URHO3D_LOGINFOF("GameHelpers() - SetEquipmentList : GOT=%s MapName=%s ...", GOT::GetType(part.objecttype_).CString(), part.mapname_.CString());
+//            URHO3D_LOGINFOF("GameHelpers() - SetEquipmentList : GOT=%s MapName=%s ...", GOT::GetType(part.objecttype_).CString(), part.mapname_.CString());
 
             Sprite2D::LoadFromResourceRefList(animatedSprite->GetContext(), GOT::GetResourceList(part.objecttype_), spritesList);
             if (spritesList.Size())
@@ -2550,7 +2561,7 @@ void GameHelpers::PurgeRedundantAppliedCharacterMaps(AnimatedSprite2D* animatedS
     animatedSprite->SetAppliedCharacterMapsAttr(appliedmaps);
 }
 
-void GameHelpers::SetEntityVariation(AnimatedSprite2D* animatedsprite, int& entityid, const GOTInfo* gotinfo, bool forceRandomEntity, bool forceRandomMapping)
+void GameHelpers::SetEntityVariation(AnimatedSprite2D* animatedsprite, unsigned servernodeid, int& entityid, const GOTInfo* gotinfo, bool forceRandomEntity, bool forceRandomMapping)
 {
     if (!animatedsprite)
         return;
@@ -2558,20 +2569,23 @@ void GameHelpers::SetEntityVariation(AnimatedSprite2D* animatedsprite, int& enti
     int entityidFlags = entityid & EntityFlags;
     int entityidValue = entityid & EntityValue;
 
+    if (servernodeid == LOCAL)
+        servernodeid = animatedsprite->GetNode()->GetID();
+
     // Randomize Entity
     if (((gotinfo && gotinfo->entityVariation_) && (entityidFlags & RandomEntityFlag)) || forceRandomEntity)
     {
         entityidValue = 0;
         if (animatedsprite->GetNumSpriterEntities() > 1)
         {
-            entityidValue = GameRand::GetRand(OBJRAND, 100) % animatedsprite->GetNumSpriterEntities();
+            entityidValue = servernodeid % animatedsprite->GetNumSpriterEntities();
             if (!entityidValue && animatedsprite->GetSpriterEntity(0) == "Custom")
                 entityidValue = 1;
-
-//            URHO3D_LOGINFOF("GameHelpers() - SetEntityVariation : node=%s(%u) randomize entityid Value=%d ...", animatedsprite->GetNode()->GetName().CString(), animatedsprite->GetNode()->GetID(), entityidValue);
         }
 
         entityidValue = entityidValue % Max(animatedsprite->GetNumSpriterEntities(), MaxEntityIds);
+//        URHO3D_LOGERRORF("GameHelpers() - SetEntityVariation : node=%s(%u) servernodeid=%u randomize Entity=%d old=%d ...",
+//                         animatedsprite->GetNode()->GetName().CString(), animatedsprite->GetNode()->GetID(), servernodeid, entityidValue, animatedsprite->GetSpriterEntityIndex());
 
         // Set Entity
         if (entityidValue != animatedsprite->GetSpriterEntityIndex())
@@ -2610,15 +2624,18 @@ void GameHelpers::SetEntityVariation(AnimatedSprite2D* animatedsprite, int& enti
         // Important to randomize the heads for the preparation of the nodes in GOC_BodyExploder2D.
         if (randomMapping)
         {
-            GameRand& Random = GameRand::GetRandomizer(OBJRAND);
-            animatedsprite->ApplyCharacterMap(String("Head")+String(Random.Get(3) + 1));
+            animatedsprite->ApplyCharacterMap(String("Head")+String(servernodeid%3 + 1));
         }
         // Randomize Equipment
         if (randomMapping)
         {
             EquipmentList equipmentlist;
-            GetRandomizedEquipment(animatedsprite, &equipmentlist);
+            GetRandomizedEquipment(animatedsprite, servernodeid % 100, &equipmentlist);
             SetEquipmentList(animatedsprite, &equipmentlist);
+
+            // 2024/01/24 : Don't need this : on clients the variation is found thanks to servernodeid and the good entityflag (replicated by GOA::ENTITYDATAID or GOC_Controller::control_.entityid_)
+//            if (GameContext::Get().ServerMode_)
+//                GOC_Inventory::NetServerSaveEquipment(servernodeid, equipmentlist);
         }
     }
 

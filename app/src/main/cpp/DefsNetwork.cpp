@@ -49,11 +49,11 @@ const char* netCommandNames[] =
     "SETMAPDATAS=16",
     "SETWORLD=17",
     "REQUESTMAP=18",
-    "TRIGCLICKED=18",
-    "ENTITYSELECTED=19",
-    "MOUNTENTITYON=20",
-    "UPDATEITEMSSTORAGE=21",
-    "UPDATEZONEDATA=22",
+    "TRIGCLICKED=19",
+    "ENTITYSELECTED=20",
+    "MOUNTENTITYON=21",
+    "UPDATEITEMSSTORAGE=22",
+    "UPDATEZONEDATA=23",
     0
 };
 
@@ -364,9 +364,11 @@ void ObjectCommand::Read(Deserializer& msg)
     cmd_ = msg.ReadVariantMap();
 }
 
-void ObjectCommand::Write(Serializer& msg, int toclient) const
+void ObjectCommand::Write(Serializer& msg, int cmdid, int toclient) const
 {
     msg.WriteUByte(OBJECTCOMMAND);
+    if (cmdid != -1)
+        msg.WriteUByte(cmdid);
     msg.WriteInt(clientId_);
     msg.WriteBool(broadCast_);
     msg.WriteVariantMap(cmd_);

@@ -1105,7 +1105,6 @@ int ZoneData::GetNumPlayersInside() const
     }
     else if (GameContext::Get().ClientMode_)  // Detect Visible NetPlayers
     {
-
         Vector<NetPlayerInfo >& netPlayersInfos = GameNetwork::Get()->GetNetPlayersInfos();
         for (Vector<NetPlayerInfo >::Iterator it = netPlayersInfos.Begin(); it != netPlayersInfos.End(); ++it)
         {

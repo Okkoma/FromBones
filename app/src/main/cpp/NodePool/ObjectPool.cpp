@@ -259,9 +259,6 @@ bool ObjectPoolCategory::FreePoolNode(Node* node, bool cleanDependences)
 //        URHO3D_LOGINFOF("ObjectPoolCategory() - FreePoolNode : type=%s CopyAttributes After nodeEnabled=%s !",
 //                GOT::GetType(GOT_).CString(), node->IsEnabled() ? "true" : "false");
 
-        if (gotinfo_->scaleVariation_)
-            ApplyScaleVariation(node);
-
         /// Restore poolnode to Category node
         // Prevent SceneCleaner to Remove ObjectPool Nodes
         // For Example : GOC_BodyExploder2D reparent ExplodedParts to the mapnode
@@ -290,9 +287,9 @@ bool ObjectPoolCategory::FreePoolNode(Node* node, bool cleanDependences)
     return false;
 }
 
-void ObjectPoolCategory::ApplyScaleVariation(Node* node)
+void ObjectPoolCategory::ApplyScaleVariation(Node* node, unsigned nodeid)
 {
-    unsigned rand = node->GetID();
+    unsigned rand = nodeid > LOCAL ? nodeid : node->GetID();
     float scalef = (1.f-(float)gotinfo_->scaleVariation_*0.05f) + 0.1f * (float)(rand%gotinfo_->scaleVariation_);
 
 //    URHO3D_LOGINFOF("ObjectPoolCategory() - ApplyScaleVariation : type=%s(%u) : node=%u ... scalef=%f", GOT::GetType(GOT_).CString(), GOT_.Value(), node->GetID(), scalef);
@@ -444,14 +441,14 @@ bool ObjectPoolCategory::Update(HiresTimer* timer, const long long& delay)
             node = nodes_[inode];
 
             if (gotinfo_->scaleVariation_)
-                ApplyScaleVariation(node);
+                ApplyScaleVariation(node, LOCAL);
 
             /// TODO : supprimer ceci après implementation du charactermapping avec bodyexploder2D
             AnimatedSprite2D* animatedsprite = node->GetComponent<AnimatedSprite2D>();
             if (animatedsprite)
             {
                 int entityid = 0;
-                GameHelpers::SetEntityVariation(animatedsprite, entityid, gotinfo_, false, false);
+                GameHelpers::SetEntityVariation(animatedsprite, node->GetID(), entityid, gotinfo_, false, false);
             }
 
             node->ApplyAttributes();
@@ -885,9 +882,6 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
                 return 0;
             }
 
-            if (category && category->gotinfo_->scaleVariation_)
-                category->ApplyScaleVariation(node);
-
             applyAttr = true;
         }
         else
@@ -900,6 +894,9 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
     {
         *outsidePool = false;
     }
+
+    if (category && category->gotinfo_->scaleVariation_)
+        category->ApplyScaleVariation(node, nodeid);
 
     if (node->GetID() == 0)
     {
@@ -930,9 +927,12 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
 
     // 20/01/2023 : Important to SetEntityVariation after GameHelpers:LoadNodeAttributes() for the case of Map::SetEntities_Load() with the character Mapping of the Equipment
     // then the mapping will be well randomized when necessary.
-    AnimatedSprite2D* animatedsprite = node->GetComponent<AnimatedSprite2D>();
-    if (animatedsprite)
-        GameHelpers::SetEntityVariation(animatedsprite, entityid, category ? category->gotinfo_ : 0, false, false);
+    if (entityid != -1)
+    {
+        AnimatedSprite2D* animatedsprite = node->GetComponent<AnimatedSprite2D>();
+        if (animatedsprite)
+            GameHelpers::SetEntityVariation(animatedsprite, nodeid, entityid, category ? category->gotinfo_ : 0, false, false);
+    }
 
 //    if (parent)
 //        node->SetEnabledRecursive(parent->IsEnabled());

@@ -94,7 +94,7 @@ public :
     unsigned firstReplicatedComponentID_, lastReplicatedComponentID_;
 
 private :
-    void ApplyScaleVariation(Node* node);
+    void ApplyScaleVariation(Node* node, unsigned nodeid);
     bool Update(HiresTimer* timer, const long long& delay);
 
 //    void ApplyEntityVariation(AnimatedSprite2D* animatedSprite, int entityid=-1);

@@ -7,6 +7,38 @@
 
 Todos:
 
+    ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
+        -> 23/01/2014 : via l'editeur en server, les equipments des skeletons ne sont pas settés coté client ...
+            => l'entityid n'est pas communiqué mais doit etre necessaire pour GameHelpers::SetEntityVariation
+        -> utiliser coté server envoyé la commande SETFULLEQUIPMENT, à reception les clients utiliseront GOC_Inventory::NetClientSetEquipment.
+        => il faut creer une procedure pour recuperer les equipments des entity si pas player.
+        ==> il suffit lors du randomize equipment dans GameHelpers::SetEntityVariation de sauvegarder l'equipment généré dans GOC_Inventory::clientEquipmentSets_
+        ==> ajout de GOC_Inventory::NetServerSaveEquipment et NetServerSendEquipment et ajout de GOC_Inventory::NetClientSetEquipment dans Map::SetEntities_Load
+        ===> il n'y a plus de besoin d'utiliser les procedures precedentes si l'on change le randomize en s'appuyant uniquement sur le servernodeid comme seed
+             il faut juste s'assurer que dans Map::SetEntities_Load on utilise le bon entityid. ce n'est pas encore au point ... il faudrait pouvoir le communiquer autrement que dans EntityData qui n'est pas forcement à jour.
+        ====> probleme resolu : on utilisera la var GOA::ENTITYDATAID dejà utilisé pour les furnitures.
+              lors du Map::SetEntities_Add, les EntityData sont déjà créées à la génération du monde (cf ) Il suffit alors de lié le node créé avec l'index de l'EntityData grace à la var.
+              Il sera ensuite possible pour Map::SetEntities_Load de reprendre l'EntityData et la valeur sstype_ importante pour entityid.
+        ====> pour le moment Map::AddEntity n'utilise pas cette technique car on ne crée pas encore d'EntityData avec la procedure : il suffit d'ajout mapData_->AddEntityData(node) mais voir l'incidence...
+              les entities ainsi créée ne pourront etre rechargé avec Map::SetEntities_Load mais pas de variation en local
+              en reseau, SetEntityVariation peut néanmoins etre utilisé car l'entityid est sauvegardé dans GOC_Controller::control_.entityid_ qui est répliquable.
+        ======> pour resoudre le probleme en localmode, il faudrait créer un attribut entityid dans l'un des composants.
+
+    ✔ 22/01/2024 : vu en arenazone les inventaires/coffres en network @done(24-01-23 13:34)
+        -> refaire des essais : dropper des objets puis ramasser des objets puis prendre des coffres
+        --> probleme de transfer d'item entre collectable et inventaire suite aux modifications sur GOC_Inventory (les nodeid sont remplacé par ObjectControlInfo dans GameNetwork::Client_TransferItem)
+        ==> si l'ObjectControlInfo est supprimé avant le transfert alors il y a un pb. C'est ce qui se passe à priori.
+        ===> cela provient de l'ordre de preparation des packets dans GameNetwork::HandlePlayServer_NetworkUpdate qui priorise les packets server commun et ensuite les packets specific
+        ====> la cmd EraseNode qui est broadcasté passe avant le TransfertItem qui est spécific à un client.
+            de façon temporaire, privilégier les packet specific, ça résoud localement mais ca peut generer de nouveau probleme.
+        ====> ajouter un numero d'ordre de commande. A la reception ne commencer à appliquer les commandes reçu que si la precedente est déjà appliquée ou que cmdid=0.
+        => il y a encore des problemes : le tampon ne peut pas toujours recuperer une sequence d'id de commandes qui se suivent
+        ==> ceci est du aux commandes specifiques qui ne sont pas envoyées aux autres clients et créent donc des trous dans la séquence.
+        ==> changement de code : utilisation  de packet specifique pour l'envoi aux clients des que le sender n'est pas le server et on complete par des commandes vides aux besoins sur les commandes specifiques envoyées qu'à un client.
+
+    ✔ 22/01/2024 : Lorsque'un netplayer meurt et repop, GOC_Destroyer ne fait plus d'update de position : ce qui occasionne des pbs de bosszone notamment
+        => correctif lors de la reactivation dans GameNetwork::UpdateControl(), il faut bien reactivé destroyer->SetEnablePositionUpdate(true)
+
     ☐ 22/01/2024 : les objets deposés au sol par un netplayer disparaissent de la map lorsque l'avatar est éloigné de l'objet
         => cela doit etre du à la gestion de la visiblité des entités ...
         => le probleme c'est que le setenabled des objets du client va s'appliquer à l'ensemble des autres clients/server ...
@@ -15,6 +47,8 @@ Todos:
             par contre un familier ça ne marchera plus...
 
     ☐ 22/01/2024 : attention Map::AddEntity a été modifié pour le besoin des bosszones, il faut verifier que tout fonctionne bien coté spawn d'entités.
+        => il y a l'air d'avoir des pb avec les bones. Lorsque l'on explose un skeleton, il y a parfois une difference entre les positions sur le serveur et sur le client
+        => le spawn de mob via l'editeur n'est pas toujours repercuté sur les clients.
 
     ☐ 22/01/2024 : les blocks de fermeture des zone de boss s'ils sont detruits par un netplayer doit etre repercuté sur le reseau.
 
@@ -22,8 +56,6 @@ Todos:
         Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
         Mettre des cas d'usage précis
         voir pour la synchronisation des spawnstamp
-
-    ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
 
     ✔ 17/01/2024 : crash du serveur avec 2 clients : en spawnant plus de 255 lames avec le premier client puis en reiterant avec le second.
         -> crash dans GameNetwork::PushObjectCommand : probleme de saturation de la pool d'objectcommand

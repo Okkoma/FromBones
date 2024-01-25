@@ -228,6 +228,8 @@ public :
     static void NetClientSetInventory(unsigned nodeid, VariantMap& eventData);
     static void NetClientSetEquipment(unsigned nodeid, VariantMap& eventData);
     static void NetClientSetEquipment(Node* node, unsigned servernodeid);
+    static void NetServerSaveEquipment(unsigned servernodeid, const EquipmentList& equipmentList);
+    static void NetServerSendEquipment(unsigned servernodeid, const VariantVector& equipmentSet);
     static void NetServerSetEquipmentSlot(Node* node, VariantMap& eventData);
     static void NetServerDropItem(Node* node, VariantMap& eventData);
 

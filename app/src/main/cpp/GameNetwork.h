@@ -117,6 +117,19 @@ struct ClientInfo
 
 struct NetPlayerInfo
 {
+    NetPlayerInfo() { zone_.z_ = -1; }
+    NetPlayerInfo(Node* node) { node_ = node; zone_.z_ = -1; }
+    NetPlayerInfo(const NetPlayerInfo& npinfo) : node_(npinfo.node_), zone_(npinfo.zone_) { }
+
+    bool operator == (const NetPlayerInfo& rhs) const
+    {
+        return node_ == rhs.node_;
+    }
+    bool operator != (const NetPlayerInfo& rhs) const
+    {
+        return node_ != rhs.node_;
+    }
+
     WeakPtr<Node> node_;
     IntVector3 zone_;
 };

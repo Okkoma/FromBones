@@ -49,7 +49,7 @@
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Vampire|GOT_Sorceress|GOT_Darkren" /> -->
 			<!-- <attribute name="Map - Authorized Categories" value="GOT_Kigrat" />			 -->
 
-			<attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_Vampire|GOT_TreasureChest" />
+			<attribute name="Map - Authorized Categories" value="GOT_Raignee|GOT_Skeleton|GOT_Bat|GOT_TreasureChest" />
 			<!--<attribute name="Map - Authorized Categories" value="GOT_TreasureChest" />-->
             <attribute name="Map - Num Entities" value="10 15" />
 			

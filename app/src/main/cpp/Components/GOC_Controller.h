@@ -78,7 +78,7 @@ public :
     void SetControllerType(int type, bool force = false);
     void SetMainController(bool state);
     void SetControlActionEnable(bool state) { controlActionEnable_ = state; }
-    bool ChangeAvatar(unsigned type, unsigned char entityid);
+    bool ChangeAvatarOrEntity(unsigned type, unsigned char entityid);
 
     bool Update(unsigned buttons, bool forceUpdate);
 

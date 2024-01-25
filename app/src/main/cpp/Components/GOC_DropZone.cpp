@@ -768,7 +768,7 @@ int GOC_DropZone::SelectBuildableEntity(const StringHash& got, const Vector<Slot
         {
             const String& slotname = equipmentTemplate->GetSlotName(it->first_);
             const StringHash& item = it->second_;
-            equipment.Push(EquipmentPart(slotname, item));
+            equipment.Push(EquipmentPart(it->first_, slotname, item));
 //            URHO3D_LOGINFOF("GOC_DropZone() - SelectBuildableEntity ... add equipment=%s(%u) to slot=%s", GOT::GetType(item).CString(), item.Value(), slotname.CString());
         }
     }

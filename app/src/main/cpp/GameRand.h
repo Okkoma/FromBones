@@ -18,6 +18,8 @@ enum GameRandRng
     WEATHERRAND,
 };
 
+static int GetRand(unsigned seed, int range) { return (((seed * 214013 + 2531011) >> 16) & 32767) % range; }
+
 class GameRand
 {
 public:

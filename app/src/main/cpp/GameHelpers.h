@@ -150,10 +150,10 @@ public:
     static Sprite2D* GetSpriteForType(const StringHash& type, const StringHash& buildtype = StringHash::ZERO, int partIndex=-1);
     static void SetCollectableProperties(GOC_Collectable* collectable, const StringHash& type, VariantMap* slotData=0);
     static void CleanCharacterMapping(AnimatedSprite2D* animatedSprite);
-    static void GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
+    static void GetRandomizedEquipment(AnimatedSprite2D* animatedSprite, int rand, EquipmentList* equipmentlist);
     static void SetEquipmentList(AnimatedSprite2D* animatedSprite, EquipmentList* equipmentlist);
     static void PurgeRedundantAppliedCharacterMaps(AnimatedSprite2D* animatedSprite);
-    static void SetEntityVariation(AnimatedSprite2D* animatedsprite, int& entityid, const GOTInfo* gotinfo=0, bool forceRandomEntity=false, bool forceRandomMapping=false);
+    static void SetEntityVariation(AnimatedSprite2D* animatedsprite, unsigned nodeid, int& entityid, const GOTInfo* gotinfo=0, bool forceRandomEntity=false, bool forceRandomMapping=false);
     static void SetRenderedAnimation(AnimatedSprite2D* animatedSprite, const String& cmap, const StringHash& type);
     static String GetMoveStateString(unsigned movestate);
 

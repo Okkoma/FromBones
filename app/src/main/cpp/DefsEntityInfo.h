@@ -78,9 +78,10 @@ struct MapEntityInfo
 struct EquipmentPart
 {
     EquipmentPart() { }
-    EquipmentPart(const String& mapname, const StringHash& objecttype) : mapname_(mapname), objecttype_(objecttype) { }
-    EquipmentPart(const EquipmentPart& part) : mapname_(part.mapname_), objecttype_(part.objecttype_) { }
+    EquipmentPart(int slotid, const String& mapname, const StringHash& objecttype) : slotid_(slotid), mapname_(mapname), objecttype_(objecttype) { }
+    EquipmentPart(const EquipmentPart& part) : slotid_(part.slotid_), mapname_(part.mapname_), objecttype_(part.objecttype_) { }
 
+    int slotid_;
     String mapname_;
     StringHash objecttype_;
 };

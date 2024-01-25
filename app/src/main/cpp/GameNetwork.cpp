@@ -1355,7 +1355,7 @@ void GameNetwork::ChangeEquipment(VariantMap& eventData)
     {
         unsigned char entityid = eventData[Net_ObjectCommand::P_CLIENTOBJECTENTITYID].GetUInt();
         GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
-        if (controller && controller->ChangeAvatar(type, entityid))
+        if (controller && controller->ChangeAvatarOrEntity(type, entityid))
             if (clientMode_)
                 GOC_Inventory::NetClientSetEquipment(node, node->GetID());
     }
@@ -2169,7 +2169,6 @@ void GameNetwork::Server_RemoveObject(unsigned nodeid, bool sendnetevent, bool a
             sServerEventData_.Clear();
             sServerEventData_[Net_ObjectCommand::P_NODEID] = nodeid;
             PushObjectCommand(ERASENODE, 0, true, 0);
-//            Server_SendObjectCommand(ERASENODE, 0, 0, allconnections ? 0 : GetConnection(cinfo.clientId_));
         }
 
         cinfo.SetActive(false, true);
@@ -4150,7 +4149,7 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
         GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
         if (destroyer)
         {
-            destroyer->SetEnablePositionUpdate(false);
+            destroyer->SetEnablePositionUpdate(true);
             destroyer->SetEnableUnstuck(false);
             destroyer->Reset(true);
         }
@@ -4228,7 +4227,7 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
         // Update Avatar
         if (controller && objectControl.states_.type_)
         {
-            if (controller->ChangeAvatar(objectControl.states_.type_, objectControl.states_.entityid_))
+            if (controller->ChangeAvatarOrEntity(objectControl.states_.type_, objectControl.states_.entityid_))
                 if (clientMode_)
                     GOC_Inventory::NetClientSetEquipment(node, node->GetID());
         }
@@ -4326,6 +4325,7 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
 
 static ObjectControlInfo sDumpObject_;
 static ObjectCommand sObjCmd_;
+static ObjectCommand sObjCmds_[256];
 static PODVector<unsigned char> sReceiveStamps_;
 
 void GameNetwork::HandlePlayServer_ReceiveControls(StringHash eventType, VariantMap& eventData)
@@ -4696,9 +4696,9 @@ void GameNetwork::HandlePlayClient_ReceiveServerControls(StringHash eventType, V
                     bool ok = NetAddEntity(objectControlInfo);
                     if (ok)
                     {
-                        netPlayersInfos_.Resize(netPlayersInfos_.Size()+1);
-                        netPlayersInfos_.Back().node_ = WeakPtr<Node>(objectControlInfo.node_);
-                        netPlayersInfos_.Back().zone_.z_ = -1;
+                        NetPlayerInfo netplayerinfo(objectControlInfo.node_);
+                        if (!netPlayersInfos_.Contains(netplayerinfo))
+                            netPlayersInfos_.Push(netplayerinfo);
                     }
 //#if defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE) || defined(ACTIVE_NETWORK_DEBUGCLIENT_RECEIVE_ALL)
                     URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveServerControls : clientid=%d nodeclientid=%u servernodeid=%u clientnodeid=%u node=%s(%u) spawnid=%u(holder=%u,stamp=%u) ... instantiate entity !",
@@ -5008,6 +5008,7 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
         // Read the Command Packet Stamp and get the good storage location
         unsigned char stamp = buffer.ReadUByte();
         ObjectCommandPacket& packet = objCmdInfo_.objCmdPacketsReceived_[stamp];
+        packet.stamp_ = stamp;
 
         unsigned packetsize = buffer.ReadUInt();
 
@@ -5042,6 +5043,8 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
     unsigned char head = objCmdInfo_.objCmdHead_;
     int headinc = 0;
     bool loop = false;
+    unsigned char lastCmdID = 0U;
+
     for (;;)
     {
         ObjectCommandPacket& packet = objCmdInfo_.objCmdPacketsReceived_[head];
@@ -5053,27 +5056,27 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
         if (packet.state_ == PACKET_RECEIVED)
         {
             packet.buffer_.Seek(0);
+
             do
             {
                 int type = packet.buffer_.ReadUByte();
                 if (type == OBJECTCOMMAND)
                 {
-                    sObjCmd_.Read(packet.buffer_);
+                    // store Received objectCmd in the good index
+                    unsigned char cmdid = packet.buffer_.ReadUByte();
+                    ObjectCommand& objCmd = sObjCmds_[cmdid];
+
+                    objCmd.Read(packet.buffer_);
+                    objCmd.state_ = OBJCMD_RECEIVED;
+
+                    if (lastCmdID < cmdid)
+                        lastCmdID = cmdid;
 
                 #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-                    int cmd = sObjCmd_.cmd_[Net_ObjectCommand::P_COMMAND].GetInt();
-                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : try ObjectCommand cmd=%d(%s) for nodeid=%u broadcast=%s cmdclientid=%d...",
-                                    cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", sObjCmd_.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(),
-                                    sObjCmd_.broadCast_?"true":"false", sObjCmd_.clientId_);
+                    int cmd = objCmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt();
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : packet stamp=%u receive cmdid=%u lastcmdid=%u cmd=%d(%s) broadcast=%s cmdclientid=%d ...",
+                                    packet.stamp_, cmdid, lastCmdID, cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", objCmd.broadCast_?"true":"false", objCmd.clientId_);
                 #endif
-                    if ((!sObjCmd_.broadCast_ && clientID_ == sObjCmd_.clientId_) || (sObjCmd_.broadCast_ && clientID_ != sObjCmd_.clientId_))
-                    {
-                #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
-                        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d ... OK !", sObjCmd_.clientId_);
-                #endif
-                        // Apply ObjectCommand
-                        Client_ApplyObjectCommand(sObjCmd_.cmd_);
-                    }
                 }
             }
             while (!packet.buffer_.IsEof());
@@ -5096,6 +5099,34 @@ void GameNetwork::HandlePlayClient_ReceiveCommands(StringHash eventType, Variant
             }
             break;
         }
+    }
+
+    // Apply All Received ObjectCommand in Order
+    for (int cmdid = 0; cmdid <= lastCmdID; cmdid++)
+    {
+        ObjectCommand& objCmd = sObjCmds_[cmdid];
+
+        if (objCmd.state_ == OBJCMD_CLEARED)
+            continue;
+
+    #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+        int cmd = objCmd.cmd_[Net_ObjectCommand::P_COMMAND].GetInt();
+        URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : cmdid=%u/%u try ObjectCommand cmd=%d(%s) for nodeid=%u broadcast=%s cmdclientid=%d...",
+                        cmdid, lastCmdID, cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", objCmd.cmd_[Net_ObjectCommand::P_NODEID].GetUInt(),
+                         objCmd.broadCast_?"true":"false", objCmd.clientId_);
+     #endif
+        
+        if ((!objCmd.broadCast_ && clientID_ == objCmd.clientId_) || (objCmd.broadCast_ && clientID_ != objCmd.clientId_))
+        {
+            // Apply ObjectCommand
+            Client_ApplyObjectCommand(objCmd.cmd_);
+
+        #ifdef ACTIVE_NETWORK_DEBUGCLIENT_OBJECTCOMMANDS
+            URHO3D_LOGINFOF("GameNetwork() - HandlePlayClient_ReceiveCommands : apply ObjectCommand from clientid=%d ... OK !", objCmd.clientId_);
+        #endif
+        }
+
+        objCmd.state_ = OBJCMD_CLEARED;
     }
 
     // Move the head
@@ -5418,46 +5449,31 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
 //            URHO3D_LOGINFOF(" ... New Commands Size = %u ...", objCmdNew_.Size());
 
             // write new commands into new packets
-            for (PODVector<ObjectCommand* >::Iterator it = objCmdNew_.Begin(); it != objCmdNew_.End(); ++it)
+            for (unsigned char cmdid = 0 ; cmdid < objCmdNew_.Size(); cmdid++)
             {
-                ObjectCommand& cmd = **it;
+                ObjectCommand& cmd = *objCmdNew_[cmdid];
+
                 if (cmd.clientId_ == 0)
                 {
                     ObjectCommandPacket*& serverpacket = newpackets[0];
                     if (!serverpacket)
                         serverpacket = objCmdPckPool_.Get(false); // don't addref here
-                    cmd.Write(serverpacket->buffer_, 0);
-//                    URHO3D_LOGINFOF(" .... Command[%d] serverpacket=%u ", it-objCmdNew_.Begin(), serverpacket);
+
+                    cmd.Write(serverpacket->buffer_, cmdid, 0);
                 }
-                else if (cmd.broadCast_)
+                else
                 {
                     for (HashMap<Connection*, ClientInfo>::Iterator jt = serverClientInfos_.Begin(); jt != serverClientInfos_.End(); ++jt)
                     {
                         ClientInfo& clientinfo = jt->second_;
-                        // prepare packet for clientid != cmd.clientId
-                        if (clientinfo.clientID_ != cmd.clientId_)
-                        {
-                            ObjectCommandPacket*& broadcastpacket = newpackets[cmd.clientId_];
-                            if (!broadcastpacket)
-                            {
-                                broadcastpacket = objCmdPckPool_.Get(false); // don't addref here
-                                cmd.Write(broadcastpacket->buffer_, cmd.clientId_); // write the command only once !
-//                                URHO3D_LOGINFOF(" .... Command[%d] broadcastpacket=%u for clientids!=%d", it-objCmdNew_.Begin(), broadcastpacket, cmd.clientId_);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    // prepare specific packet for clientid == cmd.clientId
-                    ClientInfo* clientinfo = GetServerClientInfo(cmd.clientId_);
-                    if (clientinfo)
-                    {
-                        if (!clientinfo->objCmdInfo_.newSpecificPacketToSend_)
-                            clientinfo->objCmdInfo_.newSpecificPacketToSend_ = objCmdPckPool_.Get();
 
-                        cmd.Write(clientinfo->objCmdInfo_.newSpecificPacketToSend_->buffer_, cmd.clientId_);
-//                        URHO3D_LOGINFOF(" .... Command[%d] specificpacket=%u for clientid=%d", it-objCmdNew_.Begin(), clientinfo->objCmdInfo_.newSpecificPacketToSend_, cmd.clientId_);
+                        if (!clientinfo.objCmdInfo_.newSpecificPacketToSend_)
+                            clientinfo.objCmdInfo_.newSpecificPacketToSend_ = objCmdPckPool_.Get();
+
+                        if ((cmd.broadCast_ && cmd.clientId_ != clientinfo.clientID_) || (!cmd.broadCast_ && cmd.clientId_ == clientinfo.clientID_))
+                            cmd.Write(clientinfo.objCmdInfo_.newSpecificPacketToSend_->buffer_, cmdid, cmd.clientId_);
+                        else // put an empty command
+                            ObjectCommand::EMPTY.Write(clientinfo.objCmdInfo_.newSpecificPacketToSend_->buffer_, cmdid, cmd.clientId_);
                     }
                 }
             }
@@ -5476,6 +5492,13 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
             if (objCmdNew_.Size())
             {
                 int incStamp = 0;
+                if (clientinfo.objCmdInfo_.newSpecificPacketToSend_)
+                {
+                    incStamp++;
+                    clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(clientinfo.objCmdInfo_.newSpecificPacketToSend_);
+                    clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+incStamp);
+                    clientinfo.objCmdInfo_.newSpecificPacketToSend_ = 0;
+                }
                 for (HashMap<int, ObjectCommandPacket*>::ConstIterator it = newpackets.Begin(); it != newpackets.End(); ++it)
                 {
                     if (it->first_ != clientinfo.clientID_)
@@ -5485,13 +5508,6 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
                         clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(it->second_);
                         clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+incStamp);
                     }
-                }
-                if (clientinfo.objCmdInfo_.newSpecificPacketToSend_)
-                {
-                    incStamp++;
-                    clientinfo.objCmdInfo_.objCmdPacketsToSend_.PushFront(clientinfo.objCmdInfo_.newSpecificPacketToSend_);
-                    clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.PushFront(clientinfo.objCmdInfo_.objCmdToSendStamp_+incStamp);
-                    clientinfo.objCmdInfo_.newSpecificPacketToSend_ = 0;
                 }
                 if (incStamp)
                 {

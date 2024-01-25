@@ -191,6 +191,12 @@ struct ObjectControlInfo
     static const ObjectControlInfo EMPTY;
 };
 
+enum ObjectCommandPState
+{
+    OBJCMD_CLEARED = 0,
+    OBJCMD_RECEIVED,
+};
+
 class ObjectCommand : public PoolObject
 {
 public:
@@ -199,13 +205,15 @@ public:
     ObjectCommand(const ObjectCommand& cmd) { cmd.CopyTo(*this); }
 
     void Read(Deserializer& msg);
+    void Write(Serializer& msg, int cmdid=-1, int toclient=0) const;
 
-    void Write(Serializer& msg, int toclient=0) const;
     void CopyTo(ObjectCommand& cmd) const;
     void Dump() const;
 
-    void Clear() { clientId_ = 0; broadCast_ = true; cmd_.Clear(); }
+    void Clear() { state_ = clientId_ = 0; broadCast_ = true; cmd_.Clear(); }
     void OnRestore() { Clear(); }
+
+    int state_;
 
     int clientId_;
     bool broadCast_;
@@ -233,5 +241,6 @@ public:
 
     unsigned char stamp_;
     int state_;
+
     VectorBuffer buffer_;
 };

@@ -2800,7 +2800,7 @@ void GOC_Animator2D::ChangeEntity(const VariantMap& param)
     GameHelpers::SpawnParticleEffect(context_, ParticuleEffect_[PE_LIFEFLAME], animatedSprite->GetLayer(), animatedSprite->GetViewMask(), node_->GetWorldPosition2D(), 0.f, 1.f, true, 2.f, Color::BLUE, LOCAL);
 
     entityid |= SetEntityFlag;
-    GameHelpers::SetEntityVariation(animatedSprite, entityid);
+    GameHelpers::SetEntityVariation(animatedSprite, LOCAL, entityid);
 
     if (currentTemplate)
         FindNextState(context_->GetEventDataMap(false));
