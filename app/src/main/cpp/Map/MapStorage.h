@@ -131,7 +131,7 @@ public:
     const HashMap<ShortIntVector2, Map* >& GetMapsInMemory() const { return mapsInMemory_; }
     unsigned GetMapSeed() const { return sseed_; }
     Node* GetNode() const { return node_; }
-    const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const { return storage_->mapDatas_; }
+    const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const { return mapDatas_; }
 
     bool IsInsideBufferedArea(const ShortIntVector2& mPoint) const;
     void UpdateBufferedArea();
@@ -162,7 +162,7 @@ public:
     static TerrainAtlas* GetAtlas() { return atlas_; }
     static MapModel* GetMapModel(int model) { return &mapModels_[model]; }
     static MapData* GetMapDataAt(const ShortIntVector2& mpoint, bool createIfMissing = false);
-    static bool RemoveMapDataAt(const ShortIntVector2& mpoint) { return storage_->mapDatas_.Erase(mpoint); }
+    static bool RemoveMapDataAt(const ShortIntVector2& mpoint) { return mapDatas_.Erase(mpoint); }
     static const IntVector2& GetWorldPoint(int worldindex);
     static String GetMapFileName(const String& worldName, const ShortIntVector2& mPoint, const char* ext);
     static const String& GetWorldName(const IntVector2& worldPoint);
@@ -207,9 +207,6 @@ private:
     unsigned sseed_;
     int creatingMode_;
 
-    Vector<MapData> mapDatasPool_;
-    HashMap<ShortIntVector2, MapData* > mapDatas_;
-
     Rect bufferedAreaRect_[MAX_VIEWPORTS];     // BufferArea Marker For DrawDebug
     Vector<BufferExpandInfo> bufferExpandInfos_;
     Vector<IntRect> bufferAreas_;
@@ -234,6 +231,8 @@ private:
     static MapCreator* mapCreator_;
     static MapPool* mapPool_;
     static MapSerializer* mapSerializer_;
+    static Vector<MapData> mapDatasPool_;
+    static HashMap<ShortIntVector2, MapData* > mapDatas_;
 
     long long& delayUpdateUsec_;
 };

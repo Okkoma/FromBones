@@ -1304,6 +1304,7 @@ void MapData::PurgeEntityDatas()
 void MapData::AddEntityData(Node* node, EntityData* entitydata, bool forceToSet, bool priorizeEntityData)
 {
 //    URHO3D_LOGINFOF("MapData() - AddEntityData : node=%s(%u) entitydataptr=%u ...", node->GetName().CString(), node->GetID(), entitydata);
+
     int type = GOT::GetTypeProperties(entitydata && entitydata->gotindex_ && entitydata->gotindex_ < GOT::GetSize() ? GOT::Get(entitydata->gotindex_) : node->GetVar(GOA::GOT).GetStringHash());
     bool furnituretype = (type & GOT_Furniture);
     PODVector<EntityData>& datas = furnituretype ? furnitures_ : entities_;
@@ -1341,13 +1342,13 @@ void MapData::AddEntityData(Node* node, EntityData* entitydata, bool forceToSet,
     {
         if (freedatas.Size())
         {
-//            URHO3D_LOGINFOF("MapData() - AddEntityData : node=%s(%u) free entitydata setted !", node->GetName().CString(), node->GetID());
+            URHO3D_LOGINFOF("MapData() - AddEntityData : node=%s(%u) free entitydata setted !", node->GetName().CString(), node->GetID());
             entitydata = freedatas.Back();
             freedatas.Pop();
         }
         else
         {
-//            URHO3D_LOGINFOF("MapData() - AddEntityData : node=%s(%u) new entitydata setted !", node->GetName().CString(), node->GetID());
+            URHO3D_LOGINFOF("MapData() - AddEntityData : node=%s(%u) new entitydata setted !", node->GetName().CString(), node->GetID());
             // add new entitydata and set it
             datas.Resize(datas.Size() + 1);
             entitydata = &datas.Back();

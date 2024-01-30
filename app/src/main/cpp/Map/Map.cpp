@@ -4824,6 +4824,8 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
                 mcount++;
 
+//                URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
+
                 // Skip Save Player or Ally
                 if (GOManager::IsA(nodeId, GO_Player | GO_AI_Ally))
                 {
@@ -5806,8 +5808,8 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
     bool physicOk = GameHelpers::SetPhysicProperties(node, physicInfo, true);
     GOC_Destroyer* gocDestroyer = node->GetComponent<GOC_Destroyer>();
 
-//    URHO3D_LOGINFOF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s slotdata=%u ...",
-//             node->GetName().CString(), node->GetID(), entityid, GetMapPoint().ToString().CString(), node->GetWorldPosition2D().ToString().CString(), slotData);
+    URHO3D_LOGINFOF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s slotdata=%u ...",
+             node->GetName().CString(), node->GetID(), entityid, GetMapPoint().ToString().CString(), node->GetWorldPosition2D().ToString().CString(), slotData);
 
     // Never Spawn in a Wall
     if (gocDestroyer)
@@ -6004,19 +6006,16 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         {
             const VariantMap& vars = GameHelpers::GetNodeAttributeValue(StringHash("Variables"), nodeAttributes, 0).GetVariantMap();
             VariantMap::ConstIterator it = vars.Find(GOA::ENTITYDATAID);
-            if (it == vars.End())
-            {
-                URHO3D_LOGERRORF("Map() - SetEntities Load : Map=%s Entities[%d] : ... no entityDataId => skip !",
-                                 GetMapPoint().ToString().CString(), i, GOT::GetType(got).CString());
-                i++;
-                continue;
-            }
-
-            entityDataId = it->second_.GetInt();
+            entityDataId = it == vars.End() ? -1 : it->second_.GetInt();
         }
 
         if ((gotprops & GOT_UsableFurniture) == GOT_UsableFurniture)
         {
+            if (entityDataId == -1)
+            {
+                i++;
+                continue;
+            }
             if (entityDataId >= mapData_->furnitures_.Size())
             {
                 URHO3D_LOGERRORF("Map() - SetEntities Load : Map=%s Entities[%d] : usable furniture=%s ... entityDataId=%d > furnitures_.Size()=%u ... break !",
@@ -6027,7 +6026,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         }
         else
         {
-            entityid = entityDataId < mapData_->entities_.Size() ? mapData_->entities_[entityDataId].sstype_ : -1;
+            entityid = entityDataId > -1 && entityDataId < mapData_->entities_.Size() ? mapData_->entities_[entityDataId].sstype_ : -1;
         }
 
         ObjectPoolCategory* category = 0;

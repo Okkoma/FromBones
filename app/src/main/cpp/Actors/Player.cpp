@@ -170,6 +170,8 @@ Player::~Player()
     {
         MountInfo mountinfo(avatar_);
         GameHelpers::UnmountNode(mountinfo);
+
+        avatar_->Remove();
     }
 
     if (equipment_)
@@ -688,6 +690,28 @@ void Player::UpdateComponents()
 {
     URHO3D_LOGINFOF("Player() - UpdateComponents ...");
 
+    // this part must be here before Actor::UpdateComponents (the thinker must be setted for GocDestroyer::SetViewZ)
+    // local player
+    if (mainController_)
+    {
+        GameContext::Get().players_[controlID_] = this;
+        GameContext::Get().playerNodes_[controlID_] = nodeID_;
+        GameContext::Get().playerAvatars_[controlID_] = avatar_;
+
+        UpdateControls();
+
+        UpdateTriggerAttacks();
+    }
+    else
+    {
+        URHO3D_LOGINFOF("Player() - UpdateComponents : NO mainController => net player ! ");
+        gocController = avatar_->GetOrCreateComponent<GOC_Controller>(LOCAL);
+        gocController->SetControllerType(GO_NetPlayer, true);
+        gocController->SetThinker(this);
+//        if (gocInventory)
+//            gocInventory->SetReceiveTriggerEvent(GOE::GetEventName(GO_INVENTORYRECEIVE));
+    }
+
     Actor::UpdateComponents();
 
 //    AnimatedSprite2D* drawable = avatar_->GetDerivedComponent<AnimatedSprite2D>();
@@ -713,27 +737,6 @@ void Player::UpdateComponents()
     gocLife = avatar_->GetComponent<GOC_Life>();
     if (!gocLife)
         URHO3D_LOGERROR("Player() - UpdateComponents : !gocLife");
-
-    // local player
-    if (mainController_)
-    {
-        GameContext::Get().players_[controlID_] = this;
-        GameContext::Get().playerNodes_[controlID_] = nodeID_;
-        GameContext::Get().playerAvatars_[controlID_] = avatar_;
-
-        UpdateControls();
-
-        UpdateTriggerAttacks();
-    }
-    else
-    {
-        URHO3D_LOGINFOF("Player() - UpdateComponents : NO mainController => net player ! ");
-        gocController = avatar_->GetOrCreateComponent<GOC_Controller>(LOCAL);
-        gocController->SetControllerType(GO_NetPlayer, true);
-        gocController->SetThinker(this);
-//        if (gocInventory)
-//            gocInventory->SetReceiveTriggerEvent(GOE::GetEventName(GO_INVENTORYRECEIVE));
-    }
 
     avatarIndex_ = avatarAccumulatorIndex_ = GameContext::Get().playerState_[controlID_].avatar;
     gocController->control_.type_ = GOT::GetControllableType(avatarIndex_).Value();
@@ -915,7 +918,7 @@ void Player::OnUnmount(unsigned targetid)
     if (gocController->GetControllerType() == GO_Player)
     {
         gocDestroyer_->SetEnablePositionUpdate(true);
-        gocDestroyer_->SetEnableUnstuck(true);
+        gocDestroyer_->SetEnableUnstuck(IsMainController());
     }
 
     avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(true);

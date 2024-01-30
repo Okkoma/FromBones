@@ -1024,9 +1024,10 @@ void GOC_Animator2D::SetOwner(Node* node)
     if (owner_ != node)
     {
         owner_ = node;
-        deltaYWithOwner_ = owner_->GetWorldPosition2D().y_ - node_->GetWorldPosition2D().y_;
 
-//        URHO3D_LOGINFOF("GOC_Animator2D() - SetOwner : Node=%s(%u) owner_=%s(%u) ...", node_->GetName().CString(), node_->GetID(), owner_ ? owner_->GetName().CString() : "", owner_ ? owner_->GetID() : 0);
+        deltaYWithOwner_ = owner_ ? owner_->GetWorldPosition2D().y_ - node_->GetWorldPosition2D().y_ : 0.f;
+
+    //        URHO3D_LOGINFOF("GOC_Animator2D() - SetOwner : Node=%s(%u) owner_=%s(%u) ...", node_->GetName().CString(), node_->GetID(), owner_ ? owner_->GetName().CString() : "", owner_ ? owner_->GetID() : 0);
 
         // Remove Subscribers
         if (owner_)
@@ -1492,6 +1493,15 @@ bool GOC_Animator2D::PlugDrawables()
     else
     {
         node_->GetComponents<AnimatedSprite2D>(animatedSprites, true);
+
+        unsigned i = 0;
+        while (i < animatedSprites.Size())
+        {
+            if (animatedSprites[i]->GetNode() != node_ && animatedSprites[i]->GetNode()->GetVar(GOA::ISMOUNTEDON).GetUInt() != 0)
+                animatedSprites.EraseSwap(i);
+            else
+                i++;
+        }
 
         if (!animatedSprite && animatedSprites.Size())
             animatedSprite = animatedSprites[0];

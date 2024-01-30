@@ -364,21 +364,35 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     // Force setting the ViewZ to children entities (like mounted entity)
     PODVector<Node* > children;
     node_->GetChildrenWithComponent<GOC_Destroyer>(children, true);
+    bool hasAlocalMountedPlayer = false;
     for (PODVector<Node* >::Iterator it=children.Begin(); it!=children.End(); ++it)
     {
         Node* node = *it;
 
-//        URHO3D_LOGINFOF("GOC_Destroyer() - SetViewZ : children node=%s(%u) ...", node->GetName().CString(), node->GetID());
-
-        int otherviewport = viewport;
         GOC_Controller* othercontroller = node->GetDerivedComponent<GOC_Controller>();
-        if (othercontroller && othercontroller->GetThinker()->IsInstanceOf<Player>())
-            otherviewport = Min(othercontroller->GetThinker()->GetControlID(), (int)ViewManager::Get()->GetNumViewports()-1);
 
-        if (otherviewport != viewport)
-            ViewManager::Get()->SwitchToViewZ(viewZ, node, otherviewport);
-        else
-            node->GetComponent<GOC_Destroyer>()->SetViewZ(viewZ);
+        bool otherIsAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker()->IsInstanceOf<Player>();
+        if (otherIsAplayer)
+        {
+            URHO3D_LOGINFOF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
+                             node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
+            hasAlocalMountedPlayer = true;
+        }
+
+        node->GetComponent<GOC_Destroyer>()->SetViewZ(viewZ);
+
+        if (otherIsAplayer)
+        {
+            if (ViewManager::Get()->GetNumViewports() > 1)
+                viewport = Min(othercontroller->GetThinker()->GetControlID(), (int)ViewManager::Get()->GetNumViewports()-1);
+
+            GameHelpers::SetLightActivation(static_cast<Player*>(othercontroller->GetThinker()));
+        }
+    }
+
+    if (!isPlayer && hasAlocalMountedPlayer)
+    {
+        ViewManager::Get()->SwitchToViewZ(viewZ, 0, viewport);
     }
 
     if (isPlayer)

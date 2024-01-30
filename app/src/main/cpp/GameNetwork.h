@@ -65,6 +65,7 @@ struct ObjectCommandInfo
     unsigned char objCmdHead_;
     ObjectCommandPacket objCmdPacketsReceived_[256];
 // Send Part
+    int resendPacketTimer_;
     unsigned char objCmdToSendStamp_;
     ObjectCommandPacket* newSpecificPacketToSend_;
     List<ObjectCommandPacket* > objCmdPacketsToSend_;
@@ -96,10 +97,10 @@ struct ClientInfo
     WeakPtr<Connection> connection_;
 
     int clientID_;
-    GameStatus gameStatus_, lastSentServerGameStatus_;
-    unsigned char statusToClientStamp_;
+    GameStatus gameStatus_;
 
     bool playersStarted_;
+    bool rebornRequest_;
     int requestPlayers_;
 
     bool mapsDirty_;
@@ -337,6 +338,10 @@ private:
     void HandleSearchServer(StringHash eventType, VariantMap& eventData);
     void HandleConnectionStatus(StringHash eventType, VariantMap& eventData);
 
+    void Server_ApplyReceivedGameStatus(GameStatus newStatus, VariantMap& eventData, ClientInfo& clientInfo);
+    void Client_ApplyReceivedGameStatus(GameStatus newStatus, VariantMap& eventData);
+    void ApplyReceivedGameStatus(VariantMap& eventData, int clientid=0);
+
     /// Server Handles
     void HandleServer_MessagesFromClient(StringHash eventType, VariantMap& eventData);
     void HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMap& eventData);
@@ -350,7 +355,6 @@ private:
     void HandlePlayClient_ReceiveCommands(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_ReceiveServerControls(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_ReceiveClientControls(StringHash eventType, VariantMap& eventData);
-    void HandlePlayClient_MessagesFromServer(StringHash eventType, VariantMap& eventData);
     void HandlePlayClient_Messages(StringHash eventType, VariantMap& eventData);
 
 /// Object Commands
@@ -374,6 +378,7 @@ public:
 private:
     /// Server commands from clients
     void Server_ApplyObjectCommand(int fromclientid, VariantMap& eventData);
+    void Client_ApplyObjectCommand(ObjectCommand& objCmd);
 
     /// Client commands from server
     void Client_CommandAddObject(VariantMap& eventData);
@@ -384,7 +389,6 @@ private:
     void Client_SetWorldMaps(VariantMap& eventData);
     void Client_SetWorldObjects(VariantMap& eventData);
     void Client_MountNode(VariantMap& eventData);
-    void Client_ApplyObjectCommand(VariantMap& eventData);
 
     /// Object Commands Pool
     Pool<ObjectCommand > objCmdPool_;
@@ -404,7 +408,7 @@ private:
     // the number assigned by the server for this client
     int clientID_;
 
-    GameStatus gameStatus_, lastGameStatus_, lastSentClientGameStatus_;
+    GameStatus gameStatus_, lastGameStatus_;
     GameNetworkMode networkMode_;
 
     bool serverMode_, clientMode_, started_;
@@ -434,7 +438,6 @@ private:
     /// Client Only
     GameStatus serverGameStatus_;
     WeakPtr<Connection> clientSideConnection_;
-    unsigned char statusToServerStamp_;
     Vector<NetPlayerInfo > netPlayersInfos_;
 
 #ifdef ACTIVE_NETWORK_LOGSTATS

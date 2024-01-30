@@ -78,7 +78,7 @@ void GOB_MountOn::OnUnmount(GOC_AIController& controller)
     if (destroyer)
     {
         destroyer->SetEnablePositionUpdate(true);
-        destroyer->SetEnableUnstuck(true);
+        destroyer->SetEnableUnstuck(controller.IsMainController());
         destroyer->SetViewZ();
     }
 }

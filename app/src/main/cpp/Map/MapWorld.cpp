@@ -2392,9 +2392,9 @@ void World2D::HandleObjectAppear(StringHash eventType, VariantMap& eventData)
         {
             entities.Push(nodeId);
 
-//            URHO3D_LOGINFOF("World2D() - HandleObjectAppear : GO APPEAR node=%s(%u) type=%d mpoint=%s viewZ=%d entitiesInMap=%u",
-//                            node->GetName().CString(), nodeId, eventData[Go_Appear::GO_TYPE].GetInt(), mpoint.ToString().CString(),
-//                            node->GetVar(GOA::ONVIEWZ).GetInt(), entities.Size());
+            URHO3D_LOGINFOF("World2D() - HandleObjectAppear : GO APPEAR node=%s(%u) type=%d mpoint=%s viewZ=%d entitiesInMap=%u",
+                            node->GetName().CString(), nodeId, eventData[Go_Appear::GO_TYPE].GetInt(), mpoint.ToString().CString(),
+                            node->GetVar(GOA::ONVIEWZ).GetInt(), entities.Size());
 
 //            DumpNodeList(entities, "list after adding entity :");
 

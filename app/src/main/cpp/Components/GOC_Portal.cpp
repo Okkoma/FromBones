@@ -227,14 +227,42 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
 
     // Only player in the entrance direction can active the portal
     GOC_Controller* control = entity->GetDerivedComponent<GOC_Controller>();
-    if (control && control->GetControllerType() == GO_Player && Sign(control->control_.direction_) != Sign(node_->GetVar(GOA::DIRECTION).GetVector2().x_))
+    if (control && Sign(control->control_.direction_) != Sign(node_->GetVar(GOA::DIRECTION).GetVector2().x_))
     {
-        URHO3D_LOGINFOF("GOC_Portal() - HandleBeginContact : nodeID=%u nodeInContact=%s(%u) control=%u portaldir=%f controllerdir=%f portal at %s... Try to Get the Destination Map=%s ...",
-                        node_->GetID(), entity->GetName().CString(), entity->GetID(), control, node_->GetVar(GOA::DIRECTION).GetVector2().x_, control ? control->control_.direction_ : 0.f,
-                        GetComponent<GOC_Destroyer>()->GetWorldMapPosition().ToString().CString(), dMap_.ToString().CString());
+        URHO3D_LOGINFOF("GOC_Portal() - HandleBeginContact : nodeID=%u nodeInContact=%s(%u) controllertype=%d...",
+                            node_->GetID(), entity->GetName().CString(), entity->GetID(), control->GetControllerType());
 
-        // Get the viewport
-        int viewport = control->GetThinker() ? control->GetThinker()->GetControlID() : 0;
+        if (control->GetControllerType() != GO_Player && control->GetControllerType() != GO_AI_Ally)
+            return;
+
+        int viewport = 0;
+
+        if (control->GetControllerType() == GO_AI_Ally)
+        {
+            // Find a Player on this entity
+            PODVector<Node* > children;
+            entity->GetChildrenWithComponent<GOC_Destroyer>(children, true);
+            bool hasAlocalMountedPlayer = false;
+            for (PODVector<Node* >::Iterator it=children.Begin(); it!=children.End(); ++it)
+            {
+                GOC_Controller* othercontroller = (*it)->GetDerivedComponent<GOC_Controller>();
+                if (othercontroller && othercontroller->IsMainController() && othercontroller->GetControllerType() == GO_Player)
+                {
+                    hasAlocalMountedPlayer = true;
+                    viewport = othercontroller->GetThinker()->GetControlID();
+                }
+            }
+
+            if (!hasAlocalMountedPlayer)
+                return;
+        }
+        else
+            viewport = control->GetThinker() ? control->GetThinker()->GetControlID() : 0;
+
+        URHO3D_LOGINFOF("GOC_Portal() - HandleBeginContact : nodeID=%u nodeInContact=%s(%u) control=%u portaldir=%f controllerdir=%f portal at %s... Try to Get the Destination Map=%s ...",
+                            node_->GetID(), entity->GetName().CString(), entity->GetID(), control, node_->GetVar(GOA::DIRECTION).GetVector2().x_, control ? control->control_.direction_ : 0.f,
+                            GetComponent<GOC_Destroyer>()->GetWorldMapPosition().ToString().CString(), dMap_.ToString().CString());
+
         dViewports_.Push(viewport);
 
         // Require the destination map
@@ -264,12 +292,11 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
         else
         {
             URHO3D_LOGERRORF("GOC_Portal() - HandleBeginContact : nodeID=%u no map at destination %s", node_->GetID(), dMap_.ToString().CString());
+            return;
         }
     }
     else
-    {
         return;
-    }
 
     // Active Animation Use
     GetComponent<AnimatedSprite2D>()->SetAnimation("use");
@@ -298,6 +325,10 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
 
                 controllers.Push(controller);
             }
+
+            // unmount children
+            if (controller != control)
+                controller->Unmount();
         }
     }
 

@@ -1,5 +1,16 @@
 Todos:
 
+    ✔ 29/01/2024 : les objets instanciés avec Map::AddEntity ne sont pas sauvegardé dans MapData donc ne pourront pas etre chargés ensuite lors du chargement du monde
+        -> pour que les entities sont sauvegardées, il faut qu'elles soient enregistrées dans la liste des entities de World2D.
+        -> cf Map::OnUpdateMapData
+        => le probleme vient que la var GOA::ENTITYDATAID n'est pas setté donc ne peut pas etre chargé dans Map::SetEntities_Load()
+        ==> cet id est necessaire pour les furnitures et les entities avec mapping (necessaire pour retrouver le bon entityid pour le randommapping cf GAME-NETWORK.TODO du 07/12/2023 : ... les equipments pour les entity ajoutées via NetSpawning)
+        ===> OK : modification de Map::SetEntities_Load pour ne pas skipper si pas d'EntityDataId
+        => si une entity est montée par une autre entity ça va crasher, au niveau du chargement
+        ==> OK : Patch GOC_Animator2D::PlugDrawables() pour eviter d'avoir les animatedSprites des entités montés.
+        => en mode local, si une entity est montée par une autre entity au rechargement l'avatar monté n'est pas à la bonne échelle.
+        ==> il faut démonter avant sauvegarde et remonter juste après.
+
     ✔ 19/12/2023 : mise en evidence d'un probleme qui doit dater ...
         -> en arena avec 4 maps, les entités (pas les furnitures) sur les maps non visible sont detruites des le lancement.
         -> leurs GOC_Destroyer signalent qu'elles sont hors du monde et les detruits

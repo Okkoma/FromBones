@@ -621,7 +621,8 @@ bool GOC_AIController::Update(unsigned time)
 
 void GOC_AIController::OnDead(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("GOC_AIController() - HandleDead : GO Dead %s(%u)", node_->GetName().CString(), node_->GetID());
+    URHO3D_LOGINFOF("GOC_AIController() - HandleDead : GO Dead %s(%u)", node_->GetName().CString(), node_->GetID());
+
     Stop();
 }
 

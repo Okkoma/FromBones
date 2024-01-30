@@ -19,6 +19,7 @@ enum GameNetworkMode
 enum NetCommand
 {
     NOACTION = 0,
+    GAMESTATUS,
     ERASENODE,
     ENABLENODE,
     DISABLECLIENTOBJECTCONTROL,
@@ -33,6 +34,7 @@ enum NetCommand
     SETFULLEQUIPMENT,
     SETFULLINVENTORY,
     CHANGETILE,
+    SETSEEDTIME,
     SETWEATHER,
     SETMAPDATAS,
     SETWORLD,
@@ -42,6 +44,8 @@ enum NetCommand
     MOUNTENTITYON,
     UPDATEITEMSSTORAGE,
     UPDATEZONEDATA,
+    TEST,
+
     MAX_NETCOMMAND
 };
 
@@ -195,6 +199,7 @@ enum ObjectCommandPState
 {
     OBJCMD_CLEARED = 0,
     OBJCMD_RECEIVED,
+    OBJCMD_APPLIED
 };
 
 class ObjectCommand : public PoolObject

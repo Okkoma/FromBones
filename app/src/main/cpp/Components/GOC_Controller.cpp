@@ -171,6 +171,8 @@ bool GOC_Controller::MountOn(Node* target)
     if (thinker_)
         static_cast<Player*>(thinker_)->OnMount(target);
 
+    SubscribeToEvent(target, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Controller, OnMountNodeDead));
+
     URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ... OK !",
                     node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
 
@@ -180,6 +182,9 @@ bool GOC_Controller::MountOn(Node* target)
 bool GOC_Controller::Unmount()
 {
     const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+
+    if (!targetid)
+        return false;
 
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... targetid=%u ...", node_->GetName().CString(), node_->GetID(), targetid);
 
@@ -230,6 +235,9 @@ bool GOC_Controller::Unmount()
     }
 
     node_->SetVar(GOA::ISMOUNTEDON, 0U);
+
+    node_->SetRotation2D(0.f);
+    node_->SetWorldRotation2D(0.f);
 
     GOC_Move2D* move2d = node_->GetComponent<GOC_Move2D>();
     if (move2d)
@@ -339,7 +347,7 @@ bool GOC_Controller::ChangeAvatarOrEntity(unsigned type, unsigned char entityid)
             Node* templateNode = GOT::GetControllableTemplate(StringHash(type));
             if (templateNode && node_->GetNumComponents() >= templateNode->GetNumComponents())
             {
-                URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatarOrEntity : nodeid=%u from %s(%u) to type=%s(%u) entityid=%u ... CopyAttributes From Template", 
+                URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatarOrEntity : nodeid=%u from %s(%u) to type=%s(%u) entityid=%u ... CopyAttributes From Template",
                                 node_->GetID(), GOT::GetType(StringHash(control_.type_)).CString(), control_.type_,
                                 GOT::GetType(StringHash(type)).CString(), type, entityid);
 
@@ -695,6 +703,11 @@ void GOC_Controller::OnNodeSet(Node* node)
 
         OnSetEnabled();
     }
+}
+
+void GOC_Controller::OnMountNodeDead(StringHash eventType, VariantMap& eventData)
+{
+    Unmount();
 }
 
 void GOC_Controller::HandleNetUpdate(StringHash eventType, VariantMap& eventData)

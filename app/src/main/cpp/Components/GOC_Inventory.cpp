@@ -1732,11 +1732,18 @@ void GOC_Inventory::NetClientSetInventory(unsigned servernodeid, VariantMap& eve
         inventoryslots = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
     }
 
-    ObjectControlInfo* oinfo = GameNetwork::Get()->GetServerObjectControl(servernodeid);
+    ObjectControlInfo* oinfo = GameNetwork::Get()->GetObjectControl(servernodeid);
     if (oinfo && oinfo->node_)
         LoadInventory(oinfo->node_, servernodeid, false);
     else
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ... no clientnode exists ... inventory saved for later use !", servernodeid);
+    {
+        Node* node = GameContext::Get().rootScene_->GetNode(servernodeid);
+        if (node)
+            LoadInventory(node, servernodeid, false);
+        else
+            URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ... no clientnode exists (oinfo=%u node=%u)... inventory saved for later use !", servernodeid, oinfo, oinfo ? oinfo->node_.Get() : 0);
+    }
+
 }
 
 void GOC_Inventory::NetClientSetEquipment(unsigned servernodeid, VariantMap& eventData)

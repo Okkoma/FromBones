@@ -1,7 +1,31 @@
 Todos:
 
+    ☐ 29/01/2024 : lorsqu'un avatar meurt en mode reseau en world, SteleRip n'apparait pas sur les autres clients. Comme SteleRip est une plateforme c'est problematique.
+
+    ✔ 29/01/2024 : lorsqu'un avatar est sur une monture, il ne peut prendre un Portail.
+        -> l'inverse est possible (avatar qui porte un allié)
+        --> voir pour modifier GOC_Portal::HandleBeginContact pour ajouter cette fonctionalité.
+        ==> OK modification de GOC_Portal::HandleBeginContact et correctif pour GOC_Controller::Unmount()
+
+    ✔ 29/01/2024 : lorsque l'on change de direction avec une monture, le trigger attack de l'avatar apparait pouvant occasionner des dégats à la monture.
+        -> cela provient surement de GameHelpers::SetPhysicFlipX
+        --> OK : il faut verifier si shape a une fixture avant de la setter.
+
+    ✔ 29/01/2024 : il arrive que le server supprime un joueur car il est Stuck : cela ne doit pas se passer. Il faut que l'Unstuck soit local.
+        -> correctif dans Player::OnUnmount et GOB_MountOn::OnUnmount.
+
+    ✔ 29/01/2024 : lorsqu'un avatar est sur une monture et que la monture meurt, il faut verifier lorsque l'avatar demonte bien et qu'il n'atterit pas dans un mur.
+        -> il n'y a pas de unmount lorsque la monture meurt.
+        ==> OK : ajout de GOC_Controller::OnMountNodeDead.
+        ==> RAF : verifier si pas de pb avec les murs
+
+    ✔ 29/01/2024 : lorsqu'un avatar est sur une monture, il ne peut pas changer de viewZ. Meme en appuyant sur '0'
+        -> correctif dans ViewManager::SwitchToViewIndex et GOC_Destroyer::SetViewZ
+        => attention : en reseau la touche '0' crée un probleme mineure de repetition du switchview.
+        ==> c'est un tips, il ne sera pas actif en prod.
+
     ☐ 11/12/2023 : pouvoir monter et descendre d'une monture en utilisant le clavier ou la manette (sans clic souris)
-    
+
     ☐ 11/12/2023 : ajout de MountNode qui est géré par un NodeUpdater mais sans animation => c'est un node à la place
         -> permet d'accrocher une entity sur ce node dont la position dépend du SCML.
         --> necessaire pour les montures par exemple. cf (AnimatedSprite2D::UpdateTriggers)
@@ -11,14 +35,14 @@ Todos:
         -> ajout de GOC_AIController::SetExternalController() et modification Player::Mount() et Unmount() et GOC_AIController::Update()
 
     ✔ 10/12/2023 : l'AI n'arrive plus à monter sur l'avatar ou vice et verça @done(23-12-11 09:26)
-        -> correctif dans Player, GOB_MountOn au niveau du SetWorldPosition2D (Destroyer::shapeRect_ mal utilisé) et GOC_ControllerAI 
+        -> correctif dans Player, GOB_MountOn au niveau du SetWorldPosition2D (Destroyer::shapeRect_ mal utilisé) et GOC_ControllerAI
 
     ✔ 07/12/2023 : Saut à l'infini de rockgolem quand une entité sur la tete @done(23-12-10 11:24)
         -> correctif dans GOC_Collide2D::HandleBeginContact lorsque deux entity sont en contact : test des positions delta.
-        
+
     ☐ 07/12/2023 : les lumieres lorsque l'on change de viewZ se reinitialisent au state unlighted
         -> ce comportement n'est pas voulu
-        
+
     ✔ 07/12/2023 : les EliegorFlowers lancent parfois plusieurs Seeds alors que le comportement attendu est d'une seule. @done(23-12-07 15:10)
         => dans GOC_DropZone ajout de CleanDependences qui va permettre de reinitialiser les items contenus dans le storage  lors de la restauration dans le Pool.
 
@@ -468,7 +492,7 @@ Todos:
 
 
 Archive:
-    
+
     ✔ 06/11/2023 : le button JUMP pour les joystick n'est pas toujours bien mapper malgré ce qui est afficher. il faut simplement cliquer sur l'ecran pour debloquer. Pkoi ?
         => le pb c'est que UI::HandleJoystick provoque JoystickState::Reset().
         ==> il y a focus sur l'ui : suppression du focus initial
@@ -493,7 +517,7 @@ Archive:
         ✔ OK 14/01/2023 : ajout condition dans GOC_Move2D::GoDownPlateform()
         ✔ 17/01/2023 : verifier avec RockGolem avec des plateformes car ca a l'air de poser encore des pbs.
             11/11/2023 : cela ne marche pas avec RockGolem. 2 collisionBoxes sont créées pour le BodyCollider- 1 seule est nécessaire.
-            -> la premiere par la déclaration du GameObject rockgolem.xml avec SetExtraContactBits(3 = Top Contact Only & Stable) 
+            -> la premiere par la déclaration du GameObject rockgolem.xml avec SetExtraContactBits(3 = Top Contact Only & Stable)
             -> la seconde via AnimatedSprite2D::UpdateTriggers qui ne spécifie pas d'extraContact
             ✔ 11/01/2023 : ajout du node BodyCollider de façon explicite dans le GameObject
                 + Patch rapide dans AnimatedSprite2D::UpdateTriggers (ajout SetExtraContactBits(3)) dans le pire des cas
@@ -504,7 +528,7 @@ Archive:
 
     ✔ 30/01/2023 : les potions verte apparaissent avec la mauvaise entité potion rose
         => cf GameHelpers::SetEntityVariation()
-        ==> OK : ne pas setter l'entité si pas d'entityVariation (ce qui est le cas pour Potion)    
+        ==> OK : ne pas setter l'entité si pas d'entityVariation (ce qui est le cas pour Potion)
     ✔ 20/01/2023 : la lance a été modifiée (recentrage du collider) pour eviter le spawn dans les murs vers la gauche (il manque en effet lors du flipping, le flipping du physic de la lance ... à voir)
         => mais le spawn ne fonctionne pas correctement avec les certains kigrat en world
         ==> il s'agit du scale de l'entité qui est trop petite par rapport à la lance : la lance entre en contact avec le body de l'entité et se met en stick.
@@ -522,7 +546,7 @@ Archive:
 
     ✔ 05/11/2022 : Corriger le shot avec pistolet de skeleton qui se déclenche en sîmple attaque avec épée.
         => se déclenche également avec lizard sans tirer lorsque le pistolet est equipé ... utilise ABI_AnimShooter des que le pistolet est équipé.
-        ==> Log 
+        ==> Log
         [Sun Nov  6 11:11:59 2022] INFO: Player() - UseWeaponAbilityAt : position=13.7044 16.6322 ... weapon1ability=0
         [Sun Nov  6 11:11:59 2022] INFO: Player() - UseWeaponAbilityAt : position=13.7044 16.6322 ... weapon2ability=1506844804
         [Sun Nov  6 11:11:59 2022] INFO: Ability() - UseAtPoint (static) ability=ABI_AnimShooter holder=Player_1(16777270) pos=13.70,16.63 ...

@@ -389,6 +389,9 @@ MapStorage*             MapStorage::storage_ = 0;
 MapCreator*             MapStorage::mapCreator_ = 0;
 MapPool*                MapStorage::mapPool_ = 0;
 MapSerializer*          MapStorage::mapSerializer_ = 0;
+Vector<MapData>         MapStorage::mapDatasPool_;
+HashMap<ShortIntVector2, MapData* > MapStorage::mapDatas_;
+
 
 void MapStorage::InitTable(Context* context)
 {
@@ -498,6 +501,9 @@ void MapStorage::InitTable(Context* context)
     World2DInfo::WATERMATERIAL_REFRACT  = context->GetSubsystem<ResourceCache>()->GetResource<Material>("Materials/waterrefract.xml");
     World2DInfo::WATERMATERIAL_LINE     = context->GetSubsystem<ResourceCache>()->GetResource<Material>("Materials/waterlines.xml");
 
+    // TODO : Reserve the max maps in the world (cf worldmap)
+    mapDatasPool_.Reserve(500);
+
     URHO3D_LOGINFOF("MapStorage() - InitTable ... OK !");
 }
 
@@ -581,9 +587,6 @@ MapStorage::MapStorage(Context* context, const IntVector2& wPoint) :
 
     if (!mapPool_)
         mapPool_ = new MapPool(context);
-
-    // TODO : Reserve the max maps in the world (cf worldmap)
-    mapDatasPool_.Reserve(500);
 
     SetMapBufferOffset(1);
 
@@ -1230,13 +1233,13 @@ bool MapStorage::SaveMaps(bool saveEntities, bool async)
 
 MapData* MapStorage::GetMapDataAt(const ShortIntVector2& mpoint, bool createIfMissing)
 {
-    MapData*& mapdata = storage_->mapDatas_[mpoint];
+    MapData*& mapdata = mapDatas_[mpoint];
     if (!mapdata && createIfMissing)
     {
-        if (storage_->mapDatasPool_.Capacity() <= storage_->mapDatasPool_.Size())
+        if (mapDatasPool_.Capacity() <= mapDatasPool_.Size())
             URHO3D_LOGERRORF("MapStorage() - GetMapDataAt : MapDatasPool Size Over defined Capacity !");
-        storage_->mapDatasPool_.Resize(storage_->mapDatasPool_.Size()+1);
-        mapdata = &storage_->mapDatasPool_.Back();
+        mapDatasPool_.Resize(mapDatasPool_.Size()+1);
+        mapdata = &mapDatasPool_.Back();
     }
 
     return mapdata;

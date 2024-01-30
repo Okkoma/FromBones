@@ -1803,69 +1803,25 @@ void GameHelpers::SetPhysicFlipX(Node* node)
     if (!body)
         return;
 
-    if (node->IsEnabled() && body->IsEnabledEffective())
+    const Vector<WeakPtr<CollisionShape2D> >& shapes = body->GetCollisionsShapes();
+    for (Vector<WeakPtr<CollisionShape2D> >::ConstIterator it=shapes.Begin(); it!=shapes.End(); ++it)
     {
-        const Vector<WeakPtr<CollisionShape2D> >& shapes = body->GetCollisionsShapes();
-        for (Vector<WeakPtr<CollisionShape2D> >::ConstIterator it=shapes.Begin(); it!=shapes.End(); ++it)
+        const WeakPtr<CollisionShape2D>& shape = *it;
+        if (shape && shape->GetFixture())
         {
-            const WeakPtr<CollisionShape2D>& shape = *it;
-            if (shape)
+            if (shape->IsInstanceOf<CollisionBox2D>())
             {
-                if (shape->IsInstanceOf<CollisionBox2D>())
-                {
-                    CollisionBox2D* box = StaticCast<CollisionBox2D>(shape);
-                    if (box->GetCenter().x_ != 0.f)
-                        box->SetCenter(Vector2(-box->GetCenter().x_, box->GetCenter().y_));
-                    if (box->GetAngle() != 0.f)
-                        box->SetAngle(-box->GetAngle());
-                }
-                else if (shape->IsInstanceOf<CollisionCircle2D>())
-                {
-                    CollisionCircle2D* circle = StaticCast<CollisionCircle2D>(shape);
-                    if (circle->GetCenter().x_ != 0.f)
-                        circle->SetCenter(Vector2(-circle->GetCenter().x_, circle->GetCenter().y_));
-                }
+                CollisionBox2D* box = StaticCast<CollisionBox2D>(shape);
+                if (box->GetCenter().x_ != 0.f)
+                    box->SetCenter(Vector2(-box->GetCenter().x_, box->GetCenter().y_));
+                if (box->GetAngle() != 0.f)
+                    box->SetAngle(-box->GetAngle());
             }
-        }
-    }
-    // TODO : do we need this part ? when body is disable ?
-    // bad when entity is mounted : if we use this code, when the entity unmounts then the collisionshapes become illformed !
-    // Box2D error ? so disable this part
-    else
-    {
-        PODVector<CollisionShape2D*> shapes;
-        node->GetDerivedComponents(shapes, true);
-
-        for (unsigned i=0; i < shapes.Size(); i++)
-        {
-            CollisionShape2D* shape = shapes[i];
-            if (shape)
+            else if (shape->IsInstanceOf<CollisionCircle2D>())
             {
-                if (shape->IsTrigger())
-                    continue;
-
-                if (shape->IsInstanceOf<CollisionBox2D>())
-                {
-                    CollisionBox2D* box = static_cast<CollisionBox2D*>(shape);
-                    if (box->GetCenter().x_ != 0.f)
-                    {
-                        box->SetCenter(Vector2(-box->GetCenter().x_, box->GetCenter().y_));
-                    }
-                    if (box->GetAngle() != 0.f)
-                    {
-                        box->SetAngle(-box->GetAngle());
-                    }
-                }
-                else if (shape->IsInstanceOf<CollisionCircle2D>())
-                {
-                    CollisionCircle2D* circle = static_cast<CollisionCircle2D*>(shape);
-                    if (circle->GetCenter().x_ != 0.f)
-                    {
-                        circle->SetCenter(Vector2(-circle->GetCenter().x_, circle->GetCenter().y_));
-                    }
-                }
-
-//                shape->ReleaseFixture();
+                CollisionCircle2D* circle = StaticCast<CollisionCircle2D>(shape);
+                if (circle->GetCenter().x_ != 0.f)
+                    circle->SetCenter(Vector2(-circle->GetCenter().x_, circle->GetCenter().y_));
             }
         }
     }

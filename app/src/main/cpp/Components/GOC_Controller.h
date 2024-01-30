@@ -121,6 +121,8 @@ public :
 protected :
     virtual void OnNodeSet(Node* node);
 
+    void OnMountNodeDead(StringHash eventType, VariantMap& eventData);
+
     bool mainController_;
     bool controlActionEnable_;
     bool followPath_;

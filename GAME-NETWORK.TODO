@@ -7,6 +7,74 @@
 
 Todos:
 
+    ☐ 30/01/2024 : il arrive qu'une entity bleu soit spawnée coté client à la mort d'un monstre
+        -> il s'agit d'une CollectablePart vide
+        => LOG coté client
+        [Tue Jan 30 10:15:15 2024] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 ... spawnid=33571772(holderid=16794556,spawnstamp=2) posreceived=1876.17,1539.12 oinfo=0 ...
+        [Tue Jan 30 10:15:15 2024] INFO: GameNetwork() - NetAddEntity : got=CollectablePart(3802457751) ... serverNodeID=16785539 clientNodeID=0 ...
+        [Tue Jan 30 10:15:15 2024] INFO: World2D() - SpawnEntity : id=16785539 got=CollectablePart(3802457751) effectiveType=CollectablePart(3802457751) position=1876.17 1539.12 mpoint=22 18 viewZ=100 deferredAdd=false
+        [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : node=CollectablePart(16785539) entityid=0 mPoint=22 18 spawn at 1876.17 1539.12 slotdata=0 ...
+        [Tue Jan 30 10:15:15 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=CollectablePart(16785539) type=0 mpoint=22 18 viewZ=100 entitiesInMap=594
+        [Tue Jan 30 10:15:15 2024] INFO: World2D() - NetSpawnEntity : Node=CollectablePart(16785539) spawned dir=0 rot=0 velx=0... OK !
+        [Tue Jan 30 10:15:15 2024] INFO: GameNetwork() - NetAddEntity : got=CollectablePart(3802457751) ... node=CollectablePart(16785539) enable=true !
+        [Tue Jan 30 10:15:15 2024] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 node=CollectablePart(16785539) ... pos=1876.17,1539.12 spawnid=33571772(holderid=16794556,spawnstamp=2) ... new oinfo=3530517296 holderptr=3933042400(nodeid=16794556,clientid=0) !
+        [Tue Jan 30 10:15:15 2024] INFO: GameNetwork() - LinkSpawnControl : oinfo=3530517296 from clientid=0 spawnid=33571772 links serverNodeID_=16785539 clientNodeID_=16785539 !
+        => LOG coté server
+        [Tue Jan 30 10:15:15 2024] INFO: GOC_Inventory() - HandleDrop :  Node=GOT_Vampire(16794556) drops all slots !
+        [Tue Jan 30 10:15:15 2024] INFO: GameHelpers() - GetDropPoint : holder=GOT_Vampire(16794556) position=1876.17 1538.62 1876.17 1539.12 !
+        [Tue Jan 30 10:15:15 2024] INFO: GOC_Collectable() - DropSlotFrom : type=ElsarionMeat(1591862966) qty=4 on viewZ=100 droppoint=1876.17 1539.12 ...
+        [Tue Jan 30 10:15:15 2024] INFO: World2D() - SpawnEntity : id=0 got=ElsarionMeat(1591862966) effectiveType=ElsarionMeat(1591862966) position=1876.17 1539.12 mpoint=22 18 viewZ=100 deferredAdd=false
+        [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : node=CollectablePart(16785539) entityid=0 mPoint=22 18 spawn at 1876.17 1539.12 slotdata=494527488 ...
+        [Tue Jan 30 10:15:15 2024] INFO: GameHelpers() - SetCollectableProperties : got=ElsarionMeat(1591862966) sprite=671259728 qty=4 ispart=true
+        [Tue Jan 30 10:15:15 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=ElsarionMeat(16785539) type=0 mpoint=22 18 viewZ=100 entitiesInMap=593
+        [Tue Jan 30 10:15:15 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=ElsarionMeat(16785539) ... spawnid=33571772(holderid=16794556,spawnstamp=2) ...
+        [Tue Jan 30 10:15:15 2024] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=558238544 srvnodeid=16785539 cltnodeid=0 holderptr=933809760(nodeid=16794556,clientid=0) spawnstamp=2 !
+        [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : mPoint=22 18 nodeid=16785539 type=ElsarionMeat(1591862966) entityid=0 at 1876.17 1539.12 viewZ=100 sceneInfo.skipNetSpawn_=false ... OK !
+        [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : mPoint=22 18 modeid=1 nodeid=16785539 type=ElsarionMeat(1591862966) entityid=0 at 1876.17 1539.12 viewZ=100 zindex=1000 netusage=true ... OK !
+        [Tue Jan 30 10:15:15 2024] INFO: GOC_Collectable() - DropSlotFrom : type=ElsarionMeat(1591862966) nodeid=16785539 qty=4 ... OK !
+        => il s'agit d'elasarion meat
+
+    ✔ 29/01/2024 : probleme de reactivation de netplayer mort sur le serveur.
+        -> le message de reactivation START_GAME parvient avant que Player::Stop ne soit lancer.
+        => il faut stocker la demande de Restart et attendre la fin de Player::Stop pour lancer le Restart.
+        ==> patch dans GameNetwork::Server_ApplyReceivedGameStatus et GameNetwork::HandlePlayServer_NetworkUpdate
+
+    ✔ 28/01/2024 : mettre la possibilité du Repop en mode World comme en Arena.
+        -> OK : modification de PlayState::CheckGameLogic()
+
+    ✔ 28/01/2024 : en quittant le world et en revenant, il y a parfois
+        un probleme de reactivation du netplayer sur le serveur
+        -> il est possible que ce soit un pb lié au Unstuck
+        ==> RAF : celui-ci à été corriger : vérifier si le probleme ne reapparait pas.
+
+    ✔ 27/01/2024 : En world, lorsque un avatar client meurt, il ne peut pas repoper  ...
+        -> si il deconnecte de la partie et la relance, le client peut rester bloquer sur le splashscreen
+        --> s'il arrive à se connecter, les entités tuées réapparaissent.
+        ---> cf Server_SendWorldObjects et Client_SetWorldObjects
+        ===> en supprimant Server_SendWorldObjects cela enleve le probleme mais les eliagorseed popper sur le serveur, n'apparaissent plus chez le client.
+        ===> OK : garder et modifier Server_SendWorldObjects pour eviter que les entités mortes soient ajoutées.
+
+    ✔ 25/01/2024 : en activant les pertes de paquets, le server est bloqué à l'état 6 (Synchronizing) et les clients aussi
+        -> le server n'a pas reçu l'état ready d'un des clients ?
+        --> le server envoit bien l'etat 9 (Running), les clients n'ont pas l'air de le recevoir
+        --> verifier statusStamp
+        --> il semble que rien ne passe, le NetSimulator ne semble pas fonctionner
+        ===> SLikeNet RakNet version 4.082 (RakPeerInterface::ApplyNetworkSimulator Note : Doesn't work past version 3.6201)
+        ===> on peut simuler avec netem sous linux
+        ===> commande xterm à lancer pour configurer le loopback : https://man7.org/linux/man-pages/man8/tc-netem.8.html
+            sudo tc qdisc add dev lo root netem loss 20% delay 200
+            sudo tc qdisc add dev enp7s0 root netem loss 20% delay 200
+            pour annuler :
+            sudo tc qdisc del dev lo root netem
+            sudo tc qdisc del dev enp7s0 root netem
+        ===> à terme prendre LibDataChannel comme rbfx
+        ===> à partir d'un autre pc, il est egalement impossible de lancer la partie ... il y a bien un pb dans le code.
+        ====> reactiver le netsimulator et refaire des tests avec juste 1 client
+        =====> differents correctif appliqués : c'est toujours aussi lent mais ça se lance quand meme.
+        =====> le probleme principal c'est l'envoi/reception des GameStatus. Ensuite les ObjecCommand qui demandent des Ack sont aussi assez lent.
+        =====> OK : remplacer SendRemoteEvent pour l'envoi des GameStatus par un ObjectCommand (qui permet le renvoit des packets donc plus sur).
+        =====> OK : on peut simplifier ApplyReceivedGameStatus et enlever le statusStamp.
+
     ☐ 07/12/2023 : il faut envoyer les equipments pour les entity ajoutées via NetSpawning
         -> 23/01/2014 : via l'editeur en server, les equipments des skeletons ne sont pas settés coté client ...
             => l'entityid n'est pas communiqué mais doit etre necessaire pour GameHelpers::SetEntityVariation
@@ -17,10 +85,10 @@ Todos:
         ===> il n'y a plus de besoin d'utiliser les procedures precedentes si l'on change le randomize en s'appuyant uniquement sur le servernodeid comme seed
              il faut juste s'assurer que dans Map::SetEntities_Load on utilise le bon entityid. ce n'est pas encore au point ... il faudrait pouvoir le communiquer autrement que dans EntityData qui n'est pas forcement à jour.
         ====> probleme resolu : on utilisera la var GOA::ENTITYDATAID dejà utilisé pour les furnitures.
-              lors du Map::SetEntities_Add, les EntityData sont déjà créées à la génération du monde (cf ) Il suffit alors de lié le node créé avec l'index de l'EntityData grace à la var.
+              lors du Map::SetEntities_Add, les EntityData sont déjà créées à la génération du monde (cf ). Il suffit alors de lier le node créé avec l'index de l'EntityData grace à la var.
               Il sera ensuite possible pour Map::SetEntities_Load de reprendre l'EntityData et la valeur sstype_ importante pour entityid.
         ====> pour le moment Map::AddEntity n'utilise pas cette technique car on ne crée pas encore d'EntityData avec la procedure : il suffit d'ajout mapData_->AddEntityData(node) mais voir l'incidence...
-              les entities ainsi créée ne pourront etre rechargé avec Map::SetEntities_Load mais pas de variation en local
+              les entities ainsi créée ne pourront etre rechargé avec Map::SetEntities_Load mais pas de variation en local.
               en reseau, SetEntityVariation peut néanmoins etre utilisé car l'entityid est sauvegardé dans GOC_Controller::control_.entityid_ qui est répliquable.
         ======> pour resoudre le probleme en localmode, il faudrait créer un attribut entityid dans l'un des composants.
 
@@ -45,10 +113,6 @@ Todos:
         ==> solution temporaire : seuls les controller pourront etre setenabled par le network => modification dans GameNetwork::UpdateControl()
             donc les objet collectable dropper de l'inventaire seront toujours visible
             par contre un familier ça ne marchera plus...
-
-    ☐ 22/01/2024 : attention Map::AddEntity a été modifié pour le besoin des bosszones, il faut verifier que tout fonctionne bien coté spawn d'entités.
-        => il y a l'air d'avoir des pb avec les bones. Lorsque l'on explose un skeleton, il y a parfois une difference entre les positions sur le serveur et sur le client
-        => le spawn de mob via l'editeur n'est pas toujours repercuté sur les clients.
 
     ☐ 22/01/2024 : les blocks de fermeture des zone de boss s'ils sont detruits par un netplayer doit etre repercuté sur le reseau.
 

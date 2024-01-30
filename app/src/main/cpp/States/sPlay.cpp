@@ -452,6 +452,10 @@ void PlayState::CheckGameLogic()
         // World
         else
         {
+            if (GameContext::Get().ClientMode_ && numActivePlayers_ == 0)
+            {
+                SetGameOver();
+            }
             return;
         }
     }
@@ -1796,12 +1800,12 @@ void PlayState::HandleInitialize(StringHash eventType, VariantMap& eventData)
         // Client Mode : Wait For All Clients have loaded the Scene
         if (GameContext::Get().ClientMode_ && GameNetwork::Get()->GetGameStatus() <= PLAYSTATE_SYNCHRONIZING)
         {
-//            URHO3D_LOGINFO("PlayState() - HandleInitialize : Client is synchronizing ...");
-            GameNetwork::Get()->Client_SendGameStatus();
+//            URHO3D_LOGINFOF("PlayState() - HandleInitialize : Client is synchronizing ... netstatus=%d", GameNetwork::Get()->GetGameStatus());
+//            GameNetwork::Get()->Client_SendGameStatus();
             return;
         }
 
-        URHO3D_LOGINFO("PlayState() - HandleInitialize : Client synchronized ...");
+//        URHO3D_LOGINFO("PlayState() - HandleInitialize : Client synchronized ...");
 
         // Set Players
         if (!sPlayerSetted_)

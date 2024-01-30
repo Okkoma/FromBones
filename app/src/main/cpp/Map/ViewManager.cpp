@@ -467,9 +467,16 @@ int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
 {
     int viewZ = viewZ_[viewZindex];
 
-    /// never switch directly a mounted entity that is in same viewport => made by the parent node in GOC_Destroy::SetViewZ
-    if (node && node->GetVar(GOA::ISMOUNTEDON).GetUInt() && ViewManager::Get()->GetNumViewports() == 1)
-        return viewZ;
+    if (node && node->GetVar(GOA::ISMOUNTEDON).GetUInt())
+    {
+        /// if it's a mounted entity use the mount node (the viewZ is setted by the parent node in GOC_Destroy::SetViewZ)
+        node = GameContext::Get().rootScene_->GetNode(node->GetVar(GOA::ISMOUNTEDON).GetUInt());
+        if (!node)
+            return viewZ;
+
+        URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d use mount node=%s(%u) to switch to viewZ=%d viewZindex=%d !",
+                        viewport, node ? node->GetName().CString() : 0, node ? node->GetID() : 0, viewZ, viewZindex);
+    }
 
     unsigned layermask = layerMask_[viewZ];
 
@@ -498,7 +505,8 @@ int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
     viewportInfos_[viewport].viewZindex_ = viewZindex;
     viewportInfos_[viewport].layerZindex_ = viewZindex == INNERVIEW_Index ? 2 : 4;
 
-    URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d switch to viewZ=%d viewZindex=%d !", viewport, viewZ, viewZindex);
+    URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d node=%s(%u) switch to viewZ=%d viewZindex=%d !",
+                    viewport, node ? node->GetName().CString() : 0, node ? node->GetID() : 0, viewZ, viewZindex);
 
     /// Set the camera view mask
 //    unsigned viewportmask = (VIEWPORTSCROLLER_INSIDE_MASK << viewport);

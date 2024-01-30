@@ -616,7 +616,7 @@ void BossZone::SpawnBoss()
         eventdata[Net_ObjectCommand::P_DATAS] = VectorBuffer(zonedata_, sizeof(ZoneData));
         GameNetwork::Get()->PushObjectCommand(UPDATEZONEDATA, &eventdata, true, 0);
 
-        URHO3D_LOGINFOF("BossZone() - SpawnBoss : Send NET_OBJECTCOMMAND : cmd=(%s) mpoint=%s zoneid=%d ... OK !", map_->GetMapPoint().ToString().CString(), zone_.z_);
+        URHO3D_LOGINFOF("BossZone() - SpawnBoss : Send NET_OBJECTCOMMAND : cmd=UPDATEZONEDATA mpoint=%s zoneid=%d ... OK !", map_->GetMapPoint().ToString().CString(), zone_.z_);
     }
 
     URHO3D_LOGINFOF("BossZone() - SpawnBoss : Boss=%s(%u) !", boss_ ? boss_->GetName().CString() : "none", boss_ ? boss_->GetID() : 0);

@@ -82,7 +82,7 @@
 		"fileName":"Furnitures/escalier.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
 		"replicateMode":0,
-		"qtyInPool": 20,
+		"qtyInPool": 100,
 		"defaultValue":0,
 		"sizex":2,
 		"sizey":2
@@ -103,7 +103,7 @@
 		"fileName":"Furnitures/porte.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnBack|GOT_Flippable",
 		"replicateMode":0,
-		"qtyInPool": 200,
+		"qtyInPool": 500,
 		"entityVariation":1,
 		"defaultValue":0
 	}
@@ -247,7 +247,7 @@
 		"fileName":"Furnitures/ronce01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
 		"replicateMode":0,
-		"qtyInPool": 500,
+		"qtyInPool": 1000,
 		"scaleVariation":3,
 		"defaultValue":0
 	}
@@ -265,7 +265,7 @@
 		"fileName":"Furnitures/tronc01_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
 		"replicateMode":0,
-		"qtyInPool": 50,
+		"qtyInPool": 500,
 		"scaleVariation":5,
 		"defaultValue":0
 	}
@@ -274,7 +274,7 @@
 		"fileName":"Furnitures/tronc02_static.xml",
 		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnGround|GOT_Flippable",
 		"replicateMode":0,
-		"qtyInPool": 50,
+		"qtyInPool": 500,
 		"scaleVariation":5,
 		"defaultValue":0
 	}
