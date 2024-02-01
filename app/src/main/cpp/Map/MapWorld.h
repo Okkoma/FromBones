@@ -189,7 +189,7 @@ public:
     static MapStorage* GetStorage() { return mapStorage_; }
     static ViewManager* GetViewManager() { return world_->viewManager_; }
 
-    static void SetAllowClearMaps(bool state) { world_->allowClearMaps_ = state; }
+    static void SetAllowClearMaps(bool state);
     static bool AllowClearMaps() { return world_->allowClearMaps_; }
 
     static bool IsInfinite() { return noBounds_; }

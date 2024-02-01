@@ -256,13 +256,13 @@ void MapCreator::PurgeMapsOutsideVisibleAreas()
 
         mapsToCreate_.EraseSwap(it - mapsToCreate_.Begin());
 
-        URHO3D_LOGINFOF("MapCreator() - PurgeMapsOutsideVisibleAreas : %s !", it->ToString().CString());
+        URHO3D_LOGERRORF("MapCreator() - PurgeMapsOutsideVisibleAreas : %s !", it->ToString().CString());
     }
 }
 
 void MapCreator::PurgeMap(const ShortIntVector2& mpoint)
 {
-    URHO3D_LOGINFOF("MapCreator() - PurgeMap : %s !", mpoint.ToString().CString());
+    URHO3D_LOGERRORF("MapCreator() - PurgeMap : %s !", mpoint.ToString().CString());
     mapsToCreate_.RemoveSwap(mpoint);
 
     Map* map = World2D::GetMapAt(mpoint, false);
@@ -289,6 +289,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 {
     if (map->GetStatus() == Available)
     {
+        URHO3D_LOGERRORF("MapCreator() - CreateMap : %s is available => remove from create list!", map->GetMapPoint().ToString().CString());
         mapsToCreate_.RemoveSwap(map->GetMapPoint());
         return true;
     }
@@ -332,7 +333,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 #ifdef DUMP_MAPCREATOR_LOGS
         URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... MapSerializer Running ... Skip Creating Map ...",
                          map->GetMapPoint().ToString().CString());
-#endif
+/#endif
         return false;
     }
 
@@ -585,6 +586,7 @@ bool MapCreator::Update(HiresTimer* timer, const long long& delay)
 #ifdef DUMP_MAPCREATOR_LOGS
     URHO3D_LOGERRORF("MapCreator() - Update : numMapsToCreate=%u ..." , mapsToCreate_.Size());
 #endif
+
     {
         URHO3D_PROFILE(MapCreator_Purge);
         PurgeMapsOutsideVisibleAreas();
@@ -664,7 +666,7 @@ bool MapCreator::Update(HiresTimer* timer, const long long& delay)
 
             mapsToCreate_.Pop();
 
-            URHO3D_LOGINFOF("MapCreator() - Update map=%s OK ! maxdelayupdate=%dmsec (NumMapsRemainToCreate=%u) ...", map->GetMapPoint().ToString().CString(), (int)(delay_/1000), mapsToCreate_.Size());
+            URHO3D_LOGERRORF("MapCreator() - Update map=%s OK ! maxdelayupdate=%dmsec (NumMapsRemainToCreate=%u) ...", map->GetMapPoint().ToString().CString(), (int)(delay_/1000), mapsToCreate_.Size());
 
             GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, false);
         }

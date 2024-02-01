@@ -1178,12 +1178,13 @@ void GOC_Inventory::OnSetEnabled()
             if (receiveEvent_)
                 SubscribeToEvent(node_, receiveEvent_, URHO3D_HANDLER(GOC_Inventory, HandleReceive));
 
-            // Players handle this
-            if (GameContext::Get().ClientMode_ && !node_->GetComponent<GOC_PlayerController>())
+            if (GameContext::Get().ClientMode_ && !node_->GetComponent<GOC_PlayerController>()) // excluding players
             {
                 ObjectControlInfo* oinfo = GameNetwork::Get()->Client_GetServerObjectControlFromLocalNodeID(node_->GetID());
                 if (oinfo)
                     LoadInventory(node_, oinfo->serverNodeID_, false);
+
+                // entities on Clients never drop directly
                 return;
             }
 
@@ -1199,6 +1200,8 @@ void GOC_Inventory::OnSetEnabled()
             else if (GameContext::Get().ServerMode_)
             {
                 GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
+
+//                URHO3D_LOGERRORF("GOC_Inventory() - OnSetEnabled : %s(%u) controllertype=%d", node_->GetName().CString(), node_->GetID(), controller ? controller->GetControllerType() : -1);
                 if (controller && (controller->GetControllerType() & (GO_Player & GO_NetPlayer)) == 0)
                     SubscribeToEvent(node_, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Inventory, HandleDrop));
             }
@@ -1332,6 +1335,8 @@ void GOC_Inventory::HandleReceive(StringHash eventType, VariantMap& eventData)
 
 void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
 {
+//    URHO3D_LOGINFOF("GOC_Inventory() - HandleDrop :  Node=%s(%u) ...", node_->GetName().CString(), node_->GetID());
+
     if (node_->GetVar(GOA::DESTROYING).GetBool())
         return;
 
@@ -1344,7 +1349,6 @@ void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
     enableGive_ = false;
 
     AnimatedSprite2D* animatedSprite = node_->GetComponent<AnimatedSprite2D>();
-
     if (!animatedSprite)
         return;
 

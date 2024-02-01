@@ -19,6 +19,7 @@ enum GameRandRng
 };
 
 static int GetRand(unsigned seed, int range) { return (((seed * 214013 + 2531011) >> 16) & 32767) % range; }
+static int GetRand(unsigned seed, int min, int max) { return GetRand(seed, max-min+1) + min; }
 
 class GameRand
 {

@@ -1,5 +1,16 @@
 Todos:
 
+    ✔ 01/02/2024 : Resolution bug majeure sur l'animation qui boucle sans raison
+        -> il arrive qu'une animation loop : exemple animation attack alors qu'il n'y a pas d'action d'attaque ...
+        -> cela est tres problematique des qu'une attaque spawn une entité ... spawn multiple ... en plus avec le reseau c'est la cata.
+        ==> ajout de ANIMATOR_ENDTHRESHOLD dans GOC_Animator2D::CheckAnim qui permet de stopper l'animation quand tres proche de la fin car rien n'empeche AnimatedSprite2D de looper sans prevenir de la fin de l'animation.
+        =====> OK : cela regle le probleme
+
+    ✔ 31/01/2024 : lorsqu'un avatar est monté sur une entity, il n'y a plus d'update de position avec GOC_Destroyer (ce qui evite de mourrir si en dehors des bounds du monde par exemple)
+        -> cependant si l'on deplace l'avatar monté dans une autre map alors l'avatar disparait : c'est du a processus de visibilité des entités qui est faite à partir de cette position de GOC_Destroyer.
+        => il faut mettre à jour la position à partir de celle de la monture
+        ==> OK : création de GOC_Destroyer::SetDelegateNode(Node* node)
+
     ☐ 29/01/2024 : lorsqu'un avatar meurt en mode reseau en world, SteleRip n'apparait pas sur les autres clients. Comme SteleRip est une plateforme c'est problematique.
 
     ✔ 29/01/2024 : lorsqu'un avatar est sur une monture, il ne peut prendre un Portail.

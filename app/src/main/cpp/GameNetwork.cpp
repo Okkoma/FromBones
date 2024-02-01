@@ -1234,7 +1234,10 @@ void GameNetwork::Client_SetWorldMaps(VariantMap& eventData)
             mapdata->Load(buffer);
             mapdata->state_ = MAPASYNC_LOADSUCCESS;
             if (mapdata->map_ && mapdata->map_->GetStatus() == Loading_Map)
+            {
                 mapdata->map_->SetStatus(mapdata->savedmapstate_);
+                URHO3D_LOGINFOF("GameNetwork() - Client_SetWorldMaps : mpoint=%s ... status=%d ... OK !", mpoint.ToString().CString(), mapdata->savedmapstate_);
+            }
         }
     }
 }

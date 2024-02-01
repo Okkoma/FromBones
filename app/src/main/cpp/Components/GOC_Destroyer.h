@@ -52,6 +52,8 @@ public :
     void SetEnableLifeNotifier(bool enable);
     void SetEnableUnstuck(bool enable);
     void SetEnablePositionUpdate(bool enable);
+    void SetDelegateNode(Node* node);
+
     void CheckLifeTime();
 
     /// for Pool of Object
@@ -167,6 +169,7 @@ private :
     /// mapworld coords
     WorldMapPosition mapWorldPosition_;
 
+    WeakPtr<Node> delegateNode_;
     RigidBody2D* body_;
     Map* currentMap_;
     MapBase* lastObjectMaped_;

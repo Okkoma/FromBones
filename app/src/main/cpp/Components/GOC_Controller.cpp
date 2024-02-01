@@ -166,7 +166,14 @@ bool GOC_Controller::MountOn(Node* target)
     if (target->GetComponent<GOC_Animator2D>())
         node_->GetComponent<GOC_Animator2D>()->SetDirection(target->GetComponent<GOC_Animator2D>()->GetDirection());
 
-    node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+    GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
+    if (destroyer)
+    {
+        // Always disable Unstuck on all client/client distant/server
+        destroyer->SetEnableUnstuck(false);
+        destroyer->SetDelegateNode(target);
+        destroyer->SetViewZ();
+    }
 
     if (thinker_)
         static_cast<Player*>(thinker_)->OnMount(target);
@@ -188,8 +195,16 @@ bool GOC_Controller::Unmount()
 
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... targetid=%u ...", node_->GetName().CString(), node_->GetID(), targetid);
 
+    Node* target = 0;
+
     if (node_->GetParent()->GetName().StartsWith(MOUNTNODE))
     {
+        target = node_->GetParent();
+        while (target && target->GetID() != targetid)
+            target = target->GetParent();
+        if (target->GetID() != targetid)
+            target = 0;
+
         node_->SetParent(node_->GetScene());
         node_->GetComponent<RigidBody2D>()->SetEnabled(true);
     }
@@ -205,6 +220,7 @@ bool GOC_Controller::Unmount()
                 ConstraintWeld2D* constraint = *it;
                 if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == targetid)
                 {
+                    target = constraint->GetOtherBody()->GetNode();
                     constraint->ReleaseJoint();
                     constraint->Remove();
                 }
@@ -217,6 +233,7 @@ bool GOC_Controller::Unmount()
                 ConstraintWeld2D* constraint = *it;
                 if (constraint && constraint->GetOtherBody()->GetNode()->GetID() == node_->GetID())
                 {
+                    target = constraint->GetOtherBody()->GetNode();
                     constraint->ReleaseJoint();
                     constraint->Remove();
                 }
@@ -234,6 +251,9 @@ bool GOC_Controller::Unmount()
         node_->SetParent(node_->GetScene());
     }
 
+    if (target)
+        UnsubscribeFromEvent(target, GOC_LIFEDEAD);
+
     node_->SetVar(GOA::ISMOUNTEDON, 0U);
 
     node_->SetRotation2D(0.f);
@@ -245,7 +265,12 @@ bool GOC_Controller::Unmount()
 
     node_->GetComponent<GOC_Animator2D>()->ResetState();
 
-    node_->GetComponent<GOC_Destroyer>()->SetViewZ();
+    GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
+    if (destroyer)
+    {
+        destroyer->SetDelegateNode(0);
+        destroyer->SetViewZ();
+    }
 
     if (thinker_)
         static_cast<Player*>(thinker_)->OnUnmount(targetid);

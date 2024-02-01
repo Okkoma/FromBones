@@ -244,6 +244,7 @@ void GOC_AIController::Start()
     {
         if (aiInfos_.target)
             SubscribeToEvent(aiInfos_.target, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_AIController, OnFollowedNodeDead));
+
         SubscribeToEvent(GO_SELECTED, URHO3D_HANDLER(GOC_AIController, OnEntitySelection));
 //        URHO3D_LOGINFOF("GOC_AIController() - Start %s : SubscribeTo GO_SELECTED", node_->GetName().CString());
     }
@@ -621,7 +622,7 @@ bool GOC_AIController::Update(unsigned time)
 
 void GOC_AIController::OnDead(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("GOC_AIController() - HandleDead : GO Dead %s(%u)", node_->GetName().CString(), node_->GetID());
+    URHO3D_LOGINFOF("GOC_AIController() - OnDead : GO Dead %s(%u)", node_->GetName().CString(), node_->GetID());
 
     Stop();
 }
@@ -645,6 +646,9 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
 {
     unsigned type = eventData[Go_Selected::GO_TYPE].GetUInt();
     unsigned selectedID = eventData[Go_Selected::GO_ID].GetUInt();
+
+//    URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u selected=%u type=%u ...",
+//                        node_->GetID(), selectedID, type);
 
     if (selectedID < 2)
         return;
@@ -684,6 +688,8 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
         URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u selected target %u node=%u mountedID=%u ...",
                          node_->GetID(), selectedID, selectedNode, mountedOnID);
 
+        bool mountok = false;
+
         // if selectnode is the node
         if (selectedID == mountedOnID)
         {
@@ -695,6 +701,8 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
                 URHO3D_LOGINFOF("GOC_AIController() - OnEntitySelection : ID=%u on Mounted Node=%s(%u) => Unmount and Follow !",
                                 node_->GetID(), mountedOnNode->GetName().CString(), mountedOnNode->GetID());
                 StartBehavior(GOB_FOLLOW);
+                mountok = true;
+                mountedOnID = 0;
             }
             else
             {
@@ -727,7 +735,18 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
                                 node_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
 
                 StartBehavior(GOB_MOUNTON);
+                mountok = true;
+                mountedOnID = selectedNode->GetID();
             }
+        }
+
+        if (GameContext::Get().ServerMode_ && mountok)
+        {
+            VariantMap& eventData = context_->GetEventDataMap();
+            eventData[Net_ObjectCommand::P_NODEID] = node_->GetID();
+            eventData[Net_ObjectCommand::P_NODEPTRFROM] = mountedOnID;
+            eventData[Net_ObjectCommand::P_CLIENTID] = 0;
+            node_->SendEvent(GO_MOUNTEDON, eventData);
         }
     }
 }

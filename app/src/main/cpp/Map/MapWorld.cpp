@@ -3204,6 +3204,13 @@ void World2D::PushVisibleArea(const IntRect& visibleArea)
             mapsToShow_ += ShortIntVector2(x, y);
 }
 
+void World2D::SetAllowClearMaps(bool state)
+{
+    world_->allowClearMaps_ = state;
+
+    URHO3D_LOGERRORF("World2D() - SetAllowClearMaps : state=%s !", state?"true":"false");
+}
+
 void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const
 {
     mappoints.Clear();
@@ -3397,11 +3404,22 @@ void World2D::UpdateInstant(int viewport, const Vector2& position, float timeste
             URHO3D_LOGINFOF("World2D() - UpdateInstant : viewport=%d position=%s point=%s ... update map=%s ...", viewport, viewInfo.dMapPosition_.ToString().CString(), point.ToString().CString(), it->ToString().CString());
 
             // Update Map Loading
-            while (map->GetStatus() != Available && creator->IsRunning())
-                mapStorage_->UpdateMapsInMemory();
+            if (GameContext::Get().ClientMode_)
+            {
+                if (map->GetStatus() < Available && creator->IsRunning())
+                    mapStorage_->UpdateMapsInMemory();
+            }
+            else
+            {
+                /// Critical Part Code Here !
+                /// Don't use in clientmode because clients need mapdata from server
+                while (map->GetStatus() != Available && creator->IsRunning())
+                    mapStorage_->UpdateMapsInMemory();
+            }
 
             // Show Map
-            map->ShowMap(0);
+            if (map->GetStatus() == Available)
+                map->ShowMap(0);
         }
 
         mapStorage_->SetCreatingMode(MCM_ASYNCHRONOUS);

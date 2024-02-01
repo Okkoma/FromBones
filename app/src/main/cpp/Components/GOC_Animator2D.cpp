@@ -41,6 +41,7 @@
 
 enum AnimLoopType
 {
+    AL_None = 0,
     AL_Start,
     AL_End,
     AL_Tick,
@@ -50,6 +51,7 @@ enum AnimLoopType
 
 const char* animLoopStrings_[] =
 {
+    "None",
     "Start",
     "End",
     "Tick",
@@ -75,6 +77,10 @@ const StringHash ANIMATOR_TEMPLATE_DEFAULT  = StringHash("AnimatorTemplate_Defau
 const StringHash AEVENT_STARTLOOP   = StringHash("AEvent_StartLoop");
 const StringHash AEVENT_TICKLOOP    = StringHash("AEvent_TickLoop");
 const StringHash AEVENT_ENDLOOP     = StringHash("AEvent_EndLoop");
+
+// stop the animation if the animation has reached more than 95% of its length
+const float ANIMATOR_ENDTHRESHOLD = 0.95f;
+
 
 String GetActionsString(const Transition& t)
 {
@@ -1692,12 +1698,12 @@ void GOC_Animator2D::OnEventActions(StringHash eventType, VariantMap& eventData)
         for (unsigned i=0; i < actions.Size(); i++)
         {
             const Action& action = actions[i];
-        if (action.ptr)
-        {
-    #ifdef LOGDEBUG_ANIMATOR2D
+            if (action.ptr)
+            {
+        #ifdef LOGDEBUG_ANIMATOR2D
                 URHO3D_LOGINFOF("GOC_Animator2D() - OnEventActions Node=%s(%u) : Run Action=%s for event=%s(%u) ... ",
                                 node_->GetName().CString(), node_->GetID(), action.name.CString(), GOE::GetEventName(eventType).CString(), eventType.Value());
-    #endif
+        #endif
                 (this->*(action.ptr))(action.param);
             }
         }
@@ -2592,7 +2598,7 @@ inline void GOC_Animator2D::Dispatch(const StringHash& event, const VariantMap& 
     URHO3D_LOGINFOF("GOC_Animator2D() - Dispatch Node=%s(%u) : event=%s(%u) on currentState=%s ...", node_->GetName().CString(), node_->GetID(),
                     GOE::GetEventName(event).CString(), event.Value(), currentState->name.CString());
 #endif
-    int looptype;
+    int looptype = AL_None;
     Vector<StringHash>::ConstIterator it = currentState->hashEventTable.End();
 
     if (event == EVENT_CHANGEAREA)
@@ -2876,35 +2882,37 @@ inline void GOC_Animator2D::CheckTimer(const VariantMap& param)
 
 inline void GOC_Animator2D::CheckAnim(const VariantMap& param)
 {
-#ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - state=%s ... currentStateIndex=%u < animInfoIndexes_.Size()=%u !",
-              GetNode()->GetName().CString(), GetNode()->GetID(), currentState->name.CString(), currentStateIndex, animInfoIndexes_.Size());
-#endif
+//#ifdef LOGDEBUG_ANIMATOR2D
+//    URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - state=%s ... currentStateIndex=%u < animInfoIndexes_.Size()=%u !",
+//              GetNode()->GetName().CString(), GetNode()->GetID(), currentState->name.CString(), currentStateIndex, animInfoIndexes_.Size());
+//#endif
 
     if (currentStateIndex < animInfoIndexes_.Size())
     {
-    const AnimInfo& currentAnimInfo = GetCurrentAnimInfo(animInfoIndexes_[currentStateIndex]);
+        const AnimInfo& currentAnimInfo = GetCurrentAnimInfo(animInfoIndexes_[currentStateIndex]);
 
-//    URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - time=%F/%F",
-//              GetNode()->GetName().CString(), GetNode()->GetID(), animatedSprite->GetCurrentAnimationTime(),
-//              currentAnimInfo.animLength - timeStep);
+    #ifdef LOGDEBUG_ANIMATOR2D
+        URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) state=%s ... time=%F/%F",
+                  GetNode()->GetName().CString(), GetNode()->GetID(), currentState->name.CString(),
+                  animatedSprite->GetCurrentAnimationTime(), currentAnimInfo.animLength);
+    #endif
 
-    // Test End Animation on AnimatedSprite
-    if (animatedSprite->GetCurrentAnimationTime() >= currentAnimInfo.animLength - timeStep)
-    {
-#ifdef LOGDEBUG_ANIMATOR2D
-        URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - Animation Finished END_LOOP animationtime=%F (animationlength=%F) timeStep=%F",
-                        GetNode()->GetName().CString(), GetNode()->GetID(), animatedSprite->GetCurrentAnimationTime(), currentAnimInfo.animLength, timeStep);
-#endif
-        Dispatch(AEVENT_ENDLOOP);
-        currentStateTime = 0.f;
+        // Test End Animation on AnimatedSprite
+        if (animatedSprite->GetCurrentAnimationTime() >= currentAnimInfo.animLength * ANIMATOR_ENDTHRESHOLD)
+        {
+    #ifdef LOGDEBUG_ANIMATOR2D
+            URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - Animation Finished END_LOOP animationtime=%F (animationlength=%F)",
+                            GetNode()->GetName().CString(), GetNode()->GetID(), animatedSprite->GetCurrentAnimationTime(), currentAnimInfo.animLength);
+    #endif
+            Dispatch(AEVENT_ENDLOOP);
+            currentStateTime = 0.0f;
+        }
+        else
+        {
+            // Update for replaying Animation in the same state (see Dispatch - State Attack)
+            currentStateTime = animatedSprite->GetCurrentAnimationTime();
+        }
     }
-    else
-    {
-        // Update for replaying Animation in the same state (see Dispatch - State Attack)
-        currentStateTime += timeStep;
-    }
-}
 }
 
 inline void GOC_Animator2D::CheckEmpty(const VariantMap& param)
@@ -2920,11 +2928,15 @@ inline void GOC_Animator2D::CheckEmpty(const VariantMap& param)
 
 inline void GOC_Animator2D::SendAnimEvent(const VariantMap& param)
 {
-//    URHO3D_LOGINFOF("GOC_Animator2D() - SendAnimEvent : Node=%s(%u) event=%s", GetNode()->GetName().CString(), GetNode()->GetID(),
-//                      GOE::GetEventName(param[ANIMEVENT::DATAS].GetStringHash()).CString());
     VariantMap::ConstIterator itp = param.Find(ANIM_Event::DATAS);
     if (itp != param.End())
+    {
+    #ifdef LOGDEBUG_ANIMATOR2D
+        URHO3D_LOGINFOF("GOC_Animator2D() - SendAnimEvent : Node=%s(%u) ... event=%s(%u) !", GetNode()->GetName().CString(), GetNode()->GetID(),
+                        GOE::GetEventName(itp->second_.GetStringHash()).CString(), itp->second_.GetStringHash().Value());
+    #endif
         node_->SendEvent(itp->second_.GetStringHash());
+    }
 }
 
 extern const char* ParticuleEffectTypeNames_[];

@@ -880,12 +880,8 @@ void Player::OnMount(Node* target)
     if (!avatar_ || !target)
         return;
 
-    // if Player only (not netplayer who doesn't need to set these attributes)
-    if (gocController->GetControllerType() == GO_Player)
-    {
+    if (gocController->GetControllerType() & GO_Player)
         gocDestroyer_->SetEnableUnstuck(false);
-        gocDestroyer_->SetEnablePositionUpdate(false);
-    }
 
     GOC_Inventory* inventory = avatar_->GetComponent<GOC_Inventory>();
     if (inventory)
@@ -914,12 +910,8 @@ void Player::OnUnmount(unsigned targetid)
     if (inventory)
         inventory->SetEnabled(true);
 
-    // if Player only (not netplayer who need to keep these attributes desactivated)
-    if (gocController->GetControllerType() == GO_Player)
-    {
-        gocDestroyer_->SetEnablePositionUpdate(true);
+    if (gocController->GetControllerType() & GO_Player)
         gocDestroyer_->SetEnableUnstuck(IsMainController());
-    }
 
     avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(true);
 

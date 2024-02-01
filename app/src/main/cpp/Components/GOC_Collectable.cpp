@@ -19,6 +19,7 @@
 #include "GameAttributes.h"
 #include "GameEvents.h"
 #include "GameContext.h"
+#include "GameNetwork.h"
 #include "GameHelpers.h"
 
 #include "GOC_Collide2D.h"
@@ -245,41 +246,62 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
     if (!slot.Empty())
     {
         const StringHash& got = slot.type_;
-
         if (!slot.sprite_)
         {
             URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : no sprite in slot %s(%u) !", GOT::GetType(got).CString(), got.Value());
             return 0;
         }
 
-        PhysicEntityInfo physicInfo;
-        GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
+        Node* node = 0;
 
-        if (qty > slot.quantity_)
-            qty = slot.quantity_;
+        // check if the client is the owner => spawn
+        const bool spawn = GameContext::Get().LocalMode_ || GameContext::Get().ServerMode_ ||
+                           (GameContext::Get().ClientMode_ && owner->GetVar(GOA::CLIENTID).GetInt() == GameNetwork::Get()->GetClientID());
 
-       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d droppoint=%F %F ...",
-                       GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), physicInfo.positionx_, physicInfo.positiony_);
-
-        if (!slotData)
-            slotData = &tempSlotData_;
-
-        Slot::GetSlotData(slot, *slotData, qty);
-
-        SceneEntityInfo sceneinfo;
-        sceneinfo.skipNetSpawn_ = skipNetSpawn;
-        sceneinfo.zindex_ = 1000;
-
-        int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
-
-        Node* node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
-        if (!node)
+        if (spawn)
         {
-            URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
-            return 0;
+            PhysicEntityInfo physicInfo;
+            GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
+
+            if (qty > slot.quantity_)
+                qty = slot.quantity_;
+
+           URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d droppoint=%F %F ...",
+                           GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), physicInfo.positionx_, physicInfo.positiony_);
+
+            if (!slotData)
+                slotData = &tempSlotData_;
+
+            Slot::GetSlotData(slot, *slotData, qty);
+
+            int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
+
+            // Collectables are never NetSpawned (because of slotData : ObjectControl can't handle it)
+            SceneEntityInfo sceneinfo;
+            sceneinfo.skipNetSpawn_ = true;//skipNetSpawn;
+            sceneinfo.zindex_ = 1000;
+            node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
+            if (!node)
+            {
+                URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
+                return 0;
+            }
+
+            // the server send ObjectCommand only for it's own Nodes.
+            // for the moment, the client never sends ObjectCommand MAP_ADDCOLLECTABLE. Only Drop Item from inventory panel with GO_DROPITEM
+            if (GameContext::Get().ServerMode_ && owner->GetVar(GOA::CLIENTID).GetInt() == 0)
+            {
+                // Send a NetCommand
+                VariantMap& sdata = *slotData;
+                sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
+                sdata[Net_ObjectCommand::P_NODEIDFROM] = 0;
+                sdata[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = viewZ;
+                sdata[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = Vector2(physicInfo.positionx_, physicInfo.positiony_);
+                node->SendEvent(MAP_ADDCOLLECTABLE, sdata);
+            }
         }
 
-       URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) nodeid=%u qty=%u ... OK !", GOT::GetType(got).CString(), got.Value(), node->GetID(), qty);
+        URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u ... OK !", GOT::GetType(got).CString(), got.Value(), qty);
 
         // send DROP for updating player states, if need
         if (owner)

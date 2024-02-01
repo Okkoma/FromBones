@@ -7,7 +7,110 @@
 
 Todos:
 
-    ☐ 30/01/2024 : il arrive qu'une entity bleu soit spawnée coté client à la mort d'un monstre
+    ✔ 31/01/2024 : Lorsqu'une entity monte un avatar cela pose probleme ...
+        -> coté client l'entity controllé par le serveur ne monte pas sur l'avatar, sur le server c ok.
+        => verifier GOC_AIController::Start() et GOC_AIController::OnEntitySelection()
+        ==> cela se joue dans Start() qui n'est pas executé sur le client, car pas maincontroller.
+        ===> OK : permission au GO_AI_Ally de Start meme si non maincontroller
+        ==> coté second client, cela ne fonctionne pas
+        ===> OK : envoyer un ordre de mount du serveur vers l'ensemble des clients.
+        ===> il y a aussi un probleme lorsque l'avatar monte l'entity, il peut apparaitre decaler de la monture.
+        ====> OK : cela provient de Destroyer Unstuck : toujours le desactiver quand monté.
+
+    ✔ 31/01/2024 : coté client, il y a des problemes avec le spawn de mirubil -> oeuf mirubil -> elsarion, du surement aux spawnstamps
+        -> il faut verifier en profondeur ... etre sur
+        => en local, le probleme principal/majeur à corriger : l'animation peut entrer en boucle et spawné en boucle ...
+        ==> verifier toute la chaine jusqu'à GOC_Animator2D::SpawnEntity
+        => LOG CLIENT
+        [Wed Jan 31 22:32:52 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_1(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=1 rot=-2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:32:52 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=19.25 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:32:52 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 19.2463 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:32:52 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=142
+        [Wed Jan 31 22:32:52 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=553648186(holderid=16777274,spawnstamp=33) ...
+        [Wed Jan 31 22:32:52 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3357737200 srvnodeid=0 cltnodeid=16790587 holderptr=3388937408(nodeid=16777274,clientid=0) spawnstamp=33 !
+        [Wed Jan 31 22:32:52 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 19.2463 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        [Wed Jan 31 22:32:52 2024] INFO: GameNetwork() - LinkSpawnControl : oinfo=3357737200 from clientid=0 spawnid=553648186 links serverNodeID_=16790587 clientNodeID_=16790587 !
+        ...
+        [Wed Jan 31 22:32:53 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_1(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=1 rot=-2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:32:53 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=19.25 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:32:53 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 19.2463 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:32:53 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=141
+        [Wed Jan 31 22:32:53 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=570425402(holderid=16777274,spawnstamp=34) ...
+        [Wed Jan 31 22:32:53 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3357737200 srvnodeid=0 cltnodeid=16790587 holderptr=3388937408(nodeid=16777274,clientid=0) spawnstamp=34 !
+        [Wed Jan 31 22:32:53 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 19.2463 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        ... =====> ERROR ICI pas de Link = un spawn de plus que sur le serveur ce qui crée un décalage
+        ...
+        [Wed Jan 31 22:33:04 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_1(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=-1 rot=2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:33:04 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=17.06 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:33:04 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 17.0592 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:33:04 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=140
+        [Wed Jan 31 22:33:04 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=587202618(holderid=16777274,spawnstamp=35) ...
+        [Wed Jan 31 22:33:04 2024] INFO: GameNetwork() - AddSpawnControl : ... new oinfo=3357742384 srvnodeid=0 cltnodeid=16790587 holderptr=3388937408(nodeid=16777274,clientid=0) spawnstamp=35 !
+        [Wed Jan 31 22:33:04 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 17.0592 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        [Wed Jan 31 22:33:04 2024] INFO: GameNetwork() - LinkSpawnControl : oinfo=3357737200 from clientid=0 spawnid=570425402 links serverNodeID_=16790587 clientNodeID_=16790587 !
+        ...
+        [Wed Jan 31 22:33:14 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_1(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=-1 rot=2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:33:14 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=18.68 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:33:14 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 18.6823 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:33:14 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=140
+        [Wed Jan 31 22:33:14 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=603979834(holderid=16777274,spawnstamp=36) ...
+        [Wed Jan 31 22:33:14 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=3357737200 srvnodeid=0 cltnodeid=16790587 holderptr=3388937408(nodeid=16777274,clientid=0) spawnstamp=36 !
+        [Wed Jan 31 22:33:14 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 18.6823 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        [Wed Jan 31 22:33:14 2024] INFO: GameNetwork() - LinkSpawnControl : oinfo=3357742384 from clientid=0 spawnid=587202618 links serverNodeID_=16790587 clientNodeID_=16790587 !
+        => LOG SERVER
+        [Wed Jan 31 22:32:52 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_5(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=1 rot=-2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:32:52 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=19.24 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:32:52 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 19.2392 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:32:52 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=141
+        [Wed Jan 31 22:32:52 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=553648186(holderid=16777274,spawnstamp=33) ...
+        [Wed Jan 31 22:32:52 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=2352576864 srvnodeid=16790587 cltnodeid=0 holderptr=3022959296(nodeid=16777274,clientid=0) spawnstamp=33 !
+        [Wed Jan 31 22:32:52 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 19.2392 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        ...
+        [Wed Jan 31 22:33:04 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_5(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=-1 rot=2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:33:04 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=17.07 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:33:04 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 17.0655 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:33:04 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=140
+        [Wed Jan 31 22:33:04 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=570425402(holderid=16777274,spawnstamp=34) ...
+        [Wed Jan 31 22:33:04 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=2352576864 srvnodeid=16790587 cltnodeid=0 holderptr=3022959296(nodeid=16777274,clientid=0) spawnstamp=34 !
+        [Wed Jan 31 22:33:04 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 17.0655 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        ...
+        [Wed Jan 31 22:33:14 2024] INFO: GOC_Animator2D() - SpawnEntity : Node=Player_5(16777274) Try to spawn entity=OeufMirubil entityid=0 ... dirx=-1 rot=2.55142251322736e-08 faction=0
+        [Wed Jan 31 22:33:14 2024] INFO: World2D() - SpawnEntity : id=0 got=OeufMirubil(3813840255) effectiveType=OeufMirubil(3813840255) position=18.68 15.90 mpoint=0 0 viewZ=70 deferredAdd=false
+        [Wed Jan 31 22:33:14 2024] INFO: Map() - AddEntity : node=OeufMirubil(16790587) entityid=16 mPoint=0 0 spawn at 18.6841 15.8979 slotdata=0 ...
+        [Wed Jan 31 22:33:14 2024] INFO: World2D() - HandleObjectAppear : GO APPEAR node=OeufMirubil(16790587) type=0 mpoint=0 0 viewZ=70 entitiesInMap=140
+        [Wed Jan 31 22:33:14 2024] INFO: GameNetwork() - AddSpawnControl : ServerControl node=OeufMirubil(16790587) ... spawnid=587202618(holderid=16777274,spawnstamp=35) ...
+        [Wed Jan 31 22:33:14 2024] INFO: GameNetwork() - AddSpawnControl : ...  oinfo=2352576864 srvnodeid=16790587 cltnodeid=0 holderptr=3022959296(nodeid=16777274,clientid=0) spawnstamp=35 !
+        [Wed Jan 31 22:33:14 2024] INFO: Map() - AddEntity : mPoint=0 0 nodeid=16790587 type=OeufMirubil(3813840255) entityid=16 at 18.6841 15.8979 viewZ=70 sceneInfo.skipNetSpawn_=false ... OK !
+        ...
+        ==> le client spawns 4 oeufs alors que le server 3 seulement. Le Client a spawné 1 qui n'était pas normal
+        ===> y'a-t-il le tick delay a reglé plus finement comme cela a été fait pour les bombes ?
+        ===> GOC_Animator2D semble etre bloqué sur le SpawnEntity en continue.
+        ====> ajout de ANIMATOR_ENDTHRESHOLD dans GOC_Animator2D::CheckAnim qui permet de stopper l'animation quand tres proche de la fin car rien n'empeche AnimatedSprite2D de looper sans prevenir de la fin de l'animation.
+        =====> OK : cela regle le probleme de spawn
+        ===> RAF : avant d'utiliser NetSpawnEntity, il faudrait verifier si le spawnid est dejà utiliser, ce qui signifie qu'un node a déjà été spawné en local et est en cours d'utilisation
+
+    ✔ 31/01/2024 : remodification de Map::AddEntity pour le netspawning. car pas de possibilité de spawner 2 fois le meme nodeid que l'on a tuer/restaurer entre les deux spawns.
+        -> OK : passer obligatoirement par GameNetwork::AddSpawnControl qui incremente le spawnstamp.
+
+    ☐ 22/11/2023 : mettre à jour network.svg
+        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
+        Mettre des cas d'usage précis
+        voir pour la synchronisation des spawnstamps
+
+    ☐ 22/01/2024 : les objets deposés au sol par un netplayer disparaissent de la map lorsque l'avatar est éloigné de l'objet
+        => cela doit etre du à la gestion de la visiblité des entités ...
+        => le probleme c'est que le setenabled des objets du client va s'appliquer à l'ensemble des autres clients/server ...
+        ==> solution temporaire : seuls les controller pourront etre setenabled par le network => modification dans GameNetwork::UpdateControl()
+            donc les objet collectable dropper de l'inventaire seront toujours visible
+            par contre un familier ça ne marchera plus...
+
+    ☐ 22/01/2024 : les blocks de fermeture des zone de boss s'ils sont detruits par un netplayer doit etre repercuté sur le reseau.
+
+    ✔ 30/01/2024 : Adapter GOC_Portal pour accepter les Net_Player
+        -> OK : coté server pas besoin de viewport ni de GoToMap ... les nodes doivent bien etre teleporté pour la reactivation des nodes.
+            Attention : Si les avatars restent desactivés alors TravelerNodeInfo ne pourront etre mise à jour.
+
+    ✔ 30/01/2024 : il arrive qu'une entity "carré bleu" (surface non définie) soit spawnée coté client à la mort d'un monstre
         -> il s'agit d'une CollectablePart vide
         => LOG coté client
         [Tue Jan 30 10:15:15 2024] ERROR: GameNetwork() - NetSpawnEntity : clientid=1 ... spawnid=33571772(holderid=16794556,spawnstamp=2) posreceived=1876.17,1539.12 oinfo=0 ...
@@ -32,7 +135,16 @@ Todos:
         [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : mPoint=22 18 nodeid=16785539 type=ElsarionMeat(1591862966) entityid=0 at 1876.17 1539.12 viewZ=100 sceneInfo.skipNetSpawn_=false ... OK !
         [Tue Jan 30 10:15:15 2024] INFO: Map() - AddEntity : mPoint=22 18 modeid=1 nodeid=16785539 type=ElsarionMeat(1591862966) entityid=0 at 1876.17 1539.12 viewZ=100 zindex=1000 netusage=true ... OK !
         [Tue Jan 30 10:15:15 2024] INFO: GOC_Collectable() - DropSlotFrom : type=ElsarionMeat(1591862966) nodeid=16785539 qty=4 ... OK !
-        => il s'agit d'elasarion meat
+        => il s'agit d'elsarion meat, le slotdata ne passe pas par netspawing ?
+        ==> les ObjectControls sont petits et ne disposent pas de données permettant le stockage de slotdata
+        ===> il faudrait que le drop de collectable passe toujours par un ObjectCommand (ne soit jamais Netspawné).
+        ===> verifier GOC_Inventory::HandleDrop ... GOC_Collectable::DropSlotFrom
+        ====> OK : utilisation de l'ObjectCommand ADDCOLLECTABLE dans GOC_Collectable::DropSlotFrom, seul le server envoit MAP_ADDCOLLECTABLE.
+        ====> A-t-on un cas d'utilisation de MAP_ADDCOLLECTABLE pour le client ?
+        ===> probleme avec GOC_DropZone avec EliegorSeed par exemple : coté client, elle va etre spawnée deux fois
+            une par SpawnCollectable lancé par ObjectCommand ADDCOLLECTABLE qui provient sur server,
+            et l'autre en local par GOC_DropZone::HandleThrowOutItems.
+        ====> OK : suppression du netspawning pour GOC_Collectable::DropSlotFrom
 
     ✔ 29/01/2024 : probleme de reactivation de netplayer mort sur le serveur.
         -> le message de reactivation START_GAME parvient avant que Player::Stop ne soit lancer.
@@ -106,20 +218,6 @@ Todos:
 
     ✔ 22/01/2024 : Lorsque'un netplayer meurt et repop, GOC_Destroyer ne fait plus d'update de position : ce qui occasionne des pbs de bosszone notamment
         => correctif lors de la reactivation dans GameNetwork::UpdateControl(), il faut bien reactivé destroyer->SetEnablePositionUpdate(true)
-
-    ☐ 22/01/2024 : les objets deposés au sol par un netplayer disparaissent de la map lorsque l'avatar est éloigné de l'objet
-        => cela doit etre du à la gestion de la visiblité des entités ...
-        => le probleme c'est que le setenabled des objets du client va s'appliquer à l'ensemble des autres clients/server ...
-        ==> solution temporaire : seuls les controller pourront etre setenabled par le network => modification dans GameNetwork::UpdateControl()
-            donc les objet collectable dropper de l'inventaire seront toujours visible
-            par contre un familier ça ne marchera plus...
-
-    ☐ 22/01/2024 : les blocks de fermeture des zone de boss s'ils sont detruits par un netplayer doit etre repercuté sur le reseau.
-
-    ☐ 22/11/2023 : mettre à jour network.svg
-        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
-        Mettre des cas d'usage précis
-        voir pour la synchronisation des spawnstamp
 
     ✔ 17/01/2024 : crash du serveur avec 2 clients : en spawnant plus de 255 lames avec le premier client puis en reiterant avec le second.
         -> crash dans GameNetwork::PushObjectCommand : probleme de saturation de la pool d'objectcommand
@@ -771,10 +869,6 @@ Todos:
             en effet lors de la mort du skeleton, GOC_BodyExploder desactive le RigidBody qu'il faut donc reactiver au repop coté client distant
             => GameNetwork::UpdateControl()->GOC_Destroyer::Reset(true)->GOC_Destroyer::OnSetEnabled() -> ajout de la reactivation du rigidbody
             ==> Cela ameliore mais ne semble pas resoudre completement les saccades : il faut logger les ObjectControls. => close => cf todo 29/08/2021
-
-    ☐ 09/08/2021 : Adapter GOC_Portal pour accepter les Net_Player
-        => teleporter uniquement les nodes locaux, les autres clients ou serveur s'occupent des autres nodes.
-        ==> RAF : verifier avec les entités montées.
 
     ✘ 03/07/2021 : suite à la modification du spawning effectuer coté client (le client spawn desormais toujours sans attendre la reponse du serveur), @cancelled(24-01-19 08:46)
         le spawn d'une bombe par exemple coté client fait apparaitre le pb de "snapping" des synchronisation avec le serveur.

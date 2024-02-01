@@ -76,11 +76,7 @@ void GOB_MountOn::OnUnmount(GOC_AIController& controller)
 
     GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
     if (destroyer)
-    {
-        destroyer->SetEnablePositionUpdate(true);
         destroyer->SetEnableUnstuck(controller.IsMainController());
-        destroyer->SetViewZ();
-    }
 }
 
 // MOUNT ON A TARGET AND DESACTIVE CONTROLLER
@@ -101,12 +97,9 @@ void GOB_MountOn::OnMount(GOC_AIController& controller)
 {
     Node* node = controller.GetNode();
 
-    GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
-    if (destroyer)
-    {
-        destroyer->SetEnablePositionUpdate(false);
-        destroyer->SetEnableUnstuck(false);
-    }
+//    GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
+//    if (destroyer)
+//        destroyer->SetEnableUnstuck(false);
 
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
     if (inventory)

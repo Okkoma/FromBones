@@ -203,13 +203,34 @@ void GOC_Destroyer::SetEnableLifeNotifier(bool enable)
 
 void GOC_Destroyer::SetEnableUnstuck(bool enable)
 {
-    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnableUnstuck : %s(%u) checkUnstuck_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+//    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnableUnstuck : %s(%u) checkUnstuck_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
     checkUnstuck_ = enable;
 }
 
 void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
 {
+//    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+
     worldUpdatePosition_ = enable;
+
+    if (GetScene())
+    {
+        if (HasSubscribedToEvent(GetScene(), E_SCENEPOSTUPDATE))
+        {
+            if (!enable && IsEnabledEffective())
+                UnsubscribeFromEvent(GetScene(), E_SCENEPOSTUPDATE);
+        }
+        else if (enable && IsEnabledEffective())
+        {
+            SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateWorld2D));
+        }
+    }
+}
+
+void GOC_Destroyer::SetDelegateNode(Node* node)
+{
+//    URHO3D_LOGINFOF("GOC_Destroyer() - SetDelegateNode : %s(%u) delegateNode=%s(%u) !", node_->GetName().CString(), node_->GetID(), node?node->GetName().CString():"none", node?node->GetID():0);
+    delegateNode_ = node;
 }
 
 void GOC_Destroyer::CheckLifeTime()
@@ -689,9 +710,9 @@ void GOC_Destroyer::OnSetEnabled()
     {
         /// TEST
         // if not main controller => replicate node, keep subscribe to update position
-        if (controller && !controller->IsMainController())
+        if (controller && !controller->IsMainController() && worldUpdatePosition_)
         {
-            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) !maincontroller => keep update position !",
+            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) enable=false !maincontroller => keep update position !",
                             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString());
             return;
         }
@@ -1520,7 +1541,7 @@ void GOC_Destroyer::UpdateAreaStates(bool sendfluidevent)
 /// Based on physic dont work with rotation
 bool GOC_Destroyer::GetUpdatedWorldPosition2D(Vector2& position)
 {
-    position = node_->GetWorldPosition2D();
+    position = delegateNode_ ? delegateNode_->GetWorldPosition2D() : node_->GetWorldPosition2D();
 
     // if position defined, adjust with mass center
     if (!IsNaN(position.x_))
@@ -1654,6 +1675,17 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     // Not Inside World
     if (!GameContext::Get().ClientMode_ && !sInsideBounds_)
     {
+        if (GameContext::Get().ServerMode_)
+        {
+            GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
+            if (controller && !controller->IsMainController())
+            {
+                URHO3D_LOGERRORF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s not in WorldBounds=%s => is not a maincontroller => skip !",
+                                 node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString(), World2D::GetWorldFloatBounds().ToString().CString());
+                return false;
+            }
+        }
+
         URHO3D_LOGERRORF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s not in WorldBounds=%s => Destroy !",
                          node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString(), World2D::GetWorldFloatBounds().ToString().CString());
 

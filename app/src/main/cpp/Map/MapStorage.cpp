@@ -1526,7 +1526,7 @@ void MapStorage::UpdateBufferedArea()
                     mapsToUnloadFromMemory_.Erase(jt);
                 }
             }
-            else
+            else if (World2D::AllowClearMaps())
             {
                 // remove it from creation list because unloading process can be slow
                 mapCreator_->PurgeMap(mPoint);
@@ -1551,7 +1551,7 @@ void MapStorage::UpdateBufferedArea()
         it = mapsToLoadInMemory_.Begin();
         while (it != mapsToLoadInMemory_.End())
         {
-            if (!IsInsideBufferedArea(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it))
+            if (!IsInsideBufferedArea(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it) && World2D::AllowClearMaps())
             {
                 // if not in the load list, remove it from creation list
                 mapCreator_->PurgeMap(*it);
