@@ -215,16 +215,26 @@ void GOC_Collectable::TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nod
 //                                nodeGetter->GetName().CString(), nodeGetter->GetID(), qty,
 //                                ref.name_.CString());
 
-                VariantMap& eventData = nodeGetter->GetContext()->GetEventDataMap();
-                eventData[Go_InventoryGet::GO_GIVER] = nodeGiver ? nodeGiver->GetID() : 0;
-                eventData[Go_InventoryGet::GO_GETTER] = nodeGetter->GetID();
-                eventData[Go_InventoryGet::GO_POSITION] = position;
-                eventData[Go_InventoryGet::GO_RESOURCEREF] = ref;
-                eventData[Go_InventoryGet::GO_IDSLOTSRC] = 0;
-                eventData[Go_InventoryGet::GO_IDSLOT] = idSlotGetter;
-                eventData[Go_InventoryGet::GO_QUANTITY] = qty;
-                nodeGetter->SendEvent(GO_INVENTORYGET, eventData);
-//                nodeGetter->SendEvent(GO_INVENTORYRECEIVE, eventData);
+                {
+                    VariantMap& eventData = nodeGetter->GetContext()->GetEventDataMap();
+                    eventData[Go_InventoryGet::GO_GIVER] = nodeGiver ? nodeGiver->GetID() : 0;
+                    eventData[Go_InventoryGet::GO_GETTER] = nodeGetter->GetID();
+                    eventData[Go_InventoryGet::GO_POSITION] = position;
+                    eventData[Go_InventoryGet::GO_RESOURCEREF] = ref;
+                    eventData[Go_InventoryGet::GO_IDSLOTSRC] = 0;
+                    eventData[Go_InventoryGet::GO_IDSLOT] = idSlotGetter;
+                    eventData[Go_InventoryGet::GO_QUANTITY] = qty;
+                    nodeGetter->SendEvent(GO_INVENTORYGET, eventData);
+                }
+
+                if (GameContext::Get().ClientMode_ && !nodeGiver && nodeGetter->GetVar(GOA::CLIENTID).GetInt() == GameNetwork::Get()->GetClientID())
+                {
+                    VariantMap& eventData = nodeGetter->GetContext()->GetEventDataMap();
+                    eventData[Net_ObjectCommand::P_NODEIDFROM] = nodeGetter->GetID();
+                    eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = idSlotGetter;
+                    Slot::GetSlotData(*slot, eventData);
+                    nodeGetter->SendEvent(GO_INVENTORYSLOTSET, eventData);
+                }
 
                 quantity -= qty;
             }
@@ -241,7 +251,7 @@ void GOC_Collectable::TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nod
 
 VariantMap GOC_Collectable::tempSlotData_;
 
-Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, unsigned int qty, VariantMap* slotData)
+Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int fromSlotId, unsigned int qty, VariantMap* slotData)
 {
     if (!slot.Empty())
     {
@@ -251,6 +261,9 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
             URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : no sprite in slot %s(%u) !", GOT::GetType(got).CString(), got.Value());
             return 0;
         }
+
+        if (qty > slot.quantity_)
+            qty = slot.quantity_;
 
         Node* node = 0;
 
@@ -262,9 +275,6 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
         {
             PhysicEntityInfo physicInfo;
             GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
-
-            if (qty > slot.quantity_)
-                qty = slot.quantity_;
 
            URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d droppoint=%F %F ...",
                            GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), physicInfo.positionx_, physicInfo.positiony_);
@@ -278,7 +288,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
 
             // Collectables are never NetSpawned (because of slotData : ObjectControl can't handle it)
             SceneEntityInfo sceneinfo;
-            sceneinfo.skipNetSpawn_ = true;//skipNetSpawn;
+            sceneinfo.skipNetSpawn_ = true;
             sceneinfo.zindex_ = 1000;
             node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
             if (!node)
@@ -287,17 +297,27 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn, 
                 return 0;
             }
 
-            // the server send ObjectCommand only for it's own Nodes.
-            // for the moment, the client never sends ObjectCommand MAP_ADDCOLLECTABLE. Only Drop Item from inventory panel with GO_DROPITEM
-            if (GameContext::Get().ServerMode_ && owner->GetVar(GOA::CLIENTID).GetInt() == 0)
+            if (dropmode >= 0)
             {
-                // Send a NetCommand
                 VariantMap& sdata = *slotData;
-                sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
-                sdata[Net_ObjectCommand::P_NODEIDFROM] = 0;
-                sdata[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = viewZ;
-                sdata[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = Vector2(physicInfo.positionx_, physicInfo.positiony_);
-                node->SendEvent(MAP_ADDCOLLECTABLE, sdata);
+
+                if (dropmode < 4)
+                {
+                    sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
+                    sdata[Net_ObjectCommand::P_NODEIDFROM] = owner->GetID();
+                    sdata[Net_ObjectCommand::P_SLOTQUANTITY] = qty;
+                    sdata[Net_ObjectCommand::P_INVENTORYIDSLOT] = fromSlotId;
+                    sdata[Net_ObjectCommand::P_INVENTORYDROPMODE] = dropmode;
+                    owner->SendEvent(GO_DROPITEM, sdata);
+                }
+                else
+                {
+                    sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
+                    sdata[Net_ObjectCommand::P_NODEIDFROM] = 0;
+                    sdata[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = viewZ;
+                    sdata[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = Vector2(physicInfo.positionx_, physicInfo.positiony_);
+                    owner->SendEvent(MAP_ADDCOLLECTABLE, sdata);
+                }
             }
         }
 

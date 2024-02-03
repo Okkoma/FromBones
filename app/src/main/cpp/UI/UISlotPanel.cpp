@@ -809,6 +809,8 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
     /// Drop in a panel
     if (toPanel)
     {
+        URHO3D_LOGINFOF("UISlotPanel() - HandleDragEnd : Drop in a panel ...");
+
         if (focusElement->GetName().Empty())
             focusElement = focusElement->GetParent();
 
@@ -828,6 +830,8 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
     /// Drop out of a panel
     else
     {
+        URHO3D_LOGINFOF("UISlotPanel() - HandleDragEnd : Drop out ...");
+
         bool allowDropInScene = !IsInstanceOf<UIC_ShopPanel>();
 
         if (allowDropInScene)
@@ -840,6 +844,7 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
     }
 
     OnDragSlotFinish(fromSlotId);
+
     OnSlotRemain(slot, fromSlotId);
 
     GetSubsystem<UI>()->GetRoot()->RemoveChild(draggedElement_);
@@ -847,7 +852,7 @@ void UISlotPanel::HandleSlotDragEnd(StringHash eventType, VariantMap& eventData)
 
     draggedElement_.Reset();
 
-//    URHO3D_LOGINFO("UISlotPanel() - HandleSlotDragEnd() : ... OK !");
+    URHO3D_LOGINFO("UISlotPanel() - HandleSlotDragEnd : ... OK !");
 }
 
 int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const IntVector2& droppedPosition)
@@ -863,7 +868,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     if (!useon && !useout && !allowdrop)
         return -1;
 
-    int dropmode = -1;
+    int dropmode = SLOT_NONE;
 
     // Check dropon mode
     if (useon && droppedPosition != IntVector2::NEGATIVE_ONE)
@@ -887,9 +892,10 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     /// Use the item on holder (DropOn Mode)
     if (useon)
     {
+        dropmode = SLOT_DROPON;
+
         /// Drop an item
-        slotqty = 1U;
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId, 1U);
         if (node)
         {
             // Apply Effect
@@ -902,16 +908,16 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
             if (itemBody)
                 itemBody->SetEnabled(false);
 
-            dropmode = 1;
             URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop and use item=%s on holder !", GOT::GetType(type).CString());
         }
     }
     /// Use item (DropOut Mode)
     else if (useout)
     {
+        dropmode = SLOT_DROPOUT;
+
         /// Drop an item
-        slotqty = 1U;
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId, 1U);
         if (node)
         {
             GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -922,34 +928,21 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
             }
             //node->GetComponent<GOC_Collectable>()->SetEnabled(false);
             node->SendEvent(GO_USEITEM);
-            dropmode = 2;
             URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop and use item=%s !", GOT::GetType(type).CString());
         }
     }
     /// Just drop
     else if (allowdrop)
     {
+        dropmode = SLOT_DROP;
+
         /// Drop items
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, true, slotqty, &eventData);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId);
         if (node)
-        {
-            dropmode = 0;
             URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop item=%s!", GOT::GetType(type).CString());
-        }
     }
 
-    /// Send Network event
-    if (!GameContext::Get().LocalMode_ && dropmode != -1 && node)
-    {
-        eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
-        eventData[Net_ObjectCommand::P_NODEIDFROM] = holderNode_->GetID();
-        eventData[Net_ObjectCommand::P_SLOTQUANTITY] = slotqty;
-        eventData[Net_ObjectCommand::P_INVENTORYIDSLOT] = fromSlotId;
-        eventData[Net_ObjectCommand::P_INVENTORYDROPMODE] = dropmode;
-        SendEvent(GO_DROPITEM, eventData);
-    }
-
-    return dropmode;
+    return node ? dropmode : -1;
 }
 
 void UISlotPanel::OnSlotRemain(Slot& slot, int slotid)
@@ -970,7 +963,7 @@ void UISlotPanel::OnSlotRemain(Slot& slot, int slotid)
         URHO3D_LOGINFOF("UISlotPanel() - OnSlotRemain : drop remain item=%s qty=%u !",
                         GOT::GetType(slot.type_).CString(), slot.quantity_);
 
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, false);
+        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, SLOT_DROPREMAIN);
         GameHelpers::SpawnSound(holderNode_, "Sounds/024-Door01.ogg");
     }
 

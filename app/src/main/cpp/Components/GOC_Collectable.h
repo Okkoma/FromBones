@@ -31,7 +31,7 @@ public :
     void Set();
 
     static void TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nodeGetter, const Variant& position, unsigned int quantity=QTY_MAX);
-    static Node* DropSlotFrom(Node* owner, Slot& slot, bool skipNetSpawn=false, unsigned int qty=QTY_MAX, VariantMap* slotdata=0);
+    static Node* DropSlotFrom(Node* owner, Slot& slot, int dropmode=-1, int fromSlotId=0, unsigned int qty=QTY_MAX, VariantMap* slotdata=0);
 
     bool Empty() const;
     bool CheckEmpty();

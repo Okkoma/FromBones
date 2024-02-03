@@ -102,7 +102,7 @@ void GOC_Controller::CheckMountNode()
     const unsigned mountid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
     if (mountid)
     {
-        if (node_->GetParent() == GetScene() || node_->GetParent() == 0 || node_->GetParent()->GetVar(GOA::ISDEAD).GetBool())
+        if (node_->GetParent() == GetScene() || node_->GetParent() == 0 || node_->GetParent()->GetVar(GOA::ISDEAD).GetBool() || node_->GetVar(GOA::ISDEAD).GetBool())
             bool ok = Unmount();
     }
 }
@@ -139,19 +139,17 @@ bool GOC_Controller::MountOn(Node* target)
     }
     else
     {
-        // Normally, we don't have to disable body, but with network it's lagging ...
-        body->SetEnabled(false);
+        Rect rect;
+        target->GetComponent<GOC_Destroyer>()->GetWorldShapesRect(rect);
+
+        node_->SetParent(target);
+        node_->SetWorldPosition2D(rect.Center().x_, rect.max_.y_);
 
         // Divide Mass
         body->SetMass(body->GetMass() * 0.5f);
 
-        node_->SetParent(target);
-
-        GOC_Destroyer* targetdestroyer = target->GetComponent<GOC_Destroyer>();
-        if (targetdestroyer && targetdestroyer->GetShapesRect().Defined())
-            node_->SetWorldPosition2D(Vector2(targetdestroyer->GetWorldShapesRect().Center().x_, targetdestroyer->GetWorldShapesRect().max_.y_));
-        else
-            node_->SetWorldPosition2D(target->GetWorldPosition2D() + Vector2(0.f, 0.5f));
+        // Normally, we don't have to disable body, but with network it's lagging ...
+        body->SetEnabled(false);
 
         ConstraintWeld2D* constraintWeld = node_->CreateComponent<ConstraintWeld2D>();
         constraintWeld->SetOtherBody(target->GetComponent<RigidBody2D>());
@@ -190,7 +188,7 @@ bool GOC_Controller::Unmount()
 {
     const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
 
-    if (!targetid)
+    if (!targetid || !node_->GetParent())
         return false;
 
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... targetid=%u ...", node_->GetName().CString(), node_->GetID(), targetid);
@@ -202,7 +200,7 @@ bool GOC_Controller::Unmount()
         target = node_->GetParent();
         while (target && target->GetID() != targetid)
             target = target->GetParent();
-        if (target->GetID() != targetid)
+        if (target && target->GetID() != targetid)
             target = 0;
 
         node_->SetParent(node_->GetScene());
@@ -263,7 +261,8 @@ bool GOC_Controller::Unmount()
     if (move2d)
         move2d->SetMoveType(move2d->GetLastMoveType());
 
-    node_->GetComponent<GOC_Animator2D>()->ResetState();
+    if (!node_->GetVar(GOA::ISDEAD).GetBool())
+        node_->GetComponent<GOC_Animator2D>()->ResetState();
 
     GOC_Destroyer* destroyer = node_->GetComponent<GOC_Destroyer>();
     if (destroyer)
@@ -426,6 +425,7 @@ bool GOC_Controller::ChangeAvatarOrEntity(unsigned type, unsigned char entityid)
                 ok = true;
             }
         }
+
         if (!ok && control_.type_ && control_.entityid_ != entityid)
         {
 //            URHO3D_LOGINFOF("GOC_Controller() - ChangeAvatarOrEntity : node=%s(%u) from entityid=%u to %u ...", node_->GetName().CString(), node_->GetID(), control_.entityid_, entityid);

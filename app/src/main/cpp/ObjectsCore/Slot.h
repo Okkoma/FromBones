@@ -11,6 +11,15 @@ class Sprite2D;
 
 using namespace Urho3D;
 
+enum SlotDropMode
+{
+    SLOT_NONE = -1,
+    SLOT_DROPON = 0,
+    SLOT_DROPOUT,
+    SLOT_DROP,
+    SLOT_DROPREMAIN,
+    SLOT_ADDCOLLECTABLE
+};
 
 struct SlotEntityInfo
 {

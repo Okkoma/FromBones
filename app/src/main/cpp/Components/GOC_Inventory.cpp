@@ -26,6 +26,9 @@
 #include "GameHelpers.h"
 #include "GameNetwork.h"
 
+#include "MapWorld.h"
+#include "ViewManager.h"
+
 #include "GOC_Animator2D.h"
 #include "GOC_ZoneEffect.h"
 #include "GOC_Collectable.h"
@@ -373,10 +376,11 @@ void GOC_Inventory::ApplyTemplateToCurrentSlots(bool dropWastedCollectables)
         if (dropWastedCollectables && node_)
         {
 //            URHO3D_LOGINFOF("GOC_Inventory() - ApplyTemplateToCurrentSlots :");
+            const int dropmode = GameContext::Get().ServerMode_ && node_->GetVar(GOA::CLIENTID).GetInt() == 0 ? SLOT_ADDCOLLECTABLE : SLOT_NONE;
             for (unsigned i=0; i<size; ++i)
             {
                 if (temporarySlots[i].quantity_ > 0)
-                    GOC_Collectable::DropSlotFrom(node_, temporarySlots[i]);
+                    GOC_Collectable::DropSlotFrom(node_, temporarySlots[i], dropmode);
             }
         }
     }
@@ -1079,7 +1083,8 @@ void GOC_Inventory::TransferSlotTo(unsigned idSlot, Node* node, unsigned int qua
     {
         URHO3D_LOGINFOF("GOC_Inventory() - TransferSlotTo : node=%s(%u) to node=0", node_->GetName().CString(), node_->GetID());
 
-        GOC_Collectable::DropSlotFrom(node_, slots_[idSlot]);
+        const int dropmode = GameContext::Get().ServerMode_ && node_->GetVar(GOA::CLIENTID).GetInt() == 0 ? SLOT_ADDCOLLECTABLE : SLOT_NONE;
+        GOC_Collectable::DropSlotFrom(node_, slots_[idSlot], dropmode);
         CheckEmpty();
     }
 }
@@ -1354,9 +1359,10 @@ void GOC_Inventory::HandleDrop(StringHash eventType, VariantMap& eventData)
 
     URHO3D_LOGINFOF("GOC_Inventory() - HandleDrop :  Node=%s(%u) drops all slots !", node_->GetName().CString(), node_->GetID());
 
+    const int dropmode = GameContext::Get().ServerMode_ && node_->GetVar(GOA::CLIENTID).GetInt() == 0 ? SLOT_ADDCOLLECTABLE : SLOT_NONE;
     for (unsigned i=0; i<slots_.Size(); ++i)
     {
-        GOC_Collectable::DropSlotFrom(node_, slots_[i]);
+        GOC_Collectable::DropSlotFrom(node_, slots_[i], dropmode);
 
         LocalEquipSlotOn(this, i, animatedSprite);
     }
@@ -1529,36 +1535,6 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
     }
 }
 
-void GOC_Inventory::NetServerSaveEquipment(unsigned servernodeid, const EquipmentList& equipmentlist)
-{
-    URHO3D_LOGINFOF("GOC_Inventory() - NetServerSaveEquipment servernodeid=%u ...", servernodeid);
-
-    VariantVector& equipmentSet = clientEquipmentSets_[servernodeid];
-    equipmentSet.Clear();
-
-    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(EQUIPMENTTEMPLATE);
-
-    // add item for each slot of EQUIPMENTTEMPLATE
-    equipmentSet.Resize(inventoryTemplate->slotNames_.Size());
-    for (unsigned i=0; i < equipmentlist.Size(); i++)
-    {
-        int slotid = equipmentlist[i].slotid_;
-        equipmentSet[slotid] = equipmentlist[i].objecttype_.Value();
-    }
-
-    NetServerSendEquipment(servernodeid, equipmentSet);
-}
-
-void GOC_Inventory::NetServerSendEquipment(unsigned servernodeid, const VariantVector& equipmentSet)
-{
-    VariantMap& eventdata = GameNetwork::Get()->GetServerEventData();
-    eventdata.Clear();
-    eventdata[Net_ObjectCommand::P_NODEID] = servernodeid;
-    eventdata[Net_ObjectCommand::P_INVENTORYTEMPLATE] = EQUIPMENTTEMPLATE;
-    eventdata[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
-    GameNetwork::Get()->PushObjectCommand(SETFULLEQUIPMENT, &eventdata, true, 0);
-}
-
 static const String EffectFlame("effects_flame");
 bool GOC_Inventory::SetEquipmentSlot(AnimatedSprite2D* animatedSprite, unsigned idslot, const String& slotname, StringHash slotType, GOC_Inventory* inventory)
 {
@@ -1724,6 +1700,7 @@ void GOC_Inventory::LocalEquipSlotOn(GOC_Inventory* inventory, unsigned idslot, 
     }
 }
 
+
 void GOC_Inventory::NetClientSetInventory(unsigned servernodeid, VariantMap& eventData)
 {
     URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetInventory servernodeid=%u ...", servernodeid);
@@ -1888,6 +1865,7 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
     }
 }
 
+
 void GOC_Inventory::NetServerSetEquipmentSlot(Node* node, VariantMap& eventData)
 {
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
@@ -1947,13 +1925,16 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
     if (qty == 0)
         return;
 
-    Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
+    /// server : don't need to send here a NetCommand with GOC_Collectable::DropSlotFrom
+    /// because the ObjectCommand from the Client Sender made already the task :
+    ///     Client Sender -> HandlePlayClient_Messages => DROPITEM ... others Clients -> Client_ApplyObjectCommand(DROPITEM) -> Client_SpawnItem
 
     /// Just drop
-    if (dropmode == 0)
+    if (dropmode == SLOT_DROP)
     {
         /// Drop items
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, qty);
+        Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, SLOT_NONE, qty);
         if (node)
         {
             dropmode = 0;
@@ -1964,9 +1945,10 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
             URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=%u", GOT::GetType(slot.type_).CString(), qty);
     }
     /// Use the item on holder (DropOn Mode)
-    else if (dropmode == 1)
+    else if (dropmode == SLOT_DROPON)
     {
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, 1U);
+        Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, SLOT_NONE, 1U);
         if (node)
         {
             // Apply Effect
@@ -1985,9 +1967,10 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
             URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());
     }
     /// Use item (DropOut Mode)
-    else if (dropmode == 2)
+    else if (dropmode == SLOT_DROPOUT)
     {
-        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, true, 1U);
+        Slot& slot = inventory->GetSlot(eventData[Net_ObjectCommand::P_INVENTORYIDSLOT].GetUInt());
+        Node* node = GOC_Collectable::DropSlotFrom(holder, slot, SLOT_NONE, 1U);
         if (node)
         {
             GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -2004,4 +1987,59 @@ void GOC_Inventory::NetServerDropItem(Node* holder, VariantMap& eventData)
         else
             URHO3D_LOGERRORF("GOC_Inventory() - NetServerDropItem : no node drop item=%s qty=1", GOT::GetType(slot.type_).CString());
     }
+    /// A remain slot drop
+    else if (dropmode == SLOT_DROPREMAIN)
+    {
+        StringHash got(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
+
+        URHO3D_LOGINFOF("GOC_Inventory() - NetServerDropItem : drop from client remain slot item=%s ...", GOT::GetType(got).CString());
+
+        unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
+        unsigned holderid = eventData[Net_ObjectCommand::P_NODEIDFROM].GetUInt();
+
+        Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
+
+        PhysicEntityInfo physicInfo;
+        if (holder)
+            GameHelpers::GetDropPoint(holder, physicInfo.positionx_, physicInfo.positiony_);
+
+        SceneEntityInfo sceneinfo;
+        sceneinfo.zindex_ = 1000;
+        sceneinfo.clientId_ = 0;
+        sceneinfo.skipNetSpawn_ = true;
+
+        int viewZ = holder ? ViewManager::GetNearViewZ(holder->GetVar(GOA::ONVIEWZ).GetInt(), 0) : FRONTVIEW;
+
+        Node* node = World2D::SpawnEntity(got, 0, LOCAL, holder ? holder->GetID() : 0, viewZ, physicInfo, sceneinfo, &eventData);
+    }
+}
+
+void GOC_Inventory::NetServerSaveEquipment(unsigned servernodeid, const EquipmentList& equipmentlist)
+{
+    URHO3D_LOGINFOF("GOC_Inventory() - NetServerSaveEquipment servernodeid=%u ...", servernodeid);
+
+    VariantVector& equipmentSet = clientEquipmentSets_[servernodeid];
+    equipmentSet.Clear();
+
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(EQUIPMENTTEMPLATE);
+
+    // add item for each slot of EQUIPMENTTEMPLATE
+    equipmentSet.Resize(inventoryTemplate->slotNames_.Size());
+    for (unsigned i=0; i < equipmentlist.Size(); i++)
+    {
+        int slotid = equipmentlist[i].slotid_;
+        equipmentSet[slotid] = equipmentlist[i].objecttype_.Value();
+    }
+
+    NetServerSendEquipment(servernodeid, equipmentSet);
+}
+
+void GOC_Inventory::NetServerSendEquipment(unsigned servernodeid, const VariantVector& equipmentSet)
+{
+    VariantMap& eventdata = GameNetwork::Get()->GetServerEventData();
+    eventdata.Clear();
+    eventdata[Net_ObjectCommand::P_NODEID] = servernodeid;
+    eventdata[Net_ObjectCommand::P_INVENTORYTEMPLATE] = EQUIPMENTTEMPLATE;
+    eventdata[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
+    GameNetwork::Get()->PushObjectCommand(SETFULLEQUIPMENT, &eventdata, true, 0);
 }

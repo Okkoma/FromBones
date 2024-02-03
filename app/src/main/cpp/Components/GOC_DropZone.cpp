@@ -545,7 +545,8 @@ void GOC_DropZone::HandleThrowOutItems(StringHash eventType, VariantMap& eventDa
             // SPAWN item
             if (!itemsAttr_[throwItemsEndIndex_].Empty())
             {
-                WeakPtr<Node> node(GOC_Collectable::DropSlotFrom(GetNode(), items_[throwItemsEndIndex_], true, 1));
+                const int dropmode = GameContext::Get().ServerMode_ && node_->GetVar(GOA::CLIENTID).GetInt() == 0 ? SLOT_ADDCOLLECTABLE : SLOT_NONE;
+                WeakPtr<Node> node(GOC_Collectable::DropSlotFrom(node_, items_[throwItemsEndIndex_], dropmode, 0, 1U));
 
                 throwItemsEndIndex_++;
                 itemsNodes_.Push(node);

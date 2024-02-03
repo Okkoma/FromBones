@@ -72,8 +72,6 @@ void GOB_MountOn::OnUnmount(GOC_AIController& controller)
     if (inventory)
         inventory->SetEnabled(true);
 
-    node->GetComponent<GOC_Animator2D>()->ResetState();
-
     GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
     if (destroyer)
         destroyer->SetEnableUnstuck(controller.IsMainController());

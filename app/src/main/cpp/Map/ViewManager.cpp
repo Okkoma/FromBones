@@ -470,12 +470,26 @@ int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
     if (node && node->GetVar(GOA::ISMOUNTEDON).GetUInt())
     {
         /// if it's a mounted entity use the mount node (the viewZ is setted by the parent node in GOC_Destroy::SetViewZ)
-        node = GameContext::Get().rootScene_->GetNode(node->GetVar(GOA::ISMOUNTEDON).GetUInt());
-        if (!node)
-            return viewZ;
+        Node* mountnode = GameContext::Get().rootScene_->GetNode(node->GetVar(GOA::ISMOUNTEDON).GetUInt());
+        if (mountnode)
+        {
+            if (!GameContext::Get().LocalMode_)
+            {
+                /// don't use mountnode if it's two different clients
+                unsigned mountclientid = mountnode->GetVar(GOA::CLIENTID).GetUInt();
+                if (mountclientid && mountclientid != node->GetVar(GOA::CLIENTID).GetUInt())
+                    mountnode = 0;
+            }
 
-        URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d use mount node=%s(%u) to switch to viewZ=%d viewZindex=%d !",
-                        viewport, node ? node->GetName().CString() : 0, node ? node->GetID() : 0, viewZ, viewZindex);
+            if (mountnode)
+            {
+                URHO3D_LOGINFOF("ViewManager() - SwitchToViewIndex : viewport=%d node=%s(%u) use mountnode=%s(%u) to switch to viewZ=%d viewZindex=%d !",
+                        viewport, node ? node->GetName().CString() : 0, node ? node->GetID() : 0,
+                        mountnode ? mountnode->GetName().CString() : 0, mountnode ? mountnode->GetID() : 0, viewZ, viewZindex);
+
+                node = mountnode;
+            }
+        }
     }
 
     unsigned layermask = layerMask_[viewZ];

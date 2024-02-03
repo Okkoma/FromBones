@@ -197,6 +197,7 @@ public:
 
     /// Spawn Controls
     void ResyncSpawnControlStamps();
+    void ClearSpawnControls();
     unsigned GetSpawnID(unsigned holderid, unsigned char stamp) const;
     unsigned GetSpawnHolder(unsigned spawnID) const;
     unsigned char GetSpawnStamp(unsigned spawnID) const;

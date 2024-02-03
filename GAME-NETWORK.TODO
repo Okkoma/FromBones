@@ -7,6 +7,91 @@
 
 Todos:
 
+    ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
+
+    ☐ 02/02/2024 : voir pour le craft networked
+        -> la gestion avec plusieurs panels ne fonctionne pas encore. Il faut revoir entierement le process d'envoi vers le serveur.
+        --> comment gerer le drop d'item dans le panneau de craft ou du marchand sur le serveur ?
+        -> pour le moment le server ne recoit que les ObjectCommand DROPITEM, SETITEM qui sont traiter dans Server_UpdateInventory()
+        -> cf 30/01/2024, 19/11/2023 et 17/11/2023
+        ==> GOC_Collectable::TransferSlotTo envoie GO_INVENTORYGET qui est seul recupéré par GameNetwork coté server
+        ==> UIC_BagPanel::UpdateSlot envoie GO_INVENTORYSLOTSET qui est récupéré par GameNetwork coté client pour générer ObjCmd SETITEM envoyé vers le server
+        ---> UIC_BagPanel::UpdateSlot doit avoir l'argument updateNet=true, qui est vrai seulement lorsque UISlotPanel::OnDragSlotFinish est appelé
+        ====> OK : modification de GOC_Collectable::TransferSlotTo pour envoyer aussi GO_INVENTORYSLOTSET si c'est un client et que le node getter a pour owner ce client.
+
+    ✔ 02/02/2024 : il faut verifier et completer la gestion reseau inventaires, drop de collectables ... parfois on ne peut pas ramasser un collectable
+        -> cas du drop de l'inventaire d'un collectable (x2 epee) dans l'equipement. celui-ci va monter une des 2 epees et drop la quantité restante dans l'inventaire mais plus de place alors drop sur le sol.
+           l'objet n'apparait pas coté serveur. le serveur ne peut pas traiter le slotremain car ca lui est invisible : dans UISlotPanel::HandleSlotDragEnd (coté client) on utilise un slot temporaire.
+        ==> ok modification de UISlotPanel::OnSlotRemain et de GOC_Inventory::NetServerDropItem. (dropmode = 3 est le mode pour les slots remain)
+        ===> centralisation de l'envoi des net events de Drop dans GOC_Collectable::DropSlotFrom, ajout de SlotDropMode
+
+    ☐ 02/02/2024 : Probleme avec la potion coté client
+
+    ✔ 02/02/2024 : Si on quitte coté serveur la partie, il faut que les clients repassent en menustate
+        => ct deja le cas mais un pb dans PlayState::EndScene (utilisation SetStatus(PLAYSTATE_INITIALIZE) qui n'a rien à faire là) désormais corrigé
+        ==> correctif d'un crash server, du à la non reinitialisation de GameNetwork::spawnControls_ qui porte des pointeurs vers des ObjectControlInfo qui sont supprimés des retour au MenuState.
+        ===> ajout de GameNetwork::ClearSpawnControls() à utiliser des retour au menu.
+
+    ✔ 02/02/2024 : Si un client quitte ça relance automatiquement la partie car le serveur relance le client...
+        -> coté Received ObjectCommand en Menustate, il faut filtrer pour n'accepter que les commandes importantes pour ce state.
+        ==> modification evitant aussi des Crash (si un client est en menustate et qu'un autre client en Playstate et spawn des objets alors il y avait crash sur le client en Menustate car tentative de creation d'objets alors que par de world...)
+        ===> si en menustate, ne pas prendre en compte les commandes > REQUESTMAP
+        ====> OK : modif dans GameNetwork::Server_ApplyObjectCommand et GameNetwork::Client_ApplyObjectCommand.
+
+    ☐ 29/01/2024 : probleme de reactivation de netplayer mort sur le serveur.
+        -> le message de reactivation START_GAME parvient avant que Player::Stop ne soit lancer.
+        => il faut stocker la demande de Restart et attendre la fin de Player::Stop pour lancer le Restart.
+        ==> patch dans GameNetwork::Server_ApplyReceivedGameStatus et GameNetwork::HandlePlayServer_NetworkUpdate
+        ===> 01/02/2024 : encore des problemes, mettre les log en evidence si de nouveau le probleme resurgit.
+
+    ✔ 01/02/2024 : deux avatars client distant monté l'un sur l'autre, si le joueur qui sert de monture change d'avatar alors probleme de position
+        -> il faut lors du changement d'avatar qu'il demonte et qu'il remonte
+        -> dans GameNetwork::UpdateControl ->  GOC_Controller::ChangeAvatarOrEntity
+        --> si changement d'avatar verifier si un node est déjà monté, dans ce cas le demonter et le remonter.
+        --> cela est deja fait grace à GameHelpers::MountNode, GameHelpers::UnmountNode
+        ===> OK : Patch correctif dans GOC_Controller::MountOn partie sans MountNode, il y avait un pb avec GOC_Destroyer::ShapeRect qui ne devait pas etre setté comme il faut
+
+    ✔ 01/02/2024 : le changement de viewZ entre deux avatars client distant monté l'un sur l'autre fait que sur les 2 clients, switch view infini
+        -> cf GOC_Destroyer::SetViewZ et ViewManager::SwitchToViewIndex
+        ==> il faut verifier le clientid et faire une restriction si clientids differents
+        ==> OK modification dans ViewManager::SwitchToViewIndex
+
+    ✔ 01/02/2024 : si suicide de l'avatar sur une entité montée, il faut le demonter avant de mourir
+        -> OK : modifier GOC_Controller::Unmount() pour ne pas utilise GOC_Animator::ResetState() si le node est ISDEAD, sinon reset de l'animation etc...
+
+    ✔ 01/02/2024 : Crash coté client, en mode arena dans une map 5 0 eloigné du world default map (0,0)
+        -> le client essaie de prendre une position initiale safe à partir d'une map qui est dechargée (map(0,0)) et ne peut l'obtenir du server immediatement.
+        => LOG CLIENT :
+        [Thu Feb  1 15:18:12 2024] INFO: PlayState() - ---------------------------------------
+        [Thu Feb  1 15:18:12 2024] INFO: PlayState() - RestartLevel                           -
+        [Thu Feb  1 15:18:12 2024] INFO: PlayState() - ---------------------------------------
+        ...
+        [Thu Feb  1 15:18:12 2024] INFO: GOManager() - Reset : activePlayer Size=0 player Size=0 (keepedPlayer=false)
+        [Thu Feb  1 15:18:12 2024] INFO: PlayState() - ResetPlayers  ...
+        [Thu Feb  1 15:18:12 2024] INFO: PlayState() - SetPlayers  ... init=false restart=true load=false numplayers=1
+        [Thu Feb  1 15:18:12 2024] INFO: MapStorage() - InitializeMap : mPoint=0 0 map=0 0 ptr=1257192464 state=Initializing=1 ... OK !
+        [Thu Feb  1 15:18:12 2024] ERROR: MapStorage() - InitializeMap mPoint=0 0(map=1257192464) ... ClientMode ... put map in loading state ... Wait !
+        [Thu Feb  1 15:18:12 2024] ERROR: GameNetwork() - PushObjectCommand : clientid=2(from:2) broadcast=false cmd=REQUESTMAP=20 nodeid=0 !
+        [Thu Feb  1 15:18:12 2024] INFO: MapCreator() - AddMapToCreate : 0 0 !
+        [Thu Feb  1 15:18:12 2024] INFO: GameContext() - SetWorldStartPosition : Find a Start Spot on mpoint=0 0 at 13 53 viewZ=100 !
+        [Thu Feb  1 15:18:12 2024] INFO: GameContext() - SetWorldStartPosition : StartPosition=(wpos:17.28 13.44|viewz:100|mpoint:0 0|mpos:13 53|tindex:0|intile:0 0) ...
+        ...
+        [Thu Feb  1 15:18:12 2024] INFO: ---------------------------------------------------
+        [Thu Feb  1 15:18:12 2024] INFO: - Player() - SetScene : player ID=1 ...
+        [Thu Feb  1 15:18:12 2024] INFO: ---------------------------------------------------
+        [Thu Feb  1 15:18:12 2024] INFO: Player() - SetScene : actorID=1 nodeID=16777278 controlID=0 restart=true position=435.26 18.4983 viewZ=70 ...
+        ...
+        [Thu Feb  1 15:18:12 2024] INFO: ---------------------------------------------------
+        [Thu Feb  1 15:18:12 2024] INFO: - World2D() - UpdateInstant : viewport=0 point=5 0 ... OK ! -
+        [Thu Feb  1 15:18:12 2024] INFO: ---------------------------------------------------
+        ...
+        [Thu Feb  1 15:18:12 2024] ERROR: World2D() - GetMapAt : point=0 0 map=1257192464 is > Available !
+        [Thu Feb  1 15:18:12 2024] ERROR: ObjectFeatured() - GetViewIDs : ERROR at viewZ=100 => DumpViewIds=no ViewIDs for viewZ=100 !
+        [Thu Feb  1 15:18:12 2024] INFO: ObjectFeatured() - SortViewsIds_All : Dump i=1/1 viewId=-1 viewZ=0
+        [Thu Feb  1 15:18:12 2024] INFO: ObjectFeatured() - SortViewsIds_All : ... OK !
+        => CRASH
+        ==> OK : Modification  GameContext::SetWorldStartPosition et ajout de World2D::GetWorld()->SaveFocusPositions() dans PlayState::ResetPlayers()
+
     ✔ 31/01/2024 : Lorsqu'une entity monte un avatar cela pose probleme ...
         -> coté client l'entity controllé par le serveur ne monte pas sur l'avatar, sur le server c ok.
         => verifier GOC_AIController::Start() et GOC_AIController::OnEntitySelection()
@@ -145,11 +230,6 @@ Todos:
             une par SpawnCollectable lancé par ObjectCommand ADDCOLLECTABLE qui provient sur server,
             et l'autre en local par GOC_DropZone::HandleThrowOutItems.
         ====> OK : suppression du netspawning pour GOC_Collectable::DropSlotFrom
-
-    ✔ 29/01/2024 : probleme de reactivation de netplayer mort sur le serveur.
-        -> le message de reactivation START_GAME parvient avant que Player::Stop ne soit lancer.
-        => il faut stocker la demande de Restart et attendre la fin de Player::Stop pour lancer le Restart.
-        ==> patch dans GameNetwork::Server_ApplyReceivedGameStatus et GameNetwork::HandlePlayServer_NetworkUpdate
 
     ✔ 28/01/2024 : mettre la possibilité du Repop en mode World comme en Arena.
         -> OK : modification de PlayState::CheckGameLogic()
@@ -780,9 +860,10 @@ Todos:
         -> cela provient du changement dans GOC_Controller::Update puis impact GOC_Move2D qui a physicsEnable_ => si les buttons ne sont pas setté alors GOC_Move2D va appliquer une force dans la direction
         --> 13/11/2023 : Ok patch dans GOC_Controller::Update.
 
-    ☐ 04/10/2021 : il faut revoir une fois de plus lorsque l'entité attaque, l'animation loop parfois encore cette fois en local. GOC_Animator2D::SetState(), GOC_Animator2D::CheckAnim()
+    ✔ 04/10/2021 : il faut revoir une fois de plus lorsque l'entité attaque, l'animation loop parfois encore cette fois en local. GOC_Animator2D::SetState(), GOC_Animator2D::CheckAnim()
         -> modif dans GOC_Animator2D::CheckAnim()
             toujours le meme pb. dur à reproduire : vu uniquement en world. En arena en mettant bcp d'entité, non reproduit.
+        ==> 01/02/2024 : cf Correctif 01/02/2024 BEHAVIOR
 
     ✔ 27/09/2021 : la collecte d'un collectable au sol par un client est bien repercuté coté server mais pas vers les autres clients. @done(23-11-18 17:27)
         -> 14/11/2023 : il faut que le serveur envoie une commande de remove object aux autres clients

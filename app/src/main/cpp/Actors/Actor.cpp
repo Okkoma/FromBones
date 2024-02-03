@@ -599,11 +599,14 @@ void Actor::SetViewZ(int viewZ)
 
 void Actor::SetScene(Scene* scene, const Vector2& position, int viewZ)
 {
+    URHO3D_LOGERRORF("Actor() - SetScene ...");
+
     scene_ = scene;
     SetViewZ(viewZ);
-//    URHO3D_LOGINFOF("Actor() - SetScene !");
 
     ResetAvatar(position);
+
+    URHO3D_LOGERRORF("Actor() - SetScene ... !");
 }
 
 void Actor::SetAnimationSet(const String& nameSet)
@@ -1081,11 +1084,12 @@ void Actor::ResetAvatar(const Vector2& newposition)
 
     if (GameContext::Get().ServerMode_)
     {
+        URHO3D_LOGERRORF("Actor() - ResetAvatar : ... nodeID=%u  ... servermode ... add ocontrol ...", nodeID_);
         ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(avatar_, avatar_, false, false);
         oinfo->clientId_ = GameNetwork::Get()->GetClientID(connection_.Get());
     }
 
-    URHO3D_LOGINFOF("Actor() - ResetAvatar : ... nodeID=%u  ... OK !", nodeID_);
+    URHO3D_LOGERRORF("Actor() - ResetAvatar : ... nodeID=%u  ... OK !", nodeID_);
 }
 
 void Actor::ResetMapping()

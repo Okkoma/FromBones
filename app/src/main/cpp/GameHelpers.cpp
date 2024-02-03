@@ -3211,8 +3211,8 @@ void GameHelpers::AdjustPositionInTile(GOC_Destroyer* destroyer, MapBase* map, c
 
     WorldMapPosition& position = destroyer->GetWorldMapPosition();
 
-    if (!position.shapeRectInTile_.Defined())
-        destroyer->UpdateShapesRect();
+    if (!destroyer->GetShapesRect().Defined() && !destroyer->UpdateShapesRect())
+        return;
 
     const Vector2& center = initialposition.positionInTile_;
     const Rect& rect = position.shapeRectInTile_;

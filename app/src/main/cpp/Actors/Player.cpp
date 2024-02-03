@@ -551,7 +551,7 @@ void Player::UpdateAvatar(bool forced)
 
 //    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 
-    URHO3D_LOGINFOF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) avatar=%s(%u) viewmask=%u ... OK !",
+    URHO3D_LOGERRORF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) avatar=%s(%u) viewmask=%u ... OK !",
                     avatarIndex_, GOT::GetType(type).CString(), type.Value(), avatar_ ? avatar_->GetName().CString() : "none", avatar_ ? avatar_->GetID() : 0, avatar_ ? avatar_->GetDerivedComponent<AnimatedSprite2D>()->GetViewMask() : 0);
 }
 
@@ -879,9 +879,6 @@ void Player::OnMount(Node* target)
 {
     if (!avatar_ || !target)
         return;
-
-    if (gocController->GetControllerType() & GO_Player)
-        gocDestroyer_->SetEnableUnstuck(false);
 
     GOC_Inventory* inventory = avatar_->GetComponent<GOC_Inventory>();
     if (inventory)
@@ -2260,6 +2257,8 @@ void Player::OnDead(StringHash eventType, VariantMap& eventData)
         UIPanel* statusPanel = GetPanel(STATUSPANEL);
         if (statusPanel)
             statusPanel->Update();
+
+        bool ok = gocController->Unmount();
 
         StopSubscribers();
 

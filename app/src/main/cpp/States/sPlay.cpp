@@ -646,14 +646,19 @@ void PlayState::RestartLevel(bool forcenet)
     else
     {
         ResetGameLogic();
-        // Purge GoManager
-        goManager->Start();
+
+        goManager->Start(); // Purge GoManager
 
         ResetPlayers();
 
         SubscribeToEvents();
+
+        SendEvent(WORLD_FINISHLOADING); // Stop SplashScreen
+
         SubscribeToEvent(SPLASHSCREEN_FINISH, URHO3D_HANDLER(PlayState, HandleAppearPlayer));
         SendEvent(SPLASHSCREEN_FINISH);
+
+        rootScene_->GetComponent<PhysicsWorld2D>()->SetUpdateEnabled(!GameContext::Get().createModeOn_);
     }
 
     SetStatus(PLAYSTATE_STARTGAME);
@@ -668,7 +673,10 @@ void PlayState::CreateLevel(bool restart, bool updatelevel)
         world_->SaveWorld();
 
     if (!restart)
+    {
         EndScene();
+        SetStatus(PLAYSTATE_INITIALIZING);
+    }
 
     SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(PlayState, OnDelayedActions_Local));
 
@@ -1086,8 +1094,6 @@ void PlayState::EndScene()
     splash_.Reset();
 
     URHO3D_LOGINFO("PlayState() - EndScene ... OK !");
-
-    SetStatus(PLAYSTATE_INITIALIZING);
 }
 
 
@@ -1559,6 +1565,8 @@ void PlayState::ResetPlayers()
         GameContext::Get().playerState_[i].active = true;
     for (int i=GameContext::Get().numPlayers_; i < GameContext::Get().MAX_NUMPLAYERS; ++i)
         GameContext::Get().playerState_[i].active = false;
+
+    World2D::GetWorld()->SaveFocusPositions();
 
     // Reset Players
     SetPlayers(false, true);

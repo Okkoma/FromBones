@@ -690,11 +690,10 @@ void GameNetwork::Reset()
     localSpawnStamps_.Resize(GameContext::Get().MAX_NUMNETPLAYERS);
     receivedSpawnStamps_.Resize(GameContext::Get().MAX_NUMNETPLAYERS);
 
+    ClearSpawnControls();
+
     for (unsigned i=0; i < GameContext::Get().MAX_NUMNETPLAYERS; i++)
-    {
-        spawnControls_[i].Clear();
         receivedSpawnStamps_[i] = localSpawnStamps_[i] = 0;
-    }
 
 #ifdef ACTIVE_NETWORK_LOGSTATS
     logStats_.Clear();
@@ -1538,13 +1537,37 @@ void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventD
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
 
+    if (gameStatus_ == MENUSTATE && cmd > REQUESTMAP)
+    {
+        URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) not apply in MENUSTATE !", cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown");
+        return;
+    }
+
     URHO3D_LOGINFOF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) !", cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown");
 
     switch (cmd)
     {
+    case GAMESTATUS:
+        ApplyReceivedGameStatus(eventData, fromclientid);
+        break;
     case ENABLENODE:
         SetEnableObject(eventData[Net_ObjectCommand::P_NODEISENABLED].GetBool(), eventData[Net_ObjectCommand::P_NODEID].GetUInt());
         break;
+    case REQUESTMAP:
+    {
+        ClientInfo* clientinfo = serverClientID2Infos_[fromclientid];
+        if (clientinfo)
+        {
+            ShortIntVector2 mpoint(eventData[Net_ObjectCommand::P_TILEMAP].GetUInt());
+            if (!clientinfo->mapRequests_.Contains(mpoint))
+            {
+                clientinfo->mapRequests_.Push(mpoint);
+                URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) mpoint=%s !",
+                              cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", mpoint.ToString().CString());
+            }
+        }
+    }
+
     case EXPLODENODE:
         ExplodeNode(eventData);
         break;
@@ -1563,20 +1586,6 @@ void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventD
         bool ok = ChangeTile(eventData);
     }
         break;
-    case REQUESTMAP:
-    {
-        ClientInfo* clientinfo = serverClientID2Infos_[fromclientid];
-        if (clientinfo)
-        {
-            ShortIntVector2 mpoint(eventData[Net_ObjectCommand::P_TILEMAP].GetUInt());
-            if (!clientinfo->mapRequests_.Contains(mpoint))
-            {
-                clientinfo->mapRequests_.Push(mpoint);
-                URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) mpoint=%s !",
-                              cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", mpoint.ToString().CString());
-            }
-        }
-    }
         break;
     case TRIGCLICKED:
     {
@@ -1595,11 +1604,7 @@ void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventD
             node->SendEvent(GO_SELECTED, eventData);
     }
         break;
-    case GAMESTATUS:
-        ApplyReceivedGameStatus(eventData, fromclientid);
-        break;
     }
-
 }
 
 void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
@@ -1607,6 +1612,12 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     VariantMap& eventData = objCmd.cmd_;
 
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
+
+    if (gameStatus_ == MENUSTATE && cmd > REQUESTMAP)
+    {
+        URHO3D_LOGERRORF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) not apply in MENUSTATE !", cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown");
+        return;
+    }
 
     bool apply = (!clientID_ && cmd == GAMESTATUS) || (!objCmd.broadCast_ && clientID_ == objCmd.clientId_) || (objCmd.broadCast_ && clientID_ != objCmd.clientId_);
     if (!apply)
@@ -1620,6 +1631,9 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
 
     switch (cmd)
     {
+    case GAMESTATUS:
+        ApplyReceivedGameStatus(eventData);
+        break;
     case ERASENODE:
         Client_CommandRemoveObject(eventData);
         break;
@@ -1629,6 +1643,14 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     case DISABLECLIENTOBJECTCONTROL:
         Client_DisableObjectControl(eventData);
         break;
+    case SETSEEDTIME:
+        if (!seedTime_)
+        {
+            seedTime_ = eventData[Net_ServerSeedTime::P_SEEDTIME].GetUInt();
+            URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_SERVERSEEDTIME : seedtime=%u", seedTime_);
+        }
+        break;
+
     case ADDNODE:
         Client_CommandAddObject(eventData);
         break;
@@ -1660,13 +1682,6 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     {
         bool ok = ChangeTile(eventData);
     }
-        break;
-    case SETSEEDTIME:
-        if (!seedTime_)
-        {
-            seedTime_ = eventData[Net_ServerSeedTime::P_SEEDTIME].GetUInt();
-            URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_SERVERSEEDTIME : seedtime=%u", seedTime_);
-        }
         break;
     case SETWEATHER:
         WeatherManager::Get()->SetNetWorldInfos(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
@@ -1711,9 +1726,6 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
         }
     }
         break;
-    case GAMESTATUS:
-        ApplyReceivedGameStatus(eventData);
-        break;
     }
 
 //    URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=(%s) for nodeid=%u ... OK !",
@@ -1727,6 +1739,12 @@ void GameNetwork::ResyncSpawnControlStamps()
 {
     for (unsigned i=0; i < GameContext::Get().MAX_NUMNETPLAYERS; i++)
         localSpawnStamps_[i] = receivedSpawnStamps_[i];
+}
+
+void GameNetwork::ClearSpawnControls()
+{
+    for (unsigned i=0; i < GameContext::Get().MAX_NUMNETPLAYERS; i++)
+        spawnControls_[i].Clear();
 }
 
 unsigned GameNetwork::GetSpawnID(unsigned holderid, unsigned char stamp) const
@@ -1815,6 +1833,8 @@ ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool s
     const bool isClientControl = clientID_ > 0 && holderclientid == clientID_;
     bool newinfo = false;
 
+//    URHO3D_LOGINFOF("GameNetwork() - AddSpawnControl : PASS1 ... holderid=%u holderclientid=%d spawnstamp=%u spawnid=%u", holderid, holderclientid, spawnstamp, spawnid);
+
     // check if an objectControl is already available in spawnControls_
     ObjectControlInfo* oinfo = GetSpawnControl(holderclientid, spawnid);
     if (!oinfo)
@@ -1880,6 +1900,7 @@ ObjectControlInfo* GameNetwork::AddSpawnControl(Node* node, Node* holder, bool s
 
     oinfo->prepared_ = false;
     PrepareControl(*oinfo);
+
     oinfo->GetPreparedControl().states_.spawnid_ = spawnid;
     oinfo->GetPreparedControl().states_.stamp_ = 0;
     oinfo->GetPreparedControl().SetFlagBit(OFB_NETSPAWNMODE, allowNetSpawn);
@@ -3243,6 +3264,7 @@ void GameNetwork::SubscribeToEvents()
 
 void GameNetwork::SubscribeToMenuEvents()
 {
+    ClearSpawnControls();
     PurgeObjects();
 }
 
@@ -3592,6 +3614,7 @@ void GameNetwork::ApplyReceivedGameStatus(VariantMap& eventData, int clientid)
     }
 }
 
+
 void GameNetwork::HandleServer_MessagesFromClient(StringHash eventType, VariantMap& eventData)
 {
     if (!GetSubsystem<Network>()->IsServerRunning())
@@ -3631,7 +3654,7 @@ void GameNetwork::HandlePlayServer_Messages(StringHash eventType, VariantMap& ev
         const unsigned givernodeid = eventData[Go_InventoryGet::GO_GIVER].GetUInt();
         const unsigned getternodeid = eventData[Go_InventoryGet::GO_GETTER].GetUInt();
         // TODO : change scene->GetNode by a cache access
-        Node* giver = GameContext::Get().rootScene_->GetNode(givernodeid);
+        Node* giver = givernodeid ? GameContext::Get().rootScene_->GetNode(givernodeid) : 0;
         Node* getter = GameContext::Get().rootScene_->GetNode(getternodeid);
         const int giverclientid = giver ? giver->GetVar(GOA::CLIENTID).GetInt() : 0;
         const int getterclientid = getter ? getter->GetVar(GOA::CLIENTID).GetInt() : 0;
@@ -3701,7 +3724,7 @@ void GameNetwork::HandlePlayClient_Messages(StringHash eventType, VariantMap& ev
         PushObjectCommand(SETITEM, &eventData, false, clientID_); // only to server
 
     else if (eventType == GO_DROPITEM)
-        PushObjectCommand(DROPITEM, &eventData, eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 0, clientID_);
+        PushObjectCommand(DROPITEM, &eventData, eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 0 || eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 3, clientID_);
 
     else if (eventType == MAP_ADDFURNITURE)
         PushObjectCommand(ADDFURNITURE, &eventData, true, clientID_);
@@ -3732,110 +3755,100 @@ bool GameNetwork::PrepareControl(ObjectControlInfo& info)
     if (!info.node_)
         return false;
 
-    Node* node = info.node_;
-    ObjectControl& objectControl = info.GetPreparedControl();
-    GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
-
     bool maincontroller = false;
+    GOC_Controller* controller = info.node_->GetDerivedComponent<GOC_Controller>();
     if (controller)
         maincontroller = controller->IsMainController();
     else
         maincontroller = (serverMode_ && info.clientId_ == 0) || (clientMode_ && info.clientId_ == clientID_);
 
     // check dead node
-    if (objectControl.IsEnabled() && node->isPoolNode_ && node->isInPool_)
-        objectControl.states_.totalDpsReceived_ = -1.f;
+    if (info.preparedControl_.IsEnabled() && info.node_->isPoolNode_ && info.node_->isInPool_)
+        info.preparedControl_.states_.totalDpsReceived_ = -1.f;
 
     // only authoritative server can prepare the following state
     if (serverMode_)
     {
-        GOC_Life* goclife = node->GetComponent<GOC_Life>();
+        GOC_Life* goclife = info.node_->GetComponent<GOC_Life>();
         if (goclife)
         {
             // if alive set totaldps
             if (goclife->GetLife() > 0)
-                objectControl.states_.totalDpsReceived_ = goclife->GetTotalEnergyLost();
+                info.preparedControl_.states_.totalDpsReceived_ = goclife->GetTotalEnergyLost();
             // if dead set max total dps
             else
-                objectControl.states_.totalDpsReceived_ = 2.f*goclife->GetTemplateMaxEnergy();
+                info.preparedControl_.states_.totalDpsReceived_ = 2.f*goclife->GetTemplateMaxEnergy();
         }
     }
 
-    if (serverMode_ && objectControl.states_.stamp_ == 0)
+    if (serverMode_ && info.preparedControl_.states_.stamp_ == 0)
         maincontroller = true;
 
     if (maincontroller)
     {
-        GOC_Animator2D* gocanimator = node->GetComponent<GOC_Animator2D>();
-        AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
-
         // prepare physics only if not mounted
-        if (node->GetVar(GOA::ISMOUNTEDON).GetUInt() == 0)
+        if (info.node_->GetVar(GOA::ISMOUNTEDON).GetUInt() == 0)
         {
-            objectControl.physics_.positionx_ = node->GetPosition().x_;
-            objectControl.physics_.positiony_ = node->GetPosition().y_;
-            objectControl.physics_.rotation_  = node->GetRotation2D();
-            RigidBody2D* rigidbody = node->GetComponent<RigidBody2D>();
-            if (rigidbody)
-                rigidbody->GetBody()->GetVelocity(objectControl.physics_.velx_, objectControl.physics_.vely_);
+            info.preparedControl_.physics_.positionx_ = info.node_->GetPosition().x_;
+            info.preparedControl_.physics_.positiony_ = info.node_->GetPosition().y_;
+            info.preparedControl_.physics_.rotation_  = info.node_->GetRotation2D();
+            RigidBody2D* rigidbody = info.node_->GetComponent<RigidBody2D>();
+            if (rigidbody && rigidbody->GetBody())
+                rigidbody->GetBody()->GetVelocity(info.preparedControl_.physics_.velx_, info.preparedControl_.physics_.vely_);
         }
+
+        GOC_Animator2D* gocanimator = info.node_->GetComponent<GOC_Animator2D>();
 
         if (controller)
-        {
-            objectControl.physics_.direction_ = controller->control_.direction_;
-        }
+            info.preparedControl_.physics_.direction_ = controller->control_.direction_;
+        else if (gocanimator)
+            info.preparedControl_.physics_.direction_ = gocanimator->GetDirection().x_;
         else
         {
-            if (gocanimator)
-            {
-                objectControl.physics_.direction_ = gocanimator->GetDirection().x_;
-            }
-            else
-            {
-                const Variant& vardir = node->GetVar(GOA::DIRECTION);
-                if (!vardir.IsEmpty())
-                    objectControl.physics_.direction_ = vardir.GetVector2().x_;
-            }
+            const Variant& vardir = info.node_->GetVar(GOA::DIRECTION);
+            if (!vardir.IsEmpty())
+                info.preparedControl_.physics_.direction_ = vardir.GetVector2().x_;
         }
 
         // prepare states
-        objectControl.states_.viewZ_ = (char)node->GetVar(GOA::ONVIEWZ).GetInt();
+        info.preparedControl_.states_.viewZ_ = (char)info.node_->GetVar(GOA::ONVIEWZ).GetInt();
 
-        objectControl.SetFlagBit(OFB_ENABLED, node->IsEnabled());
+        info.preparedControl_.SetFlagBit(OFB_ENABLED, info.node_->IsEnabled());
 
         if (controller)
         {
-            objectControl.states_.type_ = controller->control_.type_;
+            info.preparedControl_.states_.type_ = controller->control_.type_;
             if (maincontroller)
-                objectControl.states_.buttons_ = controller->control_.buttons_;
+                info.preparedControl_.states_.buttons_ = controller->control_.buttons_;
 
-            objectControl.SetAnimationState(StringHash(controller->control_.animation_));
-            objectControl.states_.entityid_ = controller->control_.entityid_;
+            info.preparedControl_.SetAnimationState(StringHash(controller->control_.animation_));
+            info.preparedControl_.states_.entityid_ = controller->control_.entityid_;
         }
         else
         {
-            objectControl.states_.type_ = node->GetVar(GOA::GOT).GetUInt();
+            info.preparedControl_.states_.type_ = info.node_->GetVar(GOA::GOT).GetUInt();
 
             if (gocanimator)
-                objectControl.SetAnimationState(gocanimator->GetStateValue());
+                info.preparedControl_.SetAnimationState(gocanimator->GetStateValue());
 
+            AnimatedSprite2D* animatedSprite = info.node_->GetComponent<AnimatedSprite2D>();
             if (animatedSprite)
-                objectControl.states_.entityid_ = animatedSprite->GetSpriterEntityIndex();
+                info.preparedControl_.states_.entityid_ = animatedSprite->GetSpriterEntityIndex();
         }
 
         if (gocanimator)
         {
             if (gocanimator->GetNetChangeCounter() != info.lastNetChangeCounter_)
             {
-                objectControl.SetFlagBit(OFB_ANIMATIONCHANGED, true);
+                info.preparedControl_.SetFlagBit(OFB_ANIMATIONCHANGED, true);
                 info.lastNetChangeCounter_ = gocanimator->GetNetChangeCounter();
             }
             else
             {
-                objectControl.SetFlagBit(OFB_ANIMATIONCHANGED, false);
+                info.preparedControl_.SetFlagBit(OFB_ANIMATIONCHANGED, false);
             }
 
-            objectControl.states_.animversion_ = gocanimator->GetCurrentAnimVersion();
+            info.preparedControl_.states_.animversion_ = gocanimator->GetCurrentAnimVersion();
         }
     }
 
@@ -5191,6 +5204,8 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
                 ClientInfo& clientInfo = it->second_;
                 if (clientInfo.rebornRequest_ && clientInfo.gameStatus_ == PLAYSTATE_ENDGAME && clientInfo.players_.Size())
                 {
+                    URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : client=%d ... Check for Restart Players ... ", clientInfo.clientID_);
+
                     bool allPlayersDeadOrAlive = true;
                     for (Vector<SharedPtr<Player> >::ConstIterator jt = clientInfo.players_.Begin(); jt != clientInfo.players_.End(); ++jt)
                     {
@@ -5198,6 +5213,8 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
                         if ((*jt)->active + (*jt)->IsStarted() == 1)
                         {
                             allPlayersDeadOrAlive = false;
+                            URHO3D_LOGINFOF("GameNetwork() - HandlePlayServer_NetworkUpdate : client=%d ... Check for Restart Players ... player %d is not deadOrAlive (active=%d started=%d) !",
+                                            clientInfo.clientID_, (int)(jt-clientInfo.players_.Begin()), (*jt)->active, (*jt)->IsStarted());
                             break;
                         }
                     }

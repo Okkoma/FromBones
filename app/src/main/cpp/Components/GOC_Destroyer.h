@@ -81,7 +81,6 @@ public :
         return allowWallSpawning_;
     }
 
-//        bool GetUpdatedWorldMassCenter(Vector2& position);
     bool GetUpdatedWorldPosition2D(Vector2& position);
     const WorldMapPosition& GetWorldMapPosition() const
     {
@@ -103,7 +102,10 @@ public :
     {
         return shapesRect_;
     }
+
     Rect GetWorldShapesRect() const;
+    void GetWorldShapesRect(Rect& rect);
+
     const Rect& GetShapeRectInTile() const
     {
         return mapWorldPosition_.shapeRectInTile_;
@@ -129,7 +131,7 @@ public :
 
     void Destroy(float delay=0.f, bool reset=true);
 
-    void UpdateShapesRect();
+    bool UpdateShapesRect();
 
     void UpdateFilterBits(int viewZ=-1);
     void UpdateAreaStates(bool sendfluidevent=false);

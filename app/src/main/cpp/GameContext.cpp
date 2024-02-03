@@ -1660,7 +1660,10 @@ void GameContext::SetWorldStartPosition()
     // Find a safe place in the map
     if (!findstart)
     {
-        Map* map = world->GetMapAt(mpoint, true);
+        Map* map = world->GetMapAt(mpoint, !GameContext::Get().ClientMode_);
+        if (!map)
+            return;
+
 #if (SETWORLDSTART_SKIP < 2)
         if (map->GetMapData() && map->GetMapData()->spots_.Size())
         {

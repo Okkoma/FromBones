@@ -333,7 +333,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 #ifdef DUMP_MAPCREATOR_LOGS
         URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... MapSerializer Running ... Skip Creating Map ...",
                          map->GetMapPoint().ToString().CString());
-/#endif
+#endif
         return false;
     }
 

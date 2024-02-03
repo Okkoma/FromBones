@@ -534,7 +534,8 @@ void World2D::ResetFocusPositions()
             newmPoint = vinfo.mPoint_ = vinfo.dMapPoint_;
             vinfo.mPoint_.x_++;
             info_->Convert2WorldPosition(newmPoint, IntVector2(info_->mapWidth_/2, info_->mapHeight_/2), vinfo.dMapPosition_);
-            URHO3D_LOGINFOF("World2D() - ResetPosition : viewport=%u on Default Map Point = %s !", i, vinfo.dMapPoint_.ToString().CString());
+
+            URHO3D_LOGINFOF("World2D() - ResetFocusPositions : viewport=%u on Default Map Point = %s !", i, vinfo.dMapPoint_.ToString().CString());
         }
         else
         {
@@ -546,7 +547,7 @@ void World2D::ResetFocusPositions()
 
             vinfo.focusPosition_ = Vector2::ZERO;
 
-            URHO3D_LOGINFOF("World2D() - ResetPosition : viewport=%u on Map Point = %s !", i, newmPoint.ToString().CString());
+            URHO3D_LOGINFOF("World2D() - ResetFocusPositions : viewport=%u on Map Point = %s !", i, newmPoint.ToString().CString());
         }
 
         change |= vinfo.Update();

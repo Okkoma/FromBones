@@ -155,6 +155,8 @@ void EffectAction::Set(MapBase* map, unsigned zone)
     zone_.x_ = map->GetMapPoint().x_;
     zone_.y_ = map->GetMapPoint().y_;
     zone_.z_ = zone;
+
+    zonedata_ = map->GetMapData() ? &map->GetMapData()->zones_[zone] : 0;
 }
 
 EffectAction* EffectAction::Get(const IntVector3& zone)
@@ -293,7 +295,7 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
                 EffectAction* effectAction = EffectAction::GetOrCreate(newzone.z_, zonedata.goInAction_, map);
 
                 bool ok = effectAction;
-                if (ok && numPlayersInside == 1) // Add Effects for newzone once
+                if (ok && numPlayersInside > 0)
                     ok = effectAction->Apply();
                 if (ok && zonedata.state_ == 0)
                     effectAction->AddViewportUser(viewport, node);
@@ -569,7 +571,8 @@ bool BossZone::Apply()
             }
         }
 
-        SubscribeToEvent(E_SCENEUPDATE, URHO3D_HANDLER(BossZone, HandleUpdate));
+        if (!HasSubscribedToEvent(E_SCENEUPDATE))
+            SubscribeToEvent(E_SCENEUPDATE, URHO3D_HANDLER(BossZone, HandleUpdate));
     }
 
     return true;
@@ -625,6 +628,9 @@ void BossZone::SpawnBoss()
 void BossZone::SetBossNode()
 {
     if (!boss_)
+        return;
+
+    if (boss_->HasVar(GOA::BOSSZONEID))
         return;
 
     // Huge Boss

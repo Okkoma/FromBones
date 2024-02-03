@@ -306,11 +306,11 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
 
     int viewport = 0;
     GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
-    bool isPlayer = (controller && controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>());
+    bool isLocalPlayer = (controller && controller->IsMainController() &&  controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>());
 //    bool isCurrentViewZ = viewZ == ViewManager::Get()->GetCurrentViewZ(viewport);
 
     // If Multiviewport, check the good viewport
-    if (isPlayer && ViewManager::Get()->GetNumViewports() > 1)
+    if (isLocalPlayer && ViewManager::Get()->GetNumViewports() > 1)
     {
         viewport = Min(controller->GetThinker() ? controller->GetThinker()->GetControlID() : 0, (int)ViewManager::Get()->GetNumViewports()-1);
 //        isCurrentViewZ = viewZ == ViewManager::Get()->GetCurrentViewZ(viewport);
@@ -392,7 +392,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
 
         GOC_Controller* othercontroller = node->GetDerivedComponent<GOC_Controller>();
 
-        bool otherIsAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker()->IsInstanceOf<Player>();
+        bool otherIsAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker() && othercontroller->GetThinker()->IsInstanceOf<Player>();
         if (otherIsAplayer)
         {
             URHO3D_LOGINFOF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
@@ -411,12 +411,12 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         }
     }
 
-    if (!isPlayer && hasAlocalMountedPlayer)
+    if (!isLocalPlayer && hasAlocalMountedPlayer)
     {
         ViewManager::Get()->SwitchToViewZ(viewZ, 0, viewport);
     }
 
-    if (isPlayer)
+    if (isLocalPlayer)
         URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
                          node_->GetName().CString(), node_->GetID(), viewport, mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,
                          numdrawables, numdrawables ? drawables[0]->GetID() : 0, drawables[0]->GetLayer2().ToString().CString());
@@ -703,7 +703,7 @@ void GOC_Destroyer::OnSetEnabled()
 
             SubscribeToEvent(scene, E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateWorld2D));
 
-            UpdateShapesRect();
+            bool ok = UpdateShapesRect();
         }
     }
     else
@@ -712,8 +712,8 @@ void GOC_Destroyer::OnSetEnabled()
         // if not main controller => replicate node, keep subscribe to update position
         if (controller && !controller->IsMainController() && worldUpdatePosition_)
         {
-            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) enable=false !maincontroller => keep update position !",
-                            node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString());
+//            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) enable=false !maincontroller => keep update position !",
+//                            node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString());
             return;
         }
 
@@ -950,8 +950,8 @@ bool GOC_Destroyer::IsInWalls(MapBase* map, int viewZ)
         World2D::GetWorldInfo()->Convert2WorldMapPosition(position, mapWorldPosition_, mapWorldPosition_.positionInTile_);
     }
 
-    if (!shapesRect_.Defined())
-        UpdateShapesRect();
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
+        return false;
 
     if (GameHelpers::CheckFreeTilesAtViewZ(this, map, mapWorldPosition_.tileIndex_, viewZ))
         return false;
@@ -1000,13 +1000,10 @@ FeatureType GOC_Destroyer::GetFeatureOnViewZ(int viewZ) const
 
 // Set shapesRect_      : the rect from collisionshapes centered on mass center and worldscaled
 // Set shapeRectInTile_ : the same rect size centered on mass center in tilescaled based
-void GOC_Destroyer::UpdateShapesRect()
+bool GOC_Destroyer::UpdateShapesRect()
 {
-    if (!node_->GetDerivedComponent<GOC_Controller>())
-        return;
-
-    if (!body_)
-        return;
+    if (!body_ || !node_->GetDerivedComponent<GOC_Controller>())
+        return true;
 
     shapesRect_.Clear();
 
@@ -1051,11 +1048,20 @@ void GOC_Destroyer::UpdateShapesRect()
     shapesRect_.min_ = (shapesRect_.min_ - body_->GetMassCenter()) * node_->GetWorldScale2D();
     shapesRect_.max_ = (shapesRect_.max_ - body_->GetMassCenter()) * node_->GetWorldScale2D();
 
-    Vector2 wTileSize(World2D::GetWorldInfo()->mTileWidth_, World2D::GetWorldInfo()->mTileHeight_);
-    mapWorldPosition_.shapeRectInTile_.Define(shapesRect_.min_ / wTileSize, shapesRect_.max_/ wTileSize);
+    if (IsNaN(shapesRect_.min_.x_) || IsNaN(shapesRect_.min_.y_))
+    {
+        shapesRect_.Clear();
+        return true;
+    }
+    else
+    {
+        Vector2 wTileSize(World2D::GetWorldInfo()->mTileWidth_, World2D::GetWorldInfo()->mTileHeight_);
+        mapWorldPosition_.shapeRectInTile_.Define(shapesRect_.min_ / wTileSize, shapesRect_.max_/ wTileSize);
+    }
 
 //    URHO3D_LOGINFOF("GOC_Destroyer() - UpdateShapesRect : %s(%u) shapesRect_=%s mcenter=%s shapeRectInTile_=%s ", node_->GetName().CString(), node_->GetID(),
 //                     shapesRect_.ToString().CString(), body_->GetMassCenter().ToString().CString(), mapWorldPosition_.shapeRectInTile_.ToString().CString());
+    return true;
 }
 
 void GOC_Destroyer::AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vector2& position)
@@ -1071,8 +1077,8 @@ void GOC_Destroyer::AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vec
     mapWorldPosition_.SetViewZ(viewZ);
     mapWorldPosition_.defined_ = true;
 
-    if (!shapesRect_.Defined())
-        UpdateShapesRect();
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
+        return;
 
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(mapWorldPosition_.mPoint_, false);
@@ -1095,8 +1101,8 @@ void GOC_Destroyer::AdjustPositionInTile(int viewZ)
 
     mapWorldPosition_.viewZ_ = viewZ;
 
-    if (!shapesRect_.Defined())
-        UpdateShapesRect();
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
+        return;
 
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(mapWorldPosition_.mPoint_, false);
@@ -1118,8 +1124,8 @@ void GOC_Destroyer::AdjustPositionInTile(const WorldMapPosition& initialposition
     if (!checkUnstuck_)
         return;
 
-    if (!shapesRect_.Defined())
-        UpdateShapesRect();
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
+        return;
 
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(initialposition.mPoint_, false);
@@ -1139,6 +1145,9 @@ bool GOC_Destroyer::Unstuck()
         return false;
 
     if (!currentCell_)
+        return true;
+
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
         return true;
 
     // Dimension in Tiles of the entity
@@ -1287,7 +1296,7 @@ bool GOC_Destroyer::Unstuck()
                 }
                 if (numTopDirUnBlockTiles + numBottomDirUnBlockTiles + 1 < entitySizeInTiles.y_)
                 {
-                    URHO3D_LOGWARNINGF("GOC_Destroyer() - Unstuck : %s(%u) Y Check entitySizeInTiles=%d available=%d(Top=%d + Bottom=%d) !",
+                    URHO3D_LOGWARNINGF("GOC_Destroyer() - Unstuck : %s(%u) Y Check entitySizeInTileY=%d available=%d(Top=%d + Bottom=%d) !",
                                        node_->GetName().CString(), node_->GetID(), entitySizeInTiles.y_, numTopDirUnBlockTiles+numBottomDirUnBlockTiles+1, numTopDirUnBlockTiles,numBottomDirUnBlockTiles);
                     return false;
                 }
@@ -1328,12 +1337,12 @@ bool GOC_Destroyer::Unstuck()
                 }
                 if (numLeftDirUnBlockTiles + numRightDirUnBlockTiles + 1 < entitySizeInTiles.y_)
                 {
-                    URHO3D_LOGWARNINGF("GOC_Destroyer() - Unstuck : %s(%u) X Check entitySizeInTiles=%d available=%d(Left=%d + Right=%d) !",
+                    URHO3D_LOGWARNINGF("GOC_Destroyer() - Unstuck : %s(%u) X Check entitySizeInTileX=%d available=%d(Left=%d + Right=%d) !",
                                        node_->GetName().CString(), node_->GetID(), entitySizeInTiles.x_, numLeftDirUnBlockTiles+numRightDirUnBlockTiles+1, numLeftDirUnBlockTiles,numRightDirUnBlockTiles);
                     return false;
                 }
 
-                URHO3D_LOGINFOF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTiles=%f %f freeTiles : DirLeft=%d DirRight=%d !",
+                URHO3D_LOGINFOF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTileX=%f %f freeTiles : DirLeft=%d DirRight=%d !",
                                 node_->GetName().CString(), node_->GetID(), numEntityInTiles.min_.x_, numEntityInTiles.max_.x_, numLeftDirUnBlockTiles, numRightDirUnBlockTiles);
 
                 // Set offset needed to Unstuck in x
@@ -2108,6 +2117,19 @@ Rect GOC_Destroyer::GetWorldShapesRect() const
         return Rect(mapWorldPosition_.position_ + shapesRect_.min_, mapWorldPosition_.position_ + shapesRect_.max_);
     else
         return Rect(mapWorldPosition_.position_ - Vector2(0.2, 0.2f), mapWorldPosition_.position_ + Vector2(0.2, 0.2f));
+}
+
+void GOC_Destroyer::GetWorldShapesRect(Rect& rect)
+{
+    Vector2 position;
+
+    if (!GetUpdatedWorldPosition2D(position))
+        position = node_->GetWorldPosition2D();
+
+    if (!shapesRect_.Defined() && !UpdateShapesRect())
+        return;
+
+    rect.Define(position + shapesRect_.min_, position + shapesRect_.max_);
 }
 
 void GOC_Destroyer::DrawDebugGeometry(DebugRenderer* debugRenderer, bool depthTest) const
