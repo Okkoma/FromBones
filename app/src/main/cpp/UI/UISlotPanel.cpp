@@ -895,7 +895,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
         dropmode = SLOT_DROPON;
 
         /// Drop an item
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId, 1U);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, &slot, dropmode, fromSlotId, 1U);
         if (node)
         {
             // Apply Effect
@@ -917,7 +917,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
         dropmode = SLOT_DROPOUT;
 
         /// Drop an item
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId, 1U);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, &slot, dropmode, fromSlotId, 1U);
         if (node)
         {
             GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -937,7 +937,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
         dropmode = SLOT_DROP;
 
         /// Drop items
-        node = GOC_Collectable::DropSlotFrom(holderNode_, slot, dropmode, fromSlotId);
+        node = GOC_Collectable::DropSlotFrom(holderNode_, &slot, dropmode, fromSlotId);
         if (node)
             URHO3D_LOGINFOF("UISlotPanel() - UseSlotItem : drop item=%s!", GOT::GetType(type).CString());
     }
@@ -963,7 +963,7 @@ void UISlotPanel::OnSlotRemain(Slot& slot, int slotid)
         URHO3D_LOGINFOF("UISlotPanel() - OnSlotRemain : drop remain item=%s qty=%u !",
                         GOT::GetType(slot.type_).CString(), slot.quantity_);
 
-        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, slot, SLOT_DROPREMAIN);
+        Node* node = GOC_Collectable::DropSlotFrom(holderNode_, &slot, SLOT_DROPREMAIN);
         GameHelpers::SpawnSound(holderNode_, "Sounds/024-Door01.ogg");
     }
 
@@ -1047,6 +1047,10 @@ void UISlotPanel::UpdateSlotSelector()
     selectHalo_->SetVisible(setHalo);
 }
 
+Timer clickTimer_;
+int doubleSlotSelector_;
+const float DEFAULT_DOUBLECLICK_INTERVAL = 0.5f;
+
 void UISlotPanel::OnKey(StringHash eventType, VariantMap& eventData)
 {
     Actor* holder = static_cast<Actor*>(user_);
@@ -1061,7 +1065,25 @@ void UISlotPanel::OnKey(StringHash eventType, VariantMap& eventData)
 
     if (scancode == keymap[ACTION_INTERACT])
     {
-        URHO3D_LOGINFOF("UISlotPanel() - OnKeyDown : %s key=%s action ... !", panel_->GetName().CString(), GameContext::Get().input_->GetScancodeName(scancode).CString());
+        URHO3D_LOGINFOF("UISlotPanel() - OnKey : %s key=%s action ... !", panel_->GetName().CString(), GameContext::Get().input_->GetScancodeName(scancode).CString());
+
+        // double click
+        if (doubleSlotSelector_ == slotselector_ && clickTimer_.GetMSec(true) < (unsigned)(DEFAULT_DOUBLECLICK_INTERVAL * 1000))
+        {
+            doubleSlotSelector_ = -1;
+
+            Slot& slot = inventory_->GetSlot(slotselector_);
+
+            URHO3D_LOGINFOF("UISlotPanel() - OnKey : double clic on index=%d slot=%s(%u)", slotselector_, GOT::GetType(slot.type_).CString(), slot.type_.Value());
+
+            if (UseSlotItem(slot, slotselector_) != -1)
+                UpdateSlot(slotselector_);
+        }
+        else
+        {
+            doubleSlotSelector_ = slotselector_;
+            clickTimer_.Reset();
+        }
 
         UpdateSlotSelector();
 

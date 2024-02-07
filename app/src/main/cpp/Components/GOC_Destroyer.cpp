@@ -288,7 +288,7 @@ void GOC_Destroyer::SetWorldMapPosition(const WorldMapPosition& wmPosition)
         URHO3D_LOGERRORF("GOC_Destroyer() - SetWorldMapPosition : %s(%u) position=%s ERROR DRAWABLE !",
                          node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString());
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetWorldMapPosition : %s(%u) position=%s !", node_->GetName().CString(), node_->GetID(), mapWorldPosition_.position_.ToString().CString());
+    URHO3D_LOGINFOF("GOC_Destroyer() - SetWorldMapPosition : %s(%u) position=%s !", node_->GetName().CString(), node_->GetID(), mapWorldPosition_.position_.ToString().CString());
 }
 
 void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
@@ -1083,10 +1083,12 @@ void GOC_Destroyer::AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vec
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(mapWorldPosition_.mPoint_, false);
 
-    if (currentMap_)
+    if (currentMap_ && currentMap_->IsAvailable())
+    {
         currentCell_ = currentMap_->GetFluidCellPtr(mapWorldPosition_.tileIndex_, mapWorldPosition_.viewZIndex_);
 
-    bool check = Unstuck();
+        bool check = Unstuck();
+    }
 
 //    URHO3D_LOGINFOF("GOC_Destroyer() - AdjustNodePosition : %s(%u) initialposition=%s adjustedposition=%s !",
 //                    node_->GetName().CString(), node_->GetID(), position.ToString().CString(), mapWorldPosition_.position_.ToString().CString());
@@ -1107,7 +1109,7 @@ void GOC_Destroyer::AdjustPositionInTile(int viewZ)
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(mapWorldPosition_.mPoint_, false);
 
-    if (currentMap_)
+    if (currentMap_ && currentMap_->IsAvailable())
     {
         GameHelpers::AdjustPositionInTile(this, currentMap_, mapWorldPosition_);
 
@@ -1130,7 +1132,7 @@ void GOC_Destroyer::AdjustPositionInTile(const WorldMapPosition& initialposition
     if (!currentMap_)
         currentMap_ = World2D::GetMapAt(initialposition.mPoint_, false);
 
-    if (currentMap_)
+    if (currentMap_ && currentMap_->IsAvailable())
     {
         GameHelpers::AdjustPositionInTile(this, currentMap_, initialposition);
 
@@ -1715,6 +1717,12 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         currentMap_ = 0;
     }
 
+    if (currentMap_ && currentMap_->GetStatus() > Available)
+    {
+        currentMap_ = 0;
+        return false;
+    }
+
 //    URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s !", node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString());
 
     // Update position
@@ -1750,7 +1758,11 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     */
     // Get current Map
     if (!currentMap_ || sChangeMap_)
+    {
         currentMap_ = World2D::GetMapAt(sMPosition_.mPoint_, false);
+        if (currentMap_ && currentMap_->GetStatus() > Available)
+            return false;
+    }
 
     // no map or insufficient map status
     if (!currentMap_ || currentMap_->GetStatus() <= Creating_Map_Layers)

@@ -89,7 +89,7 @@ struct ClientInfo
 
     bool NeedAllocatePlayers() const;
     int GetNumActivePlayers() const;
-    Player* GetPlayerFor(Node* node) const;
+    Player* GetPlayerFor(unsigned nodeid) const;
     bool ContainsObject(Node* node) const;
 
     void Dump() const;
@@ -372,7 +372,6 @@ public:
 
     void ExplodeNode(VariantMap& eventData);
     void Server_UpdateInventory(int cmd, VariantMap& eventData);
-    void Client_SpawnItem(VariantMap& eventData);
     void ChangeEquipment(VariantMap& eventData);
     bool ChangeTile(VariantMap& eventData);
     void SendChangeEquipment(const StringHash& eventType, VariantMap& eventData);

@@ -218,13 +218,16 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
     player->SetFaction((clientID_ << 8) + GO_Player);
 
     Node* avatar = player->GetAvatar();
-    objects_.Push(WeakPtr<Node>(avatar));
 
     URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... for clientid=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
                     clientID_, connection_.Get(), playerID, avatar->GetID(), avatar->GetWorldPosition().ToString().CString(), player->GetFaction());
 
     if (avatar)
+    {
+        objects_.Push(WeakPtr<Node>(avatar));
+        avatar->AddTag("Player");
         World2D::AddTraveler(this, avatar);
+    }
 
     return avatar;
 }
@@ -272,7 +275,7 @@ void ClientInfo::ClearObjects()
             MountInfo mountinfo(node);
             GameHelpers::UnmountNode(mountinfo);
 
-            if (node->HasTag("Player"))
+            if (node->HasTag(PLAYERTAG))
                 World2D::RemoveTraveler(node);
 
             node->Remove();
@@ -360,11 +363,11 @@ int ClientInfo::GetNumActivePlayers() const
     return numactiveplayers;
 }
 
-Player* ClientInfo::GetPlayerFor(Node* node) const
+Player* ClientInfo::GetPlayerFor(unsigned nodeid) const
 {
     for (Vector<SharedPtr<Player> >::ConstIterator it=players_.Begin(); it != players_.End(); ++it)
     {
-        if ((*it)->GetAvatar() == node)
+        if ((*it)->GetAvatar()->GetID() == nodeid)
             return it->Get();
     }
     return 0;
@@ -1129,34 +1132,6 @@ void GameNetwork::Server_UpdateInventory(int cmd, VariantMap& eventData)
 }
 
 
-void GameNetwork::Client_SpawnItem(VariantMap& eventData)
-{
-    unsigned nodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
-    unsigned holderid = eventData[Net_ObjectCommand::P_NODEIDFROM].GetUInt();
-    StringHash got(eventData[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt());
-    Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
-
-    URHO3D_LOGINFOF("GameNetwork() - Client_SpawnItem : got=%s nodeid=%u holder=%s(%u) ...",
-                    GOT::GetType(got).CString(), nodeid, holder ? holder->GetName().CString() : "null", holderid);
-
-    PhysicEntityInfo physicInfo;
-    if (holder)
-        GameHelpers::GetDropPoint(holder, physicInfo.positionx_, physicInfo.positiony_);
-
-    SceneEntityInfo sceneinfo;
-    sceneinfo.zindex_ = 1000;
-    sceneinfo.clientId_ = 0;
-    sceneinfo.skipNetSpawn_ = true;
-
-    int viewZ = holder ? ViewManager::GetNearViewZ(holder->GetVar(GOA::ONVIEWZ).GetInt(), 0) : FRONTVIEW;
-
-    Node* node = World2D::SpawnEntity(got, 0, LOCAL, holder ? holder->GetID() : 0, viewZ, physicInfo, sceneinfo, &eventData);
-    if (node)
-        URHO3D_LOGINFOF("GameNetwork() - Client_SpawnItem : Node=%s(%u) spawned ... OK !", node->GetName().CString(), node->GetID());
-    else
-        URHO3D_LOGERRORF("GameNetwork() - Client_SpawnItem : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
-}
-
 void GameNetwork::Client_TransferItem(VariantMap& eventData)
 {
     //URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : Dump eventData ...");
@@ -1532,7 +1507,6 @@ void GameNetwork::Client_DisableObjectControl(VariantMap& eventData)
         URHO3D_LOGERRORF("GameNetwork() - Client_DisableObjectControl : unsatisfied requirements for clientObjectControl nodeid=%u !", id);
 }
 
-
 void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventData)
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
@@ -1586,6 +1560,20 @@ void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventD
         bool ok = ChangeTile(eventData);
     }
         break;
+    case SETPLAYERPOSITION:
+    {
+        ClientInfo* clientinfo = serverClientID2Infos_[fromclientid];
+        if (clientinfo)
+        {
+            Player* player = clientinfo->GetPlayerFor(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
+            if (player)
+            {
+                player->SetWorldMapPosition(eventData);
+                URHO3D_LOGERRORF("GameNetwork() - Server_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=%d(%s) nodeid=%u set worldposition=%s !",
+                              cmd, cmd < MAX_NETCOMMAND ? netCommandNames[cmd] : "unknown", eventData[Net_ObjectCommand::P_NODEID].GetUInt(), player->GetWorldMapPosition().ToString().CString());
+            }
+        }
+    }
         break;
     case TRIGCLICKED:
     {
@@ -1662,9 +1650,6 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
         break;
     case ADDCOLLECTABLE:
         World2D::SpawnCollectable(eventData);
-        break;
-    case DROPITEM:
-        Client_SpawnItem(eventData);
         break;
     case TRANSFERITEM:
         Client_TransferItem(eventData);
@@ -2864,7 +2849,7 @@ void GameNetwork::Client_AddServerControllable(Node*& node, ObjectControlInfo& i
             return;
         }
 
-        node->AddTag("Player");
+        node->AddTag(PLAYERTAG);
         node->SetName("Avatar");
         node->SetTemporary(true);
 
@@ -3302,7 +3287,6 @@ void GameNetwork::Server_SubscribeToPlayEvents()
 
     SubscribeToEvent(GO_INVENTORYGET, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_INVENTORYSLOTEQUIP, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
-    SubscribeToEvent(GO_DROPITEM, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(MAP_ADDFURNITURE, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(MAP_ADDCOLLECTABLE, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
     SubscribeToEvent(GO_TRIGCLICKED, URHO3D_HANDLER(GameNetwork, HandlePlayServer_Messages));
@@ -3322,7 +3306,6 @@ void GameNetwork::Server_UnsubscribeToPlayEvents()
 
     UnsubscribeFromEvent(GO_INVENTORYGET);
     UnsubscribeFromEvent(GO_INVENTORYSLOTEQUIP);
-    UnsubscribeFromEvent(GO_DROPITEM);
     UnsubscribeFromEvent(MAP_ADDFURNITURE);
     UnsubscribeFromEvent(MAP_ADDCOLLECTABLE);
     UnsubscribeFromEvent(GO_TRIGCLICKED);
@@ -3675,14 +3658,11 @@ void GameNetwork::HandlePlayServer_Messages(StringHash eventType, VariantMap& ev
     else if (eventType == GO_INVENTORYSLOTEQUIP)
         SendChangeEquipment(eventType, eventData);
 
-    else if (eventType == GO_DROPITEM && eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 0)
-        PushObjectCommand(DROPITEM, &eventData, true, 0);
-
     else if (eventType == MAP_ADDFURNITURE)
         PushObjectCommand(ADDFURNITURE, &eventData, true, 0);
 
     else if (eventType == MAP_ADDCOLLECTABLE)
-        PushObjectCommand(ADDCOLLECTABLE, &eventData, true, 0);
+        PushObjectCommand(ADDCOLLECTABLE, &eventData, true, eventData[Net_ObjectCommand::P_CLIENTID].GetInt());
 
     else if (eventType == GO_TRIGCLICKED)
     {
@@ -3724,7 +3704,7 @@ void GameNetwork::HandlePlayClient_Messages(StringHash eventType, VariantMap& ev
         PushObjectCommand(SETITEM, &eventData, false, clientID_); // only to server
 
     else if (eventType == GO_DROPITEM)
-        PushObjectCommand(DROPITEM, &eventData, eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 0 || eventData[Net_ObjectCommand::P_INVENTORYDROPMODE].GetInt() == 3, clientID_);
+        PushObjectCommand(DROPITEM, &eventData, false, clientID_);
 
     else if (eventType == MAP_ADDFURNITURE)
         PushObjectCommand(ADDFURNITURE, &eventData, true, clientID_);
@@ -4069,30 +4049,45 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
     }
 
     // reactive netplayer
-    if (node && node->HasTag("Player") && clientMode_ && node->GetVar(GOA::ISDEAD).GetBool() && src.GetReceivedControl().states_.totalDpsReceived_ == 0 && src.IsEnable())
+    if (node && node->HasTag(PLAYERTAG) && src.IsEnable())
     {
-        URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u reactive !", node->GetID());
-
-        GOC_Life* goclife = node->GetComponent<GOC_Life>();
-        if (goclife)
-            goclife->Reset();
-
-        GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
-        if (destroyer)
+        if (node->GetVar(GOA::ISDEAD).GetBool())
         {
-            destroyer->SetEnablePositionUpdate(true);
-            destroyer->SetEnableUnstuck(false);
-            destroyer->Reset(true);
+            if (clientMode_ && src.GetReceivedControl().states_.totalDpsReceived_ == 0)
+            {
+                URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u reactive !", node->GetID());
+
+                GOC_Life* goclife = node->GetComponent<GOC_Life>();
+                if (goclife)
+                    goclife->Reset();
+
+                GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
+                if (destroyer)
+                {
+                    destroyer->SetEnablePositionUpdate(true);
+                    destroyer->SetEnableUnstuck(false);
+                    destroyer->Reset(true);
+                }
+
+                node->ApplyAttributes();
+                SetEnableObject(true, dest, node);
+
+                node->SendEvent(WORLD_ENTITYCREATE);
+
+                // Spawn Effect when Players Appear
+                Drawable2D* drawable = node->GetDerivedComponent<Drawable2D>();
+                GameHelpers::SpawnParticleEffect(node->GetContext(), ParticuleEffect_[PE_LIFEFLAME], drawable->GetLayer(), drawable->GetViewMask(), node->GetWorldPosition2D(), 0.f, 2.f, true, 3.f, Color::BLUE, LOCAL);
+            }
         }
-
-        node->ApplyAttributes();
-        SetEnableObject(true, dest, node);
-
-        node->SendEvent(WORLD_ENTITYCREATE);
-
-        // Spawn Effect when Players Appear
-        Drawable2D* drawable = node->GetDerivedComponent<Drawable2D>();
-        GameHelpers::SpawnParticleEffect(node->GetContext(), ParticuleEffect_[PE_LIFEFLAME], drawable->GetLayer(), drawable->GetViewMask(), node->GetWorldPosition2D(), 0.f, 2.f, true, 3.f, Color::BLUE, LOCAL);
+        else if (!node->IsEnabled())
+        {
+            GOC_Destroyer* destroyer = node->GetComponent<GOC_Destroyer>();
+            if (destroyer && destroyer->GetCurrentMap() && destroyer->GetCurrentMap()->IsVisible())
+            {
+                URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u map is visible => reactive node !", node->GetID());
+                SetEnableObject(true, dest, node);
+            }
+        }
     }
 
     if (!node || !dest.active_)

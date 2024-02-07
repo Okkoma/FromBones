@@ -244,7 +244,7 @@ void UIC_CraftPanel::UpdateCraftedItem(bool clear)
                             GOT::GetType(craftedItem_.type_).CString(), craftedItem_.quantity_);
 
             const int dropmode = !GameContext::Get().LocalMode_ ? SLOT_DROPREMAIN : SLOT_NONE;
-            Node* node = GOC_Collectable::DropSlotFrom(avatar, craftedItem_, dropmode);
+            Node* node = GOC_Collectable::DropSlotFrom(avatar, &craftedItem_, dropmode);
         }
     }
 

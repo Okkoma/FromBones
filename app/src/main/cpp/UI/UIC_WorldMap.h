@@ -36,6 +36,7 @@ protected :
     void Resize();
 
     Sprite* CreatePoint(UIElement* root, const Color& color, int size);
+    bool SetUIPointPosition(int index, const float uitilesize, const WorldMapPosition& wpos);
 
     void UpdateSnapShots();
     void UpdateSnapShotGrid();

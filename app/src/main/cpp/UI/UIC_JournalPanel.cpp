@@ -308,7 +308,7 @@ void UIC_JournalPanel::OnNamedMissionUpdated(StringHash eventType, VariantMap& e
                                             GOT::GetType(slot.type_).CString(), slot.quantity_);
 
                             const int dropmode = !GameContext::Get().LocalMode_ ? SLOT_DROPREMAIN : SLOT_NONE;
-                            Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slot, dropmode);
+                            Node* dropped = GOC_Collectable::DropSlotFrom(avatar, &slot, dropmode);
                         }
                     }
                     else

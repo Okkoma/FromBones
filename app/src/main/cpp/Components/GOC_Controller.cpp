@@ -414,7 +414,7 @@ bool GOC_Controller::ChangeAvatarOrEntity(unsigned type, unsigned char entityid)
 
                 node_->ApplyAttributes();
 
-                node_->AddTag("Player");
+                node_->AddTag(PLAYERTAG);
 
                 // remount if was mounted
                 GameHelpers::MountNode(mountinfo);

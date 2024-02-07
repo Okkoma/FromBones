@@ -2546,6 +2546,10 @@ void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, Variant
     for (unsigned i = 0; i < numscrollers; ++i)
         info.drawableScrollers_[i]->drawablePool_.Clear();
 
+    // update camPosition
+    if (info.nodeToFollow_)
+        info.camPosition_ = info.nodeToFollow_->GetWorldPosition2D();
+
 //    logtest_ = false;
 
     if (flatmode_)

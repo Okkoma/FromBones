@@ -1268,8 +1268,8 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
     if (!destinationArea)
     {
         // Reset to Default Point
-        dPosition.x_ = 1;
-        dPosition.y_ = 2;
+        dPosition.x_ = MapInfo::info.width_/2;
+        dPosition.y_ = MapInfo::info.height_/2;
         if (dViewZ != INNERVIEW)
             dViewZ = FRONTVIEW;
     }
@@ -1283,7 +1283,7 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
             {
                 int viewport = i;
 
-                GameContext::Get().players_[i]->SetWorldPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ));
+                GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
 
                 // Transfer Camera
                 World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, viewport);
@@ -1298,14 +1298,12 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
     {
         // Transfer Players
         for (int i=0; i < GameContext::Get().numPlayers_; i++)
-            if ( GameContext::Get().playerAvatars_[i])
-                GameContext::Get().players_[i]->SetWorldPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ));
+            if (GameContext::Get().playerAvatars_[i])
+                GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
 
         // Transfer Camera
         World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, 0);
-
         World2D::GetWorld()->UpdateStep(0.f);
-
         World2D::GetWorld()->GoCameraToDestinationMap(0, false);
     }
 
@@ -2060,7 +2058,7 @@ bool GameHelpers::SetLightActivation(Node* node, int viewport)
                         {
                             WorldMapPosition wmPosition;
                             World2D::GetWorldInfo()->Convert2WorldMapPosition(light->GetNode()->GetWorldPosition2D(), wmPosition, wmPosition.positionInTile_);
-                            Map* map = World2D::GetWorld()->GetMapAt(wmPosition.mPoint_);
+                            Map* map = World2D::GetWorld()->GetAvailableMapAt(wmPosition.mPoint_);
                             if (map)
                             {
                                 lightstate = map->GetFluidCellPtr(wmPosition.tileIndex_, map->GetObjectFeatured()->GetIndexViewZ(viewz))->type_ < WATER;

@@ -271,7 +271,7 @@ void UIC_MissionPanel::Update()
                                     GOT::GetType(slotToTransfer.type_).CString(), slotToTransfer.quantity_);
 
                     const int dropmode = !GameContext::Get().LocalMode_ ? SLOT_DROPREMAIN : SLOT_NONE;
-                    Node* dropped = GOC_Collectable::DropSlotFrom(avatar, slotToTransfer, dropmode);
+                    Node* dropped = GOC_Collectable::DropSlotFrom(avatar, &slotToTransfer, dropmode);
                 }
             }
             mission_->SetState(IsFinished);

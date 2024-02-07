@@ -2816,7 +2816,7 @@ void World2D::UpdateVisibleRectInfos(int viewport)
     }
 
     // Update FullBackGround
-    viewInfo.visibleRectInFullBackground_ = (numMapsVisible == numMapsInFullBackground);
+    viewInfo.visibleRectInFullBackground_ = (numMapsVisible && numMapsVisible == numMapsInFullBackground);
 
 //    URHO3D_LOGINFOF("World2D() - UpdateVisibleRectInfos : viewport=%d numVisibleMaps=%u numMapsInFullBackground=%u !", viewport, numMapsVisible, numMapsInFullBackground);
 }
@@ -3108,14 +3108,20 @@ TravelerNodeInfo::TravelerNodeInfo() : currentMap_(0), viewport_(0), clientInfo_
 
 bool TravelerNodeInfo::Update()
 {
-    if (!node_ || !node_->IsEnabled())
+    if (!node_)// || !node_->IsEnabled())
     {
         zone_.z_ = -1;
         return false;
     }
 
-    bool change = false;
     Vector2 position = node_->GetWorldPosition2D();
+    if (IsNaN(position.x_))
+    {
+        URHO3D_LOGERRORF("TravelerNodeInfo() - Update : node=%s(%u) ... position NaN !", node_->GetName().CString(), node_->GetID());
+        return false;
+    }
+
+    bool change = false;
     Rect newvisibleRect;
     newvisibleRect.Define(position.x_ - visibleRectHalfSize_.x_, position.y_ - visibleRectHalfSize_.y_,
                           position.x_ + visibleRectHalfSize_.x_, position.y_ + visibleRectHalfSize_.y_);
@@ -3223,7 +3229,7 @@ void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const
         hashexpand += it->mPosExpand_;
 
     for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
-        if (it->node_ && it->node_->IsEnabled())
+        if (it->node_)// && it->node_->IsEnabled())
             hashexpand += it->mPosExpand_;
 
     hashexpand.GetValues(mappoints);
@@ -3942,23 +3948,6 @@ void World2D::DumpMapVisibilityProgress() const
 {
     URHO3D_LOGINFO("World2D() - DumpMapVisibilityProgress ...");
 
-    unsigned i=0;
-    for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it, i++)
-    {
-        const TravelerViewportInfo& viewInfo = *it;
-        URHO3D_LOGINFOF(" Viewport=%d => currentmap=%s ortho=%f ratio=%f focus=%s visiblearea=%s visiblerect=%s ...",
-                        i, viewInfo.mPoint_.ToString().CString(), viewInfo.camOrtho_, viewInfo.camRatio_, viewInfo.cameraFocusEnabled_ ? "true":"false",
-                        viewInfo.visibleArea_.ToString().CString(), viewInfo.extVisibleRect_.ToString().CString());
-    }
-
-    for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
-    {
-        const TravelerNodeInfo& travelerInfo = *it;
-        URHO3D_LOGINFOF(" Traveler Node=%s(%u) currentmap=%s visiblearea=%s ...",
-                        travelerInfo.node_ ? travelerInfo.node_->GetName().CString() : "none", travelerInfo.node_ ? travelerInfo.node_->GetID() : 0,
-                        travelerInfo.mPoint_.ToString().CString(), travelerInfo.visibleArea_.ToString().CString());
-    }
-
     for (HashSet<ShortIntVector2>::ConstIterator it=mapsToShow_.Begin(); it!=mapsToShow_.End(); ++it)
         URHO3D_LOGINFOF("  => MapToShow : %s", it->ToString().CString());
 
@@ -3971,4 +3960,27 @@ void World2D::DumpMapVisibilityProgress() const
     URHO3D_LOGINFO("World2D() - DumpMapVisibilityProgress ... OK !");
 }
 
+void World2D::DumpTravelers() const
+{
+    URHO3D_LOGINFO("World2D() - DumpTravelers ...");
 
+    unsigned i=0;
+    for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it, i++)
+    {
+        const TravelerViewportInfo& viewInfo = *it;
+        URHO3D_LOGINFOF(" Viewport=%d => currentmap=%s ortho=%f ratio=%f focus=%s visiblearea=%s visiblerect=%s ...",
+                        i, viewInfo.mPoint_.ToString().CString(), viewInfo.camOrtho_, viewInfo.camRatio_, viewInfo.cameraFocusEnabled_ ? "true":"false",
+                        viewInfo.visibleArea_.ToString().CString(), viewInfo.extVisibleRect_.ToString().CString());
+    }
+
+    for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
+    {
+        const TravelerNodeInfo& travelerInfo = *it;
+        URHO3D_LOGINFOF(" Traveler Node=%s(%u) enable=%s currentmap=%s visiblearea=%s ...",
+                        travelerInfo.node_ ? travelerInfo.node_->GetName().CString() : "none", travelerInfo.node_ ? travelerInfo.node_->GetID() : 0,
+                        travelerInfo.node_ && travelerInfo.node_->IsEnabled() ? "true":"false", travelerInfo.mPoint_.ToString().CString(),
+                        travelerInfo.visibleArea_.ToString().CString());
+    }
+
+    URHO3D_LOGINFO("World2D() - DumpTravelers ... OK !");
+}

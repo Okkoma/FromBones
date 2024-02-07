@@ -471,3 +471,5 @@ enum ParticuleEffectType
 };
 
 extern const String ParticuleEffect_[];
+
+const String PLAYERTAG("Player");

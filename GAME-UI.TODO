@@ -1,4 +1,8 @@
 Todos:
+
+    ✔ 04/02/2024 : Joystick, faire la gestion du double clic dans l'inventaire pour utiliser les potions.
+        -> OK : UISlotPanel::OnKey => ajout du code
+
     ✔ 10/11/2023 : Permettre le deplacement de l'avatar durant la selection dans l'UI @done(23-11-11 14:20)
         => pour cela, il faut utiliser le Joystick Hat uniquement pour l'UI avec Joystick Reset
         ==> OK : creation de static void UIPanel::SetAllowSceneInteraction(bool enable)
@@ -28,7 +32,7 @@ Todos:
         ☐ les dérivés UIPanel restants JournalPanel et MissionPanel : Modifier Start et ajouter un handle OnKey.
 
     ☐ 30/01/2023 : le jeu ne quitte pas et pas possibilité de revenir en arriere : bloquage du jeu
-        ... lorsque l'avatar meurt et apparition de la messagebox "recommencer", si l'on ouvre les options et que l'on quitte, 
+        ... lorsque l'avatar meurt et apparition de la messagebox "recommencer", si l'on ouvre les options et que l'on quitte,
 
     ☐ 11/11/2022 : les cursors sur UI_WorldMap sous Android ne sont pas affiché => ce qui est normalement puisque pas de curseur lorsque touchEnable_
         => utiliser E_TOUCHMOVE pour afficher le curseur si sur un element UI. et E_TOUCHEND pour cacher le curseur.

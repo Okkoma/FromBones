@@ -131,12 +131,12 @@ void GOC_StaticRope::UnsubscribeFromEvents()
 void GOC_StaticRope::UpdateAttributes()
 {
     parent_ = node_->GetParent();
-    if (parent_->GetName() == "EntityAdderRoot")
+    if (parent_ && parent_->GetName() == "EntityAdderRoot")
         parent_ = parent_->GetParent();
 
     gocMove_ = parent_ ? parent_->GetComponent<GOC_Move2D>() : 0;
 
-    ropeDrawable_ = node_->GetChild(0U)->GetDerivedComponent<StaticSprite2D>();
+    ropeDrawable_ = node_->GetChild(0U) ? node_->GetChild(0U)->GetDerivedComponent<StaticSprite2D>() : 0;
 
     // force breaking rope
     attached_ = true;

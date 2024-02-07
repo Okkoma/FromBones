@@ -587,6 +587,10 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
     if (!csBody || !csOther)
         return;
 
+//    URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : actor=%s(%u) Begin Contact with node %s(%u) ... shape=%u cm=%u",
+//                    body->GetNode()->GetName().CString(), body->GetNode()->GetID(),
+//                    other->GetNode()->GetName().CString(), other->GetNode()->GetID(), csBody->IsTrigger(), csBody->GetMaskBits());
+
     /// Body has a Trigger shape in contact with other body
     if (csBody->IsTrigger())
     {
@@ -632,7 +636,7 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
                 ABI_WallBreaker::OnSameHolderLayerOnly_ = false;
             }
 
-            /// Add Contact Informations for MissionManager
+            /// Add Contact Informations for MissionManager or GOC_Collectable
 //            URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : actor=%s(%u) Begin Contact with node %s(%u) ... get Attack Information",
 //                            body->GetNode()->GetName().CString(), body->GetNode()->GetID(),
 //                            other->GetNode()->GetName().CString(), other->GetNode()->GetID());

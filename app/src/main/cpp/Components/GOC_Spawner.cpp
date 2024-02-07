@@ -96,7 +96,7 @@ void GOC_Spawner::UpdateAttributes()
 {
 //    URHO3D_LOGINFOF("GOC_Spawner() - UpdateAttributes : actived_(%u), enabled(%u)", actived_, IsEnabledEffective());
 
-    if (GetScene() && IsEnabledEffective() && actived_)
+    if (GetScene() && IsEnabledEffective() && actived_ && !GameContext::Get().ClientMode_)
     {
         SubscribeToEvent(GetScene(), E_SCENEUPDATE, URHO3D_HANDLER(GOC_Spawner, HandleUpdate));
         SubscribeToEvent(GAME_STOP, URHO3D_HANDLER(GOC_Spawner, HandleUpdate));

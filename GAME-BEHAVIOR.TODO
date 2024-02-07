@@ -1,5 +1,10 @@
 Todos:
 
+    ☐ 04/02/2024 : sous Win64, la manette PS4 n'est pas géré à l'identique que sous Linux : le hat (pad) ne peut etre utilisé dans le menu (contrairement à linux) et le bouton principal ne peut etre utilisé en souris
+        -> voir comment est reconnu la manette dans le systeme (driver)
+
+    ☐ 04/02/2024 : Joystick, le tir lacté avec Vache ne tire pas en continue avec le joystick.
+
     ✔ 01/02/2024 : Resolution bug majeure sur l'animation qui boucle sans raison
         -> il arrive qu'une animation loop : exemple animation attack alors qu'il n'y a pas d'action d'attaque ...
         -> cela est tres problematique des qu'une attaque spawn une entité ... spawn multiple ... en plus avec le reseau c'est la cata.
@@ -68,8 +73,6 @@ Todos:
             en effet, Player::UpdateTriggerAttacks ne prend en compte que le premier TA et le transform en physics.
         ===> pour petit, il faut faire de meme car la 3eme attaque est trop proche du body.
         ===> l'animation pour Elsarion est traitée et mis de coté (cf elsarion_demi2_trigpatch) car Dede veut garder la version Ubber !
-
-    ☐ 06/11/2023 : pb avec la vache pour tirer en continue avec le joystick
 
     ☐ 07/10/2023 : creer nouveaux objets de jeu et behaviors necessaires
         -> "graine" : fait pousser une plante

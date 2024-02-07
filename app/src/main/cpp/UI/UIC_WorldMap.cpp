@@ -29,6 +29,8 @@
 #include "GameOptionsTest.h"
 #include "GameHelpers.h"
 #include "GameContext.h"
+#include "GameNetwork.h"
+#include "Player.h"
 
 #include "GOC_Destroyer.h"
 
@@ -665,39 +667,87 @@ void UIC_WorldMap::HandleWorldSnapShotClicked(StringHash eventType, VariantMap& 
     }
 }
 
+bool UIC_WorldMap::SetUIPointPosition(int index, const float uitilesize, const WorldMapPosition& wpos)
+{
+    if (wpos.mPoint_.x_ >= worldMapTopLeftMap_.x_ && wpos.mPoint_.x_ < worldMapTopLeftMap_.x_ + worldMapNumMaps_ &&
+        wpos.mPoint_.y_ > worldMapTopLeftMap_.y_ - worldMapNumMaps_ && wpos.mPoint_.y_ <= worldMapTopLeftMap_.y_)
+    {
+        if (index >= uiPoints_.Size())
+            uiPoints_.Push(CreatePoint(uiPoints_.Front()->GetParent(), Color::GREEN, 10));
+
+        int x = ((wpos.mPoint_.x_ - worldMapTopLeftMap_.x_) * World2D::GetWorldInfo()->mapWidth_ + wpos.mPosition_.x_) * uitilesize;
+        int y = ((worldMapTopLeftMap_.y_ - wpos.mPoint_.y_) * World2D::GetWorldInfo()->mapHeight_ + wpos.mPosition_.y_) * uitilesize;
+
+        uiPoints_[index]->SetPosition(x, y);
+        return true;
+    }
+
+    return false;
+}
+
 void UIC_WorldMap::HandleUpdate(StringHash eventType, VariantMap& eventData)
 {
     if (worldMapDirty_)
         return;
 
     // Show Players position
-    World2DInfo* info = World2D::GetWorldInfo();
 
     const float canevassize = (float)canevas_->GetSize().x_;
     const float uimapsize = canevassize / worldMapNumMaps_;
-    const float uitilesize = canevassize / (worldMapNumMaps_ * info->mapWidth_);
+    const float uitilesize = canevassize / (worldMapNumMaps_ * World2D::GetWorldInfo()->mapWidth_);
 
-    for (int i=0; i < GameContext::Get().MAX_NUMPLAYERS; i++)
+    int i=0;
+    for (i=0; i < GameContext::Get().MAX_NUMPLAYERS; i++)
     {
-        bool pointenabled = false;
-
-        if (GameContext::Get().playerAvatars_[i] && GameContext::Get().playerAvatars_[i]->IsEnabled())
-        {
-            const WorldMapPosition& wpos = GameContext::Get().playerAvatars_[i]->GetComponent<GOC_Destroyer>()->GetWorldMapPosition();
-
-            if (wpos.mPoint_.x_ >= worldMapTopLeftMap_.x_ && wpos.mPoint_.x_ < worldMapTopLeftMap_.x_ + worldMapNumMaps_ &&
-                    wpos.mPoint_.y_ > worldMapTopLeftMap_.y_ - worldMapNumMaps_ && wpos.mPoint_.y_ <= worldMapTopLeftMap_.y_)
-            {
-                pointenabled = true;
-
-                int x = ((wpos.mPoint_.x_ - worldMapTopLeftMap_.x_) * info->mapWidth_ + wpos.mPosition_.x_) * uitilesize;
-                int y = ((worldMapTopLeftMap_.y_ - wpos.mPoint_.y_) * info->mapHeight_ + wpos.mPosition_.y_) * uitilesize;
-
-                uiPoints_[i]->SetPosition(x, y);
-            }
-        }
+        bool pointenabled = GameContext::Get().playerAvatars_[i] && GameContext::Get().playerAvatars_[i]->IsEnabled() &&
+                            SetUIPointPosition(i, uitilesize, GameContext::Get().playerAvatars_[i]->GetComponent<GOC_Destroyer>()->GetWorldMapPosition());
 
         uiPoints_[i]->SetVisible(pointenabled);
+    }
+
+    // Show NetPlayers
+
+    if (GameContext::Get().ServerMode_)
+    {
+        const HashMap<Connection*, ClientInfo >& clientInfos = GameNetwork::Get()->GetServerClientInfos();
+        for (HashMap<Connection*, ClientInfo >::ConstIterator it = clientInfos.Begin(); it != clientInfos.End(); ++it)
+        {
+            const Vector<SharedPtr<Player> >& players = it->second_.players_;
+            for (Vector<SharedPtr<Player> >::ConstIterator jt = players.Begin(); jt != players.End(); ++jt)
+            {
+                bool pointenabled = SetUIPointPosition(i, uitilesize, (*jt)->GetWorldMapPosition());
+
+                if (i < uiPoints_.Size())
+                    uiPoints_[i]->SetVisible(pointenabled);
+
+                if (pointenabled)
+                    i++;
+            }
+        }
+        for (int j=i; j < uiPoints_.Size(); j++)
+            uiPoints_[j]->SetVisible(false);
+    }
+    else if (GameContext::Get().ClientMode_)
+    {
+        WorldMapPosition wpos;
+        const Vector<NetPlayerInfo >& netplayersInfos = GameNetwork::Get()->GetNetPlayersInfos();
+        for (Vector<NetPlayerInfo >::ConstIterator it = netplayersInfos.Begin(); it != netplayersInfos.End(); ++it)
+        {
+            if (!it->node_)
+                continue;
+
+            World2D::GetWorldInfo()->Convert2WorldMapPosition(it->node_->GetWorldPosition2D(), wpos);
+
+            bool pointenabled = SetUIPointPosition(i, uitilesize, wpos);
+
+            if (i < uiPoints_.Size())
+                uiPoints_[i]->SetVisible(pointenabled);
+
+            if (pointenabled)
+                i++;
+        }
+        for (int j=i; j < uiPoints_.Size(); j++)
+            uiPoints_[j]->SetVisible(false);
     }
 
     // change the cursor

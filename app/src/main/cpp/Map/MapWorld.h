@@ -358,6 +358,7 @@ public:
     void DumpMapsInMemory() const;
     void DumpEntitiesInMemory() const;
     void DumpMapVisibilityProgress() const;
+    void DumpTravelers() const;
 private:
     void DumpNodeList(const List<unsigned>& list, String title) const;
 

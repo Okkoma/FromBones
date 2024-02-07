@@ -251,19 +251,19 @@ void GOC_Collectable::TransferSlotTo(Slot& slotToGet, Node* nodeGiver, Node* nod
 
 VariantMap GOC_Collectable::tempSlotData_;
 
-Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int fromSlotId, unsigned int qty, VariantMap* slotData)
+Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int fromSlotId, unsigned int qty, VariantMap* slotData)
 {
-    if (!slot.Empty())
+    if (!slot || !slot->Empty())
     {
-        const StringHash& got = slot.type_;
-        if (!slot.sprite_)
+        const StringHash& got = slot ? slot->type_ : slotData ? StringHash((*slotData)[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt()) : StringHash::ZERO;
+        if (slot && !slot->sprite_)
         {
             URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : no sprite in slot %s(%u) !", GOT::GetType(got).CString(), got.Value());
             return 0;
         }
 
-        if (qty > slot.quantity_)
-            qty = slot.quantity_;
+        if (slot && qty > slot->quantity_)
+            qty = slot->quantity_;
 
         Node* node = 0;
 
@@ -276,13 +276,23 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int f
             PhysicEntityInfo physicInfo;
             GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
 
-           URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : type=%s(%u) qty=%u on viewZ=%d droppoint=%F %F ...",
-                           GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), physicInfo.positionx_, physicInfo.positiony_);
+            int clientid = slotData ? (*slotData)[Net_ObjectCommand::P_CLIENTID].GetInt() : GameNetwork::Get()->GetClientID();
+
+            URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : clientid=%d type=%s(%u) qty=%u on viewZ=%d dropmode=%d droppoint=%F %F ...",
+                            clientid, GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), dropmode, physicInfo.positionx_, physicInfo.positiony_);
+
+            // cas 1 : GOC_Inventory::NetServerDropItem : server && slotData && clientid
+            // => slotData contient deja les info de slot : pas besoin de GetSlotData
+            // cas 2 : GOC_DropZone : (client || server) & !slotData
+            // =>  GetSlotData
+
+            bool skipGetSlotData = GameContext::Get().ServerMode_ && slotData && (*slotData)[Net_ObjectCommand::P_CLIENTID].GetInt();
 
             if (!slotData)
                 slotData = &tempSlotData_;
 
-            Slot::GetSlotData(slot, *slotData, qty);
+            if (!skipGetSlotData && slot)
+                Slot::GetSlotData(*slot, *slotData, qty);
 
             int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
 
@@ -290,7 +300,8 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int f
             SceneEntityInfo sceneinfo;
             sceneinfo.skipNetSpawn_ = true;
             sceneinfo.zindex_ = 1000;
-            node = World2D::SpawnEntity(got, 0, 0, owner->GetID(), viewZ, physicInfo, sceneinfo, slotData);
+            // A Collectable must never be spawned from an owner because of the clientid that must be 0 => always server
+            node = World2D::SpawnEntity(got, 0, 0, 0/*owner->GetID()*/, viewZ, physicInfo, sceneinfo, slotData);
             if (!node)
             {
                 URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
@@ -303,6 +314,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int f
 
                 if (dropmode < 4)
                 {
+                    sdata[Net_ObjectCommand::P_CLIENTID] = GameNetwork::Get()->GetClientID();
                     sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
                     sdata[Net_ObjectCommand::P_NODEIDFROM] = owner->GetID();
                     sdata[Net_ObjectCommand::P_SLOTQUANTITY] = qty;
@@ -333,10 +345,13 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot& slot, int dropmode, int f
         }
 
         // remove quantity from slot
-        if (slot.quantity_ > qty)
-            slot.quantity_ -= qty;
-        else
-            slot.Clear();
+        if (slot)
+        {
+            if (slot->quantity_ > qty)
+                slot->quantity_ -= qty;
+            else
+                slot->Clear();
+        }
 
         return node;
     }
@@ -484,8 +499,8 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
 //    const String& nameBody = body->GetNode()->GetName();
 //    const String& nameOther = other->GetNode()->GetName();
 
-//    URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : nodeID=%u %s(%u) contact with node=%s(%u)", node_->GetID(), GOT::GetType(slot_.type_).CString(),
-//                    slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
+//    URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : nodeID=%u %s(%u) contact with node=%s(%u)(ctype=%d) ... catchers=%u", node_->GetID(), GOT::GetType(slot_.type_).CString(),
+//                    slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID(), other->GetNode()->GetVar(GOA::TYPECONTROLLER).GetInt(), catchers_.Size());
 
     if (other->GetNode()->GetVar(GOA::TYPECONTROLLER).GetInt() != GO_None && other->GetNode()->GetVar(GOA::ISDEAD).GetBool() == false)
     {
@@ -493,12 +508,13 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
 
         if (catchers_.Size())
         {
-            GOC_Collide2D* goccollider  = other->GetNode()->GetComponent<GOC_Collide2D>();
+            GOC_Collide2D* goccollider = other->GetNode()->GetComponent<GOC_Collide2D>();
+
+//            URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer catched slot to node=%s(%u) ... check catchers ... attackednode=%u", GOT::GetType(slot_.type_).CString(),
+//                            slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID(), goccollider->GetLastAttackedNode());
+
             if (goccollider && goccollider->GetLastAttackedNode() == node_)
             {
-                URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer slot to node=%s(%u) ... check catchers ...", GOT::GetType(slot_.type_).CString(),
-                                slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
-
                 GOC_Inventory* gocinventory = other->GetNode()->GetComponent<GOC_Inventory>();
                 if (gocinventory)
                 {
@@ -521,8 +537,8 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
 
         if (catched)
         {
-//            URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer slot to node=%s(%u)", GOT::GetType(slot_.type_).CString(),
-//                            slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
+            URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer catched slot to node=%s(%u)", GOT::GetType(slot_.type_).CString(),
+                            slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
 
             // Locked for the moment : No more ressources to collect
             UnsubscribeFromEvent(E_PHYSICSBEGINCONTACT2D);

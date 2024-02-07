@@ -127,6 +127,14 @@ void GameCommands::Launch(const String& input)
         if (World2D::GetWorld())
             World2D::GetWorld()->DumpMapVisibilityProgress();
     }
+    else if (inputLower == "worldtravelers")
+    {
+        if (GameContext::Get().stateManager_->GetActiveState()->GetStateId() != "Play")
+            return;
+
+        if (World2D::GetWorld())
+            World2D::GetWorld()->DumpTravelers();
+    }
     else if (inputLower == "fluidenable")
     {
         GameContext::Get().gameConfig_.fluidEnabled_ = !GameContext::Get().gameConfig_.fluidEnabled_;
@@ -395,6 +403,15 @@ void GameCommands::Launch(const String& input)
             else
                 URHO3D_LOGERRORF("netnode=%u : can't find objectcontrolinfo !", nodeid);
 //            Node* node = GameContext::Get().rootScene_->GetNode(id);
+        }
+    }
+    else if (input0 == "netplayers")
+    {
+        const Vector<NetPlayerInfo >& netplayers = GameNetwork::Get()->GetNetPlayersInfos();
+        for (Vector<NetPlayerInfo >::ConstIterator it = netplayers.Begin(); it != netplayers.End(); ++it)
+        {
+            const NetPlayerInfo& info = *it;
+            URHO3D_LOGINFOF("netplayers[%d] : node=%s(%u)", it-netplayers.Begin(), info.node_ ? info.node_->GetName().CString() : "none", info.node_ ? info.node_->GetID() : 0);
         }
     }
     else if (input0 == "activenode")

@@ -76,7 +76,10 @@ public :
         dirtyPlayer_ = true;
     }
     void SetMissionWin();
-    void SetWorldPosition(const WorldMapPosition& position);
+
+    void SetWorldMapPosition(const WorldMapPosition& position, bool findsafeplace=false);
+    void SetWorldMapPosition(VariantMap& eventData);
+    int FindASafePlace(WorldMapPosition& position);
 
     void InitAvatar(Scene* root, const Vector2& position, int viewZ);
     bool ChangeAvatar(unsigned type, unsigned char entityid, bool instant=false);
@@ -196,6 +199,7 @@ private :
     float lastTime_;
 
     bool dirtyPlayer_;
+    bool findSafePlace_;
     bool missionEnable_;
 
     unsigned faction_;

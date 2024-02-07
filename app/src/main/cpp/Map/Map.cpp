@@ -5906,39 +5906,36 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
 
     node->SetVar(GOA::FACTION, sceneInfo.faction_);
 
-    if (!GameContext::Get().LocalMode_)
+    if (!GameContext::Get().LocalMode_ && !sceneInfo.objectControlInfo_)
     {
         // only if no ObjectControlInfo => get/create/addspawncontrol
-        if (!sceneInfo.objectControlInfo_)
+        if ((category && category->HasReplicatedMode()) || (outsidePool && GOT::GetConstInfo(got).replicatedMode_))
         {
-            if ((category && category->HasReplicatedMode()) || (outsidePool && GOT::GetConstInfo(got).replicatedMode_))
+            Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
+            int clientid = holder ? holder->GetVar(GOA::CLIENTID).GetInt() : 0;
+
+            if (sceneInfo.skipNetSpawn_ && (!clientid || clientid != GameNetwork::Get()->GetClientID()))
             {
-                Node* holder = GameContext::Get().rootScene_->GetNode(holderid);
-                int clientid = holder ? holder->GetVar(GOA::CLIENTID).GetInt() : 0;
+                ObjectControlInfo& oinfo = GameNetwork::Get()->GetOrCreateServerObjectControl(node->GetID(), node->GetID(), clientid, node);
 
-                if (sceneInfo.skipNetSpawn_ && (!clientid || clientid != GameNetwork::Get()->GetClientID()))
-                {
-                    ObjectControlInfo& oinfo = GameNetwork::Get()->GetOrCreateServerObjectControl(node->GetID(), node->GetID(), clientid, node);
-
-                    URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d SKIPNETSPAWN ... OK !",
-                                    GetMapPoint().ToString().CString(), node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ);
-                }
-                else if (nodeid == LOCAL)
-                {
-    //                ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node->GetID()) : GameNetwork::Get()->GetServerObjectControl(node->GetID());
-    //                if (!oinfo)
-    //                    oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
-
-                    ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
-
-                    URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d sceneInfo.skipNetSpawn_=%s ... OK !",
-                                    GetMapPoint().ToString().CString(), node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ, sceneInfo.skipNetSpawn_ ?"true":"false");
-                }
+                URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d SKIPNETSPAWN ... OK !",
+                                GetMapPoint().ToString().CString(), clientid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ);
             }
+            else if (nodeid == LOCAL)
+            {
+//                ObjectControlInfo* oinfo = clientid && clientid == GameNetwork::Get()->GetClientID() ? GameNetwork::Get()->GetClientObjectControl(node->GetID()) : GameNetwork::Get()->GetServerObjectControl(node->GetID());
+//                if (!oinfo)
+//                    oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
+
+                ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
+
+                URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d sceneInfo.skipNetSpawn_=%s ... OK !",
+                                GetMapPoint().ToString().CString(), clientid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ, sceneInfo.skipNetSpawn_ ?"true":"false");
+            }
+        }
 //            URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d netusage=%s ... OK !",
 //                         GetMapPoint().ToString().CString(), nodeid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
 //                         viewZ, sceneInfo.zindex_, (category && category->HasReplicatedMode()) || (outsidePool && GOT::GetConstInfo(got).replicatedMode_) ? "true":"false");
-        }
     }
 
 //    mapData_->AddEntityData(node);

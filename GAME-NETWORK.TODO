@@ -7,9 +7,57 @@
 
 Todos:
 
+    ✔ 07/02/2024 : sur un client, si un avatar distant rentre dans la zone d'affichage du joueur, cet avatar ne s'affiche pas toujours.
+        => modification GameNetwork::UpdateControl de reactivation du node si vivant et sur une map visible.
+        => correctif ClientInfo::CreateAvatarFor (ajout AddTag("Player")) pour etre sur coté server
+
+    ✔ 05/02/2024 : Consolider World2D pour la teleportation en reseau cf GameHelpers::TransferPlayersToMap
+        --> il semble que le server ne modifie pas la position du TravelerNodeInfo, le node etant disable sur le client, son etat est repercuté et donc sa position n'est pas setté sur le server
+        ==> OK : création ObjectCommand SETPLAYERPOSITION client->server qui force la mise à jour de position
+        ==> OK : ajout de Player::FindASafePlace() car le client n'a pas la map disponible (UpdateInstant en clientmode n'est pas géré) et doit trouver la position de l'avatar lors de sa réactivation.
+        ===> OK : coté server, il faut desactiver le SetPosition de GOC_Destroyer le temps que le client charge les maps et trouve une "SafePlace" pour repop, ensuite envoit d'un second SETPLAYERPOSITION
+
+    ☐ 22/11/2023 : mettre à jour network.svg
+        => Gestion des spawn
+            Client initialise le spawn => il faut que ce soit avec AddSpawnControl (le client créée un node avec un clientnodeid et prend un spawnid, spawnstamp++)
+                pour le drop de collectable cela n'est pas le cas à cause du slotdata qui n'est pas communiqué avec l'ObjectControl (seulement avec l'ObjectCommand)
+                le AddSpawnControl n'a pas besoin d'etre utilisé dans ce cas.
+                On envoie toujours une commande DROPITEM vers le serveur qui renvoit une commande ADDCOLLECTABLE vers les autres clients.
+
+            Map::AddEntity hors editeur, est utilisé directement uniquement par Node* World2D::SpawnEntity
+                World2D::SpawnEntity est ensuite utilisé dans les fonctions suivantes
+                 Actor
+                 GOC_Animator2D::SpawnEntity, client or server netspawning
+                 GOC_Collectable::DropSlotFrom, selon le dropmode ... envoi d'ObjectCommand
+                    <- GOC_DropZone::HandleThrowOutItems          -> si server et owner alors dropmode=4(SLOT_ADDCOLLECTABLE) sinon -1(SLOT_NONE)=sans envoi d'ObjectCommand
+                    <- GOC_Inventory::ApplyTemplateToCurrentSlots -> si server et owner alors dropmode=4(SLOT_ADDCOLLECTABLE) sinon -1(SLOT_NONE)=sans envoi d'ObjectCommand
+                    <- GOC_Inventory::TransferSlotTo              -> si server et owner alors dropmode=4(SLOT_ADDCOLLECTABLE) sinon -1(SLOT_NONE)=sans envoi d'ObjectCommand
+                    <- GOC_Inventory::HandleDrop                  -> si server et owner alors dropmode=4(SLOT_ADDCOLLECTABLE) sinon -1(SLOT_NONE)=sans envoi d'ObjectCommand
+                    <- GOC_Inventory::NetServerDropItem           -> server ... dropmode=4(SLOT_ADDCOLLECTABLE) ... CMD=ADDCOLLECTABLE broadcast excluant clientid
+                    <- UIC ...                                    -> client ... dropmode compris entre 0 et 3 ... CMD=DROPITEM
+                 GameNetwork::Client_SpawnItem
+                    => il faut avoir un servernodeid ce qui n'est pas le cas car provenant directement du client sender
+                    => Suppression : n'est plus necessaire, sur server tout passe en dropmode=4 sinon rien, enlever la souscription du server à l'event GO_DROPITEM
+                 GOC_DropZone::HandleContact, sanctuaire buildable type
+                 GOC_Spawner::HandleUpdate => OK : ne pas spawner en ClientMode
+                 DefsEffects (boss et bosschest),
+                 ObjectiveAction::Execute => ne pas spawner en ClientMode
+                 World2D::NetSpawnEntity
+                    <- GameNetwork::NetAddEntity
+                        <- GameNetwork::Client_SetWorldObjects : a verifier
+                        <- GameNetwork::HandlePlayClient_ReceiveServerControls : instantiate distant clients avatars.
+                        <- GameNetwork::NetSpawnEntity
+                            <- GameNetwork::HandlePlayServer_ReceiveControls : server netspawning
+                            <- GameNetwork::HandlePlayClient_ReceiveServerControls : client netspawning
+        => Netspawning : voir pour la synchronisation des spawnstamps
+
+    ✔ 04/02/2024 : Attraper des graines avec le filet en reseau ne fonctionne pas
+        => cf GOC_Collectable::HandleContact avec les catchers
+        ==> OK : il faut que le cshape du joueur ne soit pas un trigger. Modification de Player::UpdateComponents(), utilisation de UpdateTriggerAttacks() meme si pas maincontroller.
+
     ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
 
-    ☐ 02/02/2024 : voir pour le craft networked
+    ✔ 02/02/2024 : voir pour le craft networked
         -> la gestion avec plusieurs panels ne fonctionne pas encore. Il faut revoir entierement le process d'envoi vers le serveur.
         --> comment gerer le drop d'item dans le panneau de craft ou du marchand sur le serveur ?
         -> pour le moment le server ne recoit que les ObjectCommand DROPITEM, SETITEM qui sont traiter dans Server_UpdateInventory()
@@ -176,11 +224,6 @@ Todos:
 
     ✔ 31/01/2024 : remodification de Map::AddEntity pour le netspawning. car pas de possibilité de spawner 2 fois le meme nodeid que l'on a tuer/restaurer entre les deux spawns.
         -> OK : passer obligatoirement par GameNetwork::AddSpawnControl qui incremente le spawnstamp.
-
-    ☐ 22/11/2023 : mettre à jour network.svg
-        Gestion de l'inventaire, Gestion des ObjectCommand, Gestion des ObjectControls
-        Mettre des cas d'usage précis
-        voir pour la synchronisation des spawnstamps
 
     ☐ 22/01/2024 : les objets deposés au sol par un netplayer disparaissent de la map lorsque l'avatar est éloigné de l'objet
         => cela doit etre du à la gestion de la visiblité des entités ...
