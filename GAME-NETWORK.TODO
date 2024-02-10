@@ -7,6 +7,40 @@
 
 Todos:
 
+    ☐ 10/02/2024 : ameliorer la priorisation des maps à charger pour l'affichage sans avoir de maps manquantes dans le visuel apres teleportation
+        -> bloquer la zone tant que les maps ne sont pas affichées pour eviter d'avoir ce probleme visuel
+
+    ☐ 02/02/2024 : Probleme avec la potion coté client
+        -> probleme avec UpdateControlAck ?
+        -> 10/02/2024 : il arrive meme qu'un avatar perd le jeu en prenant une potion. Vue avec Petite
+            ou alors est-ce un autre pb ? un mob qui n'apparait pas coté client ? les logs ne sont pas assez détaillés pour juger.
+            Il faut ajouter les tick effects ...
+
+    ✔ 09/02/2024 : il y a ping pong de purgemap et de requestmap coté server
+        -> il semble que la position du client ne soit pas bien pris en compte coté server
+        --> cela peut arriver du aux positions transmises via ObjectControl et en bordure de map
+        -> TravelerNodeInfo::Update() et le traitement de BufferExpandInfo dans MapStorage
+        ==> ok correctif dans TravelerNodeInfo::Update() : en reseau il faut utiliser la position de l'ObjectControl et non pas celui du node qui est en extrapolation dans le temps et parfois lag.
+
+    ☐ 09/02/2024 : le server envoit parfois des packets d'ObjectCommand qui ne contiennent parfois que des action NOACTION
+        -> il est possible de les supprimer pour alléger la charge réseau
+
+    ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
+
+    ✔ 07/02/2024 : le drop item Map::AddEntity spawn parfois dans un mur sur le server mais pas sur le client
+        -> dans Map::AddEntity, GOC_Destroyer n'a pas encore la position mise à jour ...
+        => OK : modification de Map::AddEntity() => viewz=NOVIEW et updater la position de GOC_Destroyer. Permet d'eviter le unstuck dans GOC_Destroyer::UpdatePositions.
+
+    ☐ 07/02/2024 : lors du drop collectable, il faut etre sur d'avoir le bon nodeid entre server et client.
+        -> server->client : correctif dans World2D::SpawnCollectable utilisé par le client : utilisation du nodeid en provenance du server.
+        -> client->server : le client drop un item, le server recoit la commande DROPITEM avec le nodeid prit sur le client
+            le server drop l'item et emet la commande ADDCOLLECTABLE avec normalement le meme nodeid ...
+        ==> si le nodeid est different, il faut que ce client le sache ... cf GOC_Collectable::DropSlotFrom
+        ===> envoi de la commande LINKNODEID qui va faire le lien pour ce node entre le server et le client.
+        ====> A tester. Verifier les logs
+
+    ☐ 07/02/2024 : la taille (entityvariation) des furnitures n'est pas la meme lorsque l'on recharge la map
+
     ✔ 07/02/2024 : sur un client, si un avatar distant rentre dans la zone d'affichage du joueur, cet avatar ne s'affiche pas toujours.
         => modification GameNetwork::UpdateControl de reactivation du node si vivant et sur une map visible.
         => correctif ClientInfo::CreateAvatarFor (ajout AddTag("Player")) pour etre sur coté server
@@ -15,7 +49,7 @@ Todos:
         --> il semble que le server ne modifie pas la position du TravelerNodeInfo, le node etant disable sur le client, son etat est repercuté et donc sa position n'est pas setté sur le server
         ==> OK : création ObjectCommand SETPLAYERPOSITION client->server qui force la mise à jour de position
         ==> OK : ajout de Player::FindASafePlace() car le client n'a pas la map disponible (UpdateInstant en clientmode n'est pas géré) et doit trouver la position de l'avatar lors de sa réactivation.
-        ===> OK : coté server, il faut desactiver le SetPosition de GOC_Destroyer le temps que le client charge les maps et trouve une "SafePlace" pour repop, ensuite envoit d'un second SETPLAYERPOSITION
+        ===> OK : coté server, il faut desactiver le SetPosition de GOC_Destroyer le temps que le client charge les maps, trouve une "SafePlace" et envoit un second SETPLAYERPOSITION
 
     ☐ 22/11/2023 : mettre à jour network.svg
         => Gestion des spawn
@@ -55,8 +89,6 @@ Todos:
         => cf GOC_Collectable::HandleContact avec les catchers
         ==> OK : il faut que le cshape du joueur ne soit pas un trigger. Modification de Player::UpdateComponents(), utilisation de UpdateTriggerAttacks() meme si pas maincontroller.
 
-    ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
-
     ✔ 02/02/2024 : voir pour le craft networked
         -> la gestion avec plusieurs panels ne fonctionne pas encore. Il faut revoir entierement le process d'envoi vers le serveur.
         --> comment gerer le drop d'item dans le panneau de craft ou du marchand sur le serveur ?
@@ -72,8 +104,6 @@ Todos:
            l'objet n'apparait pas coté serveur. le serveur ne peut pas traiter le slotremain car ca lui est invisible : dans UISlotPanel::HandleSlotDragEnd (coté client) on utilise un slot temporaire.
         ==> ok modification de UISlotPanel::OnSlotRemain et de GOC_Inventory::NetServerDropItem. (dropmode = 3 est le mode pour les slots remain)
         ===> centralisation de l'envoi des net events de Drop dans GOC_Collectable::DropSlotFrom, ajout de SlotDropMode
-
-    ☐ 02/02/2024 : Probleme avec la potion coté client
 
     ✔ 02/02/2024 : Si on quitte coté serveur la partie, il faut que les clients repassent en menustate
         => ct deja le cas mais un pb dans PlayState::EndScene (utilisation SetStatus(PLAYSTATE_INITIALIZE) qui n'a rien à faire là) désormais corrigé

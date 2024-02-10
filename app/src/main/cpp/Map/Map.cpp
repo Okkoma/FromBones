@@ -5806,15 +5806,16 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
     */
 
     bool physicOk = GameHelpers::SetPhysicProperties(node, physicInfo, true);
-    GOC_Destroyer* gocDestroyer = node->GetComponent<GOC_Destroyer>();
-
-    URHO3D_LOGINFOF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s slotdata=%u ...",
-             node->GetName().CString(), node->GetID(), entityid, GetMapPoint().ToString().CString(), node->GetWorldPosition2D().ToString().CString(), slotData);
 
     // Never Spawn in a Wall
+    GOC_Destroyer* gocDestroyer = node->GetComponent<GOC_Destroyer>();
     if (gocDestroyer)
     {
-//        gocDestroyer->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), Vector2(physicInfo.positionx_, physicInfo.positiony_), viewZ));
+        // Undefine the viewz here just before updatepositons (so no unstuck here)
+        // the required viewZ is set after
+        gocDestroyer->GetWorldMapPosition().SetViewZ(NOVIEW);
+        gocDestroyer->UpdatePositions(UPDATEPOS_NOCHANGEMAP);
+
         if (!gocDestroyer->AllowWallSpawning() && gocDestroyer->IsInWalls(this, viewZ))
         {
             if (gocDestroyer->GetCheckUnstuck())
@@ -5822,7 +5823,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
                 gocDestroyer->AdjustPositionInTile(viewZ);
                 if (gocDestroyer->IsInWalls(this, viewZ))
                 {
-                    URHO3D_LOGERRORF("Map() - AddEntity : mPoint=%s type=%s(%u) spawn in a wall ! destroy !", GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value());
+                    URHO3D_LOGERRORF("Map() - AddEntity : mPoint=%s type=%s(%u) adjust position but spawn in a wall ! destroy !", GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value());
                     gocDestroyer->Destroy(0.1f);
                     return 0;
                 }
@@ -5835,6 +5836,10 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
             }
         }
     }
+
+    URHO3D_LOGINFOF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s viewZ=%d slotdata=%u ...",
+                    node->GetName().CString(), node->GetID(), entityid, GetMapPoint().ToString().CString(), node->GetWorldPosition2D().ToString().CString(), viewZ, slotData);
+
     GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
     if (animator)
         animator->SetOwner(sceneInfo.ownerNode_);
@@ -5855,8 +5860,8 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
         // It's important for netspawning (with entityidflag to rerandomize the same equipment on clients)
         controller->control_.entityid_ = entityid;
 
-//        URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d maincontrol=%s ... OK !",
-//                    GetMapPoint().ToString().CString(), id, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
+//        URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d maincontrol=%s ... OK !",
+//                    GetMapPoint().ToString().CString(), node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
 //                    viewZ, sceneInfo.zindex_, controller->IsMainController() ? "true":"false");
     }
 
@@ -5889,7 +5894,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
         if (!sceneInfo.deferredAdd_)
         {
             unsigned mpointhashed = GetMapPoint().ToHash();
-            if ((GOT::GetTypeProperties(got) & GOT_Effect) != 0)  // BUG patch ObjectPool 11/10/2017
+            if ((GOT::GetTypeProperties(got) & GOT_Effect) != 0)
             {
                 VariantMap& eventData = context_->GetEventDataMap();
                 eventData[Go_Appear::GO_ID] = node->GetID();

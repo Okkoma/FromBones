@@ -254,8 +254,6 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
 
     if (newzone != zone)
     {
-        URHO3D_LOGINFOF("EffectAction() - Update : inside newzone=%s lastzone=%s...", newzone.ToString().CString(), zone.ToString().CString());
-
         // Apply Effects when Go outside the zone
         if (zone.z_ != -1)
         {
@@ -284,6 +282,9 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
         // Apply Effects when Go inside the zone
         if (newzone.z_ != -1)
         {
+            URHO3D_LOGINFOF("EffectAction() - Update : node=%s(%u) inside newzone=%s lastzone=%s...", node->GetName().CString(), node->GetID(),
+                            newzone.ToString().CString(), zone.ToString().CString());
+
             ZoneData& zonedata = map->GetMapData()->zones_[newzone.z_];
 
             if (zonedata.goInAction_)

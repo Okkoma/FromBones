@@ -209,19 +209,20 @@ void GOC_Destroyer::SetEnableUnstuck(bool enable)
 
 void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
 
     worldUpdatePosition_ = enable;
 
-    if (GetScene())
+    if (GetScene() && enabled_)
     {
-        if (HasSubscribedToEvent(GetScene(), E_SCENEPOSTUPDATE))
+        if (!worldUpdatePosition_)
         {
-            if (!enable && IsEnabledEffective())
+            if (HasSubscribedToEvent(GetScene(), E_SCENEPOSTUPDATE))
                 UnsubscribeFromEvent(GetScene(), E_SCENEPOSTUPDATE);
         }
-        else if (enable && IsEnabledEffective())
+        else if (!HasSubscribedToEvent(GetScene(), E_SCENEPOSTUPDATE))
         {
+            URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s Subscribe to Event !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
             SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateWorld2D));
         }
     }
@@ -275,7 +276,7 @@ void GOC_Destroyer::SetWorldMapPosition(const WorldMapPosition& wmPosition)
 
     SetViewZ(wmPosition.viewZ_);
 
-    UpdatePositions(CHANGEMAP_FORCE);
+    UpdatePositions(UPDATEPOS_FORCE);
 
     if (GameContext::Get().gameConfig_.enlightScene_)
         bool lightstate = GameHelpers::SetLightActivation(node_);
@@ -786,7 +787,7 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
 //             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), node_->GetWorldPosition2D().ToString().CString(), node_->GetVar(GOA::ONVIEWZ).GetInt());
 
     // Set Initial WorldMapPosition
-    bool state = UpdatePositions(eventData, CHANGEMAP_NOCHANGE);
+    bool state = UpdatePositions(eventData, UPDATEPOS_NOCHANGEMAP);
     if (!state)
         return;
 
@@ -953,10 +954,7 @@ bool GOC_Destroyer::IsInWalls(MapBase* map, int viewZ)
     if (!shapesRect_.Defined() && !UpdateShapesRect())
         return false;
 
-    if (GameHelpers::CheckFreeTilesAtViewZ(this, map, mapWorldPosition_.tileIndex_, viewZ))
-        return false;
-
-    return true;
+    return GameHelpers::CheckFreeTilesAtViewZ(this, map, mapWorldPosition_.tileIndex_, viewZ) == false;
 }
 
 bool GOC_Destroyer::IsOnFreeTiles(int viewZ) const
@@ -1643,7 +1641,7 @@ bool GOC_Destroyer::GetUpdatedWorldPosition2D(Vector2& position)
 //#define ACTIVE_SWITCHVIEW_WINDOW
 //#define SWITCHVIEW_DELAY_TEST
 
-void GOC_Destroyer::UpdatePositions(ChangeMapMode mode)
+void GOC_Destroyer::UpdatePositions(UpdatePositionMode mode)
 {
     bool state = UpdatePositions(context_->GetEventDataMap(false), mode);
 }
@@ -1652,7 +1650,7 @@ void GOC_Destroyer::UpdatePositions(ChangeMapMode mode)
 static MapBase* sMaps_[2];
 static WorldMapPosition sObjectWorldMapPosition_;
 
-bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
+bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, UpdatePositionMode mode)
 {
     if (!World2D::GetWorld())
         return false;
@@ -1672,16 +1670,16 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     World2D::GetWorldInfo()->Convert2WorldMapPosition(sMPosition_.position_, sMPosition_, mapWorldPosition_.positionInTile_);
     mapWorldPosition_.position_ = sMPosition_.position_;
 
-    stilePositionUpdated_[0] = sMPosition_.tileIndex_ != mapWorldPosition_.tileIndex_ || mode == CHANGEMAP_FORCE || !mapWorldPosition_.defined_;
+    stilePositionUpdated_[0] = sMPosition_.tileIndex_ != mapWorldPosition_.tileIndex_ || mode == UPDATEPOS_FORCE || !mapWorldPosition_.defined_;
 
-    sChangeMap_ = (sMPosition_.mPoint_ != mapWorldPosition_.mPoint_ || mode == CHANGEMAP_FORCE);
+    sChangeMap_ = (sMPosition_.mPoint_ != mapWorldPosition_.mPoint_ || mode == UPDATEPOS_FORCE || (currentMap_ && currentMap_->GetMapPoint() != sMPosition_.mPoint_));
     sInsideBounds_ = sChangeMap_ ? World2D::IsInsideWorldBounds(mapWorldPosition_.position_) : true;
     sChangeMap_ &= sInsideBounds_;
     sWaitForMap_ = moveEntityData_ = false;
 
     if (sChangeMap_ && !World2D::IsInsideWorldBounds(sMPosition_.mPoint_)) sChangeMap_ = false;
 
-    sViewZ_ = mapWorldPosition_.viewZ_ != 0 ? mapWorldPosition_.viewZ_ : NOVIEW;
+    sViewZ_ = mapWorldPosition_.viewZ_ > 0 ? mapWorldPosition_.viewZ_ : NOVIEW;
 
     // Not Inside World
     if (!GameContext::Get().ClientMode_ && !sInsideBounds_)
@@ -1716,7 +1714,6 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
 //        }
         currentMap_ = 0;
     }
-
     if (currentMap_ && currentMap_->GetStatus() > Available)
     {
         currentMap_ = 0;
@@ -1919,11 +1916,11 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         // Get viewZ if not defined or if map changed
         if ((viewZToCheck_ == NOVIEW && sViewZ_ == NOVIEW) || sChangeMap_)
         {
-            if (sViewZ_ == NOVIEW)
+            if (sViewZ_ == NOVIEW && mapWorldPosition_.viewZ_ > 0)
                 sViewZ_ = mapWorldPosition_.viewZ_;
 
             // Set the corresponding ViewZ with the map
-            if (currentMap_)
+            if (currentMap_ && sViewZ_ != NOVIEW)
             {
                 int realViewZ = currentMap_->GetRealViewZ(sViewZ_);
                 if (realViewZ != sViewZ_)
@@ -1961,8 +1958,8 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         // Change ViewZ and viewID
         if (viewZDirty_)
         {
-            //        URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) change %s To viewZ=%d !",
-            //                        node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), sViewZ_);
+            URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) change %s To viewZ=%d !",
+                            node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), sViewZ_);
 
             ViewManager::Get()->SwitchToViewZ(sViewZ_, node_);
 
@@ -2015,7 +2012,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     // Change Map
     if (sChangeMap_)
     {
-//        URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s ChangeMapMode=%d !", node_->GetName().CString(), node_->GetID(),
+//        URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s UpdatePositionMode=%d !", node_->GetName().CString(), node_->GetID(),
 //                                        mapWorldPosition_.position_.ToString().CString(), node_->GetWorldPosition().ToString().CString(), sMPosition_.mPoint_.ToString().CString(), (int)mode);
 
         sOldHashPoint_ = mapWorldPosition_.mPoint_.ToHash();
@@ -2023,7 +2020,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
         mapWorldPosition_.mPoint_ = sMPosition_.mPoint_;
         node_->SetVar(GOA::ONMAP, sNewHashPoint_);
 
-        if (mode != CHANGEMAP_NOCHANGE)
+        if (mode != UPDATEPOS_NOCHANGEMAP)
         {
             eventData[Go_ChangeMap::GO_ID] = node_->GetID();
             eventData[Go_ChangeMap::GO_TYPE] = node_->GetVar(GOA::TYPECONTROLLER).GetInt();
@@ -2044,7 +2041,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, ChangeMapMode mode)
     {
         if (node_->IsEnabled() && (!currentMap_ || !currentMap_->IsVisible()))
         {
-//            URHO3D_LOGWARNINGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s ChangeMapMode=%d WaitForMapReady => DISABLE node !", node_->GetName().CString(), node_->GetID(),
+//            URHO3D_LOGWARNINGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s(%s) map=%s UpdatePositionMode=%d WaitForMapReady => DISABLE node !", node_->GetName().CString(), node_->GetID(),
 //                               mapWorldPosition_.position_.ToString().CString(), node_->GetWorldPosition().ToString().CString(), sMPosition_.mPoint_.ToString().CString(), (int)mode);
             node_->SetEnabledRecursive(false);
         }
@@ -2063,7 +2060,7 @@ void GOC_Destroyer::DumpWorldMapPositions()
 void GOC_Destroyer::HandleUpdateWorld2D(StringHash eventType, VariantMap& eventData)
 {
 //    URHO3D_PROFILE(GOC_Destroyer);
-//    URHO3D_LOGINFOF("GOC_Destroyer() - HandleUpdateWorld2D : %s(%u) !", node_->GetName().CString(), node_->GetID());
+
     if (!UpdatePositions(eventData))
         return;
 

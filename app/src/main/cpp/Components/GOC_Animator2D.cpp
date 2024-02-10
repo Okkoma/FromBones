@@ -79,7 +79,7 @@ const StringHash AEVENT_TICKLOOP    = StringHash("AEvent_TickLoop");
 const StringHash AEVENT_ENDLOOP     = StringHash("AEvent_EndLoop");
 
 // stop the animation if the animation has reached more than 95% of its length
-const float ANIMATOR_ENDTHRESHOLD = 0.95f;
+//const float ANIMATOR_ENDTHRESHOLD = 0.92f;
 
 
 String GetActionsString(const Transition& t)
@@ -1084,6 +1084,9 @@ void GOC_Animator2D::SetDirection(const Vector2& dir)
             GameHelpers::SetPhysicFlipX(node_);
 //            URHO3D_LOGINFOF("GOC_Animator2D() - SetDirection : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
         }
+        if (animatedSprites.Size() > 1)
+            for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
+                (*it)->SetFlipX(physicFlipX_);
     }
 
     if (controller_)
@@ -1097,6 +1100,9 @@ void GOC_Animator2D::SetDirectionSilent(const Vector2& dir)
 
 //    URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... dir=%s ...", node_->GetName().CString(), node_->GetID(), dir.ToString().CString());
 
+    // update direction if change
+    direction = dir;
+
     // Check the animatedSprite and flip it for the good orientation
     if (animatedSprite)
     {
@@ -1107,10 +1113,10 @@ void GOC_Animator2D::SetDirectionSilent(const Vector2& dir)
             GameHelpers::SetPhysicFlipX(node_);
             //        URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
         }
+        if (animatedSprites.Size() > 1)
+            for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
+                (*it)->SetFlipX(physicFlipX_);
     }
-
-    // update direction if change
-    direction = dir;
 //    URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... direction=%s ... OK!",
 //                    node_->GetName().CString(), node_->GetID(), direction.ToString().CString());
 }
@@ -1421,8 +1427,9 @@ void GOC_Animator2D::Start()
 
     subscribeOk_ = true;
 
-//    URHO3D_LOGERRORF("GOC_Animator2D() - Start : %s(%u) state=%s(%u) currentStateTime=%f !",
-//                     node_->GetName().CString(), node_->GetID(), GetState().CString(), GetStateValue().Value(), currentStateTime);
+//    URHO3D_LOGINFOF("GOC_Animator2D() - Start : %s(%u) state=%s(%u) currentStateTime=%f mainController=%s !",
+//                     node_->GetName().CString(), node_->GetID(), GetState().CString(), GetStateValue().Value(),
+//                     currentStateTime, controller_ && controller_->IsMainController() ? "true":"false");
 }
 
 void GOC_Animator2D::Stop()
@@ -1738,15 +1745,16 @@ void GOC_Animator2D::OnChangeDirection(StringHash eventType, VariantMap& eventDa
     // Prepare changing direction
     direction.x_ = -controller_->control_.direction_;
 
+#ifdef LOGDEBUG_ANIMATOR2D
+    URHO3D_LOGINFOF("GOC_Animator2D() - OnChangeDirection : Node=%s(%u) direction=%F ...", GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_);
+#endif
+
     if (!UpdateDirection())
     {
         // Reset changing direction
         direction.x_ = controller_->control_.direction_;
+//        URHO3D_LOGERRORF("GOC_Animator2D() - OnChangeDirection : Node=%s(%u) can't change reset direction=%F ...", GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_);
     }
-
-#ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGINFOF("GOC_Animator2D() - OnChangeDirection : Node=%s(%u) direction=%F", GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_);
-#endif
 }
 
 void GOC_Animator2D::OnUpdateDirection(StringHash eventType, VariantMap& eventData)
@@ -2115,13 +2123,12 @@ bool GOC_Animator2D::UpdateDirection()
     unsigned moveState = node_->GetVar(GOA::MOVESTATE).GetUInt();
     bool reverseflip = false;
 
-//    URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) ... ", GetNode()->GetName().CString(), GetNode()->GetID());
-
+    // Update Climbing direction
     if (moveState & MV_CLIMB)
     {
         if (!wallFlipping_.x_ && (moveState & MV_TOUCHWALL) && controller_->control_.IsButtonDown(CTRL_UP|CTRL_DOWN) &&
-                ((moveState & MV_DIRECTION && !controller_->control_.IsButtonDown(CTRL_RIGHT)) ||
-                 (!(moveState & MV_DIRECTION) && !controller_->control_.IsButtonDown(CTRL_LEFT))))
+            ((moveState & MV_DIRECTION && !controller_->control_.IsButtonDown(CTRL_RIGHT)) ||
+            (!(moveState & MV_DIRECTION) && !controller_->control_.IsButtonDown(CTRL_LEFT))))
         {
 #ifdef LOGDEBUG_ANIMATOR2D
             URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) skip case (no changing direction on climbing wall) !", GetNode()->GetName().CString(), GetNode()->GetID());
@@ -2133,7 +2140,7 @@ bool GOC_Animator2D::UpdateDirection()
         {
             if (alignment_ >= ROTATELEFT)
             {
-                controller_->control_.direction_ = direction.x_ = alignment_ == ROTATELEFT ? 1.f : -1.f;
+                direction.x_ = alignment_ == ROTATELEFT ? 1.f : -1.f;
 #ifdef LOGDEBUG_ANIMATOR2D
                 URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) on bloc at right|left touchroof change direction=%F",
                                 GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_);
@@ -2141,7 +2148,7 @@ bool GOC_Animator2D::UpdateDirection()
             }
             else if (gocmove_)
             {
-                controller_->control_.direction_ = direction.x_ = (float)gocmove_->GetLastDirectionX();
+                direction.x_ = (float)gocmove_->GetLastDirectionX();
 #ifdef LOGDEBUG_ANIMATOR2D
                 URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) on roof update direction=%F(vel=%F)",
                                 GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_, gocmove_->GetLastVelocity().x_);
@@ -2251,23 +2258,29 @@ bool GOC_Animator2D::UpdateDirection()
     }
 
     // Apply direction and flipping
-    controller_->control_.direction_ = direction.x_;
-
-    animatedSprite->SetFlipX(!reverseflip ? orientation * direction.x_ < 0.f : orientation * direction.x_ > 0.f);
-    if (physicFlipX_ != animatedSprite->GetFlipX())
+    if (controller_->control_.direction_ != direction.x_)
     {
-        physicFlipX_ = animatedSprite->GetFlipX();
-        GameHelpers::SetPhysicFlipX(node_);
-//        URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
+    #ifdef LOGDEBUG_ANIMATOR2D
+        URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) ... direction=%F ", GetNode()->GetName().CString(), GetNode()->GetID(), direction.x_);
+    #endif
+        controller_->control_.direction_ = direction.x_;
+
+        animatedSprite->SetFlipX(!reverseflip ? orientation * direction.x_ < 0.f : orientation * direction.x_ > 0.f);
+        if (physicFlipX_ != animatedSprite->GetFlipX())
+        {
+            physicFlipX_ = animatedSprite->GetFlipX();
+            GameHelpers::SetPhysicFlipX(node_);
+    //        URHO3D_LOGINFOF("GOC_Animator2D() - UpdateDirection : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
+        }
+
+        if (animatedSprites.Size() > 1)
+            for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
+                (*it)->SetFlipX(physicFlipX_);
+
+        // notify
+        node_->SetVar(GOA::DIRECTION, direction);
+        MarkNetworkUpdate();
     }
-
-    if (animatedSprites.Size() > 1)
-        for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
-            (*it)->SetFlipX(physicFlipX_);
-
-    // notify
-    node_->SetVar(GOA::DIRECTION, direction);
-    MarkNetworkUpdate();
 
     return true;
 }
@@ -2491,23 +2504,22 @@ void GOC_Animator2D::Update()
 
     if (moveState)
     {
+        if (((moveState & MSK_MV_FLYAIR) == MSK_MV_FLYAIR) && ((moveState & MSK_MV_CANWALKONGROUND) != MSK_MV_CANWALKONGROUND))  // (FLY WITH INAIR) ONLY, SKIP FLY IF CAN WALK AND IS ON GROUND (VAMPIRE)
+            currentEvent = (moveState & MV_INMOVE) ? ((moveState & MV_INJUMP) == 0 ? EVENT_FLYDOWN : EVENT_FLYUP) : EVENT_DEFAULT_AIR;
 
-    if (((moveState & MSK_MV_FLYAIR) == MSK_MV_FLYAIR) && ((moveState & MSK_MV_CANWALKONGROUND) != MSK_MV_CANWALKONGROUND))  // (FLY WITH INAIR) ONLY, SKIP FLY IF CAN WALK AND IS ON GROUND (VAMPIRE)
-        currentEvent = (moveState & MV_INMOVE) ? ((moveState & MV_INJUMP) == 0 ? EVENT_FLYDOWN : EVENT_FLYUP) : EVENT_DEFAULT_AIR;
+        else if ((moveState & MV_CLIMB) && (moveState & (MV_TOUCHWALL | MV_TOUCHROOF)))
+            currentEvent = (moveState & MV_INMOVE) ? EVENT_CLIMB : EVENT_DEFAULT_CLIMB;
 
-    else if ((moveState & MV_CLIMB) && (moveState & (MV_TOUCHWALL | MV_TOUCHROOF)))
-        currentEvent = (moveState & MV_INMOVE) ? EVENT_CLIMB : EVENT_DEFAULT_CLIMB;
+        else if ((moveState & MSK_MV_SWIMLIQUID) == MSK_MV_SWIMLIQUID)
+            currentEvent = (moveState & MV_INMOVE) ? EVENT_MOVE_FLUID : EVENT_DEFAULT_FLUID;
 
-    else if ((moveState & MSK_MV_SWIMLIQUID) == MSK_MV_SWIMLIQUID)
-        currentEvent = (moveState & MV_INMOVE) ? EVENT_MOVE_FLUID : EVENT_DEFAULT_FLUID;
-
-    else if (moveState & MV_WALK)
-    {
-        if (moveState & MV_TOUCHGROUND)
-            currentEvent = (moveState & MV_INMOVE) ? EVENT_MOVE_GROUND : EVENT_DEFAULT_GROUND;
-        else
-            currentEvent = (moveState & MV_INJUMP) ? EVENT_JUMP : EVENT_FALL;
-    }
+        else if (moveState & MV_WALK)
+        {
+            if (moveState & MV_TOUCHGROUND)
+                currentEvent = (moveState & MV_INMOVE) ? EVENT_MOVE_GROUND : EVENT_DEFAULT_GROUND;
+            else
+                currentEvent = (moveState & MV_INJUMP) ? EVENT_JUMP : EVENT_FALL;
+        }
     }
 
     if (lastEvent == currentEvent)
@@ -2882,10 +2894,10 @@ inline void GOC_Animator2D::CheckTimer(const VariantMap& param)
 
 inline void GOC_Animator2D::CheckAnim(const VariantMap& param)
 {
-//#ifdef LOGDEBUG_ANIMATOR2D
-//    URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - state=%s ... currentStateIndex=%u < animInfoIndexes_.Size()=%u !",
-//              GetNode()->GetName().CString(), GetNode()->GetID(), currentState->name.CString(), currentStateIndex, animInfoIndexes_.Size());
-//#endif
+#ifdef LOGDEBUG_ANIMATOR2D
+    URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - state=%s ... currentStateIndex=%u < animInfoIndexes_.Size()=%u !",
+              GetNode()->GetName().CString(), GetNode()->GetID(), currentState->name.CString(), currentStateIndex, animInfoIndexes_.Size());
+#endif
 
     if (currentStateIndex < animInfoIndexes_.Size())
     {
@@ -2898,7 +2910,7 @@ inline void GOC_Animator2D::CheckAnim(const VariantMap& param)
     #endif
 
         // Test End Animation on AnimatedSprite
-        if (animatedSprite->GetCurrentAnimationTime() >= currentAnimInfo.animLength * ANIMATOR_ENDTHRESHOLD)
+        if (currentStateTime + 0.01f > animatedSprite->GetCurrentAnimationTime())// animatedSprite->GetCurrentAnimationTime() >= currentAnimInfo.animLength * ANIMATOR_ENDTHRESHOLD)
         {
     #ifdef LOGDEBUG_ANIMATOR2D
             URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - Animation Finished END_LOOP animationtime=%F (animationlength=%F)",

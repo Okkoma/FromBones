@@ -886,7 +886,8 @@ Node* ObjectPool::CreateChildIn(const StringHash& got, int& entityid, Node* pare
         }
         else
         {
-			URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=%s(%u) entityid=%d ... no more node !", GOT::GetType(got).CString(), got.Value(), entityid);
+//			URHO3D_LOGERRORF("ObjectPool() - CreateChildIn : got=%s(%u) entityid=%d ... no more node !", GOT::GetType(got).CString(), got.Value(), entityid);
+            /// TODO : trace the number of this got.
             return 0;
         }
     }

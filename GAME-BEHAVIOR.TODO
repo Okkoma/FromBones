@@ -1,5 +1,12 @@
 Todos:
 
+    ✔ 08/02/2024 : les Boss n'arrivent pas à changer de direction
+        => pas de pb dans la version du 03/02/2024
+        ==> provient de la modification dans Map::AddEntity() pour l'update de position avec le mode Force du Network:07/02/2024
+        ===> il ne faut pas que GOC_Destroyer envoie l'event GO_CHANGEMAP autrement GOC_Animator::OnSetEnabled() sera déclenché -> puis Start() et comme GOC_Controller::SetMainController() n'est pas encore passé
+            alors il n'y a pas de subscribe à GO_CHANGEDIRECTION ...
+        ===> OK : faire un updateposition sans changemement de map => gocDestroyer->UpdatePositions(UPDATEPOS_NOCHANGEMAP)
+
     ☐ 04/02/2024 : sous Win64, la manette PS4 n'est pas géré à l'identique que sous Linux : le hat (pad) ne peut etre utilisé dans le menu (contrairement à linux) et le bouton principal ne peut etre utilisé en souris
         -> voir comment est reconnu la manette dans le systeme (driver)
 
@@ -10,6 +17,13 @@ Todos:
         -> cela est tres problematique des qu'une attaque spawn une entité ... spawn multiple ... en plus avec le reseau c'est la cata.
         ==> ajout de ANIMATOR_ENDTHRESHOLD dans GOC_Animator2D::CheckAnim qui permet de stopper l'animation quand tres proche de la fin car rien n'empeche AnimatedSprite2D de looper sans prevenir de la fin de l'animation.
         =====> OK : cela regle le probleme
+        ✔ 08/02/2024 : mais cela crée un problème similaire car cela dépend de la valuer pris pour ANIMATOR_ENDTHRESHOLD
+        ===> l'animation Hurt d'elsarion reste bloquer trop longtemps
+        ===> l'animation HURT etant courte length=0.3, reduction de ANIMATOR_ENDTHRESHOLD à 0.92.
+        ====> verifier si d'autres animations sont plus courtes que 0.3.
+        ====> pour résoudre complétement le probleme, il faudrait que AnimatedSprite2D envoit un event quand fin d'animation et rebouclage
+            ou bien tester dans GOC_Animator2D::CheckAnim si la precedente valeur de temps d'animation est plus grande que la nouvelle
+        =====> 09/02/2024 : OK remplacement par cette derniere condition
 
     ✔ 31/01/2024 : lorsqu'un avatar est monté sur une entity, il n'y a plus d'update de position avec GOC_Destroyer (ce qui evite de mourrir si en dehors des bounds du monde par exemple)
         -> cependant si l'on deplace l'avatar monté dans une autre map alors l'avatar disparait : c'est du a processus de visibilité des entités qui est faite à partir de cette position de GOC_Destroyer.

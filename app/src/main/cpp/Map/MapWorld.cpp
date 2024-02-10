@@ -1296,9 +1296,9 @@ Node* World2D::SpawnCollectable(VariantMap& eventData)
     sceneinfo.clientId_ = 0;
     sceneinfo.skipNetSpawn_ = true;
 
-    Node* node = World2D::SpawnEntity(got, 0, LOCAL, 0, viewZ, physicInfo, sceneinfo, &eventData);
+    Node* node = World2D::SpawnEntity(got, 0, nodeid, 0, viewZ, physicInfo, sceneinfo, &eventData);
     if (node)
-        URHO3D_LOGINFOF("GameNetwork() - SpawnCollectable : Node=%s(%u) spawned ... OK !", node->GetName().CString(), node->GetID());
+        URHO3D_LOGINFOF("GameNetwork() - SpawnCollectable : Node=%s(%u) refnodeid=%u spawned ... OK !", node->GetName().CString(), node->GetID(), nodeid);
     else
         URHO3D_LOGERRORF("GameNetwork() - SpawnCollectable : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
 
@@ -1753,8 +1753,8 @@ Map* World2D::GetMapAt(const ShortIntVector2& mPoint, bool createIfMissing)
 
     if ((!map || map->GetStatus() < Available) && createIfMissing && IsInsideWorldBounds(mPoint))
     {
+        URHO3D_LOGINFOF("World2D() - GetMapAt : point=%s map=%u ... createIfMissing ...", mPoint.ToString().CString(), map);
         map = mapStorage_->InitializeMap(mPoint);
-//        URHO3D_LOGINFOF("World2D() - GetMapAt : point=%s map=%u loadorcreate", mPoint.ToString().CString(), map);
     }
 
     return map;
@@ -2924,6 +2924,7 @@ bool World2D::UpdateLoading()
     return mapStorage_->UpdateMapsInMemory(&timer_);
 }
 
+
 static unsigned lastframe_ = 1000U;
 
 const unsigned TravelerViewportInfo::MaxVisibleMaps = 6U;
@@ -3102,9 +3103,10 @@ bool TravelerViewportInfo::Update()
     return change;
 }
 
+
 Vector2 TravelerNodeInfo::visibleRectHalfSize_;
 
-TravelerNodeInfo::TravelerNodeInfo() : currentMap_(0), viewport_(0), clientInfo_(0), mPoint_(-1000, -1000), visibleArea_(-1000, -1000, -1000, -1000) { zone_.z_ = -1; }
+TravelerNodeInfo::TravelerNodeInfo() : oinfo_(0), currentMap_(0), viewport_(0), mPoint_(-1000, -1000), visibleArea_(-1000, -1000, -1000, -1000) { zone_.z_ = -1; }
 
 bool TravelerNodeInfo::Update()
 {
@@ -3114,7 +3116,7 @@ bool TravelerNodeInfo::Update()
         return false;
     }
 
-    Vector2 position = node_->GetWorldPosition2D();
+    Vector2 position = oinfo_ ? Vector2(oinfo_->GetReceivedControl().physics_.positionx_, oinfo_->GetReceivedControl().physics_.positiony_) : node_->GetWorldPosition2D();
     if (IsNaN(position.x_))
     {
         URHO3D_LOGERRORF("TravelerNodeInfo() - Update : node=%s(%u) ... position NaN !", node_->GetName().CString(), node_->GetID());
@@ -3132,61 +3134,72 @@ bool TravelerNodeInfo::Update()
     {
         visibleRect_ = newvisibleRect;
 
-        // Buffer Map Expansion
+        bool move = false;
+        const Vector2 deltaPos(position-lastPosition_);
+        if (Abs(deltaPos.x_) > 0.1f)
         {
-            // Define Map Position
+            lastPosition_.x_ = position.x_;
+            move = true;
+        }
+        if (Abs(deltaPos.y_) > 0.1f)
+        {
+            lastPosition_.y_ = position.y_;
+            move = true;
+        }
+
+        if (move)
+        {
+            // Define Map Buffer Expansion
             ShortIntVector2 newmPoint;
-            World2D::GetWorldInfo()->Convert2WorldMapPoint(position.x_, position.y_, newmPoint);
-            World2D::GetWorldInfo()->Convert2WorldMapPosition(newmPoint, position.x_, position.y_, mPosition_);
+            World2D::GetWorldInfo()->Convert2WorldMapPoint(lastPosition_.x_, lastPosition_.y_, newmPoint);
+            World2D::GetWorldInfo()->Convert2WorldMapPosition(newmPoint, lastPosition_.x_, lastPosition_.y_, mPosition_);
             if (newmPoint != mPoint_)
             {
+                mPosExpand_.x_ = newmPoint.x_;
+                mPosExpand_.y_ = newmPoint.y_;
+
+                mPosExpand_.dx_ = newmPoint.x_ - mPoint_.x_ != 0 ? Sign(newmPoint.x_ - mPoint_.x_) : 0;
+                mPosExpand_.dy_ = newmPoint.y_ - mPoint_.y_ != 0 ? Sign(newmPoint.y_ - mPoint_.y_) : 0;
+
                 mPoint_ = newmPoint;
-                mPosExpand_.x_ = mPoint_.x_;
-                mPosExpand_.y_ = mPoint_.y_;
                 currentMap_ = 0;
                 change = true;
             }
-            const int dx = mPosition_.x_ >= (MapInfo::info.width_ / 2) ? 1 : -1;
-            if (mPosExpand_.dx_ != dx)
+            else if (mPosExpand_.dx_ != 0 || mPosExpand_.dy_ != 0)
             {
-                mPosExpand_.dx_ = dx;
-                change = true;
-            }
-            const int dy = mPosition_.y_ >= (MapInfo::info.height_ / 2) ? 1 : -1;
-            if (mPosExpand_.dy_ != dy)
-            {
-                mPosExpand_.dy_ = dy;
+                mPosExpand_.dx_ = mPosExpand_.dy_ = 0;
                 change = true;
             }
         }
-
-        // Visible Map Area
+        IntRect newvisibleMapArea;
+        if (World2D::GetWorld()->IsInfinite())
         {
-            IntRect newvisibleMapArea;
-            if (World2D::GetWorld()->IsInfinite())
-            {
-                newvisibleMapArea.left_   = (int)floor(newvisibleRect.min_.x_ / World2D::GetWorldMapWidth());
-                newvisibleMapArea.top_    = (int)floor(newvisibleRect.min_.y_ / World2D::GetWorldMapHeight());
-                newvisibleMapArea.right_  = (int)floor(newvisibleRect.max_.x_ / World2D::GetWorldMapWidth());
-                newvisibleMapArea.bottom_ = (int)floor(newvisibleRect.max_.y_ / World2D::GetWorldMapHeight());
-            }
-            else
-            {
-                const IntRect& bounds = World2D::GetWorld()->GetWorldBounds();
-                newvisibleMapArea.left_   = Max((int)floor(newvisibleRect.min_.x_ / World2D::GetWorldMapWidth()), bounds.left_);
-                newvisibleMapArea.top_    = Max((int)floor(newvisibleRect.min_.y_ / World2D::GetWorldMapHeight()), bounds.top_);
-                newvisibleMapArea.right_  = Min((int)floor(newvisibleRect.max_.x_ / World2D::GetWorldMapWidth()), bounds.right_);
-                newvisibleMapArea.bottom_ = Min((int)floor(newvisibleRect.max_.y_ / World2D::GetWorldMapHeight()), bounds.bottom_);
-            }
+            newvisibleMapArea.left_   = (int)floor(newvisibleRect.min_.x_ / World2D::GetWorldMapWidth());
+            newvisibleMapArea.top_    = (int)floor(newvisibleRect.min_.y_ / World2D::GetWorldMapHeight());
+            newvisibleMapArea.right_  = (int)floor(newvisibleRect.max_.x_ / World2D::GetWorldMapWidth());
+            newvisibleMapArea.bottom_ = (int)floor(newvisibleRect.max_.y_ / World2D::GetWorldMapHeight());
+        }
+        else
+        {
+            const IntRect& bounds = World2D::GetWorld()->GetWorldBounds();
+            newvisibleMapArea.left_   = Max((int)floor(newvisibleRect.min_.x_ / World2D::GetWorldMapWidth()), bounds.left_);
+            newvisibleMapArea.top_    = Max((int)floor(newvisibleRect.min_.y_ / World2D::GetWorldMapHeight()), bounds.top_);
+            newvisibleMapArea.right_  = Min((int)floor(newvisibleRect.max_.x_ / World2D::GetWorldMapWidth()), bounds.right_);
+            newvisibleMapArea.bottom_ = Min((int)floor(newvisibleRect.max_.y_ / World2D::GetWorldMapHeight()), bounds.bottom_);
+        }
 
-            if (newvisibleMapArea != visibleArea_)
-            {
-                visibleArea_ = newvisibleMapArea;
-                World2D::GetWorld()->SetVisibleListDirty(true);
+        if (newvisibleMapArea != visibleArea_)
+        {
+            // Update Map Area
+            visibleArea_ = newvisibleMapArea;
+            World2D::GetWorld()->SetVisibleListDirty(true);
+        }
 
-                URHO3D_LOGERRORF("TravelerNodeInfo() - Update : mpoint=%s visibleArea=%s center=%s",
-                                mPoint_.ToString().CString(), visibleArea_.ToString().CString(), visibleArea_.Center().ToString().CString());
-            }
+        if (change)
+        {
+            URHO3D_LOGERRORF("TravelerNodeInfo() - Update : mpoint=%s visibleArea=%s center=%s mPosition=%s mPosExpand=%s deltaPos=%F %F",
+                             mPoint_.ToString().CString(), visibleArea_.ToString().CString(), visibleArea_.Center().ToString().CString(),
+                             mPosition_.ToString().CString(), mPosExpand_.ToString().CString(), deltaPos.x_, deltaPos.y_);
         }
     }
 
@@ -3233,23 +3246,30 @@ void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const
             hashexpand += it->mPosExpand_;
 
     hashexpand.GetValues(mappoints);
+
+    URHO3D_LOGERRORF("World2D() - GetBufferExpandInfos : Dump ...");
+    for (Vector<BufferExpandInfo>::ConstIterator it = mappoints.Begin(); it != mappoints.End(); ++it)
+        URHO3D_LOGERRORF("    BufferExpansion[%d] = %s", it - mappoints.Begin(), it->ToString().CString());
 }
 
-void World2D::AddTraveler(ClientInfo* clientinfo, Node* node, int viewport)
+TravelerNodeInfo& World2D::AddTraveler(Node* node, int viewport)
 {
     for (Vector<TravelerNodeInfo>::Iterator it = world_->travelerInfos_.Begin(); it != world_->travelerInfos_.End(); ++it)
     {
         if (it->node_ == node)
-            return;
+            return *it;
     }
 
     world_->travelerInfos_.Push(TravelerNodeInfo());
+
     TravelerNodeInfo& tinfo = world_->travelerInfos_.Back();
     tinfo.node_ = node;
-    tinfo.clientInfo_ = clientinfo;
+    tinfo.oinfo_ = 0;
     tinfo.viewport_ = viewport;
 
     URHO3D_LOGINFOF("World2D() - AddTraveler : ... node=%s(%u) tinfo.node_=%u !", node->GetName().CString(), node->GetID(), tinfo.node_.Get());
+
+    return tinfo;
 }
 
 void World2D::RemoveTraveler(Node* node)

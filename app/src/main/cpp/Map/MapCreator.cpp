@@ -298,6 +298,8 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
     {
         if (map->GetStatus() == Uninitialized)
         {
+            URHO3D_LOGINFOF("MapCreator() - CreateMap at %s map=%u ... status=%s[%d] ...", map->GetMapPoint().ToString().CString(), map, mapStatusNames[map->GetStatus()], map->GetStatus());
+
             if (!MapStorage::Get()->InitializeMap(map->GetMapPoint()))
             {
                 URHO3D_LOGERRORF("MapCreator() - CreateMap at %s map=%u ... status=%s[%d] ... Can't Initialize the Map !", map->GetMapPoint().ToString().CString(), map, mapStatusNames[map->GetStatus()], map->GetStatus());

@@ -28,6 +28,8 @@ enum NetCommand
 
     ADDNODE,
     EXPLODENODE,
+    LINKNODEID,
+
     ADDFURNITURE,
     ADDCOLLECTABLE,
 

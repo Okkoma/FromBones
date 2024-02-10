@@ -1416,8 +1416,6 @@ void Actor::OnDead(StringHash eventType, VariantMap& eventData)
         if (avatar_->GetVar(GOA::DESTROYING).GetBool())
             return;
 
-        URHO3D_LOGINFOF("Actor() - OnDead : ... GOC_LIFEDEAD");
-
         // Remove Dialog Marker and Dialog Frame
 
         StopSubscribers();
@@ -1429,10 +1427,14 @@ void Actor::OnDead(StringHash eventType, VariantMap& eventData)
                 dialogMarkerNode->SetEnabled(false);
 
             ResetDialogue();
+
+            avatar_->SetVar(GOA::ISDEAD, true);
+
+            URHO3D_LOGINFOF("Actor() - OnDead : %s(%u) !", avatar_->GetName().CString(), avatar_->GetID());
         }
 
         info_.state_ = ActorState::Dead;
-        avatar_->SetVar(GOA::ISDEAD, true);
+
 //        Actor::RemoveActor(GetID());
     }
 

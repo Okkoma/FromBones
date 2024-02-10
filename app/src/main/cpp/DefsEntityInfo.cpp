@@ -37,8 +37,15 @@ WorldMapPosition::WorldMapPosition(World2DInfo* winfo, const IntVector2& mpoint,
 void WorldMapPosition::SetViewZ(int viewZ)
 {
     // Assure to have a Real Switch ViewZ and so an existing ViewZIndex
-    viewZ_ = ViewManager::GetNearViewZ(viewZ);
-    viewZIndex_ = ViewManager::GetViewZIndex(viewZ_);
+    if (viewZ != NOVIEW)
+    {
+        viewZ_ = ViewManager::GetNearViewZ(viewZ);
+        viewZIndex_ = ViewManager::GetViewZIndex(viewZ_);
+    }
+    else
+    {
+        viewZ_ = viewZIndex_ = NOVIEW;
+    }
 }
 
 String WorldMapPosition::ToString() const

@@ -185,6 +185,7 @@ private :
     void UpdateTriggerAttacks();
     void UpdateNativeAbilities();
     void UpdateLineOfSight();
+    void UpdateFindSafePlace();
 
     void HandleDelayedActions(StringHash eventType, VariantMap& eventData);
     void HandleClic(StringHash eventType, VariantMap& eventData);

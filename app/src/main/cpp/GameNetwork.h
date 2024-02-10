@@ -389,6 +389,7 @@ private:
     void Client_SetWorldMaps(VariantMap& eventData);
     void Client_SetWorldObjects(VariantMap& eventData);
     void Client_MountNode(VariantMap& eventData);
+    void Client_LinkNodeId(VariantMap& eventData);
 
     /// Object Commands Pool
     Pool<ObjectCommand > objCmdPool_;

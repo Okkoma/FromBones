@@ -250,23 +250,28 @@ public :
 
 struct BufferExpandInfo
 {
-    BufferExpandInfo() { }
+    BufferExpandInfo() : val1_(0U), val2_(0U) { }
     BufferExpandInfo(short int x, short int y, short int dx, short int dy) : x_(x), y_(y), dx_(dx), dy_(dy) { }
-    BufferExpandInfo(const BufferExpandInfo& rhs) : value_(rhs.value_) { }
+    BufferExpandInfo(const BufferExpandInfo& rhs) : val1_(rhs.val1_), val2_(rhs.val2_) { }
 
     /// Test for equality with another vector.
     bool operator == (const BufferExpandInfo& rhs) const
     {
-        return value_ == rhs.value_;
+        return val1_ == rhs.val1_ && val2_ == rhs.val2_;
     }
 
-    unsigned ToHash() const { return value_; }
+    /// x_, y_ can take -16384 to 16383 values,
+    /// dx_, dy_ can take -2 to 1 values
+    /// x_, y_ on 14bits each and dx_,dy_ on 2bits each = 14*2+2*2 = 32bits
+    unsigned ToHash() const { return (unsigned)(16384 + Clamp(x_,  (short int)-16384, (short int)16383))    | ((unsigned)(16384 + Clamp(y_,  (short int)-16384, (short int)16383)) << 14) |
+                                    ((unsigned)(2     + Clamp(dx_, (short int)-2,     (short int)1)) << 28) | ((unsigned)(2     + Clamp(dy_, (short int)-2,     (short int)1))     << 30); }
+    String ToString() const { String str; return str.AppendWithFormat("(pos=%d,%d;delta=%d,%d;hash=%u)", x_, y_, dx_, dy_, ToHash()); }
 
     union
     {
         struct
         {
-            unsigned int value_;
+            unsigned int val1_, val2_;
         };
         struct
         {

@@ -219,14 +219,23 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
 
     Node* avatar = player->GetAvatar();
 
-    URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... for clientid=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
+    URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ... ClientID=%d connection=%u ... playerID=%u nodeID=%u position=%s faction=%u !",
                     clientID_, connection_.Get(), playerID, avatar->GetID(), avatar->GetWorldPosition().ToString().CString(), player->GetFaction());
 
     if (avatar)
     {
+        ObjectControlInfo& objectControlInfo = GameNetwork::Get()->GetOrCreateServerObjectControl(avatar->GetID(), avatar->GetID(), clientID_, avatar);
+        if (GameNetwork::Get()->PrepareControl(objectControlInfo))
+        {
+            objectControlInfo.SetActive(true, true);
+            URHO3D_LOGINFOF("ClientInfo() - CreateAvatarFor : ClientID=%d player activated servernodeid=%u clientnodeid=%u oinfo=%u node=%s(%u) ... OK !",
+                            clientID_, objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_, &objectControlInfo, avatar->GetName().CString(), avatar->GetID());
+        }
+
         objects_.Push(WeakPtr<Node>(avatar));
         avatar->AddTag("Player");
-        World2D::AddTraveler(this, avatar);
+
+        World2D::AddTraveler(avatar).oinfo_ = &objectControlInfo;
     }
 
     return avatar;
@@ -1140,7 +1149,7 @@ void GameNetwork::Client_TransferItem(VariantMap& eventData)
     ObjectControlInfo* giverInfo = GetObjectControl(eventData[Go_InventoryGet::GO_GIVER].GetUInt());
     if (!giverInfo || !giverInfo->node_)
     {
-        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : giverInfo=0 !");
+        URHO3D_LOGWARNINGF("GameNetwork() - Client_TransferItem : nodeid=%u giverInfo=0 !", eventData[Go_InventoryGet::GO_GIVER].GetUInt());
         return;
     }
 
@@ -1507,6 +1516,20 @@ void GameNetwork::Client_DisableObjectControl(VariantMap& eventData)
         URHO3D_LOGERRORF("GameNetwork() - Client_DisableObjectControl : unsatisfied requirements for clientObjectControl nodeid=%u !", id);
 }
 
+void GameNetwork::Client_LinkNodeId(VariantMap& eventData)
+{
+    unsigned servernodeid = eventData[Net_ObjectCommand::P_NODEID].GetUInt();
+    unsigned clientnodeid = eventData[Net_ObjectCommand::P_NODEIDFROM].GetUInt();
+
+    Node* node = GameContext::Get().rootScene_->GetNode(clientnodeid);
+    ObjectControlInfo& oinfo = GetOrCreateServerObjectControl(servernodeid, clientnodeid, 0, node);
+
+    oinfo.SetEnable(oinfo.node_ ? oinfo.node_->IsEnabled() : false);
+
+    URHO3D_LOGINFOF("GameNetwork() - Client_LinkNodeId : servernodeid=%u clientnodeid=%u node=%s(%u) enable=%s", servernodeid, clientnodeid,
+                    oinfo.node_ ? oinfo.node_->GetName().CString() : "none", oinfo.node_ ? oinfo.node_->GetID() : 0, oinfo.node_ && oinfo.node_->IsEnabled() ? "true":"false");
+}
+
 void GameNetwork::Server_ApplyObjectCommand(int fromclientid, VariantMap& eventData)
 {
     int cmd = eventData[Net_ObjectCommand::P_COMMAND].GetInt();
@@ -1645,12 +1668,17 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     case EXPLODENODE:
         ExplodeNode(eventData);
         break;
+    case LINKNODEID:
+        Client_LinkNodeId(eventData);
+        break;
+
     case ADDFURNITURE:
         World2D::SpawnFurniture(eventData);
         break;
     case ADDCOLLECTABLE:
         World2D::SpawnCollectable(eventData);
         break;
+
     case TRANSFERITEM:
         Client_TransferItem(eventData);
         break;
@@ -1663,11 +1691,13 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     case SETFULLINVENTORY:
         GOC_Inventory::NetClientSetInventory(eventData[Net_ObjectCommand::P_NODEID].GetUInt(), eventData);
         break;
+
     case CHANGETILE:
     {
         bool ok = ChangeTile(eventData);
     }
         break;
+
     case SETWEATHER:
         WeatherManager::Get()->SetNetWorldInfos(eventData[Net_ObjectCommand::P_DATAS].GetVariantVector());
         break;
@@ -1677,6 +1707,7 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     case SETWORLD:
         Client_SetWorldObjects(eventData);
         break;
+
     case TRIGCLICKED:
     {
         Node* node = GameContext::Get().rootScene_->GetNode(eventData[Net_ObjectCommand::P_NODEID].GetUInt());
@@ -1689,6 +1720,7 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
     case MOUNTENTITYON:
         Client_MountNode(eventData);
         break;
+
     case UPDATEITEMSSTORAGE:
         GOC_DropZone::NetClientUpdateStorage(eventData[Net_ObjectCommand::P_NODEID].GetUInt(), eventData);
         break;
@@ -1701,13 +1733,14 @@ void GameNetwork::Client_ApplyObjectCommand(ObjectCommand& objCmd)
         URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=UPDATEZONEDATA receive mapdata mpoint=%s zoneid=%d ... ", mpoint.ToString().CString(), zoneid);
         if (mapdata)
         {
-            URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=UPDATEZONEDATA receive mapdata mpoint=%s zoneid=%d ... OK !", mpoint.ToString().CString(), zoneid);
-            if (mapdata->zones_.Size() < zoneid)
+            if (zoneid >= mapdata->zones_.Size())
                 mapdata->zones_.Resize(zoneid+1);
 
             int zonestate = mapdata->zones_[zoneid].state_;
             memcpy(&mapdata->zones_[zoneid], buffer.Buffer(), sizeof(ZoneData));
             mapdata->zones_[zoneid].state_ = zonestate;
+
+            URHO3D_LOGINFOF("GameNetwork() - Client_ApplyObjectCommand : NET_OBJECTCOMMAND : cmd=UPDATEZONEDATA receive mapdata mpoint=%s zoneid=%d ... OK !", mpoint.ToString().CString(), zoneid);
         }
     }
         break;
@@ -2265,20 +2298,6 @@ void GameNetwork::Server_AllocatePlayers(ClientInfo& clientInfo)
         if (!avatar)
         {
             avatar = clientInfo.CreateAvatarFor(it-clientInfo.players_.Begin());
-            if (avatar)
-            {
-                unsigned nodeid = avatar->GetID();
-                ObjectControlInfo& objectControlInfo = GetOrCreateServerObjectControl(nodeid, nodeid, clientInfo.clientID_, avatar);
-
-                if (PrepareControl(objectControlInfo))
-                {
-                    objectControlInfo.SetActive(true, true);
-//                    SetEnableObject(true, objectControlInfo, player->GetAvatar());
-                    URHO3D_LOGINFOF("GameNetwork() - Server_AllocatePlayers : ClientID=%d player activated servernodeid=%u clientnodeid=%u oinfo=%u node=%s(%u) ... OK !",
-                                    clientInfo.clientID_, objectControlInfo.serverNodeID_, objectControlInfo.clientNodeID_, &objectControlInfo, avatar->GetName().CString(), nodeid);
-                }
-            }
-
             clientInfo.playersStarted_ = false;
         }
     }
@@ -3014,8 +3033,13 @@ ObjectControlInfo& GameNetwork::GetOrCreateServerObjectControl(unsigned serverno
                     controlInfo.clientId_ = clientid;
                 }
 
-                if (node && !controlInfo.node_)
+                if (node)
+                {
+                    if (controlInfo.node_ && ((serverMode_ && controlInfo.node_->GetID() != servernodeid) || (clientMode_ && controlInfo.node_->GetID() != clientnodeid)))
+                        URHO3D_LOGERRORF("GameNetwork() - GetOrCreateServerObjectControl : servernodeid=%u clientnodeid=%u replace existing node !", servernodeid, clientnodeid);
+
                     controlInfo.node_ = node;
+                }
 
                 controlInfo.SetActive(true, true);
                 return controlInfo;
@@ -3034,24 +3058,16 @@ ObjectControlInfo& GameNetwork::GetOrCreateServerObjectControl(unsigned serverno
     if (servernodeid && serverMode_)
     {
         if (!controlInfo.node_)
-        {
-            if (!node)
-                node = GameContext::Get().rootScene_->GetNode(servernodeid);
-            if (node)
-                controlInfo.node_ = node;
-        }
+            controlInfo.node_ = !node ? GameContext::Get().rootScene_->GetNode(servernodeid) : node;
+
         if (!controlInfo.node_ && !GameContext::Get().rootScene_->IsPoolNodeReserved(servernodeid) && !GameContext::Get().rootScene_->IsNodeReserved(servernodeid))
             GameContext::Get().rootScene_->ReserveNodeID(servernodeid);
     }
     else if (clientnodeid && clientMode_)
     {
         if (!controlInfo.node_)
-        {
-            if (!node)
-                node = GameContext::Get().rootScene_->GetNode(clientnodeid);
-            if (node)
-                controlInfo.node_ = node;
-        }
+            controlInfo.node_ = !node ? GameContext::Get().rootScene_->GetNode(clientnodeid) : node;
+
         if (!controlInfo.node_ && !GameContext::Get().rootScene_->IsPoolNodeReserved(clientnodeid) && !GameContext::Get().rootScene_->IsNodeReserved(clientnodeid))
             GameContext::Get().rootScene_->ReserveNodeID(clientnodeid);
     }
@@ -4102,8 +4118,8 @@ bool GameNetwork::UpdateControl(ObjectControlInfo& dest, const ObjectControlInfo
         float deltatdps = src.GetReceivedControl().states_.totalDpsReceived_ - goclife->GetTotalEnergyLost();
         if (Abs(deltatdps) > 0.01f)
         {
-            URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u Delta TDPS %f (%f - %f)!",
-                            node->GetID(), deltatdps, dest.GetReceivedControl().states_.totalDpsReceived_, goclife->GetTotalEnergyLost());
+//            URHO3D_LOGINFOF("GameNetwork() - UpdateControl : node=%u Delta TDPS %f (%f - %f)!",
+//                            node->GetID(), deltatdps, dest.GetReceivedControl().states_.totalDpsReceived_, goclife->GetTotalEnergyLost());
 
             goclife->SetTotalEnergyLost(src.GetReceivedControl().states_.totalDpsReceived_);
         }

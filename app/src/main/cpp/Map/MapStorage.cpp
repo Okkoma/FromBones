@@ -686,7 +686,7 @@ void MapStorage::SetMapBufferOffset(int offset)
     maxMapsInMemory_ *= maxMapsInMemory_;
 
     if (mapPool_)
-        mapPool_->Resize(maxMapsInMemory_ * MAX_VIEWPORTS);
+        mapPool_->Resize(GameContext::Get().ServerMode_ ? maxMapsInMemory_ * GameContext::MAX_NUMNETPLAYERS : maxMapsInMemory_ * MAX_VIEWPORTS);
 
 #ifndef USE_LOADINGLISTS
     mapsToLoadInMemory_.Reserve(maxMapsInMemory_ * MAX_VIEWPORTS);
@@ -1014,9 +1014,9 @@ bool MapStorage::UnloadMapAt(const ShortIntVector2& mPoint, HiresTimer* timer)
     Map* map = it->second_;
     if (!map)
     {
-        mapCreator_->PurgeMap(mPoint);
-
         URHO3D_LOGERRORF("MapStorage() - UnloadMapAt %s ... map=0 ... NOK !", mPoint.ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+
+        mapCreator_->PurgeMap(mPoint);
         return true;
     }
 
@@ -1033,7 +1033,7 @@ bool MapStorage::UnloadMapAt(const ShortIntVector2& mPoint, HiresTimer* timer)
     {
         // normally don't use this code : it's already made in UpdateBufferedArea()
         // log this
-        URHO3D_LOGERRORF("MapStorage() - UnloadMapAt %s was not in Unloading state", mPoint.ToString().CString());
+        URHO3D_LOGERRORF("MapStorage() - UnloadMapAt %s was not in Unloading state ...", mPoint.ToString().CString());
 
         mapCreator_->PurgeMap(mPoint);
 
@@ -1526,9 +1526,10 @@ void MapStorage::UpdateBufferedArea()
                     mapsToUnloadFromMemory_.Erase(jt);
                 }
             }
-            else if (World2D::AllowClearMaps())
+            else if (!World2D::GetKeepedVisibleMaps().Contains(mPoint) && World2D::AllowClearMaps())
             {
                 // remove it from creation list because unloading process can be slow
+                URHO3D_LOGERRORF("MapStorage() - UpdateBufferedArea : mPoint=%s to Unload ...", mPoint.ToString().CString());
                 mapCreator_->PurgeMap(mPoint);
 
                 if (jt == mapsToUnloadFromMemory_.End())
@@ -1554,6 +1555,7 @@ void MapStorage::UpdateBufferedArea()
             if (!IsInsideBufferedArea(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it) && World2D::AllowClearMaps())
             {
                 // if not in the load list, remove it from creation list
+                URHO3D_LOGERRORF("MapStorage() - UpdateBufferedArea : mPoint=%s purge load list ...", it->ToString().CString());
                 mapCreator_->PurgeMap(*it);
 
                 it = mapsToLoadInMemory_.Erase(it);
@@ -1717,8 +1719,8 @@ bool MapStorage::UpdateMapsInMemory(HiresTimer* timer)
     {
         while (mapsToLoadInMemory_.Size())
         {
-            //            URHO3D_LOGINFOF("MapStorage() - UpdateMapsInMemory : ToLoad mPoint = %s ... mpoint=%s",
-                             //                             mapsToLoadInMemory_.Back().ToString().CString(), mapsToLoadInMemory_.Back().ToString().CString());
+            URHO3D_LOGINFOF("MapStorage() - UpdateMapsInMemory : ToLoad mPoint = %s ... mpoint=%s",
+                            mapsToLoadInMemory_.Back().ToString().CString(), mapsToLoadInMemory_.Back().ToString().CString());
 
             if (!InitializeMap(mapsToLoadInMemory_.Back(), timer))
                 break;

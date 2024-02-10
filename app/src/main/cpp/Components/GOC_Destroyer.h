@@ -22,11 +22,11 @@ struct FluidCell;
 using namespace Urho3D;
 
 
-enum ChangeMapMode
+enum UpdatePositionMode
 {
-    CHANGEMAP_AUTO = 0,
-    CHANGEMAP_FORCE = 1,
-    CHANGEMAP_NOCHANGE = 2
+    UPDATEPOS_AUTO = 0,
+    UPDATEPOS_FORCE = 1,
+    UPDATEPOS_NOCHANGEMAP = 2,
 };
 
 
@@ -136,8 +136,8 @@ public :
     void UpdateFilterBits(int viewZ=-1);
     void UpdateAreaStates(bool sendfluidevent=false);
 
-    void UpdatePositions(ChangeMapMode mode=CHANGEMAP_AUTO);
-    bool UpdatePositions(VariantMap& eventData, ChangeMapMode mode=CHANGEMAP_AUTO);
+    void UpdatePositions(UpdatePositionMode mode=UPDATEPOS_AUTO);
+    bool UpdatePositions(VariantMap& eventData, UpdatePositionMode mode=UPDATEPOS_AUTO);
 
     void AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vector2& worldmassposition);
     void AdjustPositionInTile(int viewZ);

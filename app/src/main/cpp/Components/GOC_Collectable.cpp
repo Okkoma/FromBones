@@ -276,7 +276,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
             PhysicEntityInfo physicInfo;
             GameHelpers::GetDropPoint(owner, physicInfo.positionx_, physicInfo.positiony_);
 
-            int clientid = slotData ? (*slotData)[Net_ObjectCommand::P_CLIENTID].GetInt() : GameNetwork::Get()->GetClientID();
+            const int clientid = GameContext::Get().LocalMode_ ? 0 : (slotData ? (*slotData)[Net_ObjectCommand::P_CLIENTID].GetInt() : GameNetwork::Get()->GetClientID());
 
             URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : clientid=%d type=%s(%u) qty=%u on viewZ=%d dropmode=%d droppoint=%F %F ...",
                             clientid, GOT::GetType(got).CString(), got.Value(), qty, owner->GetVar(GOA::ONVIEWZ).GetInt(), dropmode, physicInfo.positionx_, physicInfo.positiony_);
@@ -284,9 +284,11 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
             // cas 1 : GOC_Inventory::NetServerDropItem : server && slotData && clientid
             // => slotData contient deja les info de slot : pas besoin de GetSlotData
             // cas 2 : GOC_DropZone : (client || server) & !slotData
-            // =>  GetSlotData
+            // => GetSlotData
 
-            bool skipGetSlotData = GameContext::Get().ServerMode_ && slotData && (*slotData)[Net_ObjectCommand::P_CLIENTID].GetInt();
+            const bool skipGetSlotData = clientid && GameContext::Get().ServerMode_ && slotData;
+
+            const unsigned nodeid = skipGetSlotData && dropmode == 4 ? (*slotData)[Net_ObjectCommand::P_NODEID].GetUInt() : 0U;
 
             if (!slotData)
                 slotData = &tempSlotData_;
@@ -294,14 +296,14 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
             if (!skipGetSlotData && slot)
                 Slot::GetSlotData(*slot, *slotData, qty);
 
-            int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
+            const int viewZ = ViewManager::GetNearViewZ(owner->GetVar(GOA::ONVIEWZ).GetInt());
 
             // Collectables are never NetSpawned (because of slotData : ObjectControl can't handle it)
             SceneEntityInfo sceneinfo;
             sceneinfo.skipNetSpawn_ = true;
             sceneinfo.zindex_ = 1000;
             // A Collectable must never be spawned from an owner because of the clientid that must be 0 => always server
-            node = World2D::SpawnEntity(got, 0, 0, 0/*owner->GetID()*/, viewZ, physicInfo, sceneinfo, slotData);
+            node = World2D::SpawnEntity(got, 0, nodeid, 0/*owner->GetID()*/, viewZ, physicInfo, sceneinfo, slotData);
             if (!node)
             {
                 URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : can't Spawn %s(%u) !", GOT::GetType(got).CString(), got.Value());
@@ -314,7 +316,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
 
                 if (dropmode < 4)
                 {
-                    sdata[Net_ObjectCommand::P_CLIENTID] = GameNetwork::Get()->GetClientID();
+                    sdata[Net_ObjectCommand::P_CLIENTID] = clientid;
                     sdata[Net_ObjectCommand::P_NODEID] = node->GetID();
                     sdata[Net_ObjectCommand::P_NODEIDFROM] = owner->GetID();
                     sdata[Net_ObjectCommand::P_SLOTQUANTITY] = qty;
@@ -329,6 +331,17 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
                     sdata[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ] = viewZ;
                     sdata[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = Vector2(physicInfo.positionx_, physicInfo.positiony_);
                     owner->SendEvent(MAP_ADDCOLLECTABLE, sdata);
+
+                    if (GameContext::Get().ServerMode_ && nodeid && node->GetID() != nodeid)
+                    {
+                        // Send command to link the client node with the server node
+                        URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : node=%s(%u) refnodeid=%u => Send Command LINKNODEID to client=%d ...", node->GetName().CString(), node->GetID(), nodeid, clientid);
+
+                        VariantMap& eventData = GameNetwork::Get()->GetServerEventData();
+                        eventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+                        eventData[Net_ObjectCommand::P_NODEIDFROM] = nodeid;
+                        GameNetwork::Get()->PushObjectCommand(LINKNODEID, &eventData, false, clientid);
+                    }
                 }
             }
         }
@@ -504,7 +517,7 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
 
     if (other->GetNode()->GetVar(GOA::TYPECONTROLLER).GetInt() != GO_None && other->GetNode()->GetVar(GOA::ISDEAD).GetBool() == false)
     {
-        bool catched = false;
+        bool transfer = false;
 
         if (catchers_.Size())
         {
@@ -523,7 +536,7 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
                     {
                         if (catchers_.Contains(gocinventory->GetSlot(slotindex).type_))
                         {
-                            catched = true;
+                            transfer = true;
                             goccollider->ResetLastAttack();
                         }
                     }
@@ -532,13 +545,13 @@ void GOC_Collectable::HandleContact(StringHash eventType, VariantMap& eventData)
         }
         else if (csOther && !csOther->IsTrigger())
         {
-            catched = true;
+            transfer = true;
         }
 
-        if (catched)
+        if (transfer)
         {
-            URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer catched slot to node=%s(%u)", GOT::GetType(slot_.type_).CString(),
-                            slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
+//            URHO3D_LOGINFOF("GOC_Collectable() - HandleContact : %s(%u) try transfer slot to node=%s(%u)", GOT::GetType(slot_.type_).CString(),
+//                            slot_.type_.Value(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
 
             // Locked for the moment : No more ressources to collect
             UnsubscribeFromEvent(E_PHYSICSBEGINCONTACT2D);

@@ -352,26 +352,29 @@ void Player::SetWorldMapPosition(const WorldMapPosition& position, bool findsafe
 
     if (avatar_)
     {
+        const bool enable = findSafePlace_ == false;
+
+        URHO3D_LOGINFOF("Player() - SetWorldMapPosition : player ID=%u position=%s enableposition=%s !", GetID(), position.ToString().CString(), enable?"true":"false");
+
         GOC_Destroyer* destroyer = avatar_->GetComponent<GOC_Destroyer>();
         if (destroyer)
         {
-            destroyer->SetEnablePositionUpdate(!findSafePlace_);
             destroyer->SetWorldMapPosition(position);
-
-            ViewManager::Get()->SwitchToViewZ(position.viewZ_, 0, ViewManager::Get()->GetNumViewports() > 1 ? GetControlID() : 0);
+            destroyer->SetEnablePositionUpdate(enable);
         }
 
         if (GameContext::Get().ClientMode_)
         {
+            ViewManager::Get()->SwitchToViewZ(position.viewZ_, 0, ViewManager::Get()->GetNumViewports() > 1 ? GetControlID() : 0);
+            GameHelpers::SetLightActivation(this);
+
             VariantMap& eventData = context_->GetEventDataMap();
             eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
             eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = avatar_->GetWorldPosition2D();
-            eventData[Net_ObjectCommand::P_NODEISENABLED] = !findSafePlace_;
+            eventData[Net_ObjectCommand::P_NODEISENABLED] = enable;
             GameNetwork::Get()->PushObjectCommand(SETPLAYERPOSITION, &eventData, false, GameNetwork::Get()->GetClientID());
         }
     }
-
-    GameHelpers::SetLightActivation(this);
 }
 
 void Player::SetWorldMapPosition(VariantMap& eventData)
@@ -383,11 +386,16 @@ void Player::SetWorldMapPosition(VariantMap& eventData)
         position.viewZ_ = eventData[Net_ObjectCommand::P_CLIENTOBJECTVIEWZ].GetInt();
         position.viewZIndex_ = -1;
 
+        const bool enable = eventData[Net_ObjectCommand::P_NODEISENABLED].GetBool();
+
+        URHO3D_LOGINFOF("Player() - SetWorldMapPosition : avatar=%s(%u) enable=%s position=%s enableposition=%s !", avatar_->GetName().CString(), avatar_->GetID(),
+                        avatar_->IsEnabled()?"true":"false", position.ToString().CString(), enable?"true":"false");
+
         GOC_Destroyer* destroyer = avatar_->GetComponent<GOC_Destroyer>();
         if (destroyer)
         {
-            destroyer->SetEnablePositionUpdate(eventData[Net_ObjectCommand::P_NODEISENABLED].GetInt());
             destroyer->SetWorldMapPosition(position);
+            destroyer->SetEnablePositionUpdate(enable);
         }
     }
 }
@@ -464,6 +472,22 @@ int Player::FindASafePlace(WorldMapPosition& position)
     }
 
     return 0;
+}
+
+void Player::UpdateFindSafePlace()
+{
+    if (findSafePlace_ && avatar_ && avatar_->IsEnabled())
+    {
+        URHO3D_LOGINFOF("Player() - UpdateFindSafePlace : ...");
+
+        GOC_Destroyer* destroyer = avatar_->GetComponent<GOC_Destroyer>();
+        int status = FindASafePlace(destroyer->GetWorldMapPosition());
+        if (status >= 0)
+        {
+            SetWorldMapPosition(destroyer->GetWorldMapPosition(), false);
+            URHO3D_LOGINFOF("Player() - UpdateFindSafePlace - findSafePlace at %s ... %s !", destroyer->GetWorldMapPosition().ToString().CString(), status == 1 ? "OK":"NOK");
+        }
+    }
 }
 
 bool Player::AddAvatar(const StringHash& got)
@@ -2078,7 +2102,7 @@ void Player::Start()
         gocDestroyer_->UpdateFilterBits();
 
     if (!GameContext::Get().ServerMode_)
-        World2D::AddTraveler(0, avatar_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+        World2D::AddTraveler(avatar_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
 
     URHO3D_LOGINFOF("----------------------------------------");
     URHO3D_LOGINFOF("- Player() - Start : player ID=%u viewZ=%d ... OK   -", GetID(), GetViewZ());
@@ -2350,30 +2374,7 @@ void Player::OnPostUpdate(StringHash eventType, VariantMap& eventData)
     // Update the Change of Avatar if dirtyPlayer_
     UpdateAvatar();
 
-    if (findSafePlace_)
-    {
-        if (avatar_->IsEnabled())
-        {
-            URHO3D_LOGINFOF("Player() - OnPostUpdate - findSafePlace ...");
-
-            GOC_Destroyer* destroyer = avatar_->GetComponent<GOC_Destroyer>();
-            int status = FindASafePlace(destroyer->GetWorldMapPosition());
-            if (status >= 0)
-            {
-                if (status == 1)
-                {
-                    SetWorldMapPosition(destroyer->GetWorldMapPosition(), false);
-                    URHO3D_LOGINFOF("Player() - OnPostUpdate - findSafePlace at %s ... OK !", destroyer->GetWorldMapPosition().ToString().CString());
-                }
-                else
-                {
-                    destroyer->SetEnablePositionUpdate(true);
-                    findSafePlace_ = false;
-                    URHO3D_LOGINFOF("Player() - OnPostUpdate - findSafePlace at %s ... NOK !", destroyer->GetWorldMapPosition().ToString().CString());
-                }
-            }
-        }
-    }
+    UpdateFindSafePlace();
 }
 
 

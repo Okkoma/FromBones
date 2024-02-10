@@ -92,13 +92,13 @@ struct TravelerNodeInfo
     bool Update();
 
     WeakPtr<Node> node_;
+    ObjectControlInfo* oinfo_;
+    Vector2 lastPosition_;
 
     Map* currentMap_;
 
     int viewport_;
     IntVector3 zone_;
-
-    ClientInfo* clientInfo_;
 
     ShortIntVector2 mPoint_;
     IntVector2 mPosition_;
@@ -268,7 +268,7 @@ public:
     static void ReinitAllWorlds();
     static void SaveWorld(bool saveEntities=false);
 
-    static void AddTraveler(ClientInfo* clientinfo, Node* node, int viewport=0);
+    static TravelerNodeInfo& AddTraveler(Node* node, int viewport=0);
     static void RemoveTraveler(Node* node);
 
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
