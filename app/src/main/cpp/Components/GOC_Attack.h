@@ -33,7 +33,7 @@ public :
     void SetLifeBaseBonus(float value);
     void SetDeathBaseBonus(float value);
     void SetFireBaseBonus(float value);
-    void SetEquipmentEffects(Vector<int>* effects)
+    void SetEquipmentEffects(PODVector<unsigned char>* effects)
     {
         effects_ = effects;
     }
@@ -45,7 +45,7 @@ public :
     float GetLifeBaseBonus() const;
     float GetDeathBaseBonus() const;
     float GetFireBaseBonus() const;
-    Vector<int>* GetEquipmentEffects() const
+    PODVector<unsigned char>* GetEquipmentEffects() const
     {
         return effects_;
     }
@@ -58,7 +58,7 @@ private :
     Vector<AttackProps>::Iterator GetProperties(const StringHash& elt);
 
     Vector<AttackProps> props_;
-    Vector<int>* effects_;
+    PODVector<unsigned char>* effects_;
 };
 
 

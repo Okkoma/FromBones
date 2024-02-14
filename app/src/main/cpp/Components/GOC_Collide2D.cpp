@@ -161,7 +161,8 @@ void GOC_Collide2D::ClearContacts()
     wallContacts.Clear();
 #endif
     numGroundContacts_ = 0;
-    lastAttackedNode_.Reset();
+    lastVictim_.Reset();
+    lastAggressor_.Reset();
 }
 
 #if (WALLCONTACTMODE != 0)
@@ -521,12 +522,12 @@ void GOC_Collide2D::RemoveWallContact2D(b2Contact* contact)
 
 bool GOC_Collide2D::HasAttacked(float delay) const
 {
-    return lastAttackedNode_ && (lastAttackTime_ + delay > GameContext::Get().time_->GetElapsedTime());
+    return lastVictim_ && (lastAttackTime_ + delay > GameContext::Get().time_->GetElapsedTime());
 }
 
 void GOC_Collide2D::ResetLastAttack()
 {
-    lastAttackedNode_.Reset();
+    lastVictim_.Reset();
 }
 
 void GOC_Collide2D::DumpContacts()
@@ -641,8 +642,8 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 //                            body->GetNode()->GetName().CString(), body->GetNode()->GetID(),
 //                            other->GetNode()->GetName().CString(), other->GetNode()->GetID());
 
-            lastAttackTime_   = GameContext::Get().time_->GetElapsedTime();
-            lastAttackedNode_ = other->GetNode();
+            lastAttackTime_ = GameContext::Get().time_->GetElapsedTime();
+            lastVictim_     = other->GetNode();
         }
 
         return;
@@ -717,6 +718,9 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
     if (!csOther->GetNode()->GetName().StartsWith(TRIGATTACK))
         return;
 
+    if (GameContext::Get().time_->GetElapsedTime() - lastHurtTime_ < 0.2f)
+        return;
+
     /// Other is attacking, Body receives an attack
 
     // No Receive Attack in ClientMode / let Server computing this event
@@ -781,6 +785,9 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 
 //    URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : %s(%u) BEGIN with %s(%u) triggerName=%s !!!",
 //                     body->GetNode()->GetName().CString(), body->GetNode()->GetID(), sender->GetName().CString(), sender->GetID(), csOther->GetNode()->GetName().CString());
+
+    lastHurtTime_  = GameContext::Get().time_->GetElapsedTime();
+    lastAggressor_ = other->GetNode();
 
     EffectsManager::SetEffectsOn(sender, node_, csOther->GetNode()->GetName(), csOther->GetMassCenter() + csOther->GetNode()->GetWorldPosition2D());
 }

@@ -308,7 +308,12 @@ void GOC_Controller::SetControllerType(int type, bool force)
     if (node_)
     {
         node_->SetVar(GOA::TYPECONTROLLER, type);
-        node_->SetVar(GOA::FACTION, GameContext::Get().LocalMode_ ? type : (node_->GetVar(GOA::CLIENTID).GetUInt() << 8) + GO_Player);
+
+        unsigned faction = 0;
+        if (type & (GO_Player|GO_NetPlayer|GO_AI_Ally))
+            faction = GameContext::Get().LocalMode_ ? type : (node_->GetVar(GOA::CLIENTID).GetUInt() << 8) + GO_Player;
+
+        node_->SetVar(GOA::FACTION, faction);
 
         if (controlType_ != oldcontroltype || force)
         {

@@ -7,6 +7,23 @@
 
 Todos:
 
+    ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
+
+    ☐ 07/02/2024 : sur un client, si un avatar distant rentre dans la zone d'affichage du joueur, cet avatar ne s'affiche pas toujours.
+        => modification GameNetwork::UpdateControl de reactivation du node si vivant et sur une map visible.
+        => correctif ClientInfo::CreateAvatarFor (ajout AddTag("Player")) pour etre sur coté server
+        --> 10/02/2024 : il y a certaines fois ou l'avatar n'est pas visible. Il suffit de changer d'avatar pour qu'il se raffiche ...
+
+    ✔  10/02/2024 : ajouter les effets sur les clients distants
+        -> correctif dans GOC_Controller::SetControllerType, probleme de faction qui etait mal setté pour les mobs (faction=0)
+        --> ca à l'air ok pour le CaC avec GOC_Life::ReceiveEffectFrom
+        --> les effets de feu ne fonctionnent pas.
+        ---> Lors du changement d'equipement sur un client via UPDATEEQUIPMENT ou SETFULLEQUIPMENT, il faut mettre à jour les attributs de GOC_Attack.
+        ====> OK 14/02/2024 : ajout de Equipment::GetEquipmentEffects() à utiliser dans GOC_Inventory::NetClientSetEquipment()
+
+    ✔ 10/02/2024 : lorsque un mob est en contact (sans déplacement), on ne voit pas l'animation attaque
+        -> ajout dans GOC_Animator2D::CheckAnim() de netChangeCounter_++ si fin de l'animation
+
     ☐ 10/02/2024 : ameliorer la priorisation des maps à charger pour l'affichage sans avoir de maps manquantes dans le visuel apres teleportation
         -> bloquer la zone tant que les maps ne sont pas affichées pour eviter d'avoir ce probleme visuel
 
@@ -25,8 +42,6 @@ Todos:
     ☐ 09/02/2024 : le server envoit parfois des packets d'ObjectCommand qui ne contiennent parfois que des action NOACTION
         -> il est possible de les supprimer pour alléger la charge réseau
 
-    ☐ 02/02/2024 : il y a encore des problemes avec les spawn de mirubil serveur -> client ; vu egalement avec les bombes
-
     ✔ 07/02/2024 : le drop item Map::AddEntity spawn parfois dans un mur sur le server mais pas sur le client
         -> dans Map::AddEntity, GOC_Destroyer n'a pas encore la position mise à jour ...
         => OK : modification de Map::AddEntity() => viewz=NOVIEW et updater la position de GOC_Destroyer. Permet d'eviter le unstuck dans GOC_Destroyer::UpdatePositions.
@@ -40,10 +55,6 @@ Todos:
         ====> A tester. Verifier les logs
 
     ☐ 07/02/2024 : la taille (entityvariation) des furnitures n'est pas la meme lorsque l'on recharge la map
-
-    ✔ 07/02/2024 : sur un client, si un avatar distant rentre dans la zone d'affichage du joueur, cet avatar ne s'affiche pas toujours.
-        => modification GameNetwork::UpdateControl de reactivation du node si vivant et sur une map visible.
-        => correctif ClientInfo::CreateAvatarFor (ajout AddTag("Player")) pour etre sur coté server
 
     ✔ 05/02/2024 : Consolider World2D pour la teleportation en reseau cf GameHelpers::TransferPlayersToMap
         --> il semble que le server ne modifie pas la position du TravelerNodeInfo, le node etant disable sur le client, son etat est repercuté et donc sa position n'est pas setté sur le server

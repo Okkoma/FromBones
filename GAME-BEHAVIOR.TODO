@@ -1,5 +1,8 @@
 Todos:
 
+    ✔ 10/02/2024 : reactiver BossZone lorsque le client rentre dedans !
+        => OK : modification de EffectAction::Update : ajout d'une condition pour lancer BossZone::OnEnterZone
+
     ✔ 08/02/2024 : les Boss n'arrivent pas à changer de direction
         => pas de pb dans la version du 03/02/2024
         ==> provient de la modification dans Map::AddEntity() pour l'update de position avec le mode Force du Network:07/02/2024

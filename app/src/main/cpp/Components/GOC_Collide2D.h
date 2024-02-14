@@ -63,7 +63,7 @@ public :
     }
     Node* GetLastAttackedNode() const
     {
-        return lastAttackedNode_.Get();
+        return lastVictim_.Get();
     }
     void ResetLastAttack();
 
@@ -102,5 +102,7 @@ private :
     int numGroundContacts_;
 
     float lastAttackTime_;
-    WeakPtr<Node> lastAttackedNode_;
+    WeakPtr<Node> lastVictim_;
+    float lastHurtTime_;
+    WeakPtr<Node> lastAggressor_;
 };

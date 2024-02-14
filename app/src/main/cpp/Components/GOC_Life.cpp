@@ -209,8 +209,8 @@ void GOC_Life::SetTotalEnergyLost(float newtdps)
     {
         if (newtdps > GetTemplateMaxEnergy())
         {
-            URHO3D_LOGINFOF("GOC_Life() - SetTotalEnergyLost : %s(%u) newtdps=%f waiting ... for server reset !",
-                            node_->GetName().CString(), node_->GetID(), newtdps);
+//            URHO3D_LOGINFOF("GOC_Life() - SetTotalEnergyLost : %s(%u) newtdps=%f waiting ... for server reset !",
+//                            node_->GetName().CString(), node_->GetID(), newtdps);
             return;
         }
 
@@ -220,12 +220,13 @@ void GOC_Life::SetTotalEnergyLost(float newtdps)
     if (!newtdps || Abs(props.totalDpsReceived - newtdps) < 0.001f || GetLife() <= 0)
         return;
 
-//    URHO3D_LOGINFOF("GOC_Life() - SetTotalEnergyLost : %s(%u) totalDpsReceived=%f", node_->GetName().CString(), node_->GetID(), newtdps);
+    URHO3D_LOGINFOF("GOC_Life() - SetTotalEnergyLost : %s(%u) totalDpsReceived=%f", node_->GetName().CString(), node_->GetID(), newtdps);
 
     if (GameContext::Get().ClientMode_)
     {
         // on client never play animation HURT here (when setting amount) because it was done before in HandleReceiveEffect
-        ApplyAmountEnergy(props.totalDpsReceived - newtdps, false);
+//        ApplyAmountEnergy(props.totalDpsReceived - newtdps, false);
+        ApplyAmountEnergy(props.totalDpsReceived - newtdps);
     }
     else
     {
@@ -711,10 +712,10 @@ bool GOC_Life::ReceiveEffectFrom(Node* sender, StringHash effectElt, float value
             if (props.energy - value <= 0.f && props.life > 0)
                 SetInvulnerability(2.f);
         }
-        else
-        {
-            URHO3D_LOGWARNINGF("GOC_Life() - ReceiveEffectFrom : %s(%u) Receive LIFE in ClientMode TODO !", node_->GetName().CString(), node_->GetID());
-        }
+//        else
+//        {
+//            URHO3D_LOGWARNINGF("GOC_Life() - ReceiveEffectFrom : %s(%u) Receive LIFE in ClientMode TODO !", node_->GetName().CString(), node_->GetID());
+//        }
     }
     else
     {

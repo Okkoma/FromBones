@@ -101,8 +101,8 @@ void EffectsManager::SetEffectsOn(Node* sender, Node* receiver, const String& tr
                 {
                     char elttype = triggerName.At(2);
 
-                    //                URHO3D_LOGINFOF("EffectsManager() - SetEffectsOn : %s(%u) Receive EffectElt=%c from %s(%u)!", receiver->GetName().CString(), receiver->GetID(),
-                    //                                                    elttype, sender->GetName().CString(), sender->GetID());
+//                    URHO3D_LOGINFOF("EffectsManager() - SetEffectsOn : %s(%u) Receive EffectElt=%c from %s(%u)!", receiver->GetName().CString(), receiver->GetID(),
+//                                    elttype, sender->GetName().CString(), sender->GetID());
 
                     EffectType& effecttype = bufferEffects_[ibufferEffects_];
                     effecttype.effectRessource.Clear();
@@ -143,7 +143,7 @@ void EffectsManager::SetEffectsOn(Node* sender, Node* receiver, const String& tr
                     }
 
                     // Add equipment effects like poison
-                    Vector<int>* equipmenteffects = attack->GetEquipmentEffects();
+                    PODVector<unsigned char>* equipmenteffects = attack->GetEquipmentEffects();
                     if (equipmenteffects)
                     {
                         for (unsigned i = 0; i < equipmenteffects->Size(); i++)
@@ -170,6 +170,7 @@ void EffectsManager::SetEffectsOn(Node* sender, Node* receiver, const String& tr
     if (effects.Size())
     {
 //        URHO3D_LOGINFOF("EffectsManager() - SetEffectsOn : %s(%u) Receive Effects ...", receiver->GetName().CString(), receiver->GetID());
+
         unsigned i=0;
         bool receiveEffects = false;
         for (Vector<EffectType*>::ConstIterator it = effects.Begin(); it != effects.End(); ++it,++i)
@@ -245,10 +246,10 @@ bool EffectsManager::AddEffectOn(Node* sender, Node* receiver, EffectType* effec
             }
         }
     }
-    else
-    {
+//    else
+//    {
 //        URHO3D_LOGWARNINGF("EffectsManager() - AddEffectOn : %s(%u) => can't add effect=%s !", receiver->GetName().CString(), receiver->GetID(), effect ? effect->name.CString() : "none");
-    }
+//    }
 
     // if zone and holder => clear slot => node to destroy
     if (zone && zone->GetApplyToHolder() && zone->GetHolder() == receiver->GetID())
@@ -270,13 +271,13 @@ bool EffectsManager::ApplyEffectOn(Node* sender, Node* receiver, EffectType* eff
 
     if (!effect)
     {
-//        URHO3D_LOGINFOF("EffectsManager() - AddEffectOn : %s(%u) => empty effect !", receiver->GetName().CString(), receiver->GetID());
+//        URHO3D_LOGINFOF("EffectsManager() - ApplyEffectOn : %s(%u) => empty effect !", receiver->GetName().CString(), receiver->GetID());
         applied = false;
     }
 
     if (applied && GameHelpers::IsNodeImmuneToEffect(receiver, *effect))
     {
-        URHO3D_LOGINFOF("EffectsManager() - AddEffectOn : %s(%u) => can't add effect, this receiver is immune !", receiver->GetName().CString(), receiver->GetID());
+//        URHO3D_LOGINFOF("EffectsManager() - ApplyEffectOn : %s(%u) => can't add effect, this receiver is immune !", receiver->GetName().CString(), receiver->GetID());
         applied = false;
     }
 
@@ -317,10 +318,10 @@ bool EffectsManager::ApplyEffectOn(Node* sender, Node* receiver, EffectType* eff
                                                        angle, 1.f/receiver->GetWorldScale2D().x_, true, effect->delayBetweenTicks, Color::WHITE, LOCAL);
             }
         }
-        else
-        {
+//        else
+//        {
 //			URHO3D_LOGINFOF("EffectsManager() - ApplyEffectOn : node=%s(%u) effect=%s can't apply more life !", receiver->GetName().CString(), receiver->GetID(), effect->effectRessource.CString());
-        }
+//        }
     }
 
     return applied;

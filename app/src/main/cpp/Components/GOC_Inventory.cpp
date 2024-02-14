@@ -30,6 +30,7 @@
 #include "ViewManager.h"
 
 #include "GOC_Animator2D.h"
+#include "GOC_Attack.h"
 #include "GOC_ZoneEffect.h"
 #include "GOC_Collectable.h"
 #include "GOC_Controller.h"
@@ -1737,8 +1738,12 @@ void GOC_Inventory::NetClientSetEquipment(unsigned servernodeid, VariantMap& eve
         URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment servernodeid=%u ... save equipmentset ", servernodeid);
         VariantVector& equipmentDataSet = clientEquipmentSets_[servernodeid];
         equipmentDataSet = eventData[Net_ObjectCommand::P_INVENTORYSLOTS].GetVariantVector();
+
         // add the template inventory hash
         equipmentDataSet.Push(eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt());
+
+        // add equipment effects vector
+        equipmentDataSet.Push(PODVector<unsigned char>());
     }
 
     ObjectControlInfo* oinfo = GameNetwork::Get()->GetServerObjectControl(servernodeid);
@@ -1757,19 +1762,21 @@ void GOC_Inventory::NetClientSetEquipment(Node* node, unsigned servernodeid)
         return;
     }
 
-    // get temporary equipment
-    VariantVector& equipmentDataSet = it->second_;
-
     AnimatedSprite2D* animatedSprite = node->GetComponent<AnimatedSprite2D>();
     if (!animatedSprite)
     {
         URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No AnimatedSprite", node->GetName().CString(), node->GetID());
         return;
     }
-    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(equipmentDataSet.Back().GetUInt());
+
+    // get temporary equipment
+    VariantVector& equipmentDataSet = it->second_;
+
+    const unsigned templateValue = equipmentDataSet[equipmentDataSet.Size()-2].GetUInt();
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(templateValue);
     if (!inventoryTemplate)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), equipmentDataSet.Back().GetUInt());
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), templateValue);
         return;
     }
 
@@ -1777,7 +1784,7 @@ void GOC_Inventory::NetClientSetEquipment(Node* node, unsigned servernodeid)
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
 
     // set the Equipement Slots
-    bool animatorToUpdate = false;
+    bool update = false;
     Pair<unsigned, unsigned> sectionIndexes = inventoryTemplate->GetSectionIndexes("Equipment");
     if (sectionIndexes.first_ <= sectionIndexes.second_)
     {
@@ -1794,17 +1801,29 @@ void GOC_Inventory::NetClientSetEquipment(Node* node, unsigned servernodeid)
                 return;
             }
 
-            animatorToUpdate |= GOC_Inventory::SetEquipmentSlot(animatedSprite, idslot, slotname, StringHash(equipmentDataSet[i].GetUInt()), inventory);
+            update |= GOC_Inventory::SetEquipmentSlot(animatedSprite, idslot, slotname, StringHash(equipmentDataSet[i].GetUInt()), inventory);
         }
     }
 
-    if (animatorToUpdate)
+    if (update)
     {
         GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
         if (animator)
             animator->PlugDrawables();
 
-        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment : %s(%u) equipmentset applied ... OK !");
+        // Update Effects list
+        if (!inventory)
+        {
+            GOC_Attack* attack = node->GetComponent<GOC_Attack>();
+            if (attack)
+            {
+//                URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment : %s(%u) equipmentset get effects ... ", node->GetName().CString(), node->GetID());
+                Equipment::GetEquipmentEffects(equipmentDataSet, equipmentDataSet.Back().GetBufferPtr());
+                attack->SetEquipmentEffects(equipmentDataSet.Back().GetBufferPtr());
+            }
+        }
+
+//        URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipment : %s(%u) equipmentset applied ... OK !", node->GetName().CString(), node->GetID());
     }
 }
 
@@ -1850,10 +1869,20 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
     {
         VariantVector& equipmentDataSet = it->second_;
         unsigned slotindex = idslot - equipmentIndexes.first_;
+
         // resize if needed
         if (equipmentDataSet.Size() <= slotindex)
             equipmentDataSet.Resize(slotindex+1);
         equipmentDataSet[slotindex] = slotType.Value();
+
+        // Update Effects list
+        GOC_Attack* attack = node->GetComponent<GOC_Attack>();
+        if (attack)
+        {
+//            URHO3D_LOGINFOF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) equipmentset get effects !", node->GetName().CString(), node->GetID());
+            Equipment::GetEquipmentEffects(equipmentDataSet, equipmentDataSet.Back().GetBufferPtr());
+            attack->SetEquipmentEffects(equipmentDataSet.Back().GetBufferPtr());
+        }
     }
 
     // Update the animation

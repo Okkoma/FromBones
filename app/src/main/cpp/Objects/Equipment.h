@@ -73,6 +73,8 @@ public :
         return animationEquipment_;
     }
 
+    static void GetEquipmentEffects(VariantVector& equipmentDataSet, PODVector<unsigned char>* bufferEffects);
+
     bool IsDirty() const
     {
         return dirty_;
@@ -121,7 +123,7 @@ private :
     /// Num wearable Abilities by ability type
     HashMap<StringHash, unsigned> numEquipWithAbilities_;
     /// Num Effects by effectid (effectid=index)
-    Vector<int> equipmentEffects_;
+    PODVector<unsigned char> equipmentEffects_;
 
     StringHash weapons_[2];
     StringHash weaponabilities_[2];

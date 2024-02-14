@@ -297,7 +297,11 @@ void EffectAction::Update(Node* node, IntVector3& zone, int viewport)
 
                 bool ok = effectAction;
                 if (ok && numPlayersInside > 0)
+                {
                     ok = effectAction->Apply();
+                    if (zone.z_ == -1 && zonedata.state_ == 2)
+                        effectAction->OnEnterZone(viewport);
+                }
                 if (ok && zonedata.state_ == 0)
                     effectAction->AddViewportUser(viewport, node);
             }

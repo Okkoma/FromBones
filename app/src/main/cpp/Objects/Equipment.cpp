@@ -270,12 +270,62 @@ Node* Equipment::GetHolderNode() const
 //    return (controller != 0);
 //}
 
+void Equipment::GetEquipmentEffects(VariantVector& equipmentDataSet, PODVector<unsigned char>* equipmentEffects)
+{
+//    URHO3D_LOGINFOF("Equipment() - GetEquipmentEffects : ...");
+
+    equipmentEffects->Resize(EffectType::GetNumRegisteredEffects());
+    for (unsigned i = 0; i < equipmentEffects->Size(); i++)
+        equipmentEffects->At(i) = 0;
+
+    for (VariantVector::Iterator it = equipmentDataSet.Begin(); it != equipmentDataSet.End(); ++it)
+    {
+        if (it->GetUInt() == 0)
+            continue;
+
+        StringHash eqpObject(it->GetUInt());
+
+        Node* node = GOT::GetObject(eqpObject);
+        if (!node)
+        {
+//            URHO3D_LOGERRORF("Equipment() - GetEquipmentEffects eqpObject=%u ... no template node !", eqpObject.Value());
+            continue;
+        }
+
+//        URHO3D_LOGINFOF("Equipment() - GetEquipmentEffects eqpObject=%u %s ... ", eqpObject.Value(), node->GetName().CString());
+
+        const VariantMap& attributes = node->GetVars();
+        for (VariantMap::ConstIterator ita = attributes.Begin(); ita != attributes.End(); ++ita)
+        {
+            if (ita->first_.Value() >= GOA::EFFECTID1.Value() && ita->first_.Value() <= GOA::EFFECTID3.Value())
+            {
+                int effectid = ita->second_.GetInt();
+                if (effectid < equipmentEffects->Size())
+                    equipmentEffects->At(effectid)++;
+            }
+        }
+    }
+
+//    for (unsigned i = 0; i < equipmentEffects->Size(); i++)
+//    {
+//        if (equipmentEffects->At(i) != 0)
+//            URHO3D_LOGINFOF("Equipment() - effects[%u] = %d", i, equipmentEffects->At(i));
+//    }
+}
+
 void Equipment::UpdateAttributes(unsigned index)
 {
-    URHO3D_LOGINFOF("Equipment() - UpdateAttributes index=%u ...", index);
+//    URHO3D_LOGINFOF("Equipment() - UpdateAttributes index=%u ...", index);
 
     const String& slotName = inventory_->GetSlotName(index);
     const StringHash& slothashname = inventory_->GetSlotHashName(index);
+
+    if (equipmentEffects_.Size() < EffectType::GetNumRegisteredEffects())
+    {
+        equipmentEffects_.Resize(EffectType::GetNumRegisteredEffects());
+        for (unsigned i = 0; i < equipmentEffects_.Size(); i++)
+            equipmentEffects_[i] = 0;
+    }
 
     // Search if it's a weapon slot
     int weaponindex = -1;
@@ -292,7 +342,7 @@ void Equipment::UpdateAttributes(unsigned index)
         if (currentEqpObject != StringHash::ZERO)
         {
             const VariantMap& currAttr = GOT::GetObject(currentEqpObject)->GetVars();
-            for (VariantMap::ConstIterator ita=currAttr.Begin(); ita!=currAttr.End(); ++ita)
+            for (VariantMap::ConstIterator ita = currAttr.Begin(); ita != currAttr.End(); ++ita)
             {
                 if (ita->second_.GetType() == VAR_FLOAT)
                 {
@@ -308,13 +358,9 @@ void Equipment::UpdateAttributes(unsigned index)
                 else if (ita->first_.Value() >= GOA::EFFECTID1.Value() && ita->first_.Value() <= GOA::EFFECTID3.Value())
                 {
                     int effectid = ita->second_.GetInt();
-
-                    if (effectid >= equipmentEffects_.Size())
-                        equipmentEffects_.Resize(EffectType::GetNumRegisteredEffects());
-
                     if (effectid < equipmentEffects_.Size())
                     {
-                        int& numeffects = equipmentEffects_[effectid];
+                        unsigned char& numeffects = equipmentEffects_[effectid];
                         if (numeffects > 0)
                             numeffects--;
                     }
@@ -397,13 +443,9 @@ void Equipment::UpdateAttributes(unsigned index)
                 else if (ita->first_.Value() >= GOA::EFFECTID1.Value() && ita->first_.Value() <= GOA::EFFECTID3.Value())
                 {
                     int effectid = ita->second_.GetInt();
-
-                    if (effectid >= equipmentEffects_.Size())
-                        equipmentEffects_.Resize(EffectType::GetNumRegisteredEffects());
-
                     if (effectid < equipmentEffects_.Size())
                     {
-                        int& numeffects = equipmentEffects_[effectid];
+                        unsigned char& numeffects = equipmentEffects_[effectid];
                         numeffects++;
                     }
                     else
@@ -630,6 +672,12 @@ void Equipment::Dump() const
 
     for (int i=0; i < 2; i++)
         URHO3D_LOGINFOF("Equipment() - weapon[%d]=%u ability=%u", i, weapons_[i].Value(), weaponabilities_[i].Value());
+
+    for (unsigned i = 0; i < equipmentEffects_.Size(); i++)
+    {
+        if (equipmentEffects_[i] != 0)
+            URHO3D_LOGINFOF("Equipment() - effects[%u] = %d", i, equipmentEffects_[i]);
+    }
 }
 
 Variant Equipment::GetEquipmentValue(unsigned index, const StringHash& attribut) const

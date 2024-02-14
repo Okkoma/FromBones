@@ -2918,6 +2918,7 @@ inline void GOC_Animator2D::CheckAnim(const VariantMap& param)
     #endif
             Dispatch(AEVENT_ENDLOOP);
             currentStateTime = 0.0f;
+            netChangeCounter_++;
         }
         else
         {
