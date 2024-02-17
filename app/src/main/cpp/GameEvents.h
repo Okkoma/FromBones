@@ -206,7 +206,9 @@ URHO3D_EVENT(GOC_CONTROLACTIONSTOP, ControlActionStop) { }
 /// Action3 Press Event : Fire3
 URHO3D_EVENT(GOC_CONTROLACTION3, ControlAction3) { }
 /// Action Status Press Event
-URHO3D_EVENT(GOC_CONTROLACTIONSTATUS, ControlActionStatus) { }
+URHO3D_EVENT(GOC_CONTROLACTION_STATUS, ControlActionStatus) { }
+URHO3D_EVENT(GOC_CONTROLACTION_PREVFOCUSPANEL, ControlActionPrevFocusPanel) { }
+URHO3D_EVENT(GOC_CONTROLACTION_NEXTFOCUSPANEL, ControlActionNextFocusPanel) { }
 
 /// Change Controller Event
 URHO3D_EVENT(GOC_CONTROLLERCHANGE, ControllerChange)

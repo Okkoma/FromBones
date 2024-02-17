@@ -312,18 +312,18 @@ const char * layerMaterialFiles_[] =
 
 const int GameContext::defaultkeysMap_[MAX_NUMPLAYERS][MAX_NUMACTIONS] =
 {
-    { SCANCODE_W, SCANCODE_S, SCANCODE_A, SCANCODE_D, SCANCODE_SPACE, SCANCODE_E, SCANCODE_F, SCANCODE_R, SCANCODE_Q, SCANCODE_TAB },
-    { SCANCODE_UP, SCANCODE_DOWN, SCANCODE_LEFT, SCANCODE_RIGHT, SCANCODE_RCTRL, SCANCODE_RSHIFT, SCANCODE_SLASH, SCANCODE_PERIOD, SCANCODE_BACKSLASH, SCANCODE_APOSTROPHE },
-    { SCANCODE_W, SCANCODE_S, SCANCODE_A, SCANCODE_D, SCANCODE_SPACE, SCANCODE_E, SCANCODE_F, SCANCODE_R, SCANCODE_Q, SCANCODE_TAB },
-    { SCANCODE_UP, SCANCODE_DOWN, SCANCODE_LEFT, SCANCODE_RIGHT, SCANCODE_RCTRL, SCANCODE_RSHIFT, SCANCODE_SLASH, SCANCODE_PERIOD, SCANCODE_BACKSLASH, SCANCODE_APOSTROPHE }
+    { SCANCODE_W, SCANCODE_S, SCANCODE_A, SCANCODE_D, SCANCODE_SPACE, SCANCODE_E, SCANCODE_F, SCANCODE_R, SCANCODE_Q, SCANCODE_TAB, SCANCODE_TAB, SCANCODE_TAB },
+    { SCANCODE_UP, SCANCODE_DOWN, SCANCODE_LEFT, SCANCODE_RIGHT, SCANCODE_RCTRL, SCANCODE_RSHIFT, SCANCODE_SLASH, SCANCODE_PERIOD, SCANCODE_BACKSLASH, SCANCODE_APOSTROPHE, SCANCODE_APOSTROPHE, SCANCODE_APOSTROPHE },
+    { SCANCODE_W, SCANCODE_S, SCANCODE_A, SCANCODE_D, SCANCODE_SPACE, SCANCODE_E, SCANCODE_F, SCANCODE_R, SCANCODE_Q, SCANCODE_TAB, SCANCODE_TAB, SCANCODE_TAB },
+    { SCANCODE_UP, SCANCODE_DOWN, SCANCODE_LEFT, SCANCODE_RIGHT, SCANCODE_RCTRL, SCANCODE_RSHIFT, SCANCODE_SLASH, SCANCODE_PERIOD, SCANCODE_BACKSLASH, SCANCODE_APOSTROPHE, SCANCODE_APOSTROPHE, SCANCODE_APOSTROPHE }
 };
 
 const int GameContext::defaultbuttonsMap_[MAX_NUMPLAYERS][MAX_NUMACTIONS] =
 {
-    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A },
-    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A },
-    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A },
-    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A },
+    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
+    { SDL_CONTROLLER_BUTTON_DPAD_UP, SDL_CONTROLLER_BUTTON_DPAD_DOWN, SDL_CONTROLLER_BUTTON_DPAD_LEFT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_B, SDL_CONTROLLER_BUTTON_X, SDL_CONTROLLER_BUTTON_Y, SDL_CONTROLLER_BUTTON_START, SDL_CONTROLLER_BUTTON_A, SDL_CONTROLLER_BUTTON_LEFTSHOULDER, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER },
 };
 
 
@@ -373,6 +373,7 @@ GameContext::GameContext(Context* context) :
     DrawDebug_(false),//    if (!GameContext::Get().ui_->HasModalElement() || GameContext::Get().ui_->GetFocusElement() == uioptionsframe_)
 
     playerState_(gameState_.playerState_),
+    uiLockSceneControllers_(false),
     CameraZ_(10.f),
     indexLevel_(gameState_.indexLevel_),
     numPlayers_(gameState_.numPlayers_),
@@ -845,11 +846,11 @@ void GameContext::ValidateJoysticks()
 {
     URHO3D_LOGINFOF("GameContext() - ValidateJoysticks ...");
 
-    for (unsigned i=0; i<4; i++)
+    for (unsigned i = 0; i < MAX_NUMPLAYERS; i++)
         joystickIndexes_[i] = -1;
 
-    Input* input = context_->GetSubsystem<Input>();
-    int numjoysticks = input->GetNumJoysticks();
+//    Input* input = context_->GetSubsystem<Input>();
+    int numjoysticks = input_->GetNumJoysticks();
 
     if (!numjoysticks)
         return;
@@ -861,7 +862,7 @@ void GameContext::ValidateJoysticks()
 
     for (int i=0; i < numjoysticks; i++)
     {
-        JoystickState* joystate = input->GetJoystickByIndex(i);
+        JoystickState* joystate = input_->GetJoystickByIndex(i);
         if (!joystate)
             continue;
 
@@ -869,7 +870,7 @@ void GameContext::ValidateJoysticks()
                         i, joystate->joystickID_, joystate->IsController() ? "true":"false", joystate->name_.CString(), joystate->screenJoystick_, joystate->GetNumButtons(), joystate->GetNumHats(), joystate->GetNumAxes());
 
         // skip playstation sensor controller
-        if (j < 4 && !joystate->name_.Contains("Sensors"))
+        if (j < MAX_NUMPLAYERS && !joystate->name_.Contains("Sensors"))
         {
             joystickIndexes_[j] = i;
             j++;
@@ -878,10 +879,10 @@ void GameContext::ValidateJoysticks()
 
     URHO3D_LOGINFOF("GameContext() - ValidateJoysticks : Dump Validated Joysticks :", numjoysticks);
 
-    for (unsigned i=0; i<4; i++)
+    for (unsigned i=0; i < MAX_NUMPLAYERS; i++)
     {
         if (joystickIndexes_[i] == -1)
-            break;
+            continue;
 
 //        URHO3D_LOGINFOF(" -> Joystick[%u] : index=%d ", i, joystickIndexes_[i]);
 
@@ -889,7 +890,60 @@ void GameContext::ValidateJoysticks()
             playerAvatars_[i]->GetComponent<GOC_PlayerController>()->SetJoystickControls(i);
     }
 
+    joystickControllerIds_.Clear();
+    for (int index = 0; index < MAX_NUMPLAYERS; index++)
+    {
+        joystickByControllerIds_[index] = 0;
+        for (unsigned controlid = 0; controlid < MAX_NUMPLAYERS; controlid++)
+        {
+            if (index == joystickIndexes_[controlid])
+            {
+                JoystickState* joystate = input_->GetJoystickByIndex(index);
+                if (!joystate)
+                    continue;
+
+                joystickControllerIds_[joystate->joystickID_] = controlid;
+                joystickByControllerIds_[controlid] = joystate;
+            }
+        }
+    }
+
     URHO3D_LOGINFOF("GameContext() - ValidateJoysticks : ... OK !");
+}
+
+int GameContext::GetControllerIDForJoystick(SDL_JoystickID joyid) const
+{
+    HashMap<SDL_JoystickID, int>::ConstIterator it = joystickControllerIds_.Find(joyid);
+    return it != joystickControllerIds_.End() ? it->second_ : -1;
+}
+
+bool GameContext::GetActionKeyDown(int controlid, int actionkey) const
+{
+    int controltype = playerState_[controlid].controltype;
+
+    if (controltype == CT_KEYBOARD || controltype == CT_SCREENJOYSTICK)
+    {
+        return input_->GetScancodeDown(keysMap_[controlid][actionkey]);
+    }
+    else if (controltype == CT_JOYSTICK)
+    {
+        JoystickState* joystick = joystickByControllerIds_[controlid];
+
+        if (!joystick)
+            return false;
+
+        if (actionkey >= ACTION_JUMP)
+        {
+//            URHO3D_LOGINFOF("GameContext() - GetActionKeyDown : ... CT_JOYSTICK ... actionkey=%d", actionkey);
+            return joystick->GetButtonDown(buttonsMap_[controlid][actionkey]);
+        }
+        else
+        {
+            // TODO : Directional keys
+        }
+    }
+
+    return false;
 }
 
 void GameContext::InitTouchInput()

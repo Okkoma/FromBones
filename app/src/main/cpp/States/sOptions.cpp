@@ -97,6 +97,8 @@ const char* ActionNames_[] =
     "Fire3",
     "Status",
     "Interact",
+    "Focus-",
+    "Focus+",
     ""
 };
 

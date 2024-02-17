@@ -266,10 +266,10 @@ bool GOC_Abilities::SetActiveAbility(Ability* ability)
                 StringHash cond = c.condition_;
 
                 if (cond == GOA::COND_APPLIEDMAPPING)
-                    succeed = node_->GetComponent<AnimatedSprite2D>()->IsCharacterMapApplied(cond);
-                /// see to change String by StringHash for entityname
+                    succeed = node_->GetComponent<AnimatedSprite2D>()->IsCharacterMapApplied(c.conditionValue_);
+                /// TODO : see to change String by StringHash for entityname
                 else if (cond == GOA::COND_ENTITY)
-                    succeed = StringHash(node_->GetComponent<AnimatedSprite2D>()->GetEntityName()) == cond;
+                    succeed = StringHash(node_->GetComponent<AnimatedSprite2D>()->GetEntityName()) == c.conditionValue_;
                 if (succeed)
                     break;
             }

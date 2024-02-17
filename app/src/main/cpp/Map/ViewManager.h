@@ -49,7 +49,7 @@ struct ViewportInfo
     List<WeakPtr<Node> > nodesOnFocus_;
 };
 
-class ViewManager : public Object
+class FROMBONES_API ViewManager : public Object
 {
     URHO3D_OBJECT(ViewManager, Object);
 

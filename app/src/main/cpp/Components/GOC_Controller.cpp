@@ -133,7 +133,12 @@ bool GOC_Controller::MountOn(Node* target)
     {
         body->SetEnabled(false);
 
-        node_->SetParent(mountNode);
+        // don't use setparent (hang program), prefer addchild
+        Vector2 scale = node_->GetWorldScale2D();
+        mountNode->AddChild(node_);
+        node_->SetWorldScale2D(scale);
+
+//        node_->SetParent(mountNode);
 
         node_->SetPosition2D(Vector2::ZERO);
     }
@@ -203,7 +208,13 @@ bool GOC_Controller::Unmount()
         if (target && target->GetID() != targetid)
             target = 0;
 
-        node_->SetParent(node_->GetScene());
+        Vector2 wpos  = node_->GetWorldPosition2D();
+        Vector2 scale = node_->GetWorldScale2D();
+        node_->GetScene()->AddChild(node_);
+        node_->SetWorldScale2D(scale);
+//        node_->SetParent(node_->GetScene());
+        node_->SetWorldPosition2D(wpos);
+
         node_->GetComponent<RigidBody2D>()->SetEnabled(true);
     }
     else
@@ -508,8 +519,23 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
 
             if (control_.IsButtonDown(CTRL_FIRE2))
             {
-    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
-                node_->SendEvent(GOC_CONTROLACTION2);
+                GOC_Animator2D* gocanimator = node_->GetComponent<GOC_Animator2D>();
+                bool canUseAction2 = gocanimator->HasAnimationForState(STATE_POWER1) || gocanimator->HasAnimationForState(STATE_POWER2);
+                if (!canUseAction2)
+                {
+                    GOC_Abilities* gocabilities = node_->GetComponent<GOC_Abilities>();
+                    if (gocabilities)
+                    {
+                        Ability* ability = gocabilities->GetAbility(ABI_AnimShooter::GetTypeStatic());
+                        canUseAction2 = ability && gocabilities->SetActiveAbility(ability);
+                    }
+                }
+
+                if (canUseAction2)
+                {
+                    URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+                    node_->SendEvent(GOC_CONTROLACTION2);
+                }
             }
 
             if (control_.IsButtonDown(CTRL_FIRE3))
@@ -517,11 +543,6 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
     //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE3 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
                 node_->SendEvent(GOC_CONTROLACTION3);
             }
-        }
-
-        if (control_.IsButtonDown(CTRL_STATUS))
-        {
-            node_->SendEvent(GOC_CONTROLACTIONSTATUS);
         }
     }
 

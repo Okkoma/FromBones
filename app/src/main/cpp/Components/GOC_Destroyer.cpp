@@ -212,6 +212,7 @@ void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
     URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
 
     worldUpdatePosition_ = enable;
+    switchViewEnable_ = body_ ? body_->GetBodyType() != BT_STATIC && !node_->GetComponent<ObjectMaped>() && worldUpdatePosition_ && !delegateNode_ : false;
 
     if (GetScene() && enabled_)
     {
@@ -232,6 +233,7 @@ void GOC_Destroyer::SetDelegateNode(Node* node)
 {
 //    URHO3D_LOGINFOF("GOC_Destroyer() - SetDelegateNode : %s(%u) delegateNode=%s(%u) !", node_->GetName().CString(), node_->GetID(), node?node->GetName().CString():"none", node?node->GetID():0);
     delegateNode_ = node;
+    switchViewEnable_ = body_ ? body_->GetBodyType() != BT_STATIC && !node_->GetComponent<ObjectMaped>() && worldUpdatePosition_ && !delegateNode_ : false;
 }
 
 void GOC_Destroyer::CheckLifeTime()
@@ -425,6 +427,9 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
 
 void GOC_Destroyer::UpdateFilterBits(int viewZ)
 {
+    if (!body_)
+        return;
+
     if (!viewZ || viewZ == NOVIEW)
         viewZ = node_->GetVar(GOA::ONVIEWZ).GetInt();
 
@@ -439,7 +444,7 @@ void GOC_Destroyer::UpdateFilterBits(int viewZ)
     }
 
     PODVector<CollisionShape2D*> shapes;
-    node_->GetDerivedComponents(shapes, true);
+    node_->GetDerivedComponents<CollisionShape2D>(shapes, true);
 
     int type = node_->GetVar(GOA::TYPECONTROLLER).GetInt();
     bool isdead = node_->GetVar(GOA::ISDEAD).GetBool();

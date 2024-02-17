@@ -31,7 +31,7 @@ using namespace Urho3D;
 HashMap<StringHash, String> GOA::attributes_;
 HashMap<StringHash, String> CharacterMappingNames_;
 
-const StringHash GOA::GOT               = StringHash("GOA_GOT");
+const FROMBONES_API StringHash GOA::GOT               = StringHash("GOA_GOT");
 const StringHash GOA::CLIENTID          = StringHash("GOA_ClientID");
 const StringHash GOA::OWNERID           = StringHash("GOA_OwnerId");
 const StringHash GOA::ACTORID           = StringHash("GOA_ActorId");
@@ -41,7 +41,7 @@ const StringHash GOA::BOSSZONEID	    = StringHash("GOA_BossZoneId");
 const StringHash GOA::ONMAP             = StringHash("GOA_OnMap");
 const StringHash GOA::INFLUID           = StringHash("GOA_InFluid");
 const StringHash GOA::ONTILE            = StringHash("GOA_OnTile");
-const StringHash GOA::ONVIEWZ           = StringHash("GOA_OnViewZ");
+const FROMBONES_API StringHash GOA::ONVIEWZ           = StringHash("GOA_OnViewZ");
 
 const StringHash GOA::KEEPVISIBLE       = StringHash("GOA_KeepVisible");
 const StringHash GOA::LAYERALIGNMENT    = StringHash("GOA_LayerAlignement");

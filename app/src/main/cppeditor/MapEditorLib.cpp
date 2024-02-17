@@ -64,6 +64,7 @@
 
 #include "MapWorld.h"
 #include "Map.h"
+#include "ViewManager.h"
 
 #include "ObjectTiled.h"
 #include "GEF_Scrolling.h"

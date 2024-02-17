@@ -1,5 +1,20 @@
 Todos:
 
+    ✔ 16/02/2024 : lorsque l'avatar monte un skeleton et que l'avatar utilise son power2, le skeleton utilise son animation pistolet alors qu'il n'en a pas
+        => Ajout de la condition d'utilisation de l'abilité dans GOC_Controller::Update + patch correctif dans GOC_Abilities::SetActiveAbility
+
+    ✔ 16/02/2024 : il y a encore des problemes de changement de viewZ pour les entités montés sur l'avatar ... il arrive que les entités montées changent de viewZ au passage d'une porte mais pas l'avatar qui ne la pas franchi.
+        => cela arrive quand une entité est monté sur une autre qui est monté sur l'avatar
+        ==> OK desactivant le changement de vue direct dans GOC_Destroyer::UpdatePosition() : setter switchViewEnable_.
+
+    ✔ 16/02/2024 : en montant elsarion, et en changeant d'avatar, elsarion perd un cercle de collision (il en a normalement 2)
+        -> la position des cercle de collision n'est pas la bonne, ni la dimension.
+        --> en loggant dans AnimatedSprite2D::UpdateTriggers(), les collisionshapes ne sont plus lié au rigidbody d'elsarion mais à celui de l'avatar ...
+        ==> dans AnimatedSprite2D::UpdateTriggers(), le GetChild() etait recursif (à cause d'une erreur/confusion dans le parametre (utilisation de LOCAL, qui ne sert que pour CreateChild)) ... erreur corrigé.
+        ==> amelioration CollisionCircle avec UpdateCircle.
+
+    ☐ 14/02/2024 : pouvoir equiper les alliés
+
     ✔ 10/02/2024 : reactiver BossZone lorsque le client rentre dedans !
         => OK : modification de EffectAction::Update : ajout d'une condition pour lancer BossZone::OnEnterZone
 
@@ -13,7 +28,8 @@ Todos:
     ☐ 04/02/2024 : sous Win64, la manette PS4 n'est pas géré à l'identique que sous Linux : le hat (pad) ne peut etre utilisé dans le menu (contrairement à linux) et le bouton principal ne peut etre utilisé en souris
         -> voir comment est reconnu la manette dans le systeme (driver)
 
-    ☐ 04/02/2024 : Joystick, le tir lacté avec Vache ne tire pas en continue avec le joystick.
+    ✔ 04/02/2024 : Joystick, le tir lacté avec Vache ne tire pas en continue avec le joystick.
+        -> le 15/02/2024 : OK modification de GOC_PlayerController::UpdateJoystickControls <= GetButtonDown
 
     ✔ 01/02/2024 : Resolution bug majeure sur l'animation qui boucle sans raison
         -> il arrive qu'une animation loop : exemple animation attack alors qu'il n'y a pas d'action d'attaque ...

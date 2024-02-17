@@ -35,6 +35,7 @@ public :
     void SetPosition(int x, int y, HorizontalAlignment hAlign, VerticalAlignment vAlign);
     void SetPosition(const IntVector2& position, HorizontalAlignment hAlign, VerticalAlignment vAlign);
     void SetVisible(bool state, bool saveposition=false);
+    void SetLockSceneInteraction(bool enable) { lockSceneInteraction_ = enable; }
 
     void ToggleVisible();
 
@@ -44,7 +45,7 @@ public :
     Object* GetUser() const { return user_; }
     UIElement* GetElement() const { return panel_; }
     const String& GetName() const { return panel_->GetName(); }
-    int GetKeyFromEvent(int controlid, StringHash eventType, VariantMap& eventData) const;
+    int GetKeyFromEvent(StringHash eventType, VariantMap& eventData) const;
 
     void DebugDraw();
 
@@ -58,7 +59,6 @@ public :
     static void RegisterPanel(UIPanel* panel);
     static void RemovePanel(UIPanel* panel);
     static void ClearRegisteredPanels();
-    static void SetAllowSceneInteraction(bool enable) { allowSceneInteraction_ = enable; }
     static SharedPtr<UIElement> draggedElement_;
     static bool onKeyDrag_;
 
@@ -75,8 +75,8 @@ protected :
 
     WeakPtr<UIElement> panel_;
     IntVector2 lastPosition_;
+    bool lockSceneInteraction_;
 
-    static bool allowSceneInteraction_;
     static HashMap<String, SharedPtr<UIPanel> > panels_;
 };
 
@@ -131,6 +131,8 @@ protected :
     virtual void OnDragSlotIn(int slotId, Slot& fromSlot, int fromSlotId, UISlotPanel* fromPanel);
     virtual void OnDragSlotFinish(int slotId);
     virtual void OnSlotRemain(Slot& slot, int slotid);
+
+    virtual void OnRelease();
 
     virtual void HandleSlotDragBegin(StringHash eventType, VariantMap& eventData);
     virtual void HandleSlotDragMove(StringHash eventType, VariantMap& eventData);

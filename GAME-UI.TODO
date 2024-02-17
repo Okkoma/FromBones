@@ -1,13 +1,23 @@
 Todos:
 
+    ☐ 15/02/2024 : faire une ui simple pour la selection et l'utilisation des entités alliés
+        -> affichage d'un selecteur d'entité dans la scene.
+        -> puis pop des commandes (cible, attaque, fuite, defense).
+        ->
+
+    ✔ 15/02/2024 : lors de l'ouverture d'un panel via le statuspanel, mettre le focus dessus
+        -> le switch de focus doit se faire via des boutons differents du bouton status
+        --> ajout de ACTION_PREVPANEL et ACTION_NEXTPANEL.
+
+    ✔ 15/02/2024 : ajout du drop item avec le joystick
+        -> modification de UISlotPanel et ajout de GameContext::GetActionKeyDown
+
     ✔ 04/02/2024 : Joystick, faire la gestion du double clic dans l'inventaire pour utiliser les potions.
         -> OK : UISlotPanel::OnKey => ajout du code
 
     ✔ 10/11/2023 : Permettre le deplacement de l'avatar durant la selection dans l'UI @done(23-11-11 14:20)
         => pour cela, il faut utiliser le Joystick Hat uniquement pour l'UI avec Joystick Reset
         ==> OK : creation de static void UIPanel::SetAllowSceneInteraction(bool enable)
-
-    ☐ 10/11/2023 : Parametrer 2 nouvelles touches Prev/Next pour le deplacement dans les panneaux UI.
 
     ✔ 08/11/2023 : AbilityPanel en Multiplayers local @done(23-11-11 14:20)
         => en multiplayer sans multiview, pb de position de l'abilitypanel pour chaque joueur car centré en haut et trop gros. il faudrait trouver un autre systeme comme pour la selection des personnages.

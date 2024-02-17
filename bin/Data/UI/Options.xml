@@ -714,18 +714,18 @@
                 <attribute name="Horiz Alignment" value="Center" />
                 <attribute name="Vert Alignment" value="Center" />
                 <attribute name="Min Size" value="566 185" />
-                <attribute name="Max Size" value="566 350" />
+                <attribute name="Max Size" value="566 425" />
 
                 <element>
                     <attribute name="Layout Mode" value="Vertical" />
                     <attribute name="Layout Spacing" value="35" />
                     <attribute name="Horiz Alignment" value="Center" />
                     <attribute name="Vert Alignment" value="Center" />
-                    <attribute name="Min Size" value="566 185" />
-                    <attribute name="Max Size" value="566 185" />
+                    <attribute name="Min Size" value="450 295" />
+                    <attribute name="Max Size" value="450 295" />
                     <element>
-                        <attribute name="Min Size" value="566 75" />
-                        <attribute name="Max Size" value="566 75" />
+                        <attribute name="Min Size" value="450 75" />
+                        <attribute name="Max Size" value="450 75" />
                         <attribute name="Horiz Alignment" value="Center" />
                         <attribute name="Layout Mode" value="Horizontal" />
                         <attribute name="Layout Spacing" value="20" />
@@ -821,6 +821,13 @@
                                 </element>
                             </element>
                         </element>
+                    </element>
+                    <element>                        
+                        <attribute name="Min Size" value="450 75" />
+                        <attribute name="Max Size" value="450 75" />
+                        <attribute name="Horiz Alignment" value="Center" />
+                        <attribute name="Layout Mode" value="Horizontal" />
+                        <attribute name="Layout Spacing" value="20" />
                         <element>
                             <attribute name="Min Size" value="85 75" />
                             <attribute name="Max Size" value="85 75" />
@@ -843,14 +850,7 @@
                                     <attribute name="Text Alignment" value="Center" />
                                 </element>
                             </element>
-                        </element>
-                    </element>
-                    <element>
-                        <attribute name="Min Size" value="566 75" />
-                        <attribute name="Max Size" value="566 75" />
-                        <attribute name="Horiz Alignment" value="Center" />
-                        <attribute name="Layout Mode" value="Horizontal" />
-                        <attribute name="Layout Spacing" value="20" />
+                        </element>                        
                         <element>
                             <attribute name="Min Size" value="85 75" />
                             <attribute name="Max Size" value="85 75" />
@@ -920,6 +920,13 @@
                                 </element>
                             </element>
                         </element>
+                    </element>
+                    <element>
+                        <attribute name="Min Size" value="450 75" />
+                        <attribute name="Max Size" value="450 75" />
+                        <attribute name="Horiz Alignment" value="Center" />
+                        <attribute name="Layout Mode" value="Horizontal" />
+                        <attribute name="Layout Spacing" value="20" />
                         <element>
                             <attribute name="Min Size" value="85 75" />
                             <attribute name="Max Size" value="85 75" />
@@ -966,6 +973,52 @@
                                 </element>
                             </element>
                         </element>
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Focus-" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Focus-" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText16_NoL10">
+                                    <attribute name="Text" value="X" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>                         
+                        <element>
+                            <attribute name="Min Size" value="85 75" />
+                            <attribute name="Max Size" value="85 75" />
+                            <attribute name="Horiz Alignment" value="Center" />
+                            <attribute name="Layout Mode" value="Vertical" />
+                            <attribute name="Layout Spacing" value="5" />
+                            <element type="Text" style="OptionText22">
+                                <attribute name="Min Size" value="85 25" />
+                                <attribute name="Max Size" value="85 25" />
+                                <attribute name="Text" value="Focus+" />
+                                <attribute name="Text Alignment" value="Center" />
+                            </element>
+                            <element type="Button" style="CategoryButton">
+                                <attribute name="Name" value="Focus+" />
+                                <attribute name="Min Size" value="105 45" />
+                                <attribute name="Max Size" value="105 45" />
+                                <attribute name="Horiz Alignment" value="Center" />
+                                <element type="Text" style="OptionText16_NoL10">
+                                    <attribute name="Text" value="A" />
+                                    <attribute name="Text Alignment" value="Center" />
+                                </element>
+                            </element>
+                        </element>                    
                     </element>
                 </element>
 
@@ -973,8 +1026,8 @@
                     <attribute name="Horiz Alignment" value="Center" />
                     <attribute name="Layout Mode" value="Horizontal" />
                     <attribute name="Layout Spacing" value="40" />
-                    <attribute name="Min Size" value="566 50" />
-                    <attribute name="Max Size" value="566 50" />
+                    <attribute name="Min Size" value="450 50" />
+                    <attribute name="Max Size" value="450 50" />
 
                     <element type="Button" style="CategoryButton">
                         <attribute name="Name" value="ResetControl" />

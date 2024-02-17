@@ -292,7 +292,7 @@ void ObjectPoolCategory::ApplyScaleVariation(Node* node, unsigned nodeid)
     unsigned rand = nodeid > LOCAL ? nodeid : node->GetID();
     float scalef = (1.f-(float)gotinfo_->scaleVariation_*0.05f) + 0.1f * (float)(rand%gotinfo_->scaleVariation_);
 
-//    URHO3D_LOGINFOF("ObjectPoolCategory() - ApplyScaleVariation : type=%s(%u) : node=%u ... scalef=%f", GOT::GetType(GOT_).CString(), GOT_.Value(), node->GetID(), scalef);
+    URHO3D_LOGINFOF("ObjectPoolCategory() - ApplyScaleVariation : type=%s(%u) : node=%u ... scalef=%f", GOT::GetType(GOT_).CString(), GOT_.Value(), node->GetID(), scalef);
     node->SetScale2D(node->GetScale2D()*scalef);
 }
 

@@ -1856,7 +1856,7 @@ void Player::UpdatePoints(const unsigned& points)
 //    LOGINFOF("Player() - Update Score = %u", score);
 }
 
-void Player::NextPanelFocus()
+void Player::NextPanelFocus(int inc)
 {
     if (!panels_.Size())
         return;
@@ -1884,7 +1884,13 @@ void Player::NextPanelFocus()
         int newfocus = focuspanelid;
         do
         {
-            UIPanel* panel = GetPanel(++newfocus);
+            newfocus += inc;
+            if (newfocus < 0)
+                newfocus = panels_.Size()-1;
+            else if (newfocus >= panels_.Size())
+                newfocus = 0;
+
+            UIPanel* panel = GetPanel(newfocus);
             if (panel && panel != focuspanel && panel->IsVisible() && panel->CanFocus())
             {
                 if (focuspanel)
@@ -2152,7 +2158,10 @@ void Player::StartSubscribers()
         SubscribeToEvent(avatar_, GOC_CONTROLACTION1, URHO3D_HANDLER(Player, OnFire1));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION2, URHO3D_HANDLER(Player, OnFire2));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION3, URHO3D_HANDLER(Player, OnFire3));
-        SubscribeToEvent(avatar_, GOC_CONTROLACTIONSTATUS, URHO3D_HANDLER(Player, OnStatus));
+
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_STATUS, URHO3D_HANDLER(Player, OnChangePanelFocus));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSPANEL, URHO3D_HANDLER(Player, OnChangePanelFocus));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSPANEL, URHO3D_HANDLER(Player, OnChangePanelFocus));
     }
 
     SubscribeToEvent(avatar_, COLLIDEWALLBEGIN, URHO3D_HANDLER(Player, OnCollideWall));
@@ -2227,8 +2236,9 @@ void Player::StopSubscribers()
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION1);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION2);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION3);
-            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTIONSTATUS);
-
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_STATUS);
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSPANEL);
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSPANEL);
             UnsubscribeFromEvent(avatar_, GO_INVENTORYGET);
         }
 
@@ -2361,12 +2371,17 @@ void Player::OnFire3(StringHash eventType, VariantMap& eventData)
     }
 }
 
-void Player::OnStatus(StringHash eventType, VariantMap& eventData)
+void Player::OnChangePanelFocus(StringHash eventType, VariantMap& eventData)
 {
     if (dirtyPlayer_)
         return;
 
-    NextPanelFocus();
+    if (eventType == GOC_CONTROLACTION_NEXTFOCUSPANEL)
+        NextPanelFocus(1);
+    else if (eventType == GOC_CONTROLACTION_PREVFOCUSPANEL)
+        NextPanelFocus(-1);
+    else
+        NextPanelFocus(0);
 }
 
 void Player::OnPostUpdate(StringHash eventType, VariantMap& eventData)

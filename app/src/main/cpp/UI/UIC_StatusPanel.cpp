@@ -888,7 +888,7 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
     if (player->GetFocusPanel() != this)
         return;
 
-    int scancode = GetKeyFromEvent(player->GetControlID(), eventType, eventData);
+    int scancode = GetKeyFromEvent(eventType, eventData);
     if (!scancode)
         return;
 

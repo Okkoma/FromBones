@@ -115,7 +115,7 @@ public :
     void ResizeUI();
     void SetVisibleUI(bool state, bool all=false);
     void UpdatePoints(const unsigned& points);
-    void NextPanelFocus();
+    void NextPanelFocus(int inc=1);
     void DebugDrawUI();
 
     void UpdateAvatar(bool forced=false);
@@ -155,7 +155,7 @@ protected :
     void OnFire1(StringHash eventType, VariantMap& eventData);
     void OnFire2(StringHash eventType, VariantMap& eventData);
     void OnFire3(StringHash eventType, VariantMap& eventData);
-    void OnStatus(StringHash eventType, VariantMap& eventData);
+    void OnChangePanelFocus(StringHash eventType, VariantMap& eventData);
     void OnCollideWall(StringHash eventType, VariantMap& eventData);
     void OnAvatarDestroy(StringHash eventType, VariantMap& eventData);
     void OnInventoryEmpty(StringHash eventType, VariantMap& eventData);

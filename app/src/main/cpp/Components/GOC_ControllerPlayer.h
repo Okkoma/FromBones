@@ -48,6 +48,7 @@ private :
     inline void UpdateJoystickControls(Input& input);
 
     int joystickindex_;
+    int controlID_;
     int* keysMap_;
     int* buttonsMap_;
 };

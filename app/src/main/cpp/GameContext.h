@@ -4,6 +4,7 @@
 #include <Urho3D/Graphics/Texture2D.h>
 #include <Urho3D/Graphics/Material.h>
 #include <Urho3D/Urho2D/SpriteSheet2D.h>
+#include <Urho3D/Input/Input.h>
 
 #include "GameOptions.h"
 
@@ -224,6 +225,8 @@ public :
     void InitMouse(int mode);
     void InitJoysticks();
     void ValidateJoysticks();
+    int GetControllerIDForJoystick(SDL_JoystickID joyid) const;
+    bool GetActionKeyDown(int controlid, int actionkey) const;
     void PreselectBestControllers();
 
     float GetAdjustUIFactor() const;
@@ -351,8 +354,12 @@ public :
     Vector<PODVector<int> > keysMap_;
     Vector<PODVector<int> > buttonsMap_;
     int joystickIndexes_[MAX_NUMPLAYERS];
+    HashMap<SDL_JoystickID, int> joystickControllerIds_;
+    JoystickState* joystickByControllerIds_[MAX_NUMPLAYERS];
     static const int defaultkeysMap_[MAX_NUMPLAYERS][MAX_NUMACTIONS];
     static const int defaultbuttonsMap_[MAX_NUMPLAYERS][MAX_NUMACTIONS];
+
+    bool uiLockSceneControllers_;
 
     // Game States
     struct GameState

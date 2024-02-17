@@ -117,7 +117,7 @@ void GOC_Collide2D::OnNodeSet(Node* node)
 void GOC_Collide2D::SetCollidersEnable(bool state, unsigned contactBits, bool inverse)
 {
     PODVector<CollisionShape2D*> shapes;
-    node_->GetDerivedComponents(shapes, true);
+    node_->GetDerivedComponents<CollisionShape2D>(shapes, true);
 
     unsigned numprocessed = 0;
     for (unsigned i=0; i < shapes.Size(); i++)
