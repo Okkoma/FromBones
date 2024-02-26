@@ -1,9 +1,15 @@
 Todos:
 
-    ☐ 15/02/2024 : faire une ui simple pour la selection et l'utilisation des entités alliés
+    ✔ 15/02/2024 : faire une ui simple pour la selection et l'utilisation des entités alliés
         -> affichage d'un selecteur d'entité dans la scene.
         -> puis pop des commandes (cible, attaque, fuite, defense).
-        ->
+        -> quel bouton appuyé pour lancer la selection d'entité dans la scene.
+        -> faut-il créer une nouvelle ui pour les Controller_AI ally ? comme un statusPanel spécifique : avec inventaire et action suivre et attaque
+        => 26/02/2024 : utilisation simple d'un selecteur d'entity : ajout de GOC_EntityFollower. + ajout de ACTION_PREVENTITY et ACTION_NEXTENTITY
+        => la selection est faite via Player::OnChangeEntityFocus et Player::OnInteract :
+            un premier selecteur est affiché et l'on peut changer avec ACTION_PREVENTITY et ACTION_NEXTENTITY puis
+            validation du node avec ACTION_INTERACT, affichage du second selecteur puis meme process puis validation finale qui envoit GO_SELECTED
+        ==> correctif dans Urho3D PhysicWorld2D::GetRigidBodies qui renvoit parfois des doublons.
 
     ✔ 15/02/2024 : lors de l'ouverture d'un panel via le statuspanel, mettre le focus dessus
         -> le switch de focus doit se faire via des boutons differents du bouton status

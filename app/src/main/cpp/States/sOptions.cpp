@@ -95,10 +95,12 @@ const char* ActionNames_[] =
     "Fire1",
     "Fire2",
     "Fire3",
-    "Status",
     "Interact",
+    "Status",
     "Focus-",
     "Focus+",
+    "Entity-",
+    "Entity+",
     ""
 };
 
@@ -484,12 +486,14 @@ void OptionState::SetVisibleAccessButton(bool state)
             GameHelpers::SetMoveAnimationUI(menubutton_, IntVector2(position.x_, height+100), position, 0.f, SWITCHSCREENTIME);
             SubscribeToEvent(menubutton_, E_RELEASED, URHO3D_HANDLER(OptionState, HandleMenuButton));
         }
-        SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(OptionState, HandleKeyDown));
+        SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(OptionState, HandleKeyEscape));
+        SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(OptionState, HandleKeyEscape));
         GameContext::Get().SubscribeToCursorVisiblityEvents();
     }
     else
     {
         UnsubscribeFromEvent(E_KEYDOWN);
+        UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
         if (menubutton_)
             UnsubscribeFromEvent(menubutton_, E_RELEASED);
     }
@@ -737,17 +741,20 @@ void OptionState::UpdateConfigControls(int controlid)
     {
         String actionname(ActionNames_[action]);
         Button* actionbutton = configcontrolframe->GetChildStaticCast<Button>(actionname, true);
-        Text* actiontext = actionbutton->GetChildStaticCast<Text>(0);
+        Text* actiontext = actionbutton ? actionbutton->GetChildStaticCast<Text>(0) : 0;
 
-        if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
+        if (actiontext)
         {
-            int key = GameContext::Get().input_->GetKeyFromScancode(tempkeysmap[controlid][action]);
-            actiontext->SetText(GameContext::Get().input_->GetKeyName(key));
-        }
-        else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
-        {
-            int button = tempbuttonsmap[joyid][action];
-            actiontext->SetText(String(button));
+            if (GameContext::Get().playerState_[controlid].controltype == CT_KEYBOARD)
+            {
+                int key = GameContext::Get().input_->GetKeyFromScancode(tempkeysmap[controlid][action]);
+                actiontext->SetText(GameContext::Get().input_->GetKeyName(key));
+            }
+            else if (GameContext::Get().playerState_[controlid].controltype == CT_JOYSTICK)
+            {
+                int value = tempbuttonsmap[joyid][action];
+                actiontext->SetText((value & JOY_AXI ? "AXI_" : value & JOY_HAT ? "HAT_" : "BTN_") + String(value & JOY_VALUE));
+            }
         }
     }
 }
@@ -1628,7 +1635,10 @@ void OptionState::HandleClickConfigActionButton(StringHash eventType, VariantMap
     }
     else if (GameContext::Get().playerState_[currentPlayerID_-1].controltype == CT_JOYSTICK)
     {
-        SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(OptionState, HandleCaptureJoyButton));
+        GameContext::Get().ui_->SetHandleJoystickEnable(false);
+        SubscribeToEvent(E_JOYSTICKBUTTONDOWN, URHO3D_HANDLER(OptionState, HandleCaptureJoy));
+        SubscribeToEvent(E_JOYSTICKAXISMOVE, URHO3D_HANDLER(OptionState, HandleCaptureJoy));
+        SubscribeToEvent(E_JOYSTICKHATMOVE, URHO3D_HANDLER(OptionState, HandleCaptureJoy));
     }
 
     UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
@@ -1651,24 +1661,61 @@ void OptionState::HandleCaptureKey(StringHash eventType, VariantMap& eventData)
 //    text->SetText(GameContext::Get().input_->GetScancodeName(scancode));
     text->SetColor(Color::WHITE);
 
-    URHO3D_LOGINFOF("OptionState() - HandleCaptureJoyButton ...  Capture Key '%s' keycode=%s(%d) scancode=%s(%d) !",
+    URHO3D_LOGINFOF("OptionState() - HandleCaptureKey...  Capture Key '%s' keycode=%s(%d) scancode=%s(%d) !",
                      text->GetText().CString(), GameContext::Get().input_->GetKeyName(key).CString(), key,
                      GameContext::Get().input_->GetScancodeName(scancode).CString(), scancode);
 }
 
-void OptionState::HandleCaptureJoyButton(StringHash eventType, VariantMap& eventData)
+void OptionState::HandleCaptureJoy(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("OptionState() - HandleCaptureJoyButton ...  Capture Key !");
-    UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+    int value = -1;
 
-    int button = eventData[JoystickButtonDown::P_BUTTON].GetInt();
-    int joyid = GameContext::Get().joystickIndexes_[currentPlayerID_-1] != -1 ? GameContext::Get().joystickIndexes_[currentPlayerID_-1] : 0;
-    tempbuttonsmap[joyid][currentActionButton_] = button;
+    if (eventType == E_JOYSTICKBUTTONDOWN)
+    {
+        int joy = eventData[JoystickButtonDown::P_JOYSTICKID].GetInt();
+        value   = eventData[JoystickButtonDown::P_BUTTON].GetInt();
 
-    UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
-    Text* text = configcontrolframe->GetChildStaticCast<Button>(String(ActionNames_[currentActionButton_]), true)->GetChildStaticCast<Text>(0);
-    text->SetText(String(button));
-    text->SetColor(Color::WHITE);
+        URHO3D_LOGINFOF("OptionState() - HandleCaptureJoy ... E_JOYSTICKBUTTONDOWN joy=%d button=%d !", joy, value);
+
+        int joyid = GameContext::Get().joystickIndexes_[currentPlayerID_-1] != -1 ? GameContext::Get().joystickIndexes_[currentPlayerID_-1] : 0;
+        tempbuttonsmap[joyid][currentActionButton_] = value;
+    }
+    else if (eventType == E_JOYSTICKAXISMOVE)
+    {
+        if (Abs(eventData[JoystickAxisMove::P_POSITION].GetFloat()) > 0.5f)
+        {
+            int joy = eventData[JoystickAxisMove::P_JOYSTICKID].GetInt();
+            value   = eventData[JoystickAxisMove::P_AXIS].GetInt() | JOY_AXI;
+
+            URHO3D_LOGINFOF("OptionState() - HandleCaptureJoy ... E_JOYSTICKAXISMOVE joy=%d axis=%d !", joy, eventData[JoystickAxisMove::P_AXIS].GetInt());
+
+            int joyid = GameContext::Get().joystickIndexes_[currentPlayerID_-1] != -1 ? GameContext::Get().joystickIndexes_[currentPlayerID_-1] : 0;
+            tempbuttonsmap[joyid][currentActionButton_] = value;
+        }
+    }
+    else if (eventType == E_JOYSTICKHATMOVE)
+    {
+        int joy = eventData[JoystickHatMove::P_JOYSTICKID].GetInt();
+        value   = eventData[JoystickHatMove::P_HAT].GetInt() | JOY_HAT;
+
+        URHO3D_LOGINFOF("OptionState() - HandleCaptureJoy ... E_JOYSTICKHATMOVE joy=%d hat=%d !", joy, eventData[JoystickHatMove::P_HAT].GetInt());
+
+        int joyid = GameContext::Get().joystickIndexes_[currentPlayerID_-1] != -1 ? GameContext::Get().joystickIndexes_[currentPlayerID_-1] : 0;
+        tempbuttonsmap[joyid][currentActionButton_] = value;
+    }
+
+    if (value != -1)
+    {
+        UIElement* configcontrolframe = uioptionscontent_->GetChild(String("ConfigControls"));
+        Text* text = configcontrolframe->GetChildStaticCast<Button>(String(ActionNames_[currentActionButton_]), true)->GetChildStaticCast<Text>(0);
+        text->SetText((value & JOY_AXI ? "AXI_" : value & JOY_HAT ? "HAT_" : "BTN_") + String(value & JOY_VALUE));
+        text->SetColor(Color::WHITE);
+
+        UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+        UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
+        UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
+        GameContext::Get().ui_->SetHandleJoystickEnable(true);
+    }
 }
 
 void OptionState::HandleApplyParameters(StringHash eventType, VariantMap& eventData)
@@ -2504,20 +2551,28 @@ void OptionState::HandleMenuButton(StringHash eventType, VariantMap& eventData)
     Window* modelWindow = GameHelpers::GetModalWindow();
     if (!modelWindow || modelWindow == uioptions_.Get())
     {
-        if (eventType == E_KEYDOWN && !IsVisible())
+        if ((eventType == E_KEYDOWN || eventType == E_JOYSTICKBUTTONDOWN) && !IsVisible())
             ResetToMainCategory();
 
         ToggleFrame();
     }
 }
 
-void OptionState::HandleKeyDown(StringHash eventType, VariantMap& eventData)
+void OptionState::HandleKeyEscape(StringHash eventType, VariantMap& eventData)
 {
-    using namespace KeyDown;
+    bool escape = false;
 
-    int key = eventData[P_KEY].GetInt();
+    if (eventType == E_KEYDOWN)
+    {
+        escape = eventData[KeyDown::P_KEY].GetInt() == KEY_ESCAPE;
+    }
+    else if (eventType == E_JOYSTICKBUTTONDOWN)
+    {
+        JoystickState* joystick = GameContext::Get().input_->GetJoystick(eventData[JoystickButtonDown::P_JOYSTICKID].GetInt());
+        escape = joystick && joystick->GetButtonPress(4);
+    }
 
-    if (key == KEY_ESCAPE)
+    if (escape)
     {
         SendEvent(UI_ESCAPEPANEL);
 

@@ -334,7 +334,7 @@ void UIC_CraftPanel::CheckAvailableTools()
     Vector2 pos = avatar->GetWorldPosition2D();
     Rect aabb(pos - Vector2(2.f, 1.f), pos + Vector2(2.f, 1.f));
     PODVector<RigidBody2D*> results;
-    GameContext::Get().rootScene_->GetComponent<PhysicsWorld2D>()->GetRigidBodies(results, aabb);
+    GameContext::Get().physicsWorld_->GetRigidBodies(results, aabb);
 
     for (unsigned i=0; i < results.Size(); i++)
     {

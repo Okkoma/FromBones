@@ -152,27 +152,36 @@ enum ControlAction
     ACTION_FIRE1,
     ACTION_FIRE2,
     ACTION_FIRE3,
-    ACTION_STATUS,
     ACTION_INTERACT,
+
+    ACTION_STATUS,
     ACTION_PREVPANEL,
     ACTION_NEXTPANEL,
+    ACTION_PREVENTITY,
+    ACTION_NEXTENTITY,
     MAX_NUMACTIONS
 };
 
 // Input Key
-const unsigned CTRL_UP        = 1U << ACTION_UP;
-const unsigned CTRL_DOWN      = 1U << ACTION_DOWN;
-const unsigned CTRL_LEFT      = 1U << ACTION_LEFT;
-const unsigned CTRL_RIGHT     = 1U << ACTION_RIGHT;
-const unsigned CTRL_JUMP      = 1U << ACTION_JUMP;
-const unsigned CTRL_FIRE      = 1U << ACTION_FIRE1;
-const unsigned CTRL_FIRE2     = 1U << ACTION_FIRE2;
-const unsigned CTRL_FIRE3     = 1U << ACTION_FIRE3;
-const unsigned CTRL_STATUS    = 1U << ACTION_STATUS;
-const unsigned CTRL_INTERACT  = 1U << ACTION_INTERACT;
-const unsigned CTRL_PREVPANEL = 1U << ACTION_PREVPANEL;
-const unsigned CTRL_NEXTPANEL = 1U << ACTION_NEXTPANEL;
+const unsigned CTRL_UP         = 1U << ACTION_UP;
+const unsigned CTRL_DOWN       = 1U << ACTION_DOWN;
+const unsigned CTRL_LEFT       = 1U << ACTION_LEFT;
+const unsigned CTRL_RIGHT      = 1U << ACTION_RIGHT;
+const unsigned CTRL_JUMP       = 1U << ACTION_JUMP;
+const unsigned CTRL_FIRE       = 1U << ACTION_FIRE1;
+const unsigned CTRL_FIRE2      = 1U << ACTION_FIRE2;
+const unsigned CTRL_FIRE3      = 1U << ACTION_FIRE3;
+const unsigned CTRL_INTERACT   = 1U << ACTION_INTERACT;
+const unsigned CTRL_STATUS     = 1U << ACTION_STATUS;
+const unsigned CTRL_PREVPANEL  = 1U << ACTION_PREVPANEL;
+const unsigned CTRL_NEXTPANEL  = 1U << ACTION_NEXTPANEL;
+const unsigned CTRL_PREVENTITY = 1U << ACTION_PREVENTITY;
+const unsigned CTRL_NEXTENTITY = 1U << ACTION_NEXTENTITY;
 
+// Joystick Type
+const unsigned JOY_AXI  = 1 << 30;
+const unsigned JOY_HAT  = 1 << 31;
+const unsigned JOY_VALUE  = ~(JOY_AXI | JOY_HAT);
 
 enum GOTypeProperties
 {

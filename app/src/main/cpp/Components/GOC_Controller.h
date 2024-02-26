@@ -77,6 +77,7 @@ public :
     void ResetDirection();
     void SetControllerType(int type, bool force = false);
     void SetMainController(bool state);
+    void SetInteractionMode(bool state) { interaction_ = state; }
     void SetControlActionEnable(bool state) { controlActionEnable_ = state; }
     bool ChangeAvatarOrEntity(unsigned type, unsigned char entityid);
 
@@ -109,6 +110,10 @@ public :
     {
         return buttonholdtime_;
     }
+    bool HasInteraction() const
+    {
+        return interaction_;
+    }
 
     virtual void OnSetEnabled();
 
@@ -128,6 +133,7 @@ protected :
     bool followPath_;
     bool lastimpulse_;
     bool noreverse_;
+    bool interaction_;
 
     short unsigned lastcount_;
     int currentIdPath_;

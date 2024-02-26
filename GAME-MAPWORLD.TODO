@@ -41,7 +41,7 @@ Todos:
     ☐ 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.
         => OK modification de ObjectFeatured::SetViewConfiguration
         - 27/05/2023 : les Tronc ou autre furniture Static posent probleme au niveau collision si ils sont en Innerview mais restant visible en frontview :
-         le player voudrait pouvoir ci accrocher et le choix est fait que ce ne sera jamais le cas pour éviter que les furnitures innerview dans des murs ne pisent entrer en collision avec les acteurs du frontview
+         le player voudrait pouvoir s'y accrocher et le choix est fait que ce ne sera jamais le cas pour éviter que les furnitures innerview dans des murs ne pisent entrer en collision avec les acteurs du frontview
         => modifier le visuel pour mettre en backactorview ces furnitures.
         ==> OK : modification de Urho3D::Drawable2D::GetSourceBatchesToRender()
         ==> OK : modification de Actor::Start() pour etre sur que le viewmask soit bien attribué.

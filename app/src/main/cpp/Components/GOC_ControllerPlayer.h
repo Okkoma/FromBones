@@ -24,12 +24,13 @@ public :
 
     virtual void Start();
     virtual void Stop();
+    void InitTouchInput();
 
     void SetKeyControls(int controlID);
     void SetJoystickControls(int controlID);
     void SetTouchControls(int screenJoyId=-1);
 
-    void InitTouchInput();
+    int GetKeyForAction(int action) const;
 
     unsigned playerID;
 

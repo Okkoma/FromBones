@@ -32,6 +32,7 @@
 #include "GOC_Collectable.h"
 #include "GOC_Inventory.h"
 #include "GOC_ZoneEffect.h"
+#include "GOC_ControllerPlayer.h"
 
 #include "Equipment.h"
 #include "Actor.h"
@@ -170,7 +171,14 @@ void UIPanel::GainFocus()
     OnSetVisible();
 
     GameContext::Get().ui_->SetHandleJoystickEnable(false);
-    GameContext::Get().uiLockSceneControllers_ = lockSceneInteraction_;
+
+    if (lockSceneInteraction_)
+    {
+        GOC_PlayerController* gocPlayer = ((Actor*)user_)->GetAvatar()->GetComponent<GOC_PlayerController>();
+        GameContext::Get().uiLockSceneControllers_ = gocPlayer && (gocPlayer->GetKeyForAction(ACTION_INTERACT) == gocPlayer->GetKeyForAction(ACTION_JUMP) || gocPlayer->GetKeyForAction(ACTION_INTERACT) == gocPlayer->GetKeyForAction(ACTION_FIRE1));
+    }
+    else
+        GameContext::Get().uiLockSceneControllers_ = false;
 }
 
 void UIPanel::LoseFocus()
@@ -285,10 +293,13 @@ int UIPanel::GetKeyFromEvent(StringHash eventType, VariantMap& eventData) const
             else if (position == HAT_RIGHT)
                 scancode = keymap[ACTION_RIGHT];
         }
-
     }
     else if (eventType == E_JOYSTICKAXISMOVE)
     {
+        int axis = eventData[JoystickAxisMove::P_AXIS].GetInt();
+        if (axis > 1)
+            return 0;
+
         SDL_JoystickID joyid = (SDL_JoystickID)eventData[JoystickAxisMove::P_JOYSTICKID].GetInt();
         JoystickState* joystick = GameContext::Get().input_->GetJoystick(joyid);
         controlid = GameContext::Get().GetControllerIDForJoystick(joyid);
@@ -296,8 +307,6 @@ int UIPanel::GetKeyFromEvent(StringHash eventType, VariantMap& eventData) const
             return 0;
 
         const PODVector<int>& keymap = GameContext::Get().keysMap_[controlid];
-
-        int axis = eventData[JoystickAxisMove::P_AXIS].GetInt();
         float position = eventData[JoystickAxisMove::P_POSITION].GetFloat();
         if (position > PanelJoystickSensivity_)
             scancode = keymap[axis == 0 ? ACTION_RIGHT : ACTION_DOWN];
@@ -405,12 +414,7 @@ void UISlotPanel::Start(Object* user, Object* feeder)
 
     UIPanel::Start(user, feeder);
 
-    if (feeder_ && feeder_->IsInstanceOf<Equipment>())
-    {
-        equipment_ = dynamic_cast<Equipment*>(feeder_);
-    }
-    else
-        equipment_ = 0;
+    equipment_ = feeder_ && feeder_->IsInstanceOf<Equipment>() ? dynamic_cast<Equipment*>(feeder_) : 0;
 
     if (user_)
     {

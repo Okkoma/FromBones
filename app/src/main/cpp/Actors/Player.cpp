@@ -70,12 +70,15 @@
 #include "GOC_ZoneEffect.h"
 #include "GOC_Destroyer.h"
 #include "GOC_PhysicRope.h"
+#include "GOC_EntityFollower.h"
 
 #include "TimerRemover.h"
 #include "TimerInformer.h"
 
 #include "Ability.h"
 #include "Equipment.h"
+
+#include "ObjectPool.h"
 
 #include "MapWorld.h"
 #include "Map.h"
@@ -685,6 +688,8 @@ void Player::UpdateAvatar(bool forced)
 
         if (equipment_)
             equipment_->SetActiveAbility();
+
+        avatar_->SendEvent(GO_DIRTY);
     }
 
 //    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
@@ -2159,9 +2164,14 @@ void Player::StartSubscribers()
         SubscribeToEvent(avatar_, GOC_CONTROLACTION2, URHO3D_HANDLER(Player, OnFire2));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION3, URHO3D_HANDLER(Player, OnFire3));
 
-        SubscribeToEvent(avatar_, GOC_CONTROLACTION_STATUS, URHO3D_HANDLER(Player, OnChangePanelFocus));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_INTERACT, URHO3D_HANDLER(Player, OnInteract));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_STATUS, URHO3D_HANDLER(Player, OnStatus));
+
         SubscribeToEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSPANEL, URHO3D_HANDLER(Player, OnChangePanelFocus));
         SubscribeToEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSPANEL, URHO3D_HANDLER(Player, OnChangePanelFocus));
+
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSENTITY, URHO3D_HANDLER(Player, OnChangeEntityFocus));
+        SubscribeToEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSENTITY, URHO3D_HANDLER(Player, OnChangeEntityFocus));
     }
 
     SubscribeToEvent(avatar_, COLLIDEWALLBEGIN, URHO3D_HANDLER(Player, OnCollideWall));
@@ -2239,6 +2249,8 @@ void Player::StopSubscribers()
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_STATUS);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSPANEL);
             UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSPANEL);
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_NEXTFOCUSENTITY);
+            UnsubscribeFromEvent(avatar_, GOC_CONTROLACTION_PREVFOCUSENTITY);
             UnsubscribeFromEvent(avatar_, GO_INVENTORYGET);
         }
 
@@ -2373,15 +2385,167 @@ void Player::OnFire3(StringHash eventType, VariantMap& eventData)
 
 void Player::OnChangePanelFocus(StringHash eventType, VariantMap& eventData)
 {
-    if (dirtyPlayer_)
+    if (dirtyPlayer_ || !GetFocusPanel())
         return;
 
     if (eventType == GOC_CONTROLACTION_NEXTFOCUSPANEL)
         NextPanelFocus(1);
     else if (eventType == GOC_CONTROLACTION_PREVFOCUSPANEL)
         NextPanelFocus(-1);
-    else
-        NextPanelFocus(0);
+}
+
+void Player::OnStatus(StringHash eventType, VariantMap& eventData)
+{
+    if (dirtyPlayer_)
+        return;
+
+    NextPanelFocus(0);
+}
+
+PODVector<RigidBody2D*> bodiesInViewport_;
+
+void GetBodiesInViewport(PODVector<RigidBody2D*>& bodies, int viewport)
+{
+    bodies.Clear();
+    unsigned collisionMask = ViewManager::Get()->GetCurrentViewZ(viewport) == INNERVIEW ? CC_INSIDEAVATAR | CC_INSIDEMONSTER : CC_OUTSIDEAVATAR | CC_OUTSIDEMONSTER;
+    GameContext::Get().physicsWorld_->GetRigidBodies(bodies, ViewManager::Get()->GetViewRect(viewport), collisionMask, true);
+}
+
+Node* SelectNextNode(Node* currentNode, const PODVector<RigidBody2D*>& bodies, bool allowEmpty=false)
+{
+    if (!bodies.Size())
+        return currentNode;
+
+    Node* node = bodies.Front()->GetNode();
+
+    if (currentNode)
+    {
+        if (allowEmpty)
+            node = 0;
+        int index = 0;
+        while (index < bodies.Size() && bodies[index++]->GetNode() != currentNode) { }
+        if (index < bodies.Size())
+            node = bodies[index]->GetNode();
+    }
+
+    return node;
+}
+
+Node* SelectPrevNode(Node* currentNode, const PODVector<RigidBody2D*>& bodies, bool allowEmpty=false)
+{
+    if (!bodies.Size())
+        return currentNode;
+
+    Node* node = bodies.Back()->GetNode();
+
+    if (currentNode)
+    {
+        if (allowEmpty)
+            node = 0;
+        int index = bodies.Size()-1;
+        while (index >= 0 && bodies[index--]->GetNode() != currentNode) { }
+        if (index >= 0)
+            node = bodies[index]->GetNode();
+    }
+
+    return node;
+}
+
+void Player::OnInteract(StringHash eventType, VariantMap& eventData)
+{
+    if (dirtyPlayer_ || !bodiesInViewport_.Size())
+        return;
+
+    GOC_EntityFollower* entitySelector = 0;
+    if (bodiesInViewport_.Size() > 1 && entitySelectorSecond_ && entitySelectorSecond_->GetFollowerNode() && !entitySelectorSecond_->IsSelected() && entitySelectorFirst_->IsSelected())
+        entitySelector = entitySelectorSecond_;
+    else if (entitySelectorFirst_ && entitySelectorFirst_->GetFollowerNode() && !entitySelectorFirst_->IsSelected())
+        entitySelector = entitySelectorFirst_;
+
+    if (entitySelector)
+    {
+        entitySelector->SetSelected(true);
+
+        if (entitySelector == entitySelectorFirst_ && bodiesInViewport_.Size() > 1)
+        {
+            // select the default node for the second selector
+            entitySelectorSecond_->SetNodeToFollow(SelectNextNode(entitySelectorFirst_->GetFollowerNode(), bodiesInViewport_));
+        }
+        else
+        {
+            Node* node = entitySelectorFirst_ == entitySelector ? avatar_ : entitySelectorFirst_->GetFollowerNode();
+
+            URHO3D_LOGINFOF("Player - OnInteract : ... first=%s(%u) second=%s(%u) ...",
+                            node->GetName().CString(), entitySelectorFirst_->GetFollowerNode()->GetID(),
+                            entitySelector == entitySelectorSecond_ ? entitySelectorSecond_->GetFollowerNode()->GetName().CString() : "none",
+                            entitySelector == entitySelectorSecond_ ? entitySelectorSecond_->GetFollowerNode()->GetID() : 0);
+
+            VariantMap goEventData;
+            goEventData[Net_ObjectCommand::P_NODEID] = node->GetID();
+            goEventData[Go_Selected::GO_ID]          = entitySelector->GetFollowerNode()->GetID();
+            goEventData[Go_Selected::GO_TYPE]        = entitySelector->GetFollowerNode()->GetVar(GOA::TYPECONTROLLER).GetInt();
+            goEventData[Go_Selected::GO_ACTION]      = 0;
+            node->SendEvent(GO_SELECTED, goEventData);
+
+            GOC_PlayerController* gocPlayer = reinterpret_cast<GOC_PlayerController*>(gocController);
+            if (gocPlayer)
+                gocPlayer->SetInteractionMode(false);
+
+            entitySelectorFirst_->SetNodeToFollow(0);
+            entitySelectorSecond_->SetNodeToFollow(0);
+            // to close selections in OnChangeEntityFocus if just first selector and unique body
+            entitySelectorSecond_->SetSelected(true);
+
+            GameContext::Get().input_->ResetStates();
+        }
+    }
+}
+
+void Player::OnChangeEntityFocus(StringHash eventType, VariantMap& eventData)
+{
+    if (GetFocusPanel() || !avatar_)
+        return;
+
+    if (!entitySelectorFirst_)
+    {
+        int entityid = 0;
+        Node* node = ObjectPool::Get()->CreateChildIn(StringHash("EntitySelectorFirst"), entityid, 0, LOCAL, FRONTVIEW);
+        entitySelectorFirst_ = node ? node->GetComponent<GOC_EntityFollower>() : 0;
+        if (entitySelectorFirst_)
+        {
+            node = ObjectPool::Get()->CreateChildIn(StringHash("EntitySelectorSecond"), entityid, 0, LOCAL, FRONTVIEW);
+            entitySelectorSecond_ = node ? node->GetComponent<GOC_EntityFollower>() : 0;
+        }
+    }
+
+    // Reset here if the selections are made (in case of using the same action key for selection and validation)
+    if (entitySelectorSecond_ && entitySelectorSecond_->IsSelected() && entitySelectorFirst_ && entitySelectorFirst_->IsSelected())
+    {
+        entitySelectorFirst_->SetSelected(false);
+        entitySelectorSecond_->SetSelected(false);
+
+        // if key for ACTION_INTERACT = key for ACTION_NEXTENTITY|ACTION_PREVENTITY, skip this new selection
+        GOC_PlayerController* gocPlayer = reinterpret_cast<GOC_PlayerController*>(gocController);
+        if (gocPlayer && (gocPlayer->GetKeyForAction(ACTION_INTERACT) == gocPlayer->GetKeyForAction(ACTION_NEXTENTITY) ||
+                          gocPlayer->GetKeyForAction(ACTION_INTERACT) == gocPlayer->GetKeyForAction(ACTION_PREVENTITY)))
+            return;
+    }
+
+    GOC_EntityFollower* entitySelector = entitySelectorFirst_  && !entitySelectorFirst_->IsSelected()  ? entitySelectorFirst_.Get() :
+                                        (entitySelectorSecond_ && !entitySelectorSecond_->IsSelected() ? entitySelectorSecond_.Get(): 0U);
+    if (entitySelector)
+    {
+        GetBodiesInViewport(bodiesInViewport_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+
+        Node* tofollow = eventType == GOC_CONTROLACTION_NEXTFOCUSENTITY ? SelectNextNode(entitySelector->GetFollowerNode(), bodiesInViewport_, entitySelector == entitySelectorFirst_) :
+                                                                          SelectPrevNode(entitySelector->GetFollowerNode(), bodiesInViewport_, entitySelector == entitySelectorFirst_);
+
+        URHO3D_LOGINFOF("Player - OnChangeEntityFocus : ... entitySelector%s=%s(%u) (num bodies=%u)", entitySelector == entitySelectorFirst_ ? "First":"Second",
+                        tofollow ? tofollow->GetName().CString() : "none", tofollow ? tofollow->GetID() : 0, bodiesInViewport_.Size());
+
+        gocController->SetInteractionMode(tofollow ? true : false);
+        entitySelector->SetNodeToFollow(tofollow);
+    }
 }
 
 void Player::OnPostUpdate(StringHash eventType, VariantMap& eventData)

@@ -419,6 +419,8 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         ViewManager::Get()->SwitchToViewZ(viewZ, 0, viewport);
     }
 
+    node_->SendEvent(GO_DIRTY);
+
     if (isLocalPlayer)
         URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
                          node_->GetName().CString(), node_->GetID(), viewport, mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,

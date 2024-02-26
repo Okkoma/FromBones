@@ -34,6 +34,7 @@
 #include "GOC_ZoneEffect.h"
 #include "GOC_Spawner.h"
 #include "GOC_EntityAdder.h"
+#include "GOC_EntityFollower.h"
 #include "GOC_PhysicRope.h"
 #include "GOC_StaticRope.h"
 #include "GOC_Portal.h"
@@ -145,6 +146,7 @@ void RegisterGameLibrary(Context* context)
     GOC_DropZone::RegisterObject(context);
     GOC_Spawner::RegisterObject(context);
     GOC_EntityAdder::RegisterObject(context);
+    GOC_EntityFollower::RegisterObject(context);
     GOC_PhysicRope::RegisterObject(context);
     GOC_StaticRope::RegisterObject(context);
     GOC_Portal::RegisterObject(context);

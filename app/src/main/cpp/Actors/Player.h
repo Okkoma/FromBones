@@ -25,6 +25,7 @@ class GOC_Collectable;
 class GOC_Life;
 class GOC_Controller;
 class GOC_Destroyer;
+class GOC_EntityFollower;
 
 using namespace Urho3D;
 
@@ -155,7 +156,10 @@ protected :
     void OnFire1(StringHash eventType, VariantMap& eventData);
     void OnFire2(StringHash eventType, VariantMap& eventData);
     void OnFire3(StringHash eventType, VariantMap& eventData);
-    void OnChangePanelFocus(StringHash eventType, VariantMap& eventData);
+    void OnChangePanelFocus(StringHash eventType, VariantMap& eventData);    
+    void OnStatus(StringHash eventType, VariantMap& eventData);
+    void OnInteract(StringHash eventType, VariantMap& eventData);
+    void OnChangeEntityFocus(StringHash eventType, VariantMap& eventData);
     void OnCollideWall(StringHash eventType, VariantMap& eventData);
     void OnAvatarDestroy(StringHash eventType, VariantMap& eventData);
     void OnInventoryEmpty(StringHash eventType, VariantMap& eventData);
@@ -191,6 +195,7 @@ private :
     void HandleClic(StringHash eventType, VariantMap& eventData);
     void HandleUpdateTimePeriod(StringHash eventType, VariantMap& eventData);
 
+    WeakPtr<GOC_EntityFollower> entitySelectorFirst_, entitySelectorSecond_;
     WeakPtr<UIElement> uiStatusBar;
     WeakPtr<Text> scoreText;
 

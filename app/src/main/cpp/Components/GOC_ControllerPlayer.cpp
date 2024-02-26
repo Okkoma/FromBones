@@ -63,6 +63,7 @@ void GOC_PlayerController::SetJoystickControls(int controlID)
     controlID_ = controlID;
     joystickindex_ = GameContext::Get().joystickIndexes_[controlID];
     buttonsMap_ = &GameContext::Get().playerState_[controlID].joybuttons[0];
+    keysMap_ = 0;
 
     for (int action=0; action < MAX_NUMACTIONS; action++)
         GameContext::Get().playerState_[controlID].joybuttons[action] = GameContext::Get().buttonsMap_[joystickindex_][action];
@@ -75,6 +76,15 @@ void GOC_PlayerController::SetTouchControls(int screenJoyId)
     screenJoystickID = screenJoyId;
 }
 
+int GOC_PlayerController::GetKeyForAction(int action) const
+{
+    if (keysMap_)
+        return keysMap_[action];
+    else if (buttonsMap_)
+        return buttonsMap_[action];
+
+    return 0;
+}
 
 void GOC_PlayerController::Start()
 {
@@ -135,12 +145,18 @@ void GOC_PlayerController::HandleLocalUpdate(StringHash eventType, VariantMap& e
 
     if (mainController_)
     {
+        if (control_.IsButtonDown(CTRL_INTERACT))
+            node_->SendEvent(GOC_CONTROLACTION_INTERACT);
         if (control_.IsButtonDown(CTRL_STATUS))
             node_->SendEvent(GOC_CONTROLACTION_STATUS);
         else if (control_.IsButtonDown(CTRL_PREVPANEL))
             node_->SendEvent(GOC_CONTROLACTION_PREVFOCUSPANEL);
         else if (control_.IsButtonDown(CTRL_NEXTPANEL))
             node_->SendEvent(GOC_CONTROLACTION_NEXTFOCUSPANEL);
+        if (control_.IsButtonDown(CTRL_NEXTENTITY))
+            node_->SendEvent(GOC_CONTROLACTION_NEXTFOCUSENTITY);
+        else if (control_.IsButtonDown(CTRL_PREVENTITY))
+            node_->SendEvent(GOC_CONTROLACTION_PREVFOCUSENTITY);
     }
 
     if (GameContext::Get().uiLockSceneControllers_)
@@ -158,13 +174,34 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
 
     control_.SetButtons(CTRL_UP, input.GetScancodeDown(keysMap_[ACTION_UP]));
     control_.SetButtons(CTRL_DOWN, input.GetScancodeDown(keysMap_[ACTION_DOWN]));
-    control_.SetButtons(CTRL_LEFT, input.GetScancodeDown(keysMap_[ACTION_LEFT]));
-    control_.SetButtons(CTRL_RIGHT, input.GetScancodeDown(keysMap_[ACTION_RIGHT]));
-    control_.SetButtons(CTRL_JUMP, input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]));
-    control_.SetButtons(CTRL_FIRE, input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+    if (input.GetScancodeDown(keysMap_[ACTION_LEFT]))
+    {
+        control_.SetButtons(CTRL_LEFT, true);
+        control_.SetButtons(CTRL_RIGHT, false);
+    }
+    else if (input.GetScancodeDown(keysMap_[ACTION_RIGHT]))
+    {
+        control_.SetButtons(CTRL_RIGHT, true);
+        control_.SetButtons(CTRL_LEFT, false);
+    }
+    else
+    {
+        control_.SetButtons(CTRL_RIGHT, false);
+        control_.SetButtons(CTRL_LEFT, false);
+    }
+
+    control_.SetButtons(CTRL_JUMP, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_JUMP]  ? false : input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]));
+    control_.SetButtons(CTRL_FIRE, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
     control_.SetButtons(CTRL_FIRE2, input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]));
     control_.SetButtons(CTRL_FIRE3, input.GetScancodePress(keysMap_[ACTION_FIRE3]));
+
+    control_.SetButtons(CTRL_INTERACT, input.GetScancodePress(keysMap_[ACTION_INTERACT]));
+
     control_.SetButtons(CTRL_STATUS, input.GetScancodePress(keysMap_[ACTION_STATUS]));
+    control_.SetButtons(CTRL_PREVPANEL, input.GetScancodePress(keysMap_[ACTION_PREVPANEL]));
+    control_.SetButtons(CTRL_NEXTPANEL, input.GetScancodePress(keysMap_[ACTION_NEXTPANEL]));
+    control_.SetButtons(CTRL_PREVENTITY, input.GetScancodePress(keysMap_[ACTION_PREVENTITY]));
+    control_.SetButtons(CTRL_NEXTENTITY, input.GetScancodePress(keysMap_[ACTION_NEXTENTITY]));
 }
 
 inline void GOC_PlayerController::UpdateTouchControls(Input& input)
@@ -232,7 +269,7 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
     if (!joystick)
         return;
 
-    bool state;
+    bool state = false;
     /*
         SDL_CONTROLLER_BUTTON_A,
         SDL_CONTROLLER_BUTTON_B,
@@ -251,41 +288,116 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
         SDL_CONTROLLER_BUTTON_DPAD_RIGHT,
     */
 
-//    // JUMP
-//    state = input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]) || joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]);
-//    control_.SetButtons(CTRL_JUMP, state);
-//
-//    // FIRE
-//    state = input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]) || joystick->GetButtonPress(buttonsMap_[ACTION_FIRE1]);
-//    control_.SetButtons(CTRL_FIRE, state);
-//
-//    // FIRE2
-//    state = input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]) || joystick->GetButtonPress(buttonsMap_[ACTION_FIRE2]);
-//    control_.SetButtons(CTRL_FIRE2, state);
-//
-//    // FIRE3
-//    state = input.GetScancodePress(keysMap_[ACTION_FIRE3]) || joystick->GetButtonPress(buttonsMap_[ACTION_FIRE3]);
-//    control_.SetButtons(CTRL_FIRE3, state);
-
     // JUMP
-    control_.SetButtons(CTRL_JUMP, joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]) || joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]));
-//    if (joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]))
-//        URHO3D_LOGINFOF("GOC_PlayerController() - UpdateJoystickControls : Node=%s(%u) joystick=%u CTRL_JUMP=%u mappedbutton=%d state=%u !", node_->GetName().CString(), node_->GetID(),
-//                    joystick, CTRL_JUMP, buttonsMap_[ACTION_JUMP], joystick->GetButtonDown(buttonsMap_[ACTION_JUMP]));
+    int button;
+
+    if (HasInteraction() && buttonsMap_[ACTION_INTERACT] == buttonsMap_[ACTION_JUMP])
+        control_.SetButtons(CTRL_JUMP, false);
+    else
+    {
+        button = buttonsMap_[ACTION_JUMP];
+        if ((button & (JOY_HAT|JOY_AXI)) == 0)
+            control_.SetButtons(CTRL_JUMP, joystick->GetButtonPress(button & JOY_VALUE) || joystick->GetButtonDown(button & JOY_VALUE));
+        else if (button & JOY_HAT)
+            control_.SetButtons(CTRL_JUMP, joystick->GetHatPosition(button & JOY_VALUE));
+        else
+            control_.SetButtons(CTRL_JUMP, joystick->GetAxisPress(button & JOY_VALUE));
+    }
 
     // FIRE
-    control_.SetButtons(CTRL_FIRE, joystick->GetButtonPress(buttonsMap_[ACTION_FIRE1]) || joystick->GetButtonDown(buttonsMap_[ACTION_FIRE1]));
+    if (HasInteraction() && buttonsMap_[ACTION_INTERACT] == buttonsMap_[ACTION_FIRE1])
+        control_.SetButtons(CTRL_FIRE, false);
+    else
+    {
+        button = buttonsMap_[ACTION_FIRE1];
+        if (button & JOY_HAT)
+            control_.SetButtons(CTRL_FIRE, joystick->GetHatPosition(button & JOY_VALUE));
+        else if (button & JOY_AXI)
+            control_.SetButtons(CTRL_FIRE, joystick->GetAxisPress(button & JOY_VALUE));
+        else
+            control_.SetButtons(CTRL_FIRE, joystick->GetButtonPress(button & JOY_VALUE) || joystick->GetButtonDown(button & JOY_VALUE));
+    }
 
     // FIRE2
-    control_.SetButtons(CTRL_FIRE2, joystick->GetButtonPress(buttonsMap_[ACTION_FIRE2]) || joystick->GetButtonDown(buttonsMap_[ACTION_FIRE2]));
+    button = buttonsMap_[ACTION_FIRE2];
+    if (button & JOY_HAT)
+        control_.SetButtons(CTRL_FIRE2, joystick->GetHatPosition(button & JOY_VALUE));
+    else if (button & JOY_AXI)
+        control_.SetButtons(CTRL_FIRE2, joystick->GetAxisPress(button & JOY_VALUE));
+    else
+        control_.SetButtons(CTRL_FIRE2, joystick->GetButtonPress(button & JOY_VALUE) || joystick->GetButtonDown(button & JOY_VALUE));
 
     // FIRE3
-    control_.SetButtons(CTRL_FIRE3, joystick->GetButtonPress(buttonsMap_[ACTION_FIRE3]));
+    button = buttonsMap_[ACTION_FIRE3];
+    if (button & JOY_HAT)
+        control_.SetButtons(CTRL_FIRE3, joystick->GetHatPosition(button & JOY_VALUE));
+    else if (button & JOY_AXI)
+        control_.SetButtons(CTRL_FIRE3, joystick->GetAxisPress(button & JOY_VALUE));
+    else
+        control_.SetButtons(CTRL_FIRE3, joystick->GetButtonPress(button & JOY_VALUE));
 
-    // Focus/Defocus on UI
-    control_.SetButtons(CTRL_STATUS, joystick->GetButtonPress(buttonsMap_[ACTION_STATUS]));
-    control_.SetButtons(CTRL_PREVPANEL, joystick->GetButtonPress(buttonsMap_[ACTION_PREVPANEL]));
-    control_.SetButtons(CTRL_NEXTPANEL, joystick->GetButtonPress(buttonsMap_[ACTION_NEXTPANEL]));
+    // INTERACT
+    button = buttonsMap_[ACTION_INTERACT];
+    if ((button & (JOY_HAT|JOY_AXI)) == 0)
+        control_.SetButtons(CTRL_INTERACT, joystick->GetButtonPress(button & JOY_VALUE));
+    else if (button & JOY_HAT)
+        control_.SetButtons(CTRL_INTERACT, joystick->GetHatPosition(button & JOY_VALUE));
+    else
+        control_.SetButtons(CTRL_INTERACT, joystick->GetAxisPress(button & JOY_VALUE));
+
+    // UI : Focus/Defocus
+    button = buttonsMap_[ACTION_STATUS];
+    if (button & JOY_HAT)
+        control_.SetButtons(CTRL_STATUS, joystick->GetHatPosition(button & JOY_VALUE));
+    else if (button & JOY_AXI)
+        control_.SetButtons(CTRL_STATUS, joystick->GetAxisPress(button & JOY_VALUE));
+    else
+        control_.SetButtons(CTRL_STATUS, joystick->GetButtonPress(button & JOY_VALUE));
+
+    if (!control_.IsButtonDown(CTRL_STATUS))
+    {
+        // UI : Prev Focus Panel
+        button = buttonsMap_[ACTION_PREVPANEL];
+        if (button & JOY_HAT)
+            control_.SetButtons(CTRL_PREVPANEL, joystick->GetHatPosition(button & JOY_VALUE));
+        else if (button & JOY_AXI)
+            control_.SetButtons(CTRL_PREVPANEL, joystick->GetAxisPress(button & JOY_VALUE));
+        else
+            control_.SetButtons(CTRL_PREVPANEL, joystick->GetButtonPress(button & JOY_VALUE));
+
+        // UI : Next Focus Panel
+        if (!control_.IsButtonDown(CTRL_PREVPANEL))
+        {
+            button = buttonsMap_[ACTION_NEXTPANEL];
+            if (button & JOY_HAT)
+                control_.SetButtons(CTRL_NEXTPANEL, joystick->GetHatPosition(button & JOY_VALUE));
+            else if (button & JOY_AXI)
+                control_.SetButtons(CTRL_NEXTPANEL, joystick->GetAxisPress(button & JOY_VALUE));
+            else
+                control_.SetButtons(CTRL_NEXTPANEL, joystick->GetButtonPress(button & JOY_VALUE));
+        }
+    }
+
+    // Prev Focus Entity
+    button = buttonsMap_[ACTION_PREVENTITY];
+    if (button & JOY_HAT)
+        control_.SetButtons(CTRL_PREVENTITY, joystick->GetHatPosition(button & JOY_VALUE));
+    else if (button & JOY_AXI)
+        control_.SetButtons(CTRL_PREVENTITY, joystick->GetAxisPress(button & JOY_VALUE));
+    else
+        control_.SetButtons(CTRL_PREVENTITY, joystick->GetButtonPress(button & JOY_VALUE));
+
+    // Next Focus Entity
+    if (!control_.IsButtonDown(ACTION_PREVENTITY))
+    {
+        button = buttonsMap_[ACTION_NEXTENTITY];
+        if (button & JOY_HAT)
+            control_.SetButtons(CTRL_NEXTENTITY, joystick->GetHatPosition(button & JOY_VALUE));
+        else if (button & JOY_AXI)
+            control_.SetButtons(CTRL_NEXTENTITY, joystick->GetAxisPress(button & JOY_VALUE));
+        else
+            control_.SetButtons(CTRL_NEXTENTITY, joystick->GetButtonPress(button & JOY_VALUE));
+    }
 
     // DIRECTION : UP, DOWN, LEFT, RIGHT
     // TODO : Joystick Binding for all gamecontroller

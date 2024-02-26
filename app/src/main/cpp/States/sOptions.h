@@ -75,7 +75,7 @@ protected:
     void HandleApplyConfigControl(StringHash eventType, VariantMap& eventData);
     void HandleClickConfigActionButton(StringHash eventType, VariantMap& eventData);
     void HandleCaptureKey(StringHash eventType, VariantMap& eventData);
-    void HandleCaptureJoyButton(StringHash eventType, VariantMap& eventData);
+    void HandleCaptureJoy(StringHash eventType, VariantMap& eventData);
 
     void HandleApplyParameters(StringHash eventType, VariantMap& eventData);
     void HandleCloseFrame(StringHash eventType, VariantMap& eventData);
@@ -131,7 +131,7 @@ protected:
 
     void HandleQuitMessageAck(StringHash eventType, VariantMap& eventData);
     void HandleMenuButton(StringHash eventType, VariantMap& eventData);
-    void HandleKeyDown(StringHash eventType, VariantMap& eventData);
+    void HandleKeyEscape(StringHash eventType, VariantMap& eventData);
     void HandleScreenResized(StringHash eventType, VariantMap& eventData);
 
     void OnPostRenderUpdate(StringHash eventType, VariantMap& eventData);

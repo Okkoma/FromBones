@@ -164,6 +164,8 @@ URHO3D_EVENT(GO_DESTROY, Go_Destroy)
     URHO3D_PARAM(GO_TILE, GoTile);
     URHO3D_PARAM(GO_PTR, GoPtr);       // Node*
 }
+URHO3D_EVENT(GO_DIRTY, Go_dirty) { }
+
 /// MOUNT Event
 /// => Sender : Player, GOB_MountOn
 /// => Subscribers : GameNetwork
@@ -206,9 +208,12 @@ URHO3D_EVENT(GOC_CONTROLACTIONSTOP, ControlActionStop) { }
 /// Action3 Press Event : Fire3
 URHO3D_EVENT(GOC_CONTROLACTION3, ControlAction3) { }
 /// Action Status Press Event
+URHO3D_EVENT(GOC_CONTROLACTION_INTERACT, ControlActionInteract) { }
 URHO3D_EVENT(GOC_CONTROLACTION_STATUS, ControlActionStatus) { }
 URHO3D_EVENT(GOC_CONTROLACTION_PREVFOCUSPANEL, ControlActionPrevFocusPanel) { }
 URHO3D_EVENT(GOC_CONTROLACTION_NEXTFOCUSPANEL, ControlActionNextFocusPanel) { }
+URHO3D_EVENT(GOC_CONTROLACTION_NEXTFOCUSENTITY, ControlActionNextFocusEntity) { }
+URHO3D_EVENT(GOC_CONTROLACTION_PREVFOCUSENTITY, ControlActionPrevFocusEntity) { }
 
 /// Change Controller Event
 URHO3D_EVENT(GOC_CONTROLLERCHANGE, ControllerChange)

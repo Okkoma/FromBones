@@ -41,6 +41,7 @@ GOC_Controller::GOC_Controller(Context* context) :
     Component(context),
     mainController_(false),
     controlActionEnable_(true),
+    interaction_(false),
     controlType_(GO_None),
     currentIdPath_(-1),
     thinker_(0),
@@ -51,6 +52,7 @@ GOC_Controller::GOC_Controller(Context* context, int type) :
     Component(context),
     mainController_(false),
     controlActionEnable_(true),
+    interaction_(false),
     controlType_(type),
     currentIdPath_(-1),
     thinker_(0),
@@ -526,8 +528,13 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
                     GOC_Abilities* gocabilities = node_->GetComponent<GOC_Abilities>();
                     if (gocabilities)
                     {
-                        Ability* ability = gocabilities->GetAbility(ABI_AnimShooter::GetTypeStatic());
-                        canUseAction2 = ability && gocabilities->SetActiveAbility(ability);
+                        if (controlType_ & GO_Player)
+                            canUseAction2 = gocabilities->GetActiveAbility() != 0;
+                        else
+                        {
+                            Ability* ability = gocabilities->GetAbility(ABI_AnimShooter::GetTypeStatic());
+                            canUseAction2 = ability && gocabilities->SetActiveAbility(ability);
+                        }
                     }
                 }
 
@@ -535,6 +542,10 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
                 {
                     URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
                     node_->SendEvent(GOC_CONTROLACTION2);
+                }
+                else
+                {
+                    URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 can't use");
                 }
             }
 

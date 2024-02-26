@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!--<TextureAtlas imagePath="Textures/Actors/entityselector.png">
+	<SubTexture name="entityselector" x="0" y="0" width="227" height="227" />
+</TextureAtlas>-->
+<TextureAtlas imagePath="Textures/Actors/particules.png">
+	<SubTexture name="entityselector"				x="0"	y="413"	width="32"	height="32" />
+</TextureAtlas>

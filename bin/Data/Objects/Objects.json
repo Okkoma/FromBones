@@ -549,4 +549,20 @@
 		"qtyInPool": 0,
 		"defaultValue":0
 	}
+	, "EntitySelectorFirst":{
+		"category":"Objects",
+		"fileName":"Objects/entityselectorfirst.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":5,
+		"defaultValue":0
+	}
+	, "EntitySelectorSecond":{
+		"category":"Objects",
+		"fileName":"Objects/entityselectorsecond.xml",
+		"typeProperty":"GOT_Spawnable",
+		"replicateMode":0,
+		"qtyInPool":5,
+		"defaultValue":0
+	}	
 }

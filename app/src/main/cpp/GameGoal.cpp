@@ -586,7 +586,7 @@ void Objective::Update(unsigned owner)
                         {
                             Vector2 pos = actor->GetAvatar()->GetWorldPosition2D();
                             Rect aabb(pos - Vector2::ONE, pos + Vector2::ONE);
-                            GameContext::Get().rootScene_->GetComponent<PhysicsWorld2D>()->GetRigidBodies(results, aabb);
+                            GameContext::Get().physicsWorld_->GetRigidBodies(results, aabb);
                             envSearch = true;
                         }
 

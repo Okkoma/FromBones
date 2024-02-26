@@ -1,5 +1,7 @@
 Todos:
 
+    ✔ 26/02/2024 : les axis des controllers peuvent desormais etre utilisé comme boutons suite aux modifications dans Urho3D::Input => JoystickState::GetAxisPress
+
     ✔ 16/02/2024 : lorsque l'avatar monte un skeleton et que l'avatar utilise son power2, le skeleton utilise son animation pistolet alors qu'il n'en a pas
         => Ajout de la condition d'utilisation de l'abilité dans GOC_Controller::Update + patch correctif dans GOC_Abilities::SetActiveAbility
 

@@ -1065,7 +1065,7 @@ void World2D::DestroyFurnituresAt(MapBase* map, unsigned tileindex)
         delayTemporaryDrawRect_ = 2.f;
 
         PODVector<RigidBody2D*> bodies;
-        world_->GetScene()->GetComponent<PhysicsWorld2D>()->GetRigidBodies(bodies, worldTileRect, inside ? CC_INSIDESTATICFURNITURE | CC_INSIDEOBJECT : CC_OUTSIDESTATICFURNITURE | CC_OUTSIDEOBJECT);
+        GameContext::Get().physicsWorld_->GetRigidBodies(bodies, worldTileRect, inside ? CC_INSIDESTATICFURNITURE | CC_INSIDEOBJECT : CC_OUTSIDESTATICFURNITURE | CC_OUTSIDEOBJECT);
 //        URHO3D_LOGINFOF("World2D() - DestroyFurnituresAt : Find %u bodies in rect=%s ... ", bodies.Size(), worldTileRect.ToString().CString());
 
         for (unsigned i=0; i < bodies.Size(); i++)

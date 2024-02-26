@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<node>
+	<attribute name="Is Enabled" value="true" />
+	<attribute name="Name" value="EntitySelectorFirst" />
+	<attribute name="Position" value="0.0 0.0 0" />
+	<attribute name="Rotation" value="1 0 0 0" />
+	<attribute name="Scale" value="1 1 1" />
+	<attribute name="Variables" />
+    <component type="AnimatedSprite2D">
+		<attribute name="Animation Set" value="AnimationSet2D;2D/entityselector.scml" />
+		<attribute name="Animation" value="idle" />
+		<attribute name="Color" value="1 0.5 0 0.2" />
+	</component>	
+	<component type="ParticleEmitter2D">
+		<attribute name="Particle Effect" value="ParticleEffect2D;Particules/entityselector.pex" />
+		<attribute name="Blend Mode" value="addalpha" />
+		<attribute name="Color" value="1 0.5 0 0.4" />
+		<attribute name="Layer Modifier" value="2" />
+	</component>
+    <component type="GOC_EntityFollower"/>
+</node>
