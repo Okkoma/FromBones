@@ -657,10 +657,10 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
     {
         URHO3D_LOGERRORF("GOC_AIController() - OnEntitySelection : ID=%u <= selected target %u ... stop behavior !",
                          node_->GetID(), selectedID);
+
+        SetTarget(0, true);
+        StopBehavior();
         return;
-//        SetTarget(0, true);
-//        StopBehavior();
-//        return;
     }
 
     if (type == GO_AI_Enemy)
@@ -672,8 +672,8 @@ void GOC_AIController::OnEntitySelection(StringHash eventType, VariantMap& event
             URHO3D_LOGINFOF("GOC_AIController() - OnEntitySelection : ID=%u on Enemy node=%s(%u) => Follow and Attack !",
                             node_->GetID(), selectedNode->GetName().CString(), selectedNode->GetID());
 
-            SetTarget(selectedID);
             StartBehavior(GOB_FOLLOWATTACK);
+            SetTarget(selectedID);
         }
     }
     else if (type & (GO_Player|GO_NetPlayer|GO_AI_Ally))

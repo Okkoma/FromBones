@@ -52,7 +52,7 @@ void GOB_Patrol::Update(GOC_AIController& controller)
         {
             // reset after hit
 //            URHO3D_LOGINFOF("GOB_Patrol() - Update : Attack released => reset buttons");
-            buttons &= ~CTRL_FIRE;
+            buttons &= ~CTRL_FIRE1;
         }
         else if (state == STATE_SHOOT)
         {
@@ -167,7 +167,7 @@ void GOB_Patrol::Update(GOC_AIController& controller)
                 buttons = (dirx > 0.f ? CTRL_LEFT : CTRL_RIGHT);
             }
             //        // try hit
-            //        buttons = buttons & CTRL_FIRE;
+            //        buttons = buttons & CTRL_FIRE1;
         }
         else if (state == STATE_JUMP)
         {
@@ -228,11 +228,11 @@ void GOB_Patrol::Update(GOC_AIController& controller)
             }
 
         }
-//        else if (state == STATE_ATTACK && (buttons & CTRL_FIRE))
+//        else if (state == STATE_ATTACK && (buttons & CTRL_FIRE1))
 //        {
 //            // reset after hit
 //            URHO3D_LOGINFOF("GOB_Patrol() - Update : Attack => reset button");
-//            buttons &= ~CTRL_FIRE;
+//            buttons &= ~CTRL_FIRE1;
 //        }
 //        else if (state == STATE_SHOOT && (buttons & CTRL_FIRE2))
 //        {
@@ -254,7 +254,7 @@ void GOB_Patrol::Update(GOC_AIController& controller)
         }
         else if (order == STATE_ATTACK || order == STATE_SHOOT)
         {
-            buttons = order == STATE_SHOOT ? CTRL_FIRE2 : CTRL_FIRE;
+            buttons = order == STATE_SHOOT ? CTRL_FIRE2 : CTRL_FIRE1;
             aiInfos.waitCallBackOrderOfType = StateTypeForOrder;
 //            URHO3D_LOGINFOF("GOB_Patrol() - Update : order %s(%u) => button=%u => wait for state !", GOS::GetStateName(order).CString(), order, buttons);
         }
@@ -347,7 +347,7 @@ void GOB_WaitAndDefend::Update(GOC_AIController& controller)
         else if (state == STATE_FALL)
         {
             //        // try hit
-            //        buttons = buttons & CTRL_FIRE;
+            //        buttons = buttons & CTRL_FIRE1;
         }
         else if (state == STATE_HURT)
         {
@@ -389,7 +389,7 @@ void GOB_WaitAndDefend::Update(GOC_AIController& controller)
         }
         else if (order == STATE_ATTACK)
         {
-            buttons = CTRL_FIRE;
+            buttons = CTRL_FIRE1;
             aiInfos.waitCallBackOrderOfType = StateTypeForOrder;
 //            URHO3D_LOGINFOF("GOB_WaitAndDefend() - Update : order Attack(%u) => button=%u => wait for State=State_Attack !", STATE_ATTACK, buttons);
         }

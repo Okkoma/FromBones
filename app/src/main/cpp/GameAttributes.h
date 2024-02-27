@@ -168,7 +168,7 @@ const unsigned CTRL_DOWN       = 1U << ACTION_DOWN;
 const unsigned CTRL_LEFT       = 1U << ACTION_LEFT;
 const unsigned CTRL_RIGHT      = 1U << ACTION_RIGHT;
 const unsigned CTRL_JUMP       = 1U << ACTION_JUMP;
-const unsigned CTRL_FIRE       = 1U << ACTION_FIRE1;
+const unsigned CTRL_FIRE1      = 1U << ACTION_FIRE1;
 const unsigned CTRL_FIRE2      = 1U << ACTION_FIRE2;
 const unsigned CTRL_FIRE3      = 1U << ACTION_FIRE3;
 const unsigned CTRL_INTERACT   = 1U << ACTION_INTERACT;
@@ -424,8 +424,11 @@ const unsigned GOB_MOUNTON            = StringHash("GOB_MountOn").Value();
 
 const unsigned BEHAVIOR_DEFAULT       = GOB_PATROL;
 
-/// Equipment
-const unsigned EQUIPMENTTEMPLATE      = StringHash("EquipmentTemplate").Value();
+/// Inventory/Equipment Default Templates
+const StringHash INVENTORY_AVATARTEMPLATE    = StringHash("InventoryTemplate_MoneySlot_15SlotsQ20_Equip1");
+const StringHash INVENTORY_CRAFTTEMPLATE     = StringHash("InventoryTemplate_Craft");
+const StringHash INVENTORTY_BASKETTEMPLATE   = StringHash("InventoryTemplate_Basket_5SlotsQ500");
+const StringHash INVENTORY_EQUIPMENTTEMPLATE = StringHash("EquipmentTemplate");
 
 /// CharacterMaps
 extern HashMap<StringHash, String> CharacterMappingNames_;

@@ -55,6 +55,7 @@ enum MoveTypeMode
     MOVE2D_SWIMCLIMB = 10,
     MOVE2D_WALKANDSWIM = 11,
     MOVE2D_MOUNT = 12,
+    MOVE2D_UNDEFINED = 13
 };
 
 enum MoveMask

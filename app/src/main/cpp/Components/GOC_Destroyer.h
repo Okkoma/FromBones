@@ -120,6 +120,7 @@ public :
     }
     bool IsOnFreeTiles(int viewZ) const;
     bool IsInWalls(MapBase* map, int viewZ);
+    bool IsInsideWorld();
     bool HasCellInFront(bool direction);
     bool HasWallInFront(bool direction);
 

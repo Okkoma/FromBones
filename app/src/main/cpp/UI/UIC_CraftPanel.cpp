@@ -49,7 +49,7 @@ UIC_CraftPanel::UIC_CraftPanel(Context* context) :
     UISlotPanel(context)
 {
     craft_ = new GOC_Inventory(context);
-    craft_->SetTemplate("InventoryTemplate_Craft");
+    craft_->SetTemplate(INVENTORY_CRAFTTEMPLATE);
     SetInventorySection("Material", "Tool");
 
     craftTimer_ = new DelayInformer(context);

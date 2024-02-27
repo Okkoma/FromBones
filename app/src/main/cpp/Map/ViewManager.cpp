@@ -955,12 +955,17 @@ void ViewManager::UpdateFocus(int viewport, const float& timeStep)
                 node = it->Get();
                 if (node != 0)
                 {
+                    // for Mounted node
+                    if (node->GetVar(GOA::ISMOUNTEDON).GetUInt())
+                        node = node->GetParent()->GetName() == MOUNTNODE ? node->GetParent()->GetParent() : node->GetParent();
+
                     position += node->GetWorldPosition2D();
                     velocity += node->GetVar(GOA::VELOCITY).GetVector2();
 
 #ifdef CAMERAFOCUS_ADJUSTWALK
                     movestate = node->GetVar(GOA::MOVESTATE).GetUInt();
-                    if ((movestate & MV_WALK) && !(movestate & MV_INFALL))
+
+                    if ((movestate & (MV_WALK|MV_FLY|MV_INFALL) == MV_WALK) || (movestate & MV_TOUCHGROUND))
                     {
 #ifdef CAMERAFOCUS_TEMPO
                         sTempoFocus += timeStep;

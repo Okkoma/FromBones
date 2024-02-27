@@ -123,8 +123,13 @@ bool GOC_Controller::MountOn(Node* target)
                     node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
 
     // unmount before mount on another target
-    if (prevTargetID)
-        bool ok = GOC_Controller::Unmount();
+    if (prevTargetID && !GOC_Controller::Unmount())
+        return false;
+
+    GOC_Abilities* gocability = node_->GetComponent<GOC_Abilities>();
+    Ability* ability = gocability && gocability->GetActiveAbility() ? gocability->GetActiveAbility() : 0;
+    if (ability)
+        gocability->SetActiveAbility(0);
 
     node_->SetVar(GOA::ISMOUNTEDON, target->GetID());
 
@@ -185,6 +190,9 @@ bool GOC_Controller::MountOn(Node* target)
 
     SubscribeToEvent(target, GOC_LIFEDEAD, URHO3D_HANDLER(GOC_Controller, OnMountNodeDead));
 
+    if (ability)
+        gocability->SetActiveAbility(ability);
+
     URHO3D_LOGINFOF("GOC_Controller() - MountOn : %s(%u) on node=%s(%u) ... OK !",
                     node_->GetName().CString(), node_->GetID(), target->GetName().CString(), target->GetID());
 
@@ -199,6 +207,11 @@ bool GOC_Controller::Unmount()
         return false;
 
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... targetid=%u ...", node_->GetName().CString(), node_->GetID(), targetid);
+
+    GOC_Abilities* gocability = node_->GetComponent<GOC_Abilities>();
+    Ability* ability = gocability && gocability->GetActiveAbility() ? gocability->GetActiveAbility() : 0;
+    if (ability)
+        gocability->SetActiveAbility(0);
 
     Node* target = 0;
 
@@ -263,7 +276,12 @@ bool GOC_Controller::Unmount()
     }
 
     if (target)
+    {
         UnsubscribeFromEvent(target, GOC_LIFEDEAD);
+        GOC_Move2D* move2d = target->GetComponent<GOC_Move2D>();
+        if (move2d)
+            move2d->ResetMoveType();
+    }
 
     node_->SetVar(GOA::ISMOUNTEDON, 0U);
 
@@ -272,7 +290,7 @@ bool GOC_Controller::Unmount()
 
     GOC_Move2D* move2d = node_->GetComponent<GOC_Move2D>();
     if (move2d)
-        move2d->SetMoveType(move2d->GetLastMoveType());
+        move2d->ResetMoveType();
 
     if (!node_->GetVar(GOA::ISDEAD).GetBool())
         node_->GetComponent<GOC_Animator2D>()->ResetState();
@@ -281,11 +299,32 @@ bool GOC_Controller::Unmount()
     if (destroyer)
     {
         destroyer->SetDelegateNode(0);
+
+        if (!destroyer->IsInsideWorld())
+        {
+            Vector2 position;
+
+            URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... Outside World => adjust !", node_->GetName().CString(), node_->GetID());
+
+            GOC_Destroyer* targetdestroyer = target ? target->GetComponent<GOC_Destroyer>() : 0;
+            if (targetdestroyer && targetdestroyer->IsInsideWorld())
+            {
+                const WorldMapPosition& targetpos = targetdestroyer->GetWorldMapPosition();
+                position = targetpos.position_;
+                destroyer->AdjustPosition(targetpos.mPoint_, targetpos.viewZ_, position);
+            }
+
+            node_->SetWorldPosition2D(position);
+        }
+
         destroyer->SetViewZ();
     }
 
     if (thinker_)
         static_cast<Player*>(thinker_)->OnUnmount(targetid);
+
+    if (ability)
+        gocability->SetActiveAbility(ability);
 
     URHO3D_LOGINFOF("GOC_Controller() - Unmount : %s(%u) ... OK !", node_->GetName().CString(), node_->GetID());
 
@@ -513,9 +552,9 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
     {
         if (controlActionEnable_)
         {
-            if (control_.IsButtonDown(CTRL_FIRE))
+            if (control_.IsButtonDown(CTRL_FIRE1))
             {
-    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+    //            URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE1 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
                 node_->SendEvent(GOC_CONTROLACTION1);
             }
 

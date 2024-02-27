@@ -34,9 +34,9 @@ struct GOC_Inventory_Template
     {
         return boneKeywordsBySlot_;
     }
-    static const GOC_Inventory_Template* Get(unsigned templateHashValue)
+    static const GOC_Inventory_Template* Get(StringHash key)
     {
-        HashMap<unsigned, GOC_Inventory_Template>::ConstIterator it = templates_.Find(templateHashValue);
+        HashMap<unsigned, GOC_Inventory_Template>::ConstIterator it = templates_.Find(key.Value());
         return it != templates_.End() ? &it->second_ : 0;
     }
     static const String& GetTemplateName(unsigned templateHashValue)
@@ -120,6 +120,7 @@ public :
     static void RegisterObject(Context* context);
 
     void RegisterTemplate(const String& s);
+    void SetTemplate(StringHash hashname);
     void SetTemplate(const String& s);
     void ResetTemplate(GOC_Inventory_Template* t=0);
     void SetTemplateSlotAttr(const String& value);

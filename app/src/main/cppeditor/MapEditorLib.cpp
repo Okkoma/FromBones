@@ -3836,6 +3836,8 @@ AnimatorEditor::~AnimatorEditor()
 
     FinishEdit();
 
+    GameContext::Get().Pause(false);
+
     animatorEditor_ = 0;
 }
 
@@ -3874,8 +3876,6 @@ void AnimatorEditor::EditInPreview(AnimationSet2D* animationSet)
     URHO3D_LOGINFO("AnimatorEditor() - Edit : animationset2d = " + animationSet->GetName());
 
     // Edit an AnimationSet2D inside scmleditor
-
-    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_MAIN, true);
 
     panel_ = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_MAIN);
     preview_ = static_cast<View3D*>(panel_->GetChild(String("View2D"), true));
@@ -3939,6 +3939,8 @@ void AnimatorEditor::EditInPreview(AnimationSet2D* animationSet)
 
     SubscribeToEvent(preview_, E_RESIZED, URHO3D_HANDLER(AnimatorEditor, HandleResize));
     SubscribeToEvent(panel_, E_VISIBLECHANGED, URHO3D_HANDLER(AnimatorEditor, HandleVisible));
+
+    MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_MAIN, true);
 }
 
 void AnimatorEditor::FinishEdit()
@@ -3986,7 +3988,6 @@ void AnimatorEditor::ResetSelection(int mode)
         lastSelectedTimelineId_ = -1;
         cleared = true;
     }
-
     if (cleared && editedAnimatedSprite_->GetSpriterInstance()->GetCurrentMainKey())
     {
         editedAnimatedSprite_->GetSpriterInstance()->UpdateTimelineKeys();
@@ -4420,8 +4421,6 @@ void AnimatorEditor::SetCharacterMappingPanel()
         URHO3D_LOGINFOF("AnimatorEditor() - SetCharacterMappingPanel : node=%s(%u) ... appliedcharactermaps additem[%u]=%s ", editNode_->GetName().CString(), editNode_->GetID(), i, appliedcharactermaps[i]->name_.CString());
     }
 
-    SubscribeToEvent(panel, E_VISIBLECHANGED, URHO3D_HANDLER(AnimatorEditor, HandleVisible));
-
     SubscribeToEvent(panel->GetChild("SetSave", true), E_PRESSED, URHO3D_HANDLER(AnimatorEditor, HandleAnimationSetSave));
 
     SubscribeToEvent(panel->GetChild("EntityList", true), E_ITEMSELECTED, URHO3D_HANDLER(AnimatorEditor, HandleEntitySelected));
@@ -4442,22 +4441,29 @@ void AnimatorEditor::SetCharacterMappingPanel()
     SetSpriteSelectionList(GameContext::Get().resourceCache_->GetResource<SpriteSheet2D>("2D/spritesheet1.xml"));
 
     SetAnimationPanel();
+
+    SubscribeToEvent(panel, E_VISIBLECHANGED, URHO3D_HANDLER(AnimatorEditor, HandleVisible));
+    HandleVisible(StringHash::ZERO, GameContext::Get().context_->GetEventDataMap());
 }
 
 void AnimatorEditor::HandleVisible(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGINFOF("AnimatorEditor() - HandleVisible : visible=%s", panel_->IsVisible()?"true":"false");
+    bool visible = panel_->IsVisible();
 
-    if (!panel_->IsVisible())
+    URHO3D_LOGINFOF("AnimatorEditor() - HandleVisible : visible=%s", visible ? "true":"false");
+
+    if (!visible)
         FinishEdit();
 
     MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_SWSPRITES, false);
     MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_COLORMAPPING, false);
+    if (!visible)
+        MapEditorLibImpl::Get()->SetVisible(PANEL_ANIMATOR2D_ANIMS, false);
 
     if (previewScene_)
-    {
-        previewScene_->SetUpdateEnabled(panel_->IsVisible());
-    }
+        previewScene_->SetUpdateEnabled(visible);
+
+    GameContext::Get().Pause(visible);
 }
 
 void AnimatorEditor::HandleResize(StringHash eventType, VariantMap& eventData)
@@ -4497,7 +4503,19 @@ void AnimatorEditor::HandleEditCMap(StringHash eventType, VariantMap& eventData)
 {
     URHO3D_LOGINFOF("AnimatorEditor() - HandleEditCMap");
 
-    UIElement* elt = static_cast<UIElement*>(context_->GetEventSender());
+    UIElement* elt = 0;
+
+    if (eventType == E_DOUBLECLICK)
+    {
+        elt = static_cast<UIElement*>(context_->GetEventSender());
+    }
+    else if (eventType == E_PRESSED)
+    {
+        ListView* availableMaps = static_cast<ListView*>(MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_CMAPS)->GetChild("AvailableMaps", true));
+        if (availableMaps)
+            elt = availableMaps->GetSelectedItem();
+    }
+
     if (!elt)
         return;
 

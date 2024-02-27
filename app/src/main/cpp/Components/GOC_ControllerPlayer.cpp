@@ -170,8 +170,6 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     if (!keysMap_)
         return;
 
-//    URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u)  !", node_->GetName().CString(), node_->GetID());
-
     control_.SetButtons(CTRL_UP, input.GetScancodeDown(keysMap_[ACTION_UP]));
     control_.SetButtons(CTRL_DOWN, input.GetScancodeDown(keysMap_[ACTION_DOWN]));
     if (input.GetScancodeDown(keysMap_[ACTION_LEFT]))
@@ -191,7 +189,8 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     }
 
     control_.SetButtons(CTRL_JUMP, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_JUMP]  ? false : input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]));
-    control_.SetButtons(CTRL_FIRE, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+//    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodePress(keysMap_[ACTION_FIRE1]));
     control_.SetButtons(CTRL_FIRE2, input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]));
     control_.SetButtons(CTRL_FIRE3, input.GetScancodePress(keysMap_[ACTION_FIRE3]));
 
@@ -202,6 +201,9 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     control_.SetButtons(CTRL_NEXTPANEL, input.GetScancodePress(keysMap_[ACTION_NEXTPANEL]));
     control_.SetButtons(CTRL_PREVENTITY, input.GetScancodePress(keysMap_[ACTION_PREVENTITY]));
     control_.SetButtons(CTRL_NEXTENTITY, input.GetScancodePress(keysMap_[ACTION_NEXTENTITY]));
+
+    if (control_.IsButtonDown(CTRL_FIRE1))
+        URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u) CTRL_FIRE1 !", node_->GetName().CString(), node_->GetID());
 }
 
 inline void GOC_PlayerController::UpdateTouchControls(Input& input)
@@ -240,8 +242,8 @@ inline void GOC_PlayerController::UpdateTouchControls(Input& input)
             else
                 // action input
             {
-                control_.SetButtons(CTRL_FIRE, touch.pressure_ >= 0.3f);
-//                control_.SetButtons(CTRL_FIRE, touch.pressure_ >= 0.3f && touch.pressure_ < 0.6f);
+                control_.SetButtons(CTRL_FIRE1, touch.pressure_ >= 0.3f);
+//                control_.SetButtons(CTRL_FIRE1, touch.pressure_ >= 0.3f && touch.pressure_ < 0.6f);
 //                control_.SetButtons(CTRL_FIRE2, touch.pressure_ >= 0.6f);
             }
         }
@@ -254,7 +256,7 @@ inline void GOC_PlayerController::UpdateTouchControls(Input& input)
         control_.SetButtons(CTRL_LEFT, input.GetKeyDown(KEY_A) || input.GetScancodeDown(keysMap_[ACTION_LEFT]));
         control_.SetButtons(CTRL_RIGHT, input.GetKeyDown(KEY_D) || input.GetScancodeDown(keysMap_[ACTION_RIGHT]));
         control_.SetButtons(CTRL_JUMP, input.GetKeyDown(KEY_SPACE) || input.GetKeyPress(KEY_SPACE) || input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]));
-        control_.SetButtons(CTRL_FIRE, input.GetKeyDown(KEY_E) || input.GetKeyPress(KEY_E) || input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+        control_.SetButtons(CTRL_FIRE1, input.GetKeyDown(KEY_E) || input.GetKeyPress(KEY_E) || input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
         control_.SetButtons(CTRL_FIRE2, input.GetKeyDown(KEY_F) || input.GetKeyPress(KEY_F) || input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]));
         control_.SetButtons(CTRL_FIRE3, input.GetKeyPress(KEY_R) || input.GetScancodePress(keysMap_[ACTION_FIRE3]));
     }
@@ -306,16 +308,16 @@ inline void GOC_PlayerController::UpdateJoystickControls(Input& input)
 
     // FIRE
     if (HasInteraction() && buttonsMap_[ACTION_INTERACT] == buttonsMap_[ACTION_FIRE1])
-        control_.SetButtons(CTRL_FIRE, false);
+        control_.SetButtons(CTRL_FIRE1, false);
     else
     {
         button = buttonsMap_[ACTION_FIRE1];
         if (button & JOY_HAT)
-            control_.SetButtons(CTRL_FIRE, joystick->GetHatPosition(button & JOY_VALUE));
+            control_.SetButtons(CTRL_FIRE1, joystick->GetHatPosition(button & JOY_VALUE));
         else if (button & JOY_AXI)
-            control_.SetButtons(CTRL_FIRE, joystick->GetAxisPress(button & JOY_VALUE));
+            control_.SetButtons(CTRL_FIRE1, joystick->GetAxisPress(button & JOY_VALUE));
         else
-            control_.SetButtons(CTRL_FIRE, joystick->GetButtonPress(button & JOY_VALUE) || joystick->GetButtonDown(button & JOY_VALUE));
+            control_.SetButtons(CTRL_FIRE1, joystick->GetButtonPress(button & JOY_VALUE) || joystick->GetButtonDown(button & JOY_VALUE));
     }
 
     // FIRE2

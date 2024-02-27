@@ -901,18 +901,26 @@ void ABI_Fly::OnActive(bool active)
 {
     URHO3D_LOGINFOF("ABI_Fly() - OnActive : active=%s !", active ? "true":"false");
 
-    GOC_Move2D* gocmove = holder_->GetComponent<GOC_Move2D>();
+    unsigned mountid = holder_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+    Node* node = mountid ? GameContext::Get().rootScene_->GetNode(mountid) : holder_;
+
+    GOC_Move2D* gocmove = node->GetComponent<GOC_Move2D>();
     if (gocmove)
     {
-        gocmove->SetMoveType(active ? MOVE2D_WALKANDFLY : MOVE2D_WALK);
         if (active)
-        {
-            Drawable2D* drawable = holder_->GetDerivedComponent<Drawable2D>();
-            float angle = holder_->GetVar(GOA::DIRECTION).GetVector2().x_ > 0.f ? 180.f : 0.f;
-            GameHelpers::SpawnParticleEffectInNode(holder_->GetContext(), holder_, ParticuleEffect_[PE_TORCHE], drawable->GetLayer(), drawable->GetViewMask(),
+            gocmove->SetMoveType(MOVE2D_WALKANDFLY);
+        else
+            gocmove->ResetMoveType();
+    }
+
+    if (active)
+    {
+        Drawable2D* drawable = holder_->GetDerivedComponent<Drawable2D>();
+        float angle = holder_->GetVar(GOA::DIRECTION).GetVector2().x_ > 0.f ? 180.f : 0.f;
+        GameHelpers::SpawnParticleEffectInNode(holder_->GetContext(), holder_, ParticuleEffect_[PE_TORCHE], drawable->GetLayer(), drawable->GetViewMask(),
                                                    holder_->GetWorldPosition2D()+Vector2(0.f, 0.5f), angle, 3.f, true, 2.f, Color::WHITE, LOCAL);
-        }
+    }
 
 //        GameHelpers::SetRenderedAnimation(holder_->GetComponent<AnimatedSprite2D>(), String("Special1"), active ? GOT_ : StringHash::ZERO);
-    }
+
 }

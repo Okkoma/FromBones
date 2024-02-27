@@ -322,7 +322,7 @@ void GOB_PlayerCPU::Update(GOC_AIController& controller)
         }
         else if (order == STATE_ATTACK)
         {
-            buttons = CTRL_FIRE;
+            buttons = CTRL_FIRE1;
             aiInfos.waitCallBackOrderOfType = StateTypeForOrder;
 //            URHO3D_LOGINFOF("GOB_PlayerCPU() - Update : order Attack(%u) => button=%u => wait for State=State_Attack !", STATE_ATTACK, buttons);
         }

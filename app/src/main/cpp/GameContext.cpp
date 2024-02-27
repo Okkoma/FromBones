@@ -1535,6 +1535,15 @@ void GameContext::Exit()
         context_->GetSubsystem<Engine>()->Exit();
 }
 
+void GameContext::Pause(bool enable)
+{
+    rootScene_->SetUpdateEnabled(!enable);
+    if (rttScene_)
+        rttScene_->SetUpdateEnabled(!enable);
+
+    physicsWorld_->SetUpdateEnabled(!enable);
+}
+
 void GameContext::SetConsoleVisible(bool state)
 {
     if (console_)

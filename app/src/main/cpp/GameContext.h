@@ -243,6 +243,7 @@ public :
     void Start();
     void Stop();
     void Exit();
+    void Pause(bool enable);
 
     void SetConsoleVisible(bool state);
     bool HasConsoleFocus();

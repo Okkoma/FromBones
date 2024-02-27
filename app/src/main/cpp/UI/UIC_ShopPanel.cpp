@@ -48,7 +48,7 @@ UIC_ShopPanel::UIC_ShopPanel(Context* context) :
 {
     SetInventorySection("Shop");
     basket_ = new GOC_Inventory(context);
-    basket_->SetTemplate("InventoryTemplate_Basket_5SlotsQ500");
+    basket_->SetTemplate(INVENTORTY_BASKETTEMPLATE);
 }
 
 UIC_ShopPanel::~UIC_ShopPanel()

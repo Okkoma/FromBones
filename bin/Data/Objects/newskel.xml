@@ -75,10 +75,10 @@
 	<component type="GOC_SoundEmitter" >
 		<attribute name="Template" value="SoundTemplate_Skel" />
 	</component>
-<!-- 	<component type="GOC_Inventory" >
+    <component type="GOC_Inventory" >
 		<attribute name="Template" value="InventoryTemplate_MoneySlot" />
 		<attribute name="Add To Slot" value="type:Money | quantity:RANDOM" />
-	</component> -->
+	</component>
 	<component type="GOC_Abilities" >
 		<attribute name="Add Ability" value="name:ABI_AnimShooter | activeif:AppliedMapping=Weapon2" />
 		<!-- <attribute name="Add Ability" value="name:ABI_AnimShooter | activeif:Entity=Pirate_01" /> -->

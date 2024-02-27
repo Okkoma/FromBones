@@ -1,5 +1,18 @@
 Todos:
 
+    ✔ 27/02/2024 : si l'on monte lizard qui a des ailes, il faudrait qu'il puisse transporter sa monture.
+        => le comportement de ABI_Fly pose probleme si l'on active le pouvoir lorsque l'avatar est sur une monture
+        ==> la camera se decale de trop, l'avatar n'est plus visible.
+        ===> correctif dans ViewManager::UpdateFocus pour prendre en compte le cas des node mounted
+        => pour heriter du deplacement MV_FLY, il faut modifier le ABI_Fly::OnActive
+        ==> il faudra aussi restaurer le deplacement par defaut pour la monture lorsque demonté : GOC_Move2D::ResetMoveType()
+        ==> lorsque l'abilité ABI_Fly est activé avant de monter sur la monture : ajout dans GOC_Controller::MountOn
+
+    ✔ 27/02/2024 : correctif en Arena, en bordure si l'on demonte l'avatar qui est sur une monture (le RidigBody n'est alors pas actif) alors il se retrouve en position 0,0.
+        => ajout d'un test dans GOC_Controller::Unmount()
+
+    ✔ 27/02/2024 : Patch dans Urho3D::Input::SetKey pour eviter la repetition de ScanCodePress
+
     ✔ 26/02/2024 : les axis des controllers peuvent desormais etre utilisé comme boutons suite aux modifications dans Urho3D::Input => JoystickState::GetAxisPress
 
     ✔ 16/02/2024 : lorsque l'avatar monte un skeleton et que l'avatar utilise son power2, le skeleton utilise son animation pistolet alors qu'il n'en a pas
@@ -15,7 +28,8 @@ Todos:
         ==> dans AnimatedSprite2D::UpdateTriggers(), le GetChild() etait recursif (à cause d'une erreur/confusion dans le parametre (utilisation de LOCAL, qui ne sert que pour CreateChild)) ... erreur corrigé.
         ==> amelioration CollisionCircle avec UpdateCircle.
 
-    ☐ 14/02/2024 : pouvoir equiper les alliés
+    ✔ 14/02/2024 : pouvoir equiper les alliés
+        => ajout de l'inventaire dans newskel.xml + set du template d'inventaire dans GOC_DropZone::HandleContact.
 
     ✔ 10/02/2024 : reactiver BossZone lorsque le client rentre dedans !
         => OK : modification de EffectAction::Update : ajout d'une condition pour lancer BossZone::OnEnterZone
@@ -75,7 +89,7 @@ Todos:
         => attention : en reseau la touche '0' crée un probleme mineure de repetition du switchview.
         ==> c'est un tips, il ne sera pas actif en prod.
 
-    ☐ 11/12/2023 : pouvoir monter et descendre d'une monture en utilisant le clavier ou la manette (sans clic souris)
+    ✔ 11/12/2023 : pouvoir monter et descendre d'une monture en utilisant le clavier ou la manette (sans clic souris)
 
     ☐ 11/12/2023 : ajout de MountNode qui est géré par un NodeUpdater mais sans animation => c'est un node à la place
         -> permet d'accrocher une entity sur ce node dont la position dépend du SCML.

@@ -2502,6 +2502,7 @@ void GOC_Animator2D::Update()
 {
     unsigned moveState = node_->GetVar(GOA::MOVESTATE).GetUInt();
 
+//    URHO3D_LOGINFOF("GOC_Animator2D() - Update : node=%s(%u) movestate=%s(%u) ...", node_->GetName().CString(), node_->GetID(), GameHelpers::GetMoveStateString(moveState).CString());
     if (moveState)
     {
         if (((moveState & MSK_MV_FLYAIR) == MSK_MV_FLYAIR) && ((moveState & MSK_MV_CANWALKONGROUND) != MSK_MV_CANWALKONGROUND))  // (FLY WITH INAIR) ONLY, SKIP FLY IF CAN WALK AND IS ON GROUND (VAMPIRE)
@@ -2910,7 +2911,7 @@ inline void GOC_Animator2D::CheckAnim(const VariantMap& param)
     #endif
 
         // Test End Animation on AnimatedSprite
-        if (currentStateTime + 0.01f > animatedSprite->GetCurrentAnimationTime())// animatedSprite->GetCurrentAnimationTime() >= currentAnimInfo.animLength * ANIMATOR_ENDTHRESHOLD)
+        if (currentStateTime + 0.001f >= animatedSprite->GetCurrentAnimationTime())
         {
     #ifdef LOGDEBUG_ANIMATOR2D
             URHO3D_LOGINFOF("GOC_Animator2D() - CheckAnim : Node=%s(%u) - Animation Finished END_LOOP animationtime=%F (animationlength=%F)",

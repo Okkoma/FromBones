@@ -85,6 +85,7 @@ public :
     }
 
     void SetMoveType(MoveTypeMode type);
+    void ResetMoveType();
     void SetActiveLOS(int active);
     void SetNumJumps(int numJumps);
     void SetVehicleWheels();

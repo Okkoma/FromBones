@@ -472,13 +472,21 @@ void GOC_DropZone::HandleContact(StringHash eventType, VariantMap& eventData)
                                     gocFollower->Stop();
 
                                     gocFollower->SetControllerType(GO_AI_Ally, true);
-//                                    gocFollower->SetTarget();
                                     gocFollower->SetBehavior(GOB_FOLLOW);
                                     gocFollower->Start();
+                                    gocFollower->SetTarget(other->GetNode()->GetID(), true);
 
                                     GOC_Move2D* gocMove = node->GetComponent<GOC_Move2D>();
                                     if (gocMove)
                                         gocMove->SetMoveType(MOVE2D_WALKANDJUMPFIRSTBOXANDSWIM);
+
+                                    GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
+                                    if (inventory)
+                                    {
+                                        inventory->SetTemplate(INVENTORY_AVATARTEMPLATE);
+                                        // Allow Receive Equipment
+                                        inventory->SetReceiveTriggerEvent(GOE::GetEventName(GO_INVENTORYGET));
+                                    }
                                 }
 
                                 if (removeParts_)
@@ -750,7 +758,7 @@ int GOC_DropZone::SelectBuildableEntity(const StringHash& got, const Vector<Slot
     }
 
     // set the equipment list with the equipable items
-    const GOC_Inventory_Template* equipmentTemplate = GOC_Inventory_Template::Get(EQUIPMENTTEMPLATE);
+    const GOC_Inventory_Template* equipmentTemplate = GOC_Inventory_Template::Get(INVENTORY_EQUIPMENTTEMPLATE);
     if (equipmentTemplate)
     {
         HashMap<unsigned, StringHash> acceptedSlots;

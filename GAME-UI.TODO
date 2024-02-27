@@ -10,6 +10,7 @@ Todos:
             un premier selecteur est affiché et l'on peut changer avec ACTION_PREVENTITY et ACTION_NEXTENTITY puis
             validation du node avec ACTION_INTERACT, affichage du second selecteur puis meme process puis validation finale qui envoit GO_SELECTED
         ==> correctif dans Urho3D PhysicWorld2D::GetRigidBodies qui renvoit parfois des doublons.
+        => on pourrait ajouter une animation differente sur le selecteur en fonction de l'action allant etre effectuée
 
     ✔ 15/02/2024 : lors de l'ouverture d'un panel via le statuspanel, mettre le focus dessus
         -> le switch de focus doit se faire via des boutons differents du bouton status

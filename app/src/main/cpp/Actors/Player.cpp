@@ -888,7 +888,7 @@ void Player::UpdateComponents()
     if (gocInventory)
     {
         if (!gocInventory->HasTemplate())
-            gocInventory->SetTemplate("InventoryTemplate_MoneySlot_15SlotsQ20_Equip1");
+            gocInventory->SetTemplate(INVENTORY_AVATARTEMPLATE);
         else
             gocInventory->ResetTemplate(gocInventory->GetTemplate());
 
@@ -1027,12 +1027,12 @@ void Player::OnMount(Node* target)
     if (inventory)
         inventory->SetEnabled(false);
 
-    avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(false);
+    gocController->SetControlActionEnable(false);
 
     // for the target set the External Controller.
     GOC_AIController* targetcontroller = target->GetComponent<GOC_AIController>();
     if (targetcontroller)
-        targetcontroller->SetExternalController(avatar_->GetDerivedComponent<GOC_Controller>());
+        targetcontroller->SetExternalController(gocController);
 
     URHO3D_LOGINFOF("Player() - OnMount : Player=%s(%u) Mount on Target=%s(%u) position=%s worldposition=%s... OK !",
                      avatar_->GetName().CString(), avatar_->GetID(), target->GetName().CString(), target->GetID(),
@@ -1053,7 +1053,7 @@ void Player::OnUnmount(unsigned targetid)
     if (gocController->GetControllerType() & GO_Player)
         gocDestroyer_->SetEnableUnstuck(IsMainController());
 
-    avatar_->GetDerivedComponent<GOC_Controller>()->SetControlActionEnable(true);
+    gocController->SetControlActionEnable(true);
 
     // for the target reset the External Controller.
     if (targetid)

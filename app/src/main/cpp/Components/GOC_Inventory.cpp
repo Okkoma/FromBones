@@ -268,15 +268,16 @@ GOC_Inventory_Template* GOC_Inventory::GetTemplate(const StringHash& key) const
     return GOC_Inventory_Template::templates_.Contains(key.Value()) ? &(GOC_Inventory_Template::templates_.Find(key.Value())->second_) : 0;
 }
 
-void GOC_Inventory::SetTemplate(const String& s)
+void GOC_Inventory::SetTemplate(StringHash key)
 {
-    StringHash key = StringHash(s);
     GOC_Inventory_Template* t = GetTemplate(key);
-
-//    URHO3D_LOGINFOF("GOC_Inventory() - SetTemplate : %s(%u) newTemplatePtr=%u currentTemplatePtr=%u", s.CString(), key.Value(), t, currentTemplate);
-
     if (t != currentTemplate || !currentTemplate)
         ApplyTemplateProperties(t);
+}
+
+void GOC_Inventory::SetTemplate(const String& s)
+{
+    SetTemplate(StringHash(s));
 }
 
 void GOC_Inventory::ResetTemplate(GOC_Inventory_Template* t)
@@ -653,7 +654,13 @@ bool GOC_Inventory::GetSectionSlots(const String& section, VariantVector& set)
 
 void GOC_Inventory::SetGiveTriggerEvent(const String& s)
 {
+    if (enableGiveEvent_)
+        UnsubscribeFromEvent(node_, enableGiveEvent_);
+
     enableGiveEvent_ = StringHash(s);
+
+    if (IsEnabledEffective() && enableGive_ && enableGiveEvent_)
+        SubscribeToEvent(node_, enableGiveEvent_, URHO3D_HANDLER(GOC_Inventory, OnEnableGive));
 }
 
 const String& GOC_Inventory::GetGiveTriggerEvent() const
@@ -663,7 +670,13 @@ const String& GOC_Inventory::GetGiveTriggerEvent() const
 
 void GOC_Inventory::SetReceiveTriggerEvent(const String& s)
 {
+    if (receiveEvent_)
+        UnsubscribeFromEvent(node_, receiveEvent_);
+
     receiveEvent_ = StringHash(s);
+
+    if (IsEnabledEffective() && receiveEvent_)
+        SubscribeToEvent(node_, receiveEvent_, URHO3D_HANDLER(GOC_Inventory, HandleReceive));
 }
 
 const String& GOC_Inventory::GetReceiveTriggerEvent() const
@@ -1333,8 +1346,8 @@ void GOC_Inventory::HandleReceive(StringHash eventType, VariantMap& eventData)
     unsigned idslot = eventData[Go_InventoryGet::GO_IDSLOT].GetUInt();
     AnimatedSprite2D* animatedSprite = node_->GetComponent<AnimatedSprite2D>();
 
-//    URHO3D_LOGINFOF("GOC_Inventory() - HandleReceive : Node=%s(%u) receive %s(%u) !",
-//                    node_->GetName().CString(), node_->GetID(), GOT::GetType(slots_[idslot].type_).CString(), slots_[idslot].type_.Value());
+    URHO3D_LOGINFOF("GOC_Inventory() - HandleReceive : Node=%s(%u) receive %s(%u) !",
+                    node_->GetName().CString(), node_->GetID(), GOT::GetType(slots_[idslot].type_).CString(), slots_[idslot].type_.Value());
 
     LocalEquipSlotOn(this, idslot, animatedSprite);
 }
@@ -1772,11 +1785,11 @@ void GOC_Inventory::NetClientSetEquipment(Node* node, unsigned servernodeid)
     // get temporary equipment
     VariantVector& equipmentDataSet = it->second_;
 
-    const unsigned templateValue = equipmentDataSet[equipmentDataSet.Size()-2].GetUInt();
-    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(templateValue);
+    StringHash templateKey(equipmentDataSet[equipmentDataSet.Size()-2].GetUInt());
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(templateKey);
     if (!inventoryTemplate)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), templateValue);
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipment : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), templateKey.Value());
         return;
     }
 
@@ -1838,11 +1851,11 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
         return;
     }
 
-    const unsigned inventorytemplatehash = eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt();
-    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(inventorytemplatehash);
+    StringHash templateKey(eventData[Net_ObjectCommand::P_INVENTORYTEMPLATE].GetUInt());
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(templateKey);
     if (!inventoryTemplate)
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), inventorytemplatehash);
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) No inventory template %u found !", node->GetName().CString(), node->GetID(), templateKey.Value());
         return;
     }
 
@@ -1854,10 +1867,10 @@ void GOC_Inventory::NetClientSetEquipmentSlot(Node* node, VariantMap& eventData)
         return;
     }
 
-    const String& slotname = GOC_Inventory_Template::GetSlotName(inventorytemplatehash, idslot);
+    const String& slotname = GOC_Inventory_Template::GetSlotName(templateKey.Value(), idslot);
     if (slotname.Empty())
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) idslot=%u inventorytemplatehash=%u not find !", node->GetName().CString(), node->GetID(), idslot, inventorytemplatehash);
+        URHO3D_LOGERRORF("GOC_Inventory() - NetClientSetEquipmentSlot : %s(%u) idslot=%u templateKey=%u not find !", node->GetName().CString(), node->GetID(), idslot, templateKey.Value());
         return;
     }
 
@@ -2022,7 +2035,7 @@ void GOC_Inventory::NetServerSaveEquipment(unsigned servernodeid, const Equipmen
     VariantVector& equipmentSet = clientEquipmentSets_[servernodeid];
     equipmentSet.Clear();
 
-    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(EQUIPMENTTEMPLATE);
+    const GOC_Inventory_Template* inventoryTemplate = GOC_Inventory_Template::Get(INVENTORY_EQUIPMENTTEMPLATE);
 
     // add item for each slot of EQUIPMENTTEMPLATE
     equipmentSet.Resize(inventoryTemplate->slotNames_.Size());
@@ -2040,7 +2053,7 @@ void GOC_Inventory::NetServerSendEquipment(unsigned servernodeid, const VariantV
     VariantMap& eventdata = GameNetwork::Get()->GetServerEventData();
     eventdata.Clear();
     eventdata[Net_ObjectCommand::P_NODEID] = servernodeid;
-    eventdata[Net_ObjectCommand::P_INVENTORYTEMPLATE] = EQUIPMENTTEMPLATE;
+    eventdata[Net_ObjectCommand::P_INVENTORYTEMPLATE] = INVENTORY_EQUIPMENTTEMPLATE.Value();
     eventdata[Net_ObjectCommand::P_INVENTORYSLOTS] = equipmentSet;
     GameNetwork::Get()->PushObjectCommand(SETFULLEQUIPMENT, &eventdata, true, 0);
 }

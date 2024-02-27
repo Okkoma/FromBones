@@ -993,6 +993,13 @@ bool GOC_Destroyer::IsOnFreeTiles(int viewZ) const
     return result;
 }
 
+bool GOC_Destroyer::IsInsideWorld()
+{
+    GetUpdatedWorldPosition2D(sMPosition_.position_);
+    World2D::GetWorldInfo()->Convert2WorldMapPosition(sMPosition_.position_, sMPosition_, mapWorldPosition_.positionInTile_);
+    return World2D::IsInsideWorldBounds(sMPosition_.mPoint_);
+}
+
 FeatureType GOC_Destroyer::GetFeatureOnViewId(int viewId) const
 {
     return currentMap_ ? currentMap_->GetFeatureType(mapWorldPosition_.tileIndex_, viewId) : MapFeatureType::NoMapFeature;

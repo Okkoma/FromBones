@@ -26,6 +26,7 @@
 #include "GOC_Collide2D.h"
 #include "GOC_Controller.h"
 #include "GOC_ControllerAI.h"
+#include "GOC_Animator2D.h"
 
 #include "ObjectMaped.h"
 #include "Map.h"
@@ -163,7 +164,8 @@ unsigned MoveTypeDefaultStates[] =
     MV_SWIM,                                // MOVE2D_SWIM                       => Poisson
     MV_SWIM | MV_CLIMB,                     // MOVE2D_SWIMCLIMB
     MV_WALK | MV_SWIM,                      // MOVE2D_WALKANDSWIM                => Elsarion
-    MV_MOUNT
+    MV_MOUNT,
+    0
 };
 
 
@@ -174,7 +176,7 @@ GOC_Move2D::GOC_Move2D(Context* context) :
     destroyer_(0),
     controller_(0),
     moveType_(MOVE2D_WALK),
-    lastMoveType_(MOVE2D_WALK),
+    lastMoveType_(MOVE2D_UNDEFINED),
     buttons_(0),
     activeLOS_(0),
     numJumps_(2),
@@ -224,7 +226,16 @@ void GOC_Move2D::SetMoveType(MoveTypeMode type)
 //        URHO3D_LOGINFOF("GOC_Move2D() - SetMoveType MoveType = %s(%u) ... OK !", moveTypeModes[type], type);
         lastMoveType_ = moveType_;
         moveType_ = type;
+        UpdateAttributes();
+    }
+}
 
+void GOC_Move2D::ResetMoveType()
+{
+    if (lastMoveType_ != MOVE2D_UNDEFINED)
+    {
+        moveType_ = lastMoveType_;
+        lastMoveType_ = MOVE2D_UNDEFINED;
         UpdateAttributes();
     }
 }
@@ -342,10 +353,21 @@ void GOC_Move2D::UpdateAttributes()
         {
 //            URHO3D_LOGINFOF("GOC_Move2D() - UpdateAttributes : Node=%s(%u) Subscribe To MV_MOUNT Events", node_->GetName().CString(), node_->GetID());
 
-            unsigned mountedOnID = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
-            Node* mountedOnNode = mountedOnID ? GetScene()->GetNode(mountedOnID) : 0;
-            SubscribeToEvent(mountedOnNode, GO_CHANGEDIRECTION, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
-//            parentController_ = mountedOnNode->GetDerivedComponent<GOC_Controller>();
+            unsigned mountId = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
+            Node* mountNode = mountId ? GetScene()->GetNode(mountId) : 0;
+            if (mountNode)
+            {
+                SubscribeToEvent(mountNode, GO_COLLIDEGROUND, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+                SubscribeToEvent(mountNode, GO_CHANGEDIRECTION, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+                if (lastMoveType_ & MV_FLY)
+                {
+                    SubscribeToEvent(mountNode, EVENT_FALL, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+                    SubscribeToEvent(mountNode, EVENT_FLYDOWN, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+                    SubscribeToEvent(mountNode, EVENT_FLYUP, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+                }
+//                if (lastMoveType_ & MV_WALK)
+//                    SubscribeToEvent(mountNode, EVENT_MOVE, URHO3D_HANDLER(GOC_Move2D, HandleControlUpdate_Mount));
+            }
         }
         else if (defaultStates_ & (MV_WALK | MV_FLY | MV_SWIM))
         {
@@ -376,7 +398,9 @@ void GOC_Move2D::UpdateAttributes()
 
 //        URHO3D_LOGINFOF("GOC_Move2D() - UpdateAttributes : Node=%s(%u) update1 moveState=%u MV_FALL=%s", node_->GetName().CString(), node_->GetID(), moveStates_, moveStates_ & MV_INFALL ? "true":"false");
 
-        if (moveStates_ & MSK_MV_CANWALKONGROUND)
+        if (defaultStates_ & MV_MOUNT)
+            moveStates_ |= (MV_WALK | MV_TOUCHGROUND);
+        else if (moveStates_ & MSK_MV_CANWALKONGROUND)
         {
             numRemainJumps_ = numJumps_;
             moveStates_ &= ~(MV_INAIR | MV_INFALL | MV_INJUMP);
@@ -1534,8 +1558,12 @@ void GOC_Move2D::HandleControlUpdate(StringHash eventType, VariantMap& eventData
 
 void GOC_Move2D::HandleControlUpdate_Mount(StringHash eventType, VariantMap& eventData)
 {
-//    if (parentController_->control_.direction_ != controller_->control_.direction_)
-    node_->SendEvent(GO_CHANGEDIRECTION);
+//    URHO3D_LOGINFOF("GOC_Move2D() - HandleControlUpdate_Mount : node=%s(%u) event=%s movestate=%s ...", node_->GetName().CString(), node_->GetID(), GOE::GetEventName(eventType).CString(), GameHelpers::GetMoveStateString(moveStates_).CString());
+
+    if (eventType == GO_COLLIDEGROUND)
+        node_->GetComponent<GOC_Animator2D>()->SetState(STATE_IDLE);
+    else
+        node_->SendEvent(eventType);
 }
 
 void GOC_Move2D::HandleGravityChanged(StringHash eventType, VariantMap& eventData)
