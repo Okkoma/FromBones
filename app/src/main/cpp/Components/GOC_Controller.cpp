@@ -88,6 +88,9 @@ void GOC_Controller::Start()
 
 void GOC_Controller::Stop()
 {
+    // Always umount on stop
+    Unmount();
+
     ResetButtons();
     ResetDirection();
     StopFollowPath();
@@ -201,6 +204,9 @@ bool GOC_Controller::MountOn(Node* target)
 
 bool GOC_Controller::Unmount()
 {
+    if (!node_)
+        return false;
+
     const unsigned targetid = node_->GetVar(GOA::ISMOUNTEDON).GetUInt();
 
     if (!targetid || !node_->GetParent())

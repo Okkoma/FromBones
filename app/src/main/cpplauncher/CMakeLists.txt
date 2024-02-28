@@ -21,6 +21,10 @@ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
 set (SOURCE_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../cpp)
 
+if (URHO3D_LIB_TYPE STREQUAL SHARED)
+    add_definitions (-DFROMBONES_EXPORTS)
+endif ()
+
 include_directories(${SOURCE_LIB_DIR}/Actors ${SOURCE_LIB_DIR}/AI
                     ${SOURCE_LIB_DIR}/Components ${SOURCE_LIB_DIR}/Generators
                     ${SOURCE_LIB_DIR}/GraphicEffects ${SOURCE_LIB_DIR}/Managers

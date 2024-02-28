@@ -17,8 +17,6 @@
 
 #include "Actor.h"
 
-#include <PugiXml/pugixml.hpp>
-
 #ifdef USE_WREN
 #include "wren.hpp"
 #endif // USE_WREN
@@ -130,41 +128,40 @@ bool DialogueData::EndLoadFromXMLFile()
 
         int msgcount = -1;
 
-        const pugi::xml_node& node = pugi::xml_node(dialogueElem.GetNode());
-        pugi::xml_object_range<pugi::xml_node_iterator> children = node.children();
-        for (pugi::xml_node_iterator it = children.begin(); it != children.end(); ++it)
+        XMLElement contentElem = dialogueElem.GetChild();
+        while (contentElem)
         {
-            XMLElement elem(loadXMLFile_.Get(), (*it).internal_object());
-
-            if (elem.GetName() == "message")
+            if (contentElem.GetName() == "message")
             {
                 dialogue.messages_.Resize(dialogue.messages_.Size()+1);
                 DialogueMessage& message = dialogue.messages_.Back();
-                message.text_ = elem.GetValue();
+                message.text_ = contentElem.GetValue();
                 message.id_ = hashname;
-                message.category_ = GetEnumValue(elem.GetAttribute("category"), MessageCategoryStr);
+                message.category_ = GetEnumValue(contentElem.GetAttribute("category"), MessageCategoryStr);
                 msgcount++;
             }
-            else if (elem.GetName() == "response")
+            else if (contentElem.GetName() == "response")
             {
                 dialogue.responses_.Resize(dialogue.responses_.Size()+1);
                 DialogueResponse& response = dialogue.responses_.Back();
-                response.name_ = StringHash(elem.GetAttribute("name"));
-                response.next_ = StringHash(elem.GetAttribute("next"));
+                response.name_ = StringHash(contentElem.GetAttribute("name"));
+                response.next_ = StringHash(contentElem.GetAttribute("next"));
                 response.msgindex_ = msgcount;
-                if (elem.HasAttribute("command"))
-                    response.cmdid_ = Compile(elem.GetAttribute("command"));
-                if (elem.HasAttribute("condition"))
-                    response.condid_ = Compile(elem.GetAttribute("condition"));
+                if (contentElem.HasAttribute("command"))
+                    response.cmdid_ = Compile(contentElem.GetAttribute("command"));
+                if (contentElem.HasAttribute("condition"))
+                    response.condid_ = Compile(contentElem.GetAttribute("condition"));
             }
-            else if (elem.GetName() == "command")
+            else if (contentElem.GetName() == "command")
             {
                 dialogue.commands_.Resize(dialogue.commands_.Size()+1);
                 DialogueCommand& command = dialogue.commands_.Back();
-                command.sourcecode_ = elem.GetValue();
+                command.sourcecode_ = contentElem.GetValue();
                 command.msgindex_ = msgcount;
                 command.cmdid_ = Compile(command.sourcecode_);
             }
+
+            contentElem = contentElem.GetNext();
         }
 
         dialogueElem = dialogueElem.GetNext("dialogue");

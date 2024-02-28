@@ -5440,7 +5440,7 @@ void GameHelpers::DumpRigidBody(Node* node)
     URHO3D_LOGINFOF("GameHelpers() - DumpRigidBody : %s(%u) rbodyptr=%u enable=%s type=%u numshapes=%u", node->GetName().CString(), node->GetID(),
                      rbody, rbody->IsEnabled() ? "true":"false", (int)rbody->GetBodyType(), shapes.Size());
 
-    rbody->GetBody()->Dump();
+    rbody->DumpBody();
 }
 
 /// Graphic Dump

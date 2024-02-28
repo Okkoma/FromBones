@@ -189,8 +189,8 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     }
 
     control_.SetButtons(CTRL_JUMP, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_JUMP]  ? false : input.GetScancodeDown(keysMap_[ACTION_JUMP]) || input.GetScancodePress(keysMap_[ACTION_JUMP]));
-//    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
-    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodeDown(keysMap_[ACTION_FIRE1]) || input.GetScancodePress(keysMap_[ACTION_FIRE1]));
+//    control_.SetButtons(CTRL_FIRE1, HasInteraction() && keysMap_[ACTION_INTERACT] == keysMap_[ACTION_FIRE1] ? false : input.GetScancodePress(keysMap_[ACTION_FIRE1]));
     control_.SetButtons(CTRL_FIRE2, input.GetScancodeDown(keysMap_[ACTION_FIRE2]) || input.GetScancodePress(keysMap_[ACTION_FIRE2]));
     control_.SetButtons(CTRL_FIRE3, input.GetScancodePress(keysMap_[ACTION_FIRE3]));
 

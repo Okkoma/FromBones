@@ -11,6 +11,8 @@
 /exe/*/*-shared
 /exe/*/*.so
 /exe/*/*.so.*
+/exe/*/*.exe
+/exe/*/*.dll
 /Local
 log.txt
 exe/gl/FromBonesUbuntu22.04Gl-static

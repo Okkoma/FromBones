@@ -23,32 +23,48 @@
 #include "ViewManager.h"
 
 #ifdef EDITORMODE1
-#include <Urho3D/IO/FileSystem.h>
-#include <Urho3D/AngelScript/ScriptFile.h>
-#include <Urho3D/AngelScript/Script.h>
-#include <Urho3D/Resource/ResourceCache.h>
-#include <Urho3D/Resource/ResourceEvents.h>
-#include "FromBonesAPI.h"
+    #include <Urho3D/IO/FileSystem.h>
+    #include <Urho3D/AngelScript/ScriptFile.h>
+    #include <Urho3D/AngelScript/Script.h>
+    #include <Urho3D/Resource/ResourceCache.h>
+    #include <Urho3D/Resource/ResourceEvents.h>
+    #include "FromBonesAPI.h"
 #else
-    #ifdef EDITORMODE2
-#include <dlfcn.h>
+#ifdef EDITORMODE2
+    #ifdef _WIN32
+        #include "dlfcn/dlfcn.inl"
+    #else
+        #include <dlfcn.h>
     #endif
+#endif
 #endif
 
 #include "MapEditor.h"
 #include "MapEditorLib.h"
 
 #ifdef EDITORMODE1
+
 SharedPtr<ScriptFile> scriptFile_;
+
 #else
-    #ifdef EDITORMODE2
+#ifdef EDITORMODE2
+
 // the types of the class factories
 typedef MapEditorLib* CreateMapEditorLibFunc(Context*);
 typedef void DestroyMapEditorLibFunc(MapEditorLib*);
 void* editorDynLibraryHandle_ = 0;
+
 #else
+
 #include "../cppeditor/MapEditorLib.cpp"
-    #endif
+
+#endif
+#endif
+
+#ifdef _WIN32
+const String dllExtStr = ".dll";
+#else
+const String dllExtStr = ".so";
 #endif
 
 MapEditorLib* mapEditorLib_ = 0;
@@ -174,7 +190,7 @@ bool MapEditor::LoadLibrary()
     #ifdef EDITORMODE2
     URHO3D_LOGINFOF("MapEditor() - LoadLibrary : load Editor Lib ... restorefocus=%u", sMapEditorSavedFocusState_);
 
-    libName_ = GameContext::Get().fs_->GetProgramDir() + "libFromBonesEditor.so";
+    libName_ = GameContext::Get().fs_->GetProgramDir() + "libFromBonesEditor" + dllExtStr;
 
     editorDynLibraryHandle_ = dlopen(libName_.CString(), RTLD_NOW);
     if (!editorDynLibraryHandle_)

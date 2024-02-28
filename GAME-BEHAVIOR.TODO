@@ -1,5 +1,9 @@
 Todos:
 
+    ✔ 28/02/2024 : crash du au montage d'entité après lancement d'une partie, arret puis relancement
+        => il faut toujours demonter les entités car ObjectPool ne purge pas ce comportement
+        ==> ajout de GOC_Controller::Unmount dans GOC_Controller::Stop
+
     ✔ 27/02/2024 : si l'on monte lizard qui a des ailes, il faudrait qu'il puisse transporter sa monture.
         => le comportement de ABI_Fly pose probleme si l'on active le pouvoir lorsque l'avatar est sur une monture
         ==> la camera se decale de trop, l'avatar n'est plus visible.

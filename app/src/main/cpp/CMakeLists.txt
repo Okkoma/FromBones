@@ -10,6 +10,10 @@ file (GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp" "*.
 # Add C_FLAGS Compiler c99 idiom => enable "for (int i= ...)" syntax
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 
+if (URHO3D_LIB_TYPE STREQUAL SHARED)
+    add_definitions (-DFROMBONES_EXPORTS)
+endif ()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Actors ${CMAKE_CURRENT_SOURCE_DIR}/AI
                     ${CMAKE_CURRENT_SOURCE_DIR}/Components ${CMAKE_CURRENT_SOURCE_DIR}/Generators
                     ${CMAKE_CURRENT_SOURCE_DIR}/GraphicEffects ${CMAKE_CURRENT_SOURCE_DIR}/Managers

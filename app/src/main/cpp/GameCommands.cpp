@@ -290,9 +290,9 @@ void GameCommands::Launch(const String& input)
         unsigned id = ToUInt(inputs[1]);
 
         if (GameContext::Get().rootScene_->GetNode(id))
-            GameContext::Get().rootScene_->GetNode(id)->GetComponent<RigidBody2D>()->GetBody()->Dump();
+            GameContext::Get().rootScene_->GetNode(id)->GetComponent<RigidBody2D>()->DumpBody();
         else
-            ((RigidBody2D*)GameContext::Get().rootScene_->GetComponent(id))->GetBody()->Dump();
+            ((RigidBody2D*)GameContext::Get().rootScene_->GetComponent(id))->DumpBody();
     }
     else if (input0 == "dumprbody")
     {

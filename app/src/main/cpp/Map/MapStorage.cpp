@@ -22,8 +22,6 @@
 #include <Urho3D/Urho2D/RigidBody2D.h>
 #include <Urho3D/Urho2D/TmxFile2D.h>
 
-#include <PugiXml/pugixml.hpp>
-
 #include "Predefined.h"
 
 #include "GameAttributes.h"

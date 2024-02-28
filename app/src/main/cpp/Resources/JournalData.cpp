@@ -15,7 +15,6 @@
 #include "GameOptions.h"
 #include "GameHelpers.h"
 
-#include <PugiXml/pugixml.hpp>
 
 #include "JournalData.h"
 

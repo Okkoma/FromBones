@@ -3,24 +3,28 @@
 
 set (TARGET_NAME FromBonesEditor)
 
-# Create shared library
-add_library(${TARGET_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/MapEditorLib.cpp)
+# Define source files : add C files for Wren
+set (SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/MapEditorLib.cpp)
 
-# Include header files
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp)
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/Map)
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/MapEditor)
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/ObjectsCore)
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/GraphicEffects)
-target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/Resources)
+# Add C_FLAGS Compiler c99 idiom => enable "for (int i= ...)" syntax
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+
+add_definitions (-DFROMBONES_EXPORTS)
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../cpp
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/Map 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/MapEditor
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/GraphicEffects
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/ObjectsCore
+                    ${CMAKE_CURRENT_SOURCE_DIR}/../cpp/Resources )
+                    
+setup_library(SHARED)
 
 # Add flag PIC for Dynamic Library Behavior
 set_property(TARGET ${TARGET_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_dependencies(${TARGET_NAME} FromBonesLib)
 
-# Link Against Urho3D
-target_link_libraries(${TARGET_NAME} ${URHO3D_HOME}/lib/libUrho3D.so)
-
+target_link_libraries(${TARGET_NAME} FromBonesLib)
 
 
