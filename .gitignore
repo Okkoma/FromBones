@@ -7,6 +7,7 @@
 **/.gradle
 /bin-tool/Output
 /bin-tool/Input/PNG
+/bin-tool/TexturePacker
 /exe/*/*.log
 /exe/*/*-shared
 /exe/*/*.so
@@ -18,3 +19,4 @@ log.txt
 exe/gl/FromBonesUbuntu22.04Gl-static
 exe/gl/numclients.txt
 exe/vk/FromBonesUbuntu22.04Vk-static
+

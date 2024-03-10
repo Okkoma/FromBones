@@ -1,5 +1,28 @@
 Todos:
-    
+
+    ☐ 10/03/2024 : modification du BackEnd pour Vulkan
+        -> ajout Extension, Features, Selection du Gpu
+        -> modification de l'update des DescriptorSets dans VkGraphics::PrepareDraw
+        ==> le but recherché est de minimiser le nombre de bind
+            on continue d'utiliser la méthode de consommer de nouveaux descriptors avec des pools préallouées par pipeline et par frame
+            la deuxieme methode à juxtaposer, va consister à réutiliser des descriptors déjà préparés et mis en cache.
+            lorsqu'une texture est changée, il faut vérifier si le descriptorset est "compatible" dans ce cas il est juste nécessaire de faire un write.
+        -> pour l'UI, on rencontre des problèmes sur certaines textures utilisée pour l'UI. cela provient du mipmapping.
+           pour cela la solution est d'utiliser un fichier .xml de parametrage de la texture et d'ajouter <mipmap enable="false" />.
+           Cependant la texture pourrait etre utiliser aussi pour le rendu d'une Scene 3D ayant besoin du mipmapping ... Il faut trouver le probleme avec le mipmapping dans mon implementation.
+           le BlendMode par défaut pour BorderImage est BLEND_REPLACE. Pourquoi sur Gl il n'y a pas de pb pour les icones de coins et uilife dans le Plateform2D ? et pb sur Vk ... obligeant
+           à définir explicitement le BLEND_APLHA. dans BorderImage le BLEND_REPLACE devient BLEND_ALPHA si la couleur a un alpha < 1.
+           Voir peut-etre l'opacité générale de l'ui ... ? Note: on ne rencontre pas ce problème avec les autres BackEnd.        
+
+    ✔ 03/03/2024 : ajout du multiviewports pour Vulkan
+        -> ajout de la modification de viewport
+        -> dans une meme passe, update des descriptors en ubo dynamic pour la camera (SP_CAMERA) à l'instar de SP_MODEL (shader parameter model)
+        => pour declarer un ubo dynamic il faut modifier le code de l'outil SpirvShaderPacker pour passer la categorie SP en dynamic ...
+            ce qui n'est pas intuitif ...
+        -> il faudrait egalement le faire pour les Vertex Lights (SP_LIGHT)... ce qui commence à faire beaucoup de pool de descriptor par shader ...
+        ==> il vaudrait mieux créer une nouvelle passe de rendu vkRenderPass (du coup il ne serait plus necessaire de declarer plusieurs viewport)
+        ==> ou bien dupliquer les pipelines, shadervariation et shaderprogram pour chaque viewport (en gardant viewportIndex_ et viewportChanged_)
+
     ✔ 10/12/2023 : l'on ne voit pas les entités sur le seuil d'une porte ou à par une fenetre. @done(23-12-11 08:50)
         -> modification de GameHelpers::SetDrawableLayerView et GOC_Destroyer::SetViewZ
         --> si ViewZ du drawable == THRESHOLDVIEW, ne pas modifier le layer
@@ -13,7 +36,7 @@ Todos:
         --> avec ça la Thresholdview est toujours affichée
 
     ✔ 26/06/2023 : depuis un bon moment, la pluie dans certains endroits (non corrélé au Front ou innerview) apparait en pointillé, voir à du mal à apparaitre ... @done(23-12-11 08:37)
-        => OK : dans Urho3D::AnimatedSprite2D::UpdateSourceBatches() et ..._Custom(), il faut toujours setter vertex.z_ ou vertex.position.z_. 
+        => OK : dans Urho3D::AnimatedSprite2D::UpdateSourceBatches() et ..._Custom(), il faut toujours setter vertex.z_ ou vertex.position.z_.
         (Car vertex.position_ est un Vector3 en GL et un Vector2 en VK) et que l'on utilise une matrix2x3 =>
             resultat vector2 en VK et un vector3 avec le z_ non attribué (NA)...
 
@@ -1289,4 +1312,3 @@ Notes:
         -> <dpi scale="x"/> n'est pas à utiliser dans ce cas (lorsque l'on utilise une spritesheet par resolution dpi ;
             les textures spritesheets generées par l'outil ne sont pas un simple resize du mdpi - les sprites ont des positions differentes).
 
-            

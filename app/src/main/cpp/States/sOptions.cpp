@@ -811,10 +811,10 @@ void OptionState::SynchronizeParameters()
 
     if (optionParameters_[OPTION_MultiViews].control_)
     {
-    #if defined(URHO3D_VULKAN)
-        GameContext::Get().gameConfig_.multiviews_ = false;
-        optionParameters_[OPTION_MultiViews].control_->SetEnabled(false);
-    #endif
+//    #if defined(URHO3D_VULKAN)
+//        GameContext::Get().gameConfig_.multiviews_ = false;
+//        optionParameters_[OPTION_MultiViews].control_->SetEnabled(false);
+//    #endif
         optionParameters_[OPTION_MultiViews].control_->SetSelection(GameContext::Get().gameConfig_.multiviews_);
 //        ApplyNumPlayers();
     }
