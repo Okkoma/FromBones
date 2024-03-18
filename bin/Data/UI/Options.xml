@@ -412,7 +412,7 @@
                     <element type="Text" style="OptionText">
                         <attribute name="Min Size" value="140 50" />
                         <attribute name="Max Size" value="240 50" />
-                        <attribute name="Text" value="MultiViews" />
+                        <attribute name="Text" value="Viewport" />
                         <attribute name="Text Alignment" value="Left" />
                     </element>
                     <element type="DropDownList" style="OptionDropDownList">
@@ -428,11 +428,11 @@
                                         <attribute name="Pivot" value="0 0" />
                                         <element type="Text"
                                             style="OptionDropDownSelectorText">
-                                            <attribute name="Text" value="Off" />
+                                            <attribute name="Text" value="Static" />
                                         </element>
                                         <element type="Text"
                                             style="OptionDropDownSelectorText">
-                                            <attribute name="Text" value="On" />
+                                            <attribute name="Text" value="Dynamic" />
                                         </element>
                                     </element>
                                 </element>

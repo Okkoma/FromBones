@@ -368,7 +368,7 @@ void Player::SetWorldMapPosition(const WorldMapPosition& position, bool findsafe
 
         if (GameContext::Get().ClientMode_)
         {
-            ViewManager::Get()->SwitchToViewZ(position.viewZ_, 0, ViewManager::Get()->GetNumViewports() > 1 ? GetControlID() : 0);
+            ViewManager::Get()->SwitchToViewZ(position.viewZ_, 0, ViewManager::Get()->GetControllerViewport(this));
             GameHelpers::SetLightActivation(this);
 
             VariantMap& eventData = context_->GetEventDataMap();
@@ -1476,6 +1476,7 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
         if (panelsetted)
         {
             abilityPanel->SetPopup(multiLocalPlayerMode);
+            statusPanel->GetElement()->GetChild("AbilityButton", true)->SetVisible(multiLocalPlayerMode);
             panels_[ABILITYPANEL] = WeakPtr<UIPanel>(abilityPanel);
         }
     }
@@ -1577,7 +1578,11 @@ void Player::CreateUI(UIElement* root, bool multiLocalPlayerMode)
 
     panel = GetPanel(ABILITYPANEL);
     if (panel)
+    {
         panel->Start(this, this);
+        if (static_cast<UIC_AbilityPanel*>(panel)->IsPopup())
+            panel->SubscribeToEvent(statusPanel->GetElement()->GetChild("AbilityButton", true), E_RELEASED, new Urho3D::EventHandlerImpl<UIPanel>(panel, &UIPanel::OnSwitchVisible));
+    }
 
     panel = GetPanel(DIALOGUEPANEL);
     if (panel)
@@ -1626,39 +1631,33 @@ void Player::RemoveUI()
     URHO3D_LOGINFOF("Player() - ID=%d : RemoveUI ... OK !", GetID());
 }
 
-void Player::ResizeUI()
+void Player::ResizeUI(int row)
 {
     if (GameContext::Get().playerState_[controlID_].controltype == CT_CPU && GameContext::Get().arenaZoneOn_)
         return;
 
-    URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ...", GetID());
+    int viewport = ViewManager::Get()->GetControllerViewport(this);
+    const IntRect& viewportRect = ViewManager::Get()->GetViewportRect(viewport);
 
-    // set the position of the root
-    int x = 0;
-    int y = 0;
-
-    IntRect viewportRect(0, 0, GetSubsystem<Graphics>()->GetWidth() / GameContext::Get().uiScale_, GetSubsystem<Graphics>()->GetHeight() / GameContext::Get().uiScale_);
-
-    if (GameContext::Get().gameConfig_.multiviews_)
+    if (row == -1)
     {
-        viewportRect = ViewManager::viewportRects_[GameContext::Get().numPlayers_-1][controlID_];
-        x = viewportRect.left_ + 30 * GameContext::Get().uiScale_;
-        y = viewportRect.top_ + 80 * GameContext::Get().uiScale_;
+        if (ViewManager::Get()->GetNumViewports() == 1)
+            row = controlID_;
+        else if (lastrowui_ != -1)
+            row = lastrowui_;
     }
     else
-    {
-        x = 30;
-        y = (80 + 140 * controlID_) * GameContext::Get().uiScale_;
-    }
+        lastrowui_ = row;
 
-    IntVector2 viewportSize = viewportRect.Size();
-    IntVector2 viewportOrigin(viewportRect.left_, viewportRect.top_);
+    URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... viewport=%d/%u uiscale=%F ...", GetID(), viewport, ViewManager::Get()->GetNumViewports(), GameContext::Get().uiScale_);
 
-    uiStatusBar->SetAlignment(HA_LEFT, VA_TOP);
-    uiStatusBar->SetPosition(x, y);
+    const Vector2 viewportSize(viewportRect.Width() / GameContext::Get().uiScale_, viewportRect.Height() / GameContext::Get().uiScale_);
+    const Vector2 viewportOrigin(viewportRect.left_ / GameContext::Get().uiScale_, viewportRect.top_ / GameContext::Get().uiScale_);
+    const Vector2 border(10 / GameContext::Get().uiScale_, 10 / GameContext::Get().uiScale_);
+    UIElement* menubutton = GameContext::Get().ui_->GetRoot()->GetChild("menubutton", true);
+    const int offsety = viewport == 0 && menubutton ? menubutton->GetCombinedScreenRect().bottom_ + border.y_ : border.y_;
 
     // move ui panels considering the viewport rect
-
     UIPanel* statusPanel = GetPanel(STATUSPANEL);
     if (statusPanel)
     {
@@ -1670,7 +1669,10 @@ void Player::ResizeUI()
 
         static_cast<UIC_StatusPanel*>(statusPanel)->SetUIFactor(adjustfactor);
 
-        statusPanel->SetPosition(uiStatusBar->GetPosition(), HA_LEFT, VA_TOP);
+        // set the position of the root and the main panel
+        statusPanel->SetPosition(viewportOrigin.x_ + border.x_, viewportOrigin.y_ + offsety + border.y_ + (border.y_ + statusPanel->GetElement()->GetSize().y_) * row, HA_LEFT, VA_TOP);
+        uiStatusBar->SetAlignment(HA_LEFT, VA_TOP);
+        uiStatusBar->SetPosition(statusPanel->GetElement()->GetPosition());
 
         URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... status panel pos=%s size=%s adjustfactor=%F",
                         GetID(), statusPanel->GetElement()->GetPosition().ToString().CString(), statusPanel->GetElement()->GetSize().ToString().CString(), GameContext::Get().uiScale_ * adjustfactor);
@@ -1684,7 +1686,8 @@ void Player::ResizeUI()
         IntRect rect = statusPanel->GetElement()->GetCombinedScreenRect();
         bagPanel->SetPosition(rect.right_+5, rect.top_+10, HA_LEFT, VA_TOP);
         bagPanel->OnResize();
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... bag panel pos=%s size=%s", GetID(), bagPanel->GetElement()->GetPosition().ToString().CString(), bagPanel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... bag panel pos=%s size=%s", GetID(), bagPanel->GetElement()->GetPosition().ToString().CString(),
+                        bagPanel->GetElement()->GetSize().ToString().CString());
     }
 
     UIPanel* panel = GetPanel(EQUIPMENTPANEL);
@@ -1696,7 +1699,8 @@ void Player::ResizeUI()
         panel->SetPosition(rect.right_+5, rect.top_, HA_LEFT, VA_TOP);
         panel->OnResize();
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... eqp panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... eqp panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                        panel->GetElement()->GetSize().ToString().CString());
     }
 
     panel = GetPanel(CRAFTPANEL);
@@ -1707,7 +1711,8 @@ void Player::ResizeUI()
         IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
         panel->SetPosition(rect.left_, rect.bottom_+5, HA_LEFT, VA_TOP);
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... craft panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... craft panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                        panel->GetElement()->GetSize().ToString().CString());
     }
 
     panel = GetPanel(ABILITYPANEL);
@@ -1717,9 +1722,15 @@ void Player::ResizeUI()
         {
             const IntVector2& parentsize = panel->GetElement()->GetParent()->GetSize();
             panel->SetPosition(IntVector2(parentsize.x_, parentsize.y_/2), HA_LEFT, VA_TOP);
+            URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... ability panel popup pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                            panel->GetElement()->GetSize().ToString().CString());
         }
         else
+        {
             panel->SetPosition(IntVector2(viewportOrigin.x_ + viewportSize.x_ / 3, viewportOrigin.y_ + 5), HA_LEFT, VA_TOP);
+            URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... ability panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                            panel->GetElement()->GetSize().ToString().CString());
+        }
     }
 
     panel = GetPanel(DIALOGUEPANEL);
@@ -1738,7 +1749,8 @@ void Player::ResizeUI()
         IntRect rect = bagPanel->GetElement()->GetCombinedScreenRect();
         panel->SetPosition(rect.right_+10, rect.top_, HA_LEFT, VA_TOP);
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... shop panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... shop panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                        panel->GetElement()->GetSize().ToString().CString());
     }
 
     panel = GetPanel(MISSIONPANEL);
@@ -1747,9 +1759,10 @@ void Player::ResizeUI()
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(420, 310));
 
         IntVector2 size = panel->GetElement()->GetSize();
-        panel->SetPosition(viewportOrigin.x_ + viewportSize.x_ / 2 - size.x_/2, viewportOrigin.y_ + viewportSize.y_ / 2 - size.y_/2, HA_LEFT, VA_TOP);
+        panel->SetPosition(viewportOrigin.x_ + viewportSize.x_ / 2 - size.x_/2,  viewportOrigin.y_ + viewportSize.y_ / 2 - size.y_/2, HA_LEFT, VA_TOP);
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... mission panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... mission panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                        panel->GetElement()->GetSize().ToString().CString());
     }
 
     panel = GetPanel(JOURNALPANEL);
@@ -1758,9 +1771,10 @@ void Player::ResizeUI()
         GameHelpers::SetUIScale(panel->GetElement(), IntVector2(612, 268));
 
         IntVector2 size = panel->GetElement()->GetSize();
-        panel->SetPosition(viewportOrigin.x_ + viewportSize.x_ / 2 - size.x_/2, y, HA_LEFT, VA_TOP);
+        panel->SetPosition(viewportOrigin.x_ + viewportSize.x_ / 2 - size.x_/2, statusPanel->GetElement()->GetPosition().y_, HA_LEFT, VA_TOP);
 
-        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... journal panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(), panel->GetElement()->GetSize().ToString().CString());
+        URHO3D_LOGINFOF("Player() - ID=%d : ResizeUI ... journal panel pos=%s size=%s", GetID(), panel->GetElement()->GetPosition().ToString().CString(),
+                        panel->GetElement()->GetSize().ToString().CString());
     }
 
     // clamp the panels
@@ -1830,6 +1844,8 @@ void Player::ResetUI()
 {
     if (!uiStatusBar)
         return;
+
+    lastrowui_ = -1;
 
     for (HashMap<int, WeakPtr<UIPanel> >::Iterator it = panels_.Begin(); it != panels_.End(); ++it)
         it->second_->Reset();
@@ -2085,7 +2101,7 @@ void Player::Start()
 
     avatar_->AddTag(PLAYERTAG);
 
-    ViewManager::Get()->SetFocusEnable(true, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+    ViewManager::Get()->SetFocusEnable(true, ViewManager::Get()->GetControllerViewport(this));
 
     // Start UIC_MiniMap
 //	#ifdef HANDLE_MINIMAP
@@ -2113,7 +2129,7 @@ void Player::Start()
         gocDestroyer_->UpdateFilterBits();
 
     if (!GameContext::Get().ServerMode_)
-        World2D::AddTraveler(avatar_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+        World2D::GetOrCreateTraveler(avatar_, ViewManager::Get()->GetControllerViewport(this));
 
     URHO3D_LOGINFOF("----------------------------------------");
     URHO3D_LOGINFOF("- Player() - Start : player ID=%u viewZ=%d ... OK   -", GetID(), GetViewZ());
@@ -2199,26 +2215,23 @@ void Player::StartSubscribers()
 
     if (mainController_)
     {
-        if (controlID_ == 0 || GameContext::Get().gameConfig_.multiviews_)
+        SubscribeToEvent(E_RELEASED, URHO3D_HANDLER(Player, HandleClic));
+        SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Player, HandleClic));
+        SubscribeToEvent(E_TOUCHEND, URHO3D_HANDLER(Player, HandleClic));
+
+        URHO3D_LOGINFOF("Player() - Start : player ID=%u subscribe HandleClic !", GetID());
+
+        if (missionEnable_)
         {
-            SubscribeToEvent(E_RELEASED, URHO3D_HANDLER(Player, HandleClic));
-            SubscribeToEvent(E_MOUSEBUTTONUP, URHO3D_HANDLER(Player, HandleClic));
-            SubscribeToEvent(E_TOUCHEND, URHO3D_HANDLER(Player, HandleClic));
-
-            URHO3D_LOGINFOF("Player() - Start : player ID=%u subscribe HandleClic !", GetID());
-
-            if (missionEnable_)
+            if (missionManager_ && !missionManager_->IsStarted())
             {
-                if (missionManager_ && !missionManager_->IsStarted())
-                {
-                    SubscribeToEvent(this, GO_PLAYERMISSIONMANAGERSTART, URHO3D_HANDLER(Player, HandleDelayedActions));
-                    DelayInformer* delayedMissionStart = new DelayInformer(this, 7.f, GO_PLAYERMISSIONMANAGERSTART);
-                }
+                SubscribeToEvent(this, GO_PLAYERMISSIONMANAGERSTART, URHO3D_HANDLER(Player, HandleDelayedActions));
+                DelayInformer* delayedMissionStart = new DelayInformer(this, 7.f, GO_PLAYERMISSIONMANAGERSTART);
             }
-            else
-            {
-                UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
-            }
+        }
+        else
+        {
+            UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
         }
 
         SubscribeToEvent(avatar_, GO_INVENTORYGET, URHO3D_HANDLER(Player, OnGetCollectable));
@@ -2278,15 +2291,12 @@ void Player::StopSubscribers()
 
     if (mainController_)
     {
-        if (controlID_ == 0 || GameContext::Get().gameConfig_.multiviews_)
-        {
-            UnsubscribeFromEvent(E_RELEASED);
-            UnsubscribeFromEvent(E_MOUSEBUTTONUP);
-            UnsubscribeFromEvent(E_TOUCHEND);
+        UnsubscribeFromEvent(E_RELEASED);
+        UnsubscribeFromEvent(E_MOUSEBUTTONUP);
+        UnsubscribeFromEvent(E_TOUCHEND);
 
-            if (missionEnable_ && missionManager_ && missionManager_->IsStarted())
-                UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
-        }
+        if (missionEnable_ && missionManager_ && missionManager_->IsStarted())
+            UnsubscribeFromEvent(this, GO_PLAYERMISSIONMANAGERSTART);
 
         UnsubscribeFromEvent(this, GO_PLAYERTRANSFERCOLLECTABLESTART);
         UnsubscribeFromEvent(this, GO_PLAYERTRANSFERCOLLECTABLEFINISH);
@@ -2535,7 +2545,7 @@ void Player::OnChangeEntityFocus(StringHash eventType, VariantMap& eventData)
                                         (entitySelectorSecond_ && !entitySelectorSecond_->IsSelected() ? entitySelectorSecond_.Get(): 0U);
     if (entitySelector)
     {
-        GetBodiesInViewport(bodiesInViewport_, GameContext::Get().gameConfig_.multiviews_ ? controlID_ : 0);
+        GetBodiesInViewport(bodiesInViewport_, ViewManager::Get()->GetControllerViewport(this));
 
         Node* tofollow = eventType == GOC_CONTROLACTION_NEXTFOCUSENTITY ? SelectNextNode(entitySelector->GetFollowerNode(), bodiesInViewport_, entitySelector == entitySelectorFirst_) :
                                                                           SelectPrevNode(entitySelector->GetFollowerNode(), bodiesInViewport_, entitySelector == entitySelectorFirst_);
@@ -3061,7 +3071,7 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
     }
 
     int viewportid = ViewManager::Get()->GetViewportAt(x, y);
-    if (GameContext::Get().gameConfig_.multiviews_ && viewportid != controlID_)
+    if (viewportid != ViewManager::Get()->GetControllerViewport(this))
         return;
 
     Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(viewportid);

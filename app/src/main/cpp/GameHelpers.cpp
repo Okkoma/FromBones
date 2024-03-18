@@ -1261,7 +1261,7 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
 
     // Just Load instant map (no move camera)
     World2D::GetWorld()->GoToMap(mPoint, 0);
-    World2D::GetWorld()->UpdateInstant(0, Vector2::ZERO, 0.f, false);
+    World2D::GetWorld()->UpdateInstant(0, Vector2::ZERO, false);
 
     // Find a default start position on this map
     Node* destinationArea = GameContext::Get().FindMapPositionAt("GOT_START", mPoint, dPosition, dViewZ);
@@ -1274,38 +1274,38 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
             dViewZ = FRONTVIEW;
     }
 
-    if (GameContext::Get().gameConfig_.multiviews_)
+//    if (GameContext::Get().gameConfig_.multiviews_)
     {
         // Transfer Players
         for (int i=0; i < GameContext::Get().numPlayers_; i++)
         {
             if (GameContext::Get().playerAvatars_[i])
             {
-                int viewport = i;
-
                 GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
-
-                // Transfer Camera
-                World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, viewport);
+                World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, ViewManager::Get()->GetControllerViewport(GameContext::Get().players_[i]));
             }
         }
 
-        for (int i=0; i < GameContext::Get().numPlayers_; i++)
-            if (GameContext::Get().playerAvatars_[i])
-                World2D::GetWorld()->GoCameraToDestinationMap(i, false);
-    }
-    else
-    {
-        // Transfer Players
-        for (int i=0; i < GameContext::Get().numPlayers_; i++)
-            if (GameContext::Get().playerAvatars_[i])
-                GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
-
         // Transfer Camera
-        World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, 0);
         World2D::GetWorld()->UpdateStep(0.f);
-        World2D::GetWorld()->GoCameraToDestinationMap(0, false);
+        for (int i=0; i < GameContext::Get().numPlayers_; i++)
+        {
+            if (GameContext::Get().playerAvatars_[i])
+                World2D::GetWorld()->GoCameraToDestinationMap(ViewManager::Get()->GetControllerViewport(GameContext::Get().players_[i]), false);
+        }
     }
+//    else
+//    {
+//        // Transfer Players
+//        for (int i=0; i < GameContext::Get().numPlayers_; i++)
+//            if (GameContext::Get().playerAvatars_[i])
+//                GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
+//
+//        // Transfer Camera
+//        World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, 0);
+//        World2D::GetWorld()->UpdateStep(0.f);
+//        World2D::GetWorld()->GoCameraToDestinationMap(0, false);
+//    }
 
     ViewManager::Get()->SetFocusEnable(true);
 
@@ -2096,11 +2096,13 @@ bool GameHelpers::SetLightActivation(Player* player)
         return false;
     }
 
-    bool localplayer = GameContext::Get().LocalMode_ || player->IsMainController();// player->clientID_ == GameNetwork::Get()->GetClientID();
+    bool localplayer = GameContext::Get().LocalMode_ || player->IsMainController();
     bool enlight = localplayer && GameContext::Get().gameConfig_.enlightScene_ && (GameContext::Get().luminosity_ < ENLIGHTTHRESHOLD || player->GetViewZ() == INNERVIEW);
-    URHO3D_LOGERRORF("GameHelpers() - SetLightActivation : player=%d numlights=%u lit=%s !", player->GetID(), lights.Size(), enlight ? "true":"false");
 
-    for (PODVector<Light*>::ConstIterator it=lights.Begin(); it != lights.End(); ++it)
+    unsigned lightmask = ViewManager::Get()->GetControllerLightMask(player);
+    URHO3D_LOGERRORF("GameHelpers() - SetLightActivation : player=%d numlights=%u lit=%s lightmask=%u (nolight=%u)!", player->GetID(), lights.Size(), enlight ? "true":"false", lightmask, NOLIGHT_MASK);
+
+    for (PODVector<Light*>::ConstIterator it = lights.Begin(); it != lights.End(); ++it)
     {
         Light* light = *it;
 
@@ -2111,6 +2113,7 @@ bool GameHelpers::SetLightActivation(Player* player)
         if (lit && !light->GetPerVertex())
             lit = false;
 #endif
+        light->SetViewMask(lightmask);
 
         light->SetEnabled(lit);
         if (light->GetNode() != player->GetAvatar())

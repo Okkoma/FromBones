@@ -238,7 +238,7 @@ public:
     static void Stop();
     static void ToggleStartStop();
 
-    static void Pause(int viewport=0, bool state=true);
+    static void SetActive(int viewport=0, bool state=true);
     static void SetIntensity(int viewport=0, float intensity=0.f)
     {
         scrollerinfos_[viewport].intensity_ = intensity;

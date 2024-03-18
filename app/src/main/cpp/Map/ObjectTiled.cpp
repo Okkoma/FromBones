@@ -497,6 +497,7 @@ void ObjectTiled::SetCurrentViewZ(int viewport, int viewZindex, bool forced)
     {
 //        viewportdata.currentViewZindex_ = viewZindex;
         viewportdata.currentViewZindex_ = -1;
+//        URHO3D_LOGWARNINGF("ObjectTiled() - SetCurrentViewZ node=%s viewport=%d viewZ=%d currentViewZindex_ = -1 Marked !", node_->GetName().CString(), viewport, viewZ);
 
         ObjectFeatured* feature = GetObjectFeatured();
         assert(feature);
@@ -544,7 +545,7 @@ void ObjectTiled::SetDirty(int viewport)
                 viewportdata.currentViewZindex_ = -1;
             }
             viewport = -1;
-//            URHO3D_LOGINFOF("ObjectTiled() - SetDirty : %s viewport=%d ! ", node_->GetName().CString(), viewport);
+//            URHO3D_LOGINFOF("ObjectTiled() - SetDirty : %s viewport=-1 ! ", node_->GetName().CString());
         }
         else
         {
@@ -649,7 +650,7 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
 {
     if (IsEnabledEffective())
     {
-        int viewport = ViewManager::Get()->GetViewport(renderer_->GetFrameInfo().camera_);
+        int viewport = ViewManager::Get()->GetViewport(renderer_->GetCurrentFrameInfo().camera_);
         ViewportRenderData& viewportdata = viewportDatas_[viewport];
 
         if (viewportdata.isPaused_)
@@ -672,17 +673,6 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
                     viewportdata.lastVisibleRect_ = viewportdata.visibleRect_;
 
                     if (!chinfo_->Convert2ChunkRect(viewportdata.lastViewBoundingBox_.Transformed(node_->GetWorldTransform().Inverse()), viewportdata.visibleRect_, 0))
-                        URHO3D_LOGERRORF("ObjectTiled() - GetWorldBoundingBox2D : bbox not defined !");
-                }
-            }
-            else if (viewRangeMode_ == ViewRange_Frustum)
-            {
-                if (viewportdata.lastViewBoundingBox_ != renderer_->GetFrustumBoundingBox())
-                {
-                    viewportdata.lastViewBoundingBox_ = renderer_->GetFrustumBoundingBox();
-                    viewportdata.lastVisibleRect_ = viewportdata.visibleRect_;
-
-                    if (!chinfo_->Convert2ChunkRect(viewportdata.lastViewBoundingBox_.Transformed(node_->GetWorldTransform().Inverse()), viewportdata.visibleRect_, enlargeBox_))
                         URHO3D_LOGERRORF("ObjectTiled() - GetWorldBoundingBox2D : bbox not defined !");
                 }
             }
@@ -3226,14 +3216,13 @@ void ObjectTiled::UpdateSourceBatchesToRender(ViewportRenderData& viewportdata)
     }
 
     Vector<SourceBatch2D*>& batchesToRender = viewportdata.sourceBatchesToRender_;
-    viewportdata.sourceBatchDirty_ = false;
-
     int indexViewZ = viewportdata.currentViewZindex_;
     if (indexViewZ == -1)
     {
         URHO3D_LOGERRORF("ObjectTiled() - UpdateSourceBatchesToRender : %s(%u) ... indexViewZ=-1 !", node_->GetName().CString(), node_->GetID(), indexViewZ);
         return;
     }
+    viewportdata.sourceBatchDirty_ = false;
 
 #ifdef RENDER_VIEWBATCHES
     if (viewportdata.lastNumTiledBatchesToRender_ == 0)

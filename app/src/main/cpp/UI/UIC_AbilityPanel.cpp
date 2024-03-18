@@ -62,22 +62,27 @@ void UIC_AbilityPanel::Start(Object* user, Object* feeder)
     else
         URHO3D_LOGWARNINGF("UIC_AbilityPanel() - Start id=%d : no holder !");
 
-    slotZone_ = panel_->GetChild("SlotZone", true);
+    slotZone_ = panel_->GetName() == "SlotZone" ? panel_ : panel_->GetChild("SlotZone", true);
     slotselector_ = 0;
     selectHalo_ = panel_->GetChild(String("I_Select"), true);
+    hoveringCount_ = 0;
 
     Clear();
 }
 
 void UIC_AbilityPanel::GainFocus()
 {
+    if (!holder_->GetAbilities()->GetNumAbilities())
+        return;
+
     if (selectHalo_)
         selectHalo_->SetVisible(true);
+
+    hoveringCount_ = 0;
+
     if (popup_)
-    {
         SetVisible(true);
-        GetElement()->SetPriority(GetElement()->GetParent()->GetPriority()+11);
-    }
+
     UIPanel::GainFocus();
 }
 
@@ -85,8 +90,10 @@ void UIC_AbilityPanel::LoseFocus()
 {
     if (selectHalo_)
         selectHalo_->SetVisible(false);
+
     if (popup_)
         SetVisible(false);
+
     UIPanel::LoseFocus();
 }
 
@@ -99,12 +106,27 @@ void UIC_AbilityPanel::OnSetVisible()
 {
     UIPanel::OnSetVisible();
 
-    if (panel_->IsVisible())
+    if (GetElement()->IsVisible())
     {
+        if (popup_)
+        {
+            hoveringCount_ = 0;
+
+            UIElement* statuspanel   = holder_->GetPanel(STATUSPANEL)->GetElement();
+            statuspanel->AddChild(GetElement());
+
+            UIElement* abilitybutton = statuspanel->GetChild(String("AbilityButton"));
+            GetElement()->SetPosition(abilitybutton->GetPosition());
+            GetElement()->SetPriority(abilitybutton->GetPriority()+1);
+
+            SubscribeToEvent(slotZone_, E_HOVERBEGIN, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverBegin));
+            SubscribeToEvent(slotZone_, E_HOVEREND, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverEnd));
+        }
+
         int controltype = GameContext::Get().playerState_[static_cast<Actor*>(user_)->GetControlID()].controltype;
         if (controltype == CT_KEYBOARD || controltype == CT_JOYSTICK)
         {
-            if (panel_->HasFocus())
+            if (GetElement()->HasFocus())
             {
                 URHO3D_LOGINFOF("UIC_AbilityPanel() - OnSetVisible : is visible and has the focus ...");
 
@@ -124,7 +146,8 @@ void UIC_AbilityPanel::OnSetVisible()
             }
             else
             {
-                URHO3D_LOGINFOF("UIC_AbilityPanel() - OnSetVisible : is visible and has not the focus ...");
+                URHO3D_LOGINFOF("UIC_AbilityPanel() - OnSetVisible : is visible and has not the focus (focus=%s)...",
+                                GameContext::Get().ui_->GetFocusElement() ? GameContext::Get().ui_->GetFocusElement()->GetName().CString() : "none");
 
                 if (HasSubscribedToEvent(E_KEYDOWN))
                 {
@@ -141,6 +164,9 @@ void UIC_AbilityPanel::OnSetVisible()
     }
     else
     {
+        if (popup_)
+            GameContext::Get().ui_->GetRoot()->AddChild(GetElement());
+
         if (selectHalo_)
             selectHalo_->SetVisible(false);
 
@@ -179,12 +205,15 @@ void UIC_AbilityPanel::SetActiveAbility(const StringHash& hash)
         return;
 
     // GetChild with variable attribute GOA::ABILITY
-    UIElement* elementToActive = slotZone_->GetChild(GOA::ABILITY, hash);
+    UIElement* elt = slotZone_->GetChild(GOA::ABILITY, hash);
 
-    if (!elementToActive)
+    slotselector_ = Clamp(ToInt(String(elt->GetName().Back())) -1, 0, (int)holder_->GetAbilities()->GetNumAbilities()-1);
+    UpdateSlotSelector();
+
+    if (!elt)
         return;
 
-    if (!elementToActive->IsEnabled())
+    if (!elt->IsEnabled())
         return;
 
     // DeActive the current actived Ability
@@ -194,7 +223,7 @@ void UIC_AbilityPanel::SetActiveAbility(const StringHash& hash)
         activeAbilityButton_->GetChild(0)->SetColor(Color::GRAY);
     }
 
-    activeAbilityButton_ = elementToActive;
+    activeAbilityButton_ = elt;
     activeAbilityButton_->SetColor(Color::WHITE);
     activeAbilityButton_->GetChild(0)->SetColor(Color::WHITE);
 
@@ -261,7 +290,7 @@ void UIC_AbilityPanel::HandleClic(StringHash eventType, VariantMap& eventData)
         DesactiveAbility();
     }
 
-    GetSubsystem<UI>()->SetFocusElement(0);
+    GameContext::Get().ui_->SetFocusElement(0);
 }
 
 void UIC_AbilityPanel::OnAbilityUpdated(StringHash eventType, VariantMap& eventData)
@@ -292,6 +321,11 @@ void UIC_AbilityPanel::OnAbilityUpdated(StringHash eventType, VariantMap& eventD
             abilitySlot->SetVar(GOA::ABILITY, hash);
 
             SubscribeToEvent(abilitySlot, E_RELEASED, URHO3D_HANDLER(UIC_AbilityPanel, HandleClic));
+
+            SubscribeToEvent(abilitySlot, E_HOVERBEGIN, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverBegin));
+            SubscribeToEvent(abilitySlot, E_HOVEREND, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverEnd));
+            SubscribeToEvent(image, E_HOVERBEGIN, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverBegin));
+            SubscribeToEvent(image, E_HOVEREND, URHO3D_HANDLER(UIC_AbilityPanel, OnHoverEnd));
 
             abilitySlot->SetVisible(true);
             // active it by default
@@ -324,6 +358,10 @@ void UIC_AbilityPanel::OnAbilityUpdated(StringHash eventType, VariantMap& eventD
             if (abilitySlot)
             {
                 UnsubscribeFromEvent(abilitySlot, E_RELEASED);
+                UnsubscribeFromEvent(abilitySlot, E_HOVERBEGIN);
+                UnsubscribeFromEvent(abilitySlot, E_HOVEREND);
+                UnsubscribeFromEvent(abilitySlot->GetChild(0), E_HOVERBEGIN);
+                UnsubscribeFromEvent(abilitySlot->GetChild(0), E_HOVEREND);
                 abilitySlot->SetVisible(false);
                 abilitySlot->SetVar(GOA::ABILITY, StringHash::ZERO);
             }
@@ -349,7 +387,7 @@ void UIC_AbilityPanel::OnNodesChange(StringHash eventType, VariantMap& eventData
 
     holderNode_ = holder_->GetAvatar();
 
-    slotZone_ = panel_->GetChild("SlotZone", true);
+    slotZone_ = panel_->GetName() == "SlotZone" ? panel_ : panel_->GetChild("SlotZone", true);
 
     if (slotZone_)
     {
@@ -365,34 +403,32 @@ void UIC_AbilityPanel::OnNodesChange(StringHash eventType, VariantMap& eventData
 
 void UIC_AbilityPanel::OnKey(StringHash eventType, VariantMap& eventData)
 {
-    Player* player = static_cast<Player*>(holder_.Get());
-    if (player->GetFocusPanel() != this)
+    if (holder_->GetFocusPanel() != this)
         return;
 
     int scancode = GetKeyFromEvent(eventType, eventData);
     if (!scancode)
         return;
 
-    const PODVector<int>& keymap = GameContext::Get().keysMap_[player->GetControlID()];
+    const PODVector<int>& keymap = GameContext::Get().keysMap_[holder_->GetControlID()];
 
     URHO3D_LOGINFOF("UIC_AbilityPanel() - OnKey : panel=%s ...", name_.CString());
 
-    // TODO add an ability selector
     if (scancode == keymap[ACTION_DOWN])
     {
         LoseFocus();
-        player->SetFocusPanel(-1);
+        holder_->SetFocusPanel(-1);
     }
     else if (scancode == keymap[ACTION_UP])
     {
         LoseFocus();
         if (popup_)
         {
-            player->GetPanel(STATUSPANEL)->GainFocus();
-            player->SetFocusPanel(STATUSPANEL);
+            holder_->GetPanel(STATUSPANEL)->GainFocus();
+            holder_->SetFocusPanel(STATUSPANEL);
         }
         else
-            player->SetFocusPanel(-1);
+            holder_->SetFocusPanel(-1);
     }
     else if (scancode == keymap[ACTION_LEFT]) // Move Selector to left
     {
@@ -410,3 +446,29 @@ void UIC_AbilityPanel::OnKey(StringHash eventType, VariantMap& eventData)
         HandleClic(StringHash::ZERO, eventData);
     }
 }
+
+void UIC_AbilityPanel::OnHoverBegin(StringHash eventType, VariantMap& eventData)
+{
+    hoveringCount_++;
+
+    UIElement* elt = static_cast<UIElement*>(eventData[DragMove::P_ELEMENT].GetPtr());
+    if (elt && elt->GetParent() == slotZone_)
+    {
+        slotselector_ = Clamp(ToInt(String(elt->GetName().Back())) -1, 0, (int)holder_->GetAbilities()->GetNumAbilities()-1);
+        UpdateSlotSelector();
+    }
+}
+
+void UIC_AbilityPanel::OnHoverEnd(StringHash eventType, VariantMap& eventData)
+{
+    hoveringCount_--;
+
+    if (hoveringCount_ <= 0)
+    {
+        UnsubscribeFromEvent(slotZone_, E_HOVERBEGIN);
+        UnsubscribeFromEvent(slotZone_, E_HOVEREND);
+
+        LoseFocus();
+    }
+}
+

@@ -709,9 +709,7 @@ void Actor::SetEnableDialogue(bool enable)
         if (!dialogFrame)
             return;
 
-        int viewport = 0;
-        if (GameContext::Get().gameConfig_.multiviews_)
-            viewport = dialogInteractor_->GetControlID();
+        int viewport = ViewManager::Get()->GetControllerViewport(dialogInteractor_);
 
         URHO3D_LOGINFOF("Actor() - SetEnableDialogue ... viewport=%d actor=%s(%u) interactor=%s(%u)", viewport,
                         avatar_->GetName().CString(), avatar_->GetID(),

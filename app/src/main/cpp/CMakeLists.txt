@@ -3,6 +3,7 @@ set (TARGET_NAME FromBonesLib)
 
 # Don't Work on RPI3 Cross Compile
 set(CMAKE_CXX_STANDARD 11)
+#set(CMAKE_CXX_STANDARD 17)
 
 # Define source files : add C files for Wren
 file (GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp" "*.c" "*.hpp" "*.h")

@@ -84,7 +84,7 @@ public :
     void Stop();
 
     void ToggleStartStop();
-    void Active(int viewport=-1, bool state=true, bool forced=false);
+    void SetActive(int viewport=-1, bool state=true, bool forced=false);
 
     void DrawDebugGeometry(DebugRenderer* debug, bool depthTest);
 

@@ -235,7 +235,7 @@ Node* ClientInfo::CreateAvatarFor(unsigned playerindex)
         objects_.Push(WeakPtr<Node>(avatar));
         avatar->AddTag("Player");
 
-        World2D::AddTraveler(avatar).oinfo_ = &objectControlInfo;
+        World2D::GetOrCreateTraveler(avatar).oinfo_ = &objectControlInfo;
     }
 
     return avatar;

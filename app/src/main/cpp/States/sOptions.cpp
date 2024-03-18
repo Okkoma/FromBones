@@ -811,10 +811,6 @@ void OptionState::SynchronizeParameters()
 
     if (optionParameters_[OPTION_MultiViews].control_)
     {
-//    #if defined(URHO3D_VULKAN)
-//        GameContext::Get().gameConfig_.multiviews_ = false;
-//        optionParameters_[OPTION_MultiViews].control_->SetEnabled(false);
-//    #endif
         optionParameters_[OPTION_MultiViews].control_->SetSelection(GameContext::Get().gameConfig_.multiviews_);
 //        ApplyNumPlayers();
     }
@@ -825,37 +821,17 @@ void OptionState::SynchronizeParameters()
         ApplyNumPlayers();
     }
 
-    if (optionParameters_[OPTION_ControlP1].control_)
-    {
-        optionParameters_[OPTION_ControlP1].control_->SetSelection(GameContext::Get().playerState_[0].controltype);
-        Button* configcontrolP1button = uioptionscontent_->GetChild(String("Player"))->GetChildStaticCast<Button>("ConfigControls_1", true);
-        if (configcontrolP1button)
-            configcontrolP1button->SetVisible(GameContext::Get().playerState_[0].controltype < CT_SCREENJOYSTICK);
-    }
-
-    if (optionParameters_[OPTION_ControlP2].control_)
-    {
-        optionParameters_[OPTION_ControlP2].control_->SetSelection(GameContext::Get().playerState_[1].controltype);
-        Button* configcontrolP2button = uioptionscontent_->GetChild(String("Player"))->GetChildStaticCast<Button>("ConfigControls_2", true);
-        if (configcontrolP2button)
-            configcontrolP2button->SetVisible(GameContext::Get().playerState_[1].controltype < CT_SCREENJOYSTICK);
-    }
-
-    if (optionParameters_[OPTION_ControlP3].control_)
-    {
-        optionParameters_[OPTION_ControlP3].control_->SetSelection(GameContext::Get().playerState_[2].controltype);
-        Button* configcontrolP3button = uioptionscontent_->GetChild(String("Player"))->GetChildStaticCast<Button>("ConfigControls_3", true);
-        if (configcontrolP3button)
-            configcontrolP3button->SetVisible(GameContext::Get().playerState_[2].controltype < CT_SCREENJOYSTICK);
-    }
-
-    if (optionParameters_[OPTION_ControlP4].control_)
-    {
-        optionParameters_[OPTION_ControlP4].control_->SetSelection(GameContext::Get().playerState_[3].controltype);
-        Button* configcontrolP4button = uioptionscontent_->GetChild(String("Player"))->GetChildStaticCast<Button>("ConfigControls_4", true);
-        if (configcontrolP4button)
-            configcontrolP4button->SetVisible(GameContext::Get().playerState_[3].controltype < CT_SCREENJOYSTICK);
-    }
+	for (int i=0; i < 4; i++)
+	{
+		OptionParameter& controlParameter = optionParameters_[OPTION_ControlP1+i];
+		if (controlParameter.control_)
+		{
+			controlParameter.control_->SetSelection(GameContext::Get().playerState_[i].controltype);
+			Button* configcontrolP1button = uioptionscontent_->GetChild(String("Player"))->GetChildStaticCast<Button>(String("ConfigControls_")+String(i+1), true);
+			if (configcontrolP1button)
+				configcontrolP1button->SetVisible(GameContext::Get().playerState_[i].controltype < CT_SCREENJOYSTICK);
+		}
+	}
 
     if (optionParameters_[OPTION_Language].control_ && optionParameters_[OPTION_Language].control_->GetSelection() != GameContext::Get().gameConfig_.language_)
     {

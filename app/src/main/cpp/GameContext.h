@@ -120,9 +120,12 @@ struct FROMBONES_API GameConfig
     String logString;
     String saveDir_;
 
-    int uiUpdateDelay_;
     int screenJoystickID_;
     int screenJoysticksettingsID_;
+
+    int uiUpdateDelay_;
+    float uiMapOpacityFrame_;
+    float uiMapOpacityBack_;
 
     float tileSpanning_;
 };
@@ -424,6 +427,8 @@ public :
     Vector<WeakPtr<Font> > uiFonts_;
     static const char* txtMsgFont_;
 
+    // RenderPath
+    Vector<SharedPtr<RenderPath> > renderPaths_;
     // Static Memory Containers
     HashMap<unsigned, PixelShape> sConstPixelShapes_;
     Stack<unsigned> sMapStack_;

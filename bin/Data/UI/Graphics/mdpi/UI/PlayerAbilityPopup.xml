@@ -1,22 +1,20 @@
 <?xml version="1.0"?>
+
 <element>
     <attribute name="Name" value="Abilities" />
-    <attribute name="Size" value="400 100" />
+	<attribute name="Size" value="325 64" /> 
     <attribute name="Layout Mode" value="Free" />
     <attribute name="Focus Mode" value="Focusable" />
-	<element type="BorderImage">
-		<attribute name="Name" value="I_Select" />
-		<attribute name="Sprite" value="UI/game_equipment.xml@slothalo" />
-		<attribute name="Color" value="1 0.5 0" />
-		<attribute name="Priority" value="110" />
-		<attribute name="Opacity" value="0.5" />
-		<attribute name="Is Visible" value="false" />
-	</element>    
-	<element>
-		<attribute name="Name" value="SlotZone" />
+    
+	<element type="Window"> <!-- Need a Window for the hovering between abilities -->
+		<attribute name="Name" value="SlotZone" />	
+        <attribute name="Image Rect" value="0 0 1 1" /> 
+        <attribute name="Border" value="0 0 0 0" />
+        <attribute name="Resize Border" value="0 0 0 0" /> 		
 		<attribute name="Layout Mode" value="Horizontal" />
-		<attribute name="Layout Spacing" value="4" />
-		<attribute name="Vert Alignment" value="Center" />
+		<attribute name="Layout Spacing" value="1" />
+		<attribute name="Focus Mode" value="NotFocusable" /> 
+
 		<element type="Button">
 			<attribute name="Name" value="Abi_1" />
             <attribute name="Sprite" value="UI/game_equipment.xml@abilityframe" />
@@ -26,9 +24,11 @@
 			<attribute name="Pressed Image Offset" value="0 0" />
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Focus Mode" value="NotFocusable" />
             <element type="BorderImage">
                 <attribute name="Min Size" value="64 64" />
                 <attribute name="Max Size" value="64 64" />
+                <attribute name="Focus Mode" value="NotFocusable" />
             </element>
 		</element>
 		<element type="Button">
@@ -40,11 +40,13 @@
 			<attribute name="Pressed Image Offset" value="0 0" />
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Focus Mode" value="NotFocusable" />
             <element type="BorderImage">
                 <attribute name="Vert Alignment" value="Center" />
                 <attribute name="Horiz Alignment" value="Center" />                  
                 <attribute name="Min Size" value="64 64" />
                 <attribute name="Max Size" value="64 64" />
+                <attribute name="Focus Mode" value="NotFocusable" />
             </element>
 		</element>
 		<element type="Button">
@@ -56,9 +58,11 @@
 			<attribute name="Pressed Image Offset" value="0 0" />
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Focus Mode" value="NotFocusable" />
             <element type="BorderImage">
                 <attribute name="Min Size" value="64 64" />
                 <attribute name="Max Size" value="64 64" />
+                <attribute name="Focus Mode" value="NotFocusable" />
             </element>
 		</element>
 			<element type="Button">
@@ -70,9 +74,11 @@
 			<attribute name="Pressed Image Offset" value="0 0" />
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Focus Mode" value="NotFocusable" />
             <element type="BorderImage">
                 <attribute name="Min Size" value="64 64" />
                 <attribute name="Max Size" value="64 64" />
+                <attribute name="Focus Mode" value="NotFocusable" />
             </element>
 		</element>
 		<element type="Button">
@@ -84,10 +90,24 @@
 			<attribute name="Pressed Image Offset" value="0 0" />
             <attribute name="Vert Alignment" value="Center" />
             <attribute name="Horiz Alignment" value="Center" />
+            <attribute name="Focus Mode" value="NotFocusable" />
             <element type="BorderImage">
                 <attribute name="Min Size" value="64 64" />
                 <attribute name="Max Size" value="64 64" />
+                <attribute name="Focus Mode" value="NotFocusable" />
             </element>
-		</element>
+		</element>		
+	</element>
+
+	<element type="BorderImage">
+		    <attribute name="Name" value="I_Select" />
+		    <attribute name="Sprite" value="UI/game_equipment.xml@slothalo" />
+			<attribute name="Min Size" value="64 64" />
+			<attribute name="Max Size" value="64 64" />		    
+		    <attribute name="Color" value="1 1 1" />
+		    <attribute name="Priority" value="110" />
+		    <attribute name="Opacity" value="0.8" />
+		    <attribute name="Is Visible" value="false" />
+		    <attribute name="Focus Mode" value="NotFocusable" />
 	</element>
 </element>

@@ -5,6 +5,12 @@
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},
+	"GOT_Test":{
+		"category":"Characters",
+		"fileName":"Objects/actor-medium.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},	
 	"GOT_Avatar_Petite":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-petite.xml",
@@ -23,9 +29,9 @@
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},	
-	"GOT_Avatar_Fantomette":{
+	"GOT_Avatar_Bat":{
 		"category":"Characters",
-		"fileName":"Objects/avatar-fantomette.xml",
+		"fileName":"Objects/avatar-bat.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},	
@@ -47,48 +53,60 @@
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1,
 	},
-	"GOT_Avatar_Kigrat":{
+	"GOT_Avatar_Elsarion":{
 		"category":"Characters",
-		"fileName":"Objects/avatar-kigrat.xml",
+		"fileName":"Objects/avatar-elsarion.xml",
 		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},		
-	"GOT_Avatar_Bat":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-bat.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
+		"replicateMode":1,
 	},	
-	"GOT_Avatar_Raignee":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-raignee.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},
-	"GOT_Avatar_Eredot":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-eredot.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},
-	"GOT_Avatar_ShukTuk":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-shuktuk.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},
 	"GOT_Avatar_JunkelSpil":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-junkelspil.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},
-	"GOT_Avatar_Elsarion":{
+	"GOT_Avatar_Kigrat":{
 		"category":"Characters",
-		"fileName":"Objects/avatar-elsarion.xml",
+		"fileName":"Objects/avatar-kigrat.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},		
+	"GOT_Avatar_Raignee":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-raignee.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},
+	"GOT_Avatar_Podomorphe":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-podomorphe.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},	
+	"GOT_Avatar_Spectii":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-spectii.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},	
+	"GOT_Avatar_Fantomette":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-fantomette.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},	
+	"GOT_Avatar_ShukTuk":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-shuktuk.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},
+	"GOT_Avatar_Livache":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-livache.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},		
 	"GOT_Avatar_Bitroll":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-bitroll.xml",
@@ -122,12 +140,6 @@
 	"GOT_Avatar_RockGolem":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-rockgolem.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},
-	"GOT_Avatar_EliegorGolem":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-rockgolem-flore.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},

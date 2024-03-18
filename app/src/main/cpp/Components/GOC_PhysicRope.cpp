@@ -628,9 +628,15 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
             staticSprite->SetOrderInLayer(orderLayer);
             staticSprite->SetViewMask(viewMask);
 
-            staticSprite->SetUseHotSpot(true);
+            // version for modified StaticSprite2D::UpdateDrawRectangle() (with no parameter flipX,flipY)
+            // Graphics.TODO 13/03/2024
+//            staticSprite->SetFlip(rand > 49, rand % 2);
+//            staticSprite->SetHotSpot(Vector2(linkSize.x_ * linkPivotOffset / bridgeSize.x_, 0.5f));
+
             staticSprite->SetFlip(rand > 49, rand % 2);
             staticSprite->SetHotSpot(Vector2(!staticSprite->GetFlipX() ? linkSize.x_ * linkPivotOffset / bridgeSize.x_ : (1.f - linkSize.x_ * linkPivotOffset / bridgeSize.x_), 0.5f));
+
+            staticSprite->SetUseHotSpot(true);
         }
 
         // Create rigid body

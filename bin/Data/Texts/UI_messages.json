@@ -100,6 +100,18 @@
 		"en":"Player",
 		"fr":"Joueur"
 	},
+	"Viewport":{
+		"en":"Viewport",
+		"fr":"Fenetrage"
+	},	
+	"Static":{
+		"en":"Static",
+		"fr":"Statique"
+	},
+	"Dynamic":{
+		"en":"Dynamic",
+		"fr":"Dynamique"
+	},			
 	"Num Players":{
 		"en":"Num.Players",
 		"fr":"Nb.Joueurs"
@@ -120,7 +132,6 @@
 		"en":"Touch",
 		"fr":"Tactile"
 	},
-
 	"Interface":{
 		"en":"Interface",
 		"fr":"Interface"

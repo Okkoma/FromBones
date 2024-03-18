@@ -81,8 +81,11 @@ public:
 private:
     void SetStatus(GameStatus status, bool send=true);
 
-    void CheckGameLogic();
     void ResetGameLogic();
+    void CheckGameLogic();
+
+    void CheckSplitScreen();
+
     void CreateLevel(bool restart, bool updatelevel);
 
     void InitLevel(bool init, bool restart);
@@ -97,11 +100,13 @@ private:
     void ResizeUI();
 
     void AllocatePlayers();
+	void GetLocalPlayers(PODVector<Player* >& playersindexes, bool getactiveonly=false, bool restartactive=false, unsigned controltypemask=0);
+	void GetLocalPlayers(PODVector<int>& playersindexes, bool getactiveonly=false, bool restartactive=false, unsigned controltypemask=0);
     void SetPlayers(bool init, bool restart);
     void ResetPlayers();
     void RemovePlayers();
     void UpdateNumActivePlayers();
-    void SetViewports(bool force=false);
+    void SetViewports(bool dynamic=false);
 
     void SubscribeToEvents();
     void UnsubscribeToEvents();
@@ -144,10 +149,11 @@ private:
     bool activeGameLogic_;
     bool initMode_;
     bool restartMode_;
-    bool ctrlCameraWithMouse_;
     bool gameOver_;
     bool paused_;
     bool toLoadGame_;
+
+    bool debugCameraWithMouse_;
 
     unsigned numActivePlayers_;
     unsigned lastKillerID_;

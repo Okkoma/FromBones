@@ -5,18 +5,6 @@
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},
-	"GOT_Test":{
-		"category":"Characters",
-		"fileName":"Objects/actor-medium.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},	
-	"GOT_Avatar_Livache":{
-		"category":"Characters",
-		"fileName":"Objects/avatar-livache.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},	
 	"GOT_Avatar_Petite":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-petite.xml",
@@ -106,7 +94,13 @@
 		"fileName":"Objects/avatar-shuktuk.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
-	},	
+	},
+	"GOT_Avatar_Livache":{
+		"category":"Characters",
+		"fileName":"Objects/avatar-livache.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},		
 	"GOT_Avatar_Bitroll":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-bitroll.xml",

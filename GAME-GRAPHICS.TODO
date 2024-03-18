@@ -1,6 +1,59 @@
 Todos:
 
-    ☐ 10/03/2024 : modification du BackEnd pour Vulkan
+    15/03/2024 : un plus serait de pouvoir avoir des viewports non-rectangulaire : surtout pour 3 viewports
+
+    ✔ 15/03/2024 : en multiview dynamic, si deux avatars sont sur un viewport et juste l'un deux se teleporte par un portail alors crash
+        -> ajout de la condition viewport < world_->viewinfos_.Size() dans tous les getters de  World2D qui le necessitent.
+        => le crash provenait de World2D::GetCurrentMap() utilisé par DrawableScroller::SetDrawableObjects()
+
+    ✔  14/03/2024 : en vulkan, en 3 ou 4 players, il y a un probleme de drawables dépendant de la camera et du viewport.
+        -> les drawablescrollers sont décalés, certains layers entiers semblent dependre d'une autre view.
+        --> mise en evidence en utilisant ctrlCameraEnabled_ (KEY_TAB)
+        => dans Renderer2D, l'IndexBuffer est commun aux differents viewBatchInfos
+        ==> il peut y avoir un probleme de lock qui ne peut se faire coté vk
+        ===> test d'un IndexBuffer par viewBatch NOK ! par frame ?
+        ===> doit-on avoir vertexbuffer et indexbuffer par frame ?
+        ====> le probleme provient des ShaderParameters, précisement pour les UniformBuffer Dynamic le nombre d'objets alloué aux constantBuffers de type VS group Camera n'était pas suffisant.
+        ====> ConstantBufferMaxObjects[VS][SP_CAMERA] : on avait 8, on passe à 32 pour 4 viewports (soit 4 cameras, 3 frames et 2-3 passes cela devrait convenir).
+
+    ✔ 13/03/2024 : Pb avec StaticSprite2D flipping, avec les ponts
+        suite à la modification de urho3d dernierement, avec l'integration du swapxy
+        => correctif dans GOC_PhysicRope::CreateBridge.
+        ==> 16/03/2024 : il y a aussi un pb dans MapData::UpdateEntityNode
+        ===> c'est problematique car ici il faut modifier le hotspot ... reprise du hotspot du sprite2d et inversion si flipping
+        ====> ce que fait normalement StaticSprite2D avec GetDrawRectangle ... seulement flipX et flipY en parametre ont été supprimés pour qu'il n'y ait pas de probleme avec le flipping dans les tilemap
+        ====> seulement dans urho officiel les flip en parametre de GetDrawRectangle sont bien utilisé et cela ne pose pas de probleme au tilemap
+        ====> il y a un probleme ailleurs que je ne trouve pas ...
+        ====> du coup pour le moment on revient à la version precedente pour StaticSprite2D
+        =====> mais dans le sample Urho2DPlatformer il y aura un probleme de tilemap.
+        ======> un patch est fait dans TileMapLayer2D::SetTileLayer
+
+    ✔ 13/03/2024 : problemes d'update focus en multiviewports :
+        lorsque l'on entre dans une zone de boss sur un viewport, un autre viewport va focus sur la zone alors que ce ne doit pas etre le cas
+        lorsque l'on se teleporte d'un viewport, un autre viewport va reseter son focus egalement ...
+        => OK : faire attention de ne plus utiliser GetThinker()->GetControlID() comme valeur de viewport
+        ==> utiliser ViewManager::GetControllerViewport
+
+    ✔ 13/03/2024 : la lumiere de nuit d'un joueur sur un viewport ne se déclenche pas toujours suite au changement de code pour les viewports automatique
+        => cf GameHelpers::SetLightActivation, GOC_Destroyer::SetViewZ ?
+        ==> OK modification de GameHelpers::SetLightActivation(Player) et ajout de ViewManager::GetControllerLightMask()
+
+    ☐ 11/03/2024 : ajouter le multi-viewport automatique et ne plus mettre l'option
+        -> en confrontation, splitter directement l'écran.
+        ==> OK en arenaZone (cf : PlayState::SetPlayers)
+        -> en collaboratif, lorsque l'un des joueurs locaux est trop loin, splitter l'écran
+        ==> pas mal de modif dans PlayState::SetViewports et ViewManager::SetViewportLayout
+        ===> 13/03/2024 : probleme avec les collingBorders (une par viewport)
+             un joueur d'un viewport ne peut se déplacer tres loin à cause de la collingBorder d'un autre viewport
+        ====> ajout du merge des collidingBorders lorsqu'elles se chevauchent (cf. World2D::UpdateCollideBorders())
+        ====> lorsqu'un viewport s'eloigne des autre, cela devrait rendre le collingBorder independant.
+              peut-etre un pb avec effectiveVisibleMaps_...
+
+    ☐ 10/03/2024 : en multi-Viewports water ne fonctionne pas correctement
+        -> 1. ne prend pas en compte les autres viewports pour l'update de l'eau
+        -> 2. le rendu du premier viewport déborde sur le second
+
+    ☐ 10/03/2024 : modification du BackEnd Vulkan
         -> ajout Extension, Features, Selection du Gpu
         -> modification de l'update des DescriptorSets dans VkGraphics::PrepareDraw
         ==> le but recherché est de minimiser le nombre de bind
@@ -12,7 +65,7 @@ Todos:
            Cependant la texture pourrait etre utiliser aussi pour le rendu d'une Scene 3D ayant besoin du mipmapping ... Il faut trouver le probleme avec le mipmapping dans mon implementation.
            le BlendMode par défaut pour BorderImage est BLEND_REPLACE. Pourquoi sur Gl il n'y a pas de pb pour les icones de coins et uilife dans le Plateform2D ? et pb sur Vk ... obligeant
            à définir explicitement le BLEND_APLHA. dans BorderImage le BLEND_REPLACE devient BLEND_ALPHA si la couleur a un alpha < 1.
-           Voir peut-etre l'opacité générale de l'ui ... ? Note: on ne rencontre pas ce problème avec les autres BackEnd.        
+           Voir peut-etre l'opacité générale de l'ui ... ? Note: on ne rencontre pas ce problème avec les autres BackEnd.
 
     ✔ 03/03/2024 : ajout du multiviewports pour Vulkan
         -> ajout de la modification de viewport

@@ -477,12 +477,9 @@ Node* ABI_WallBreaker::Use(const Vector2& wpoint, ObjectControlInfo** oinfo)
         }
 
         int viewport = 0;
-        if (GameContext::Get().gameConfig_.multiviews_)
-        {
-            GOC_Controller* controller = holder_->GetDerivedComponent<GOC_Controller>();
-            if (controller && controller->GetThinker())
-                viewport = controller->GetThinker()->GetControlID();
-        }
+        GOC_Controller* controller = holder_->GetDerivedComponent<GOC_Controller>();
+        if (controller && controller->GetThinker())
+            viewport = ViewManager::Get()->GetControllerViewport(controller->GetThinker());
 
         Vector2 tilepos;
         gocDestroyer->GetUpdatedWorldPosition2D(tilepos);

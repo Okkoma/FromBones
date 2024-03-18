@@ -990,7 +990,6 @@ void DrawableScroller::Start()
     for (int viewport=0; viewport < numviewports; viewport++)
     {
         ScrollerViewInfo& info = scrollerinfos_[viewport];
-        info.camPositionCount_ = 0;
         info.camPosition_ = info.lastCamPosition_ = Vector2::ZERO;
         info.nodeToFollow_ = ViewManager::Get()->GetCameraNode(viewport);
         info.initialPosition_ = info.nodeToFollow_->GetWorldPosition2D();
@@ -1062,27 +1061,39 @@ void DrawableScroller::Reset()
         scrollerinfos_[viewport].Reset();
 }
 
-void DrawableScroller::Pause(int viewport, bool state)
+void DrawableScroller::SetActive(int viewport, bool state)
 {
+    if (!scrollerinfos_[viewport].drawableScrollers_.Size())
+        return;
+
     ScrollerViewInfo& info = scrollerinfos_[viewport];
-    unsigned numscrollers = info.drawableScrollers_.Size();
 
     if (state)
     {
-        URHO3D_LOGINFOF("DrawableScroller() - Pause : true");
+        URHO3D_LOGINFOF("DrawableScroller() - SetActive : true");
 
-        for (unsigned i = 0; i < numscrollers; ++i)
-            info.drawableScrollers_[i]->UnsubscribeFromEvent(GameContext::Get().rootScene_, E_SCENEUPDATE);
-    }
-    else
-    {
-        URHO3D_LOGINFOF("DrawableScroller() - Pause : false");
+        info.camPosition_      = info.lastCamPosition_ = Vector2::ZERO;
+        info.nodeToFollow_     = ViewManager::Get()->GetCameraNode(viewport);
+        info.initialPosition_  = info.nodeToFollow_->GetWorldPosition2D();
 
-        for (unsigned i = 0; i < numscrollers; ++i)
-            info.drawableScrollers_[i]->OnSetEnabled();
+        // StaticSprite and derived need to be explicitly enabled
+        // since we have change this behavior in Urho3D to gain in performance
+        if (info.drawableScrollers_.Front()->IsEnabled() != state)
+            for (unsigned i = 0; i < info.drawableScrollers_.Size(); ++i)
+                info.drawableScrollers_[i]->SetEnabled(state);
+        else
+            for (unsigned i = 0; i < info.drawableScrollers_.Size(); ++i)
+                info.drawableScrollers_[i]->OnSetEnabled();
 
         VariantMap& eventdata = GameContext::Get().context_->GetEventDataMap();
         info.drawableScrollers_[0]->HandleCameraPositionChanged(StringHash(), eventdata);
+    }
+    else
+    {
+        URHO3D_LOGINFOF("DrawableScroller() - SetActive : false");
+
+        for (unsigned i = 0; i < info.drawableScrollers_.Size(); ++i)
+            info.drawableScrollers_[i]->UnsubscribeFromEvent(GameContext::Get().rootScene_, E_SCENEUPDATE);
     }
 }
 
@@ -2481,6 +2492,9 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
 //        URHO3D_LOGINFOF("DrawableScroller() - HandleUpdateFlatMode : this=%u scrollerposition_=%s", this, scrollerposition_.ToString().CString());
 
     const Rect& visibleRect = World2D::GetExtendedVisibleRect(viewport_);
+
+    if (!drawables_.Size())
+        return;
 
     DrawableObject* leftdrawable = drawables_.Front();
     DrawableObject* rightdrawable = drawables_.Back();

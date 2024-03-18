@@ -585,10 +585,15 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
             config->logString += ToString("  (String) %s = %s \n", name.CString(), value.CString());
 //            std::cout << config->logString.CString();
         }
-        else if (name == "tileSpanning_")
+        else if (name == "tileSpanning_" || name == "uiMapOpacityFrame_" || name == "uiMapOpacityBack_")
         {
             float value = varElem.attribute("value").as_float();
-            config->tileSpanning_ = value;
+            if (name == "uiMapOpacityFrame_")
+                config->uiMapOpacityFrame_ = value;
+            else if (name == "uiMapOpacityBack_")
+                config->uiMapOpacityBack_ = value;
+            else if (name == "tileSpanning_")
+                config->tileSpanning_ = value;
         }
         else
         {

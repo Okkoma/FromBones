@@ -93,8 +93,9 @@ private :
     Timer* characterArrowTimer_;
     UIElement *selectedElement_, *lastSelectedElement_, *focusedElement_;
     int selector_, selectordirection_, lastSelector_;
-    IntVector2 statusChildRange_, characterlistChildRange_;
+    IntVector2 characterlistChildRange_;
     float uifactor_;
 
     Vector<StringHash> activableCharacters_;
+    Vector<WeakPtr<Button > > buttons_;
 };

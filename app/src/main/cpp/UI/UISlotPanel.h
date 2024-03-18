@@ -13,6 +13,11 @@ class Equipment;
 
 using namespace Urho3D;
 
+enum SwitchVisibleMode
+{
+    VM_SIMPLE = 0,
+    VM_ANIMATED
+};
 
 class UIPanel : public Object
 {
@@ -63,6 +68,8 @@ public :
     static bool onKeyDrag_;
 
 protected :
+    void ToggleVisibleSimple();
+    void ToggleVisibleAnimated();
 
     void OnFocusChange(StringHash eventType, VariantMap& eventData);
     virtual void OnDrag(StringHash eventType, VariantMap& eventData);
@@ -76,6 +83,7 @@ protected :
     WeakPtr<UIElement> panel_;
     IntVector2 lastPosition_;
     bool lockSceneInteraction_;
+    bool switchVisibleMode_;
 
     static HashMap<String, SharedPtr<UIPanel> > panels_;
 };

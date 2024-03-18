@@ -259,7 +259,7 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
         }
 
         if (!GameContext::Get().ServerMode_)
-            viewport = mountedController ? mountedController->GetThinker()->GetControlID() : control->GetThinker() ? control->GetThinker()->GetControlID() : 0;
+            viewport = ViewManager::Get()->GetControllerViewport(mountedController ? mountedController->GetThinker() : control->GetThinker());
 
         URHO3D_LOGINFOF("GOC_Portal() - HandleBeginContact : nodeID=%u nodeInContact=%s(%u) control=%u portaldir=%f controllerdir=%f portal at %s... Try to Get the Destination Map=%s ...",
                             node_->GetID(), entity->GetName().CString(), entity->GetID(), control, node_->GetVar(GOA::DIRECTION).GetVector2().x_, control ? control->control_.direction_ : 0.f,
@@ -318,7 +318,7 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
                 GOC_Controller* controller = *it;
                 if (controller->IsMainController() && controller->GetThinker())
                 {
-                    int viewport = controller->GetThinker()->GetControlID();
+                    int viewport = ViewManager::Get()->GetControllerViewport(controller->GetThinker());
                     if (!dViewports_.Contains(viewport))
                         dViewports_.Push(viewport);
                 }
@@ -346,7 +346,7 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
         for (unsigned i=0; i < dViewports_.Size(); i++)
         {
             // Stop the focus in this viewport
-            DrawableScroller::Pause(dViewports_[i], true);
+            DrawableScroller::SetActive(dViewports_[i], false);
     //        ViewManager::Get()->SetFocusEnable(false, dViewports_[i]);
         }
     }
@@ -613,7 +613,7 @@ void GOC_Portal::HandleTransferBodies(StringHash eventType, VariantMap& eventDat
                 World2D::GetWorld()->GoCameraToDestinationMap(dViewports_[i]);
 
             for (unsigned i=0; i < dViewports_.Size(); i++)
-                DrawableScroller::Pause(dViewports_[i], false);
+                DrawableScroller::SetActive(dViewports_[i], true);
         }
     }
 

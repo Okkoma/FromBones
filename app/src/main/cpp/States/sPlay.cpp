@@ -178,7 +178,7 @@ WeakPtr<Urho3D::MessageBox> messageBox;
 
 PlayState::PlayState(Context* context) :
     GameState(context, "Play"),
-    ctrlCameraWithMouse_(false),
+    debugCameraWithMouse_(false),
     goManager(0),
     hiScore(0),
     sceneCleaner_(this)
@@ -218,6 +218,8 @@ void PlayState::Begin()
     rootScene_ = GameContext::Get().rootScene_;
     scene_ = 0;
     activeviewport_ = 0;
+
+    debugCameraWithMouse_ = false;
 
     GOC_Inventory::ClearCache();
 
@@ -303,8 +305,7 @@ void PlayState::End()
     if (effects_)
         delete effects_;
 
-    ViewManager::Get()->SetViewportLayout(1);
-    ViewManager::Get()->ResizeViewports();
+    ViewManager::Get()->SetViewportLayout(1, true);
 
 #ifdef ACTIVE_CREATEMODE
     if (MapEditor::Get())
@@ -366,8 +367,6 @@ void PlayState::ResetGameLogic()
     cameraPitch_ = 0.0f;
     lastKillerID_ = 0;
 }
-
-
 
 void PlayState::CheckGameLogic()
 {
@@ -516,6 +515,15 @@ void PlayState::CheckGameLogic()
             }
         }
     }
+}
+
+
+void PlayState::CheckSplitScreen()
+{
+    if (GameContext::Get().arenaZoneOn_)
+        return;
+
+    SetViewports(GameContext::Get().gameConfig_.multiviews_);
 }
 
 
@@ -1435,6 +1443,88 @@ void PlayState::AllocatePlayers()
     }
 }
 
+void PlayState::GetLocalPlayers(PODVector<Player* >& players, bool getactiveonly, bool restartactive, unsigned controltypemask)
+{
+	if (restartactive)
+	{
+		for (int i=0; i < localPlayers_.Size(); ++i)
+			localPlayers_[i]->active = true;
+	}
+
+	if (getactiveonly)
+	{
+		players.Clear();
+		if (!controltypemask)
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if (localPlayers_[i]->active)
+					players.Push(localPlayers_[i]);
+		}
+		else
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if (localPlayers_[i]->active && ((1U << GameContext::Get().playerState_[i].controltype) & controltypemask))
+					players.Push(localPlayers_[i]);
+		}
+	}
+	else
+	{
+		players.Clear();
+		if (!controltypemask)
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				players.Push(localPlayers_[i]);
+		}
+		else
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if ((1U << GameContext::Get().playerState_[i].controltype) & controltypemask)
+					players.Push(localPlayers_[i]);
+		}
+	}
+}
+
+void PlayState::GetLocalPlayers(PODVector<int>& players, bool getactiveonly, bool restartactive, unsigned controltypemask)
+{
+	if (restartactive)
+	{
+		for (int i=0; i < localPlayers_.Size(); ++i)
+			localPlayers_[i]->active = true;
+	}
+
+	if (getactiveonly)
+	{
+		players.Clear();
+		if (!controltypemask)
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if (localPlayers_[i]->active)
+					players.Push(i);
+		}
+		else
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if (localPlayers_[i]->active && ((1U << GameContext::Get().playerState_[i].controltype) & controltypemask))
+					players.Push(i);
+		}
+	}
+	else
+	{
+		players.Clear();
+		if (!controltypemask)
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				players.Push(i);
+		}
+		else
+		{
+			for (int i=0; i < localPlayers_.Size(); ++i)
+				if ((1U << GameContext::Get().playerState_[i].controltype) & controltypemask)
+					players.Push(i);
+		}
+	}
+}
+
 void PlayState::SetPlayers(bool init, bool restart)
 {
     URHO3D_LOGINFOF("PlayState() - SetPlayers  ... init=%s restart=%s load=%s numplayers=%u", init ? "true":"false", restart ? "true":"false", toLoadGame_ ? "true":"false", localPlayers_.Size());
@@ -1454,52 +1544,25 @@ void PlayState::SetPlayers(bool init, bool restart)
     // Set Start Position for all
     GameContext::Get().SetWorldStartPosition();
 
-    // Get Active players
-    PODVector<int> localActivePlayersIndexes;
-    for (int i=0; i < localPlayers_.Size(); ++i)
-    {
-        Player* player = localPlayers_[i];
-
-        if (!player->active && (GameContext::Get().playerState_[i].active || restart))
-            player->active = true;
-
-        if (player->active)
-            localActivePlayersIndexes.Push(i);
-    }
+    // Reset Local players to active And Get their indexes
+    PODVector<int> localActivePlayersIds;
+	GetLocalPlayers(localActivePlayersIds, true, true);
 
     // Set local player's avatars
-    unsigned numLocalActivePlayers = localActivePlayersIndexes.Size();
     WorldMapPosition startposition;
-    for (unsigned i=0; i < numLocalActivePlayers; i++)
+    for (unsigned i=0; i < localActivePlayersIds.Size(); i++)
     {
-        int playerindex = localActivePlayersIndexes[i];
+        int playerindex = localActivePlayersIds[i];
         Player* player = localPlayers_[playerindex];
 
         // Set Start Position
-
-//        if (GameContext::Get().ClientMode_)
-//        {
-//            const Vector<ObjectControlInfo>& cinfos = GameNetwork::Get()->GetClientObjectControls();
-//            if (i < cinfos.Size())
-//            {
-//                const ObjectControl& control = cinfos[i].GetReceivedControl();
-//                startposition.position_ = Vector2(control.physics_.positionx_, control.physics_.positiony_);
-//                startposition.viewZ_ = control.states_.viewZ_;
-//
-//                URHO3D_LOGINFOF("PlayState() - SetPlayers ... index=%d ClientMode => startPosition=%s ViewZ=%d ...",
-//                                i, startposition.position_.ToString().CString(), startposition.viewZ_);
-//            }
-//        }
-//        else
-        {
-            if (!GameContext::Get().arenaZoneOn_ || localPlayers_.Size() == 1 || !GameContext::Get().gameConfig_.multiviews_)
-                startposition = GameContext::Get().worldStartPosition_;
-            else
-                bool result = GameContext::Get().GetStartPosition(startposition, clientid+playerindex);
-        }
+		if (!GameContext::Get().arenaZoneOn_ || localPlayers_.Size() == 1)
+			startposition = GameContext::Get().worldStartPosition_;
+		else
+			bool result = GameContext::Get().GetStartPosition(startposition, clientid+playerindex);
 
         // Set Players => Player::Set(UIElement* elem, bool missionEnable, unsigned id, const char *name)
-        player->Set(playerStatusZone[playerindex], playerindex==0 && GameContext::Get().enableMissions_, numLocalActivePlayers > 1, playerindex);
+        player->Set(playerStatusZone[playerindex], playerindex==0 && GameContext::Get().enableMissions_, localActivePlayersIds.Size() > 1, playerindex);
         player->SetScene(rootScene_, startposition.position_, startposition.viewZ_, toLoadGame_, init, restart);
 
         // Set Faction
@@ -1523,9 +1586,9 @@ void PlayState::SetPlayers(bool init, bool restart)
 
     SetVisibleUI(false);
 
-    URHO3D_LOGINFOF("PlayState() - SetPlayers ... num local active players = %u OK !", numLocalActivePlayers);
+    URHO3D_LOGINFOF("PlayState() - SetPlayers ... num local active players = %u OK !", localActivePlayersIds.Size());
 
-    if (!numLocalActivePlayers)
+    if (!localActivePlayersIds.Size())
         startposition = GameContext::Get().worldStartPosition_;
 
 #ifdef ACTIVE_CREATEMODE
@@ -1533,18 +1596,22 @@ void PlayState::SetPlayers(bool init, bool restart)
 #else
     const bool editoron = false;
 #endif
-    SetViewports(true);
-    if (!numLocalActivePlayers || editoron)
+
+    SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_);
+
+    if (!localActivePlayersIds.Size() || editoron)
     {
         GameContext::Get().cameraNode_->SetPosition2D(startposition.position_);
         ViewManager::Get()->SwitchToViewZ(startposition.viewZ_);
-        World2D::GetWorld()->UpdateInstant(0, startposition.position_, 1.f);
+        World2D::GetWorld()->UpdateInstant(0, startposition.position_);
     }
+
 #if defined(ACTIVE_INITIALDEZOOMONSTART)
     const float zoom = 0.1f;
 #else
     const float zoom = editoron ? 0.1f : 1.f;
 #endif
+
     GameContext::Get().camera_->SetZoom(zoom);
 
     ResizeUI();
@@ -1585,71 +1652,140 @@ void PlayState::RemovePlayers()
 
 #define ACTIVE_PLAYERCPU_VIEWPORTS
 
-void PlayState::SetViewports(bool force)
+void PlayState::SetViewports(bool dynamic)
 {
-    PODVector<unsigned> activeplayerids;
+    static Vector<PODVector<Player* > > viewportplayers;
+    viewportplayers.Reserve(MAX_VIEWPORTS);
+    viewportplayers.Clear();
 
-    for (unsigned i=0; i < localPlayers_.Size(); ++i)
-    {
-#ifndef ACTIVE_PLAYERCPU_VIEWPORTS
-        if (localPlayers_[i] && localPlayers_[i]->GetAvatar() && localPlayers_[i]->active && GameContext::Get().playerState_[i].controltype != CT_CPU)
+    // get the local active players
+    PODVector<Player*> activeplayers;
+#ifdef ACTIVE_PLAYERCPU_VIEWPORTS
+    GetLocalPlayers(activeplayers, true, false);
 #else
-        if (localPlayers_[i] && localPlayers_[i]->GetAvatar() && localPlayers_[i]->active)
+    GetLocalPlayers(activeplayers, true, false, CTFLAG_NOCPU);
 #endif
-            activeplayerids.Push(i);
-    }
 
-    unsigned numviewports = 1;
-    if (GameContext::Get().gameConfig_.multiviews_)
-        numviewports = Min(activeplayerids.Size(), MAX_VIEWPORTS);
-
-    URHO3D_LOGINFOF("PlayState() - SetViewports : ... numviewports=%u ", numviewports);
-
-    ViewManager::Get()->SetViewportLayout(numviewports, force);
-    ViewManager::Get()->ResizeViewports();
-    ViewManager::Get()->ResetFocus();
-
-    bool worldpositionsetted = false;
-    Vector2 worldposition;
-
-    for (unsigned i=0; i < activeplayerids.Size(); ++i)
+    // dispatch Players on Viewport
+    // if dynamic multiviewport is enable, the nearest players are grouped in the same viewport.
+    if (dynamic)
     {
-        Player* player = localPlayers_[activeplayerids[i]];
-
-        if (numviewports > 1 || !GameContext::Get().arenaZoneOn_ || i == 0)
+        while (activeplayers.Size())
         {
-            int controlid = player->GetControlID();
-            ViewManager::Get()->AddFocus(player->GetAvatar(), true, controlid < numviewports ? controlid : 0);
-            URHO3D_LOGINFOF("PlayState() - SetViewports : localPlayer ID=%u ControlID=%d ... ", player->GetID(), controlid);
+            Player* player = activeplayers.Back();
+            activeplayers.Pop();
+
+            if (!player || !player->GetAvatar())
+                continue;
+
+            viewportplayers.Resize(viewportplayers.Size()+1);
+            viewportplayers.Back().Push(player);
+
+            if (activeplayers.Size())
+            {
+                for (int i = activeplayers.Size()-1; i >= 0; i--)
+                {
+                    Player*& playernext = activeplayers[i];
+                    if (!playernext || !playernext->GetAvatar())
+                        continue;
+
+                    Vector2 delta = player->GetAvatar()->GetWorldPosition2D() - playernext->GetAvatar()->GetWorldPosition2D();
+                    if (Abs(delta.x_) < 9.f && Abs(delta.y_) < 9.f)
+                    {
+                        viewportplayers.Back().Push(playernext);
+                        playernext = 0;
+                    }
+                }
+            }
         }
-
-        if (!worldpositionsetted)
-        {
-            worldpositionsetted = true;
-            worldposition = player->GetAvatar()->GetWorldPosition2D();
-        }
-
-        URHO3D_LOGINFOF("PlayState() - SetViewports : localPlayer ID=%u focused at %s !",
-                        player->GetID(), player->GetAvatar()->GetWorldPosition2D().ToString().CString());
-    }
-
-    if (!GameContext::Get().gameConfig_.multiviews_ || !activeplayerids.Size())
-    {
-        World2D::GetWorld()->UpdateInstant(0, worldposition, 1.f);
     }
     else
     {
-        for (unsigned i=0; i < activeplayerids.Size(); ++i)
-        {
-            Player* player = localPlayers_[activeplayerids[i]];
+        viewportplayers.Resize(activeplayers.Size());
+        for (int i = 0; i < activeplayers.Size(); i++)
+            viewportplayers[viewportplayers.Size()-1-i].Push(activeplayers[i]);
+    }
 
-            URHO3D_LOGINFOF("PlayState() - SetViewports : localPlayer ID=%u Update View ... ", player->GetID());
-            World2D::GetWorld()->UpdateInstant(player->GetControlID(), player->GetAvatar()->GetWorldPosition2D(), 1.f);
-            URHO3D_LOGINFOF("PlayState() - SetViewports : localPlayer ID=%u Update View ... OK !", player->GetID());
+	if (!viewportplayers.Size())
+        viewportplayers.Resize(1);
+
+    bool updateNumViewports = ViewManager::Get()->GetNumViewports() != viewportplayers.Size();
+    if (updateNumViewports)
+    {
+        URHO3D_LOGINFOF("PlayState() - SetViewports : Update numviewports=%u ...", viewportplayers.Size());
+        ViewManager::Get()->SetViewportLayout(viewportplayers.Size());
+    }
+
+    // update the focused nodes for each viewport
+    for (int viewport = 0; viewport < viewportplayers.Size(); viewport++)
+    {
+        const PODVector<Player* >& players = viewportplayers[viewportplayers.Size() - 1 - viewport];
+
+        // check if the focus has been changed
+        bool focusChanged = false;
+        {
+            const List<WeakPtr<Node> >& nodesOnFocus = ViewManager::Get()->GetNodesOnFocus(viewport);
+            focusChanged = nodesOnFocus.Size() != players.Size();
+            if (!focusChanged)
+            {
+                for (int i = 0; i < players.Size(); i++)
+                {
+                    if (!nodesOnFocus.Contains(WeakPtr<Node>(players[i]->GetAvatar())))
+                    {
+                        focusChanged = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (focusChanged)
+        {
+            // clear the focus
+            ViewManager::Get()->ResetFocus(viewport);
+
+            // update the list in reverse order
+            for (int i = 1; i <= players.Size(); i++)
+            {
+                Player* player = players[players.Size() - i];
+                ViewManager::Get()->AddFocus(player->GetAvatar(), true, viewport);
+                World2D::GetOrCreateTraveler(player->GetAvatar()).viewport_ = viewport;
+
+                URHO3D_LOGINFOF("PlayState() - SetViewports : viewport=%d localPlayer ID=%u focused at %s !",
+                                viewport, player->GetID(), player->GetAvatar()->GetWorldPosition2D().ToString().CString());
+            }
+        }
+
+        if (updateNumViewports || focusChanged)
+        {
+            // update players ui position
+            for (int i = 0; i < players.Size(); i++)
+                players[i]->ResizeUI(players.Size()-i-1);
         }
     }
 
-    URHO3D_LOGINFOF("PlayState() - SetViewports : ... OK !");
+    if (updateNumViewports)
+    {
+        for (int viewport = 0; viewport < viewportplayers.Size(); viewport++)
+        {
+            const PODVector<Player* >& players = viewportplayers[viewportplayers.Size() - 1 - viewport];
+
+            // update the player lights masks to be not show
+            for (int i = 0; i < players.Size()-1; i++)
+                GameHelpers::SetLightActivation(players[i]);
+
+            // set viewz, only the last player on the viewport will have an showed light
+            ViewManager::Get()->SwitchToViewZ(players.Back()->GetAvatar()->GetVar(GOA::ONVIEWZ).GetInt(), players.Back()->GetAvatar(), viewport);
+        }
+
+        // update World
+        World2D::GetWorld()->UpdateViewports();
+
+        // clamp the active viewport
+        activeviewport_ = Clamp(activeviewport_, 0, (int)ViewManager::Get()->GetNumViewports()-1);
+
+        URHO3D_LOGINFOF("PlayState() - SetViewports : Update ... OK !");
+    }
 }
 
 
@@ -1906,44 +2042,34 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
 
     UnsubscribeFromEvent(SPLASHSCREEN_FINISH);
 
-    int numactiveplayers = 0;
-
     // start local players
-    for (unsigned i=0; i < localPlayers_.Size(); ++i)
+	PODVector<Player*> activeplayers;
+	GetLocalPlayers(activeplayers, true);
+    for (unsigned i=0; i < activeplayers.Size(); ++i)
     {
-        Player* player = localPlayers_[i];
-        if (!player)
-        {
-            URHO3D_LOGERRORF("PlayState() - HandleAppearPlayer : No Local Player i=%u", i);
-            continue;
-        }
+        Player* player = activeplayers[i];
 
-        URHO3D_LOGINFOF("PlayState() - HandleAppearPlayer : Start Local Player i=%u", i);
-        if (player->active)
-        {
-            player->Start();
+		player->Start();
 
-            Node* avatar = player->GetAvatar();
-            if (!avatar)
-            {
-                URHO3D_LOGWARNINGF("PlayState() - HandleAppearPlayer : localPlayer index=%u ActorID=%u NodeID=%u => has no avatar !", i, player->GetID(), player->nodeID_);
+		Node* avatar = player->GetAvatar();
+		if (!avatar)
+		{
+			URHO3D_LOGWARNINGF("PlayState() - HandleAppearPlayer : localPlayer index=%u ActorID=%u NodeID=%u => has no avatar !", i, player->GetID(), player->nodeID_);
 //				player->active = false;
-                continue;
-            }
+			continue;
+		}
 
-            numactiveplayers++;
+		if (!GameContext::Get().LocalMode_)
+			GameNetwork::Get()->SetEnableObject(true, player->GetAvatar()->GetID());
 
-            if (!GameContext::Get().LocalMode_)
-                GameNetwork::Get()->SetEnableObject(true, player->GetAvatar()->GetID());
-
-            URHO3D_LOGINFOF("PlayState() - HandleAppearPlayer : localPlayer ID=%u appears at %s !",
-                            player->GetID(), avatar->GetWorldPosition2D().ToString().CString());
-        }
+		URHO3D_LOGINFOF("PlayState() - HandleAppearPlayer : localPlayer ID=%u appears at %s !",
+						player->GetID(), avatar->GetWorldPosition2D().ToString().CString());
     }
 
     // Set Viewport layout & Player Camera Focus
+
 #ifdef ACTIVE_INITIALDEZOOMONSTART
-    if (numactiveplayers > 0)
+    if (activeplayers.Size() > 0)
         SetViewports();
 #endif
 
@@ -2113,6 +2239,8 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
     // Game Logic
     CheckGameLogic();
 
+    CheckSplitScreen();
+
     // Start Pause Tip
 #ifdef PLAYSTATE_STOPATFIRSTFRAME
     if (firstFrame_)
@@ -2140,43 +2268,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         return;
     }
 
-    // Toggle Camera Control
-    if (GameContext::Get().gameConfig_.ctrlCameraEnabled_)
-    {
-        if (input.GetMouseButtonDown(MOUSEB_LEFT) && input.GetKeyDown(KEY_TAB))
-        {
-            if (!ctrlCameraWithMouse_)
-            {
-                GameContext::Get().ResetScreen();
-                GameContext::Get().cameraNode_->SetPosition(Vector3(GameContext::Get().cameraNode_->GetPosition2D(), -50.f));
-                GameContext::Get().camera_->SetOrthographic(false);
-                ctrlCameraWithMouse_ = true;
 
-                URHO3D_LOGINFO("Use Mouse to Control Camera !");
-            }
-
-            // Move camera with Mouse
-            IntVector2 mouseMove = input.GetMouseMove();
-            cameraYaw_ += 0.1f * mouseMove.x_;
-            cameraPitch_ += 0.1f * mouseMove.y_;
-            cameraPitch_ = Clamp(cameraPitch_, -90.f, 90.f);
-            GameContext::Get().cameraNode_->SetRotation(Quaternion(cameraPitch_, cameraYaw_, 0.f));
-        }
-        else if (ctrlCameraWithMouse_)
-        {
-            ctrlCameraWithMouse_ = false;
-
-            // Reset camera's position
-            cameraYaw_ = 0.f;
-            cameraPitch_ = 0.f;
-            GameContext::Get().cameraNode_->SetRotation2D(0.f);
-            GameContext::Get().cameraNode_->SetPosition(Vector3(GameContext::Get().cameraNode_->GetPosition2D(), -10.f));
-            GameContext::Get().camera_->SetOrthographic(true);
-            GameContext::Get().renderer2d_->UpdateFrustumBoundingBox(GameContext::Get().camera_);
-
-            URHO3D_LOGINFOF("Reset Camera Position cameraNode=%s fbox=%s !", GameContext::Get().cameraNode_->GetPosition().ToString().CString(), GameContext::Get().renderer2d_->GetFrustumBoundingBox().ToString().CString());
-        }
-    }
 
     // Editor Mode
 #ifdef ACTIVE_CREATEMODE
@@ -2213,6 +2305,46 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
     // Tips Mode
 #ifdef ACTIVE_TIPMODE
+    // Toggle Camera Control
+    if (GameContext::Get().gameConfig_.ctrlCameraEnabled_)
+    {
+        if (input.GetKeyPress(KEY_TAB) && input.GetKeyDown(KEY_CTRL))
+        {
+            Camera* camera = ViewManager::Get()->GetCamera(activeviewport_);
+            debugCameraWithMouse_ = !debugCameraWithMouse_;
+
+            if (debugCameraWithMouse_)
+            {
+                // Active
+                GameContext::Get().ResetScreen();
+                camera->GetNode()->SetPosition(Vector3(camera->GetNode()->GetPosition2D(), -50.f));
+                camera->SetOrthographic(false);
+                URHO3D_LOGINFO("Use Mouse to Control Camera !");
+            }
+            else
+            {
+                // Reset
+                cameraYaw_ = 0.f;
+                cameraPitch_ = 0.f;
+                camera->GetNode()->SetRotation2D(0.f);
+                camera->GetNode()->SetPosition(Vector3(camera->GetNode()->GetPosition2D(), -10.f));
+                camera->SetOrthographic(true);
+                URHO3D_LOGINFOF("Reset Camera Position cameraNode=%s !", camera->GetNode()->GetPosition().ToString().CString());
+            }
+        }
+
+        if (debugCameraWithMouse_)
+        {
+            // Move active camera
+            Camera* camera = ViewManager::Get()->GetCamera(activeviewport_);
+            IntVector2 mouseMove = input.GetMouseMove();
+            cameraYaw_ += 0.1f * mouseMove.x_;
+            cameraPitch_ += 0.1f * mouseMove.y_;
+            cameraPitch_ = Clamp(cameraPitch_, -90.f, 90.f);
+            camera->GetNode()->SetRotation(Quaternion(cameraPitch_, cameraYaw_, 0.f));
+            return;
+        }
+    }
     if (!GameContext::Get().createModeOn_)
     {
         if (GameContext::Get().cursor_ && (input.GetMouseButtonDown(MOUSEB_LEFT|MOUSEB_RIGHT|MOUSEB_MIDDLE) || input.GetKeyDown(KEY_LALT)))
@@ -2223,7 +2355,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             if (uielt)
                 return;
 
-            int newactiveviewport = ViewManager::GetViewportAt(x, y);
+            int newactiveviewport = ViewManager::Get()->GetViewportAt(x, y);
             if (newactiveviewport != activeviewport_)
             {
                 activeviewport_ = newactiveviewport;

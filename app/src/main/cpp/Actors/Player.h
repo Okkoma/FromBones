@@ -113,7 +113,7 @@ public :
 
     void UpdateUI();
     void RemoveUI();
-    void ResizeUI();
+    void ResizeUI(int row=-1);
     void SetVisibleUI(bool state, bool all=false);
     void UpdatePoints(const unsigned& points);
     void NextPanelFocus(int inc=1);
@@ -156,7 +156,7 @@ protected :
     void OnFire1(StringHash eventType, VariantMap& eventData);
     void OnFire2(StringHash eventType, VariantMap& eventData);
     void OnFire3(StringHash eventType, VariantMap& eventData);
-    void OnChangePanelFocus(StringHash eventType, VariantMap& eventData);    
+    void OnChangePanelFocus(StringHash eventType, VariantMap& eventData);
     void OnStatus(StringHash eventType, VariantMap& eventData);
     void OnInteract(StringHash eventType, VariantMap& eventData);
     void OnChangeEntityFocus(StringHash eventType, VariantMap& eventData);
@@ -212,6 +212,7 @@ private :
     // index avatar
     int avatarIndex_, avatarAccumulatorIndex_;
     int lastxonui_, lastyonui_;
+    int lastrowui_;
 
     Vector<int> avatars_;
     PODVector<Light*> lights_;

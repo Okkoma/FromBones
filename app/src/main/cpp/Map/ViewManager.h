@@ -2,6 +2,7 @@
 
 
 #include <Urho3D/Core/Object.h>
+#include <Urho3D/Graphics/RenderPath.h>
 
 #include "DefsViews.h"
 
@@ -24,8 +25,6 @@ URHO3D_EVENT(VIEWMANAGER_SWITCHVIEW, ViewManager_SwitchView)
 using namespace Urho3D;
 
 
-
-
 struct ViewportInfo
 {
     ViewportInfo() : focusEnabled_(false), cameraFocusZoom_(1.f), cameraYaw_(0.f), cameraPitch_(0.f), camMotionSpeed_(0.f), currentCamMotionSpeed_(0.f), viewZindex_(-1), lastViewZindex_(-1), layerZindex_(2) { }
@@ -43,11 +42,13 @@ struct ViewportInfo
 
     int viewZindex_, lastViewZindex_, layerZindex_;
 
-    WeakPtr<Node> cameraNode_;
-    WeakPtr<Node> cameraFocusNode_;
+    SharedPtr<Viewport> viewport_;
     WeakPtr<Camera> camera_;
+    WeakPtr<Node> cameraFocusNode_;
     List<WeakPtr<Node> > nodesOnFocus_;
 };
+
+class Actor;
 
 class FROMBONES_API ViewManager : public Object
 {
@@ -70,8 +71,6 @@ public:
     {
         return viewManager_;
     }
-
-    static int GetViewportAt(int screenx, int screeny);
     static unsigned GetNumLayersZ()
     {
         return layerZ_.Size();
@@ -144,8 +143,10 @@ public:
     // Initializer
     void SetScene(Scene* scene, const Vector2& focus=Vector2::ZERO);
     void SetMiniMapEnable(bool enable);
-    void SetViewportLayout(int numviewports, bool force=false);
-    void ResizeViewports();
+
+    // Viewport
+    void SetViewportLayout(int numviewports, bool reset=false);
+    void ResizeViewports(int numviewports=-1);
 
     // Camera
     void SetCamera(const Vector2& focus = Vector2::ZERO, int viewport=-1);
@@ -164,18 +165,19 @@ public:
 
     /// Getters
     // Viewport
+    unsigned GetNumViewports() const { return numViewports_; }
+    int GetViewportAt(int screenx, int screeny);
     int GetViewport(Camera* camera) const;
-    unsigned GetNumViewports() const
-    {
-        return numViewports_;
-    }
+    Rect GetViewRect(int viewport=0) const;
+    const IntRect& GetViewportRect(int viewport=0) const;
+    int GetControllerViewport(Actor* actor) const;
+    unsigned GetControllerLightMask(Actor* actor) const;
+
+    // Camera
+    Node* GetCameraNode(int viewport=0) const;
     Camera* GetCamera(int viewport=0) const
     {
         return viewportInfos_[viewport].camera_;
-    }
-    Node* GetCameraNode(int viewport=0) const
-    {
-        return viewportInfos_[viewport].cameraNode_;
     }
     Node* GetCameraFocus(int viewport=0) const
     {
@@ -185,12 +187,10 @@ public:
     {
         return viewportInfos_[viewport].focusEnabled_;
     }
-    List<WeakPtr<Node> > GetNodesOnFocus(int viewport=0) const
+    const List<WeakPtr<Node> >& GetNodesOnFocus(int viewport=0) const
     {
         return viewportInfos_[viewport].nodesOnFocus_;
     }
-    Rect GetViewRect(int viewport=0) const;
-    const IntRect& GetViewportRect(int viewport=0) const;
 
     // ViewZ
     int GetCurrentLayerZIndex(int viewport=0) const

@@ -243,7 +243,7 @@ void DialogueFrame::SetFrameLayer(int viewZ, int viewport)
             PODVector<Node*> nodes;
             frameNode_->GetChildren(nodes);
             nodes.Insert(0, frameNode_);
-            SetLayering(nodes, frameLayer_, GameContext::Get().gameConfig_.multiviews_ ? viewport : 0);
+            SetLayering(nodes, frameLayer_, viewport);
         }
     }
 }

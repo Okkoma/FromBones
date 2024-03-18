@@ -355,7 +355,8 @@ void UIC_MiniMap::Initialize()
     // Set Window
 //    GameHelpers::SetUIElementFrom(uiElement_.Get(), UIMAIN, "UIWindowFrame");
     GameHelpers::SetUIElementFrom(uiElement_.Get(), UIEQUIPMENT, "windowframe1");
-    uiElement_->SetOpacity(0.6f);
+    uiElement_->SetUseDerivedOpacity(false);
+    uiElement_->SetOpacity(GameContext::Get().gameConfig_.uiMapOpacityBack_);
     uiElement_->SetMovable(true);
     uiElement_->SetResizable(false);
     uiElement_->SetBorder(IntRect(4, 4, 4, 4));
@@ -367,6 +368,8 @@ void UIC_MiniMap::Initialize()
     mapTexture_->SetFilterMode(FILTER_BILINEAR);
     mapLayer_ = uiElement_->CreateChild<BorderImage>();
     mapLayer_->SetName("MinimapLayer");
+    mapLayer_->SetUseDerivedOpacity(false);
+    mapLayer_->SetOpacity(GameContext::Get().gameConfig_.uiMapOpacityFrame_);
     mapLayer_->SetAlignment(HA_CENTER, VA_CENTER);
     mapLayer_->SetTexture(mapTexture_);
 

@@ -309,16 +309,14 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
 
     int viewport = 0;
     GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
-    bool isLocalPlayer = (controller && controller->IsMainController() &&  controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>());
-//    bool isCurrentViewZ = viewZ == ViewManager::Get()->GetCurrentViewZ(viewport);
+    bool isLocalPlayer = (controller && controller->IsMainController() && controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>());
 
-    // If Multiviewport, check the good viewport
-    if (isLocalPlayer && ViewManager::Get()->GetNumViewports() > 1)
+    if (isLocalPlayer)
     {
-        viewport = Min(controller->GetThinker() ? controller->GetThinker()->GetControlID() : 0, (int)ViewManager::Get()->GetNumViewports()-1);
-//        isCurrentViewZ = viewZ == ViewManager::Get()->GetCurrentViewZ(viewport);
+        // get the viewport
+        viewport = ViewManager::Get()->GetControllerViewport(controller->GetThinker());
 
-        // Update the light viewmask
+        // update the light viewmask
         Light* light = node_->GetComponent<Light>();
         if (light)
             light->SetViewMask((VIEWPORTSCROLLER_OUTSIDE_MASK << viewport) | (VIEWPORTSCROLLER_INSIDE_MASK << viewport));
@@ -406,12 +404,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         node->GetComponent<GOC_Destroyer>()->SetViewZ(viewZ);
 
         if (otherIsAplayer)
-        {
-            if (ViewManager::Get()->GetNumViewports() > 1)
-                viewport = Min(othercontroller->GetThinker()->GetControlID(), (int)ViewManager::Get()->GetNumViewports()-1);
-
             GameHelpers::SetLightActivation(static_cast<Player*>(othercontroller->GetThinker()));
-        }
     }
 
     if (!isLocalPlayer && hasAlocalMountedPlayer)

@@ -1,5 +1,9 @@
 Todos:
 
+    ✔ 15/03/2024 : lorsque l'on joue en multiplayer multiviews, les abilities ne peuvent etre changé à la souris.
+        -> ajouter un bouton supplementaire dans le StatusPanel qui represente l'abilité active
+        --> en cliquant dessus le panel ability mini s'ouvre permettant la selection de l'ability
+
     ✔ 15/02/2024 : faire une ui simple pour la selection et l'utilisation des entités alliés
         -> affichage d'un selecteur d'entité dans la scene.
         -> puis pop des commandes (cible, attaque, fuite, defense).

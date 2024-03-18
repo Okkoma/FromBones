@@ -76,5 +76,8 @@
 	<variable name="debugObjectTiled_" value ="false" />
 	<variable name="debugRenderShape_" value ="false" />
 
+	<variable name="uiMapOpacityFrame_" value ="0.6" />
+    <variable name="uiMapOpacityBack_"  value ="0.1" />
+    
 	<!-- <variable name="initState_" value ="MainMenu" /> -->
 </engine_cfg>

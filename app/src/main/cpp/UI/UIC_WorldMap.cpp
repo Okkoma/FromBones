@@ -260,14 +260,17 @@ void UIC_WorldMap::Initialize()
 
     // Set Window
     GameHelpers::SetUIElementFrom(uiElement_.Get(), UIEQUIPMENT, "windowframe1");
-    uiElement_->SetOpacity(0.6f);
+    uiElement_->SetUseDerivedOpacity(false);
+    uiElement_->SetOpacity(GameContext::Get().gameConfig_.uiMapOpacityBack_);
     uiElement_->SetMovable(true);
-    uiElement_->SetResizable(false);
+    uiElement_->SetResizable(true);
     uiElement_->SetBorder(IntRect(4, 4, 4, 4));
     uiElement_->SetResizeBorder(IntRect(8, 8, 8, 8));
 
     canevas_ = uiElement_->CreateChild<Button>("WorldSnapShot");
-    canevas_->SetSprite("UI/game_equipment.xml@windowframe1");
+    GameHelpers::SetUIElementFrom(canevas_.Get(), UIEQUIPMENT, "UIWindowEmpty");
+    canevas_->SetUseDerivedOpacity(false);
+    canevas_->SetOpacity(GameContext::Get().gameConfig_.uiMapOpacityFrame_);
     canevas_->SetFocusMode(FM_FOCUSABLE_DEFOCUSABLE);
     canevas_->SetAlignment(HA_CENTER, VA_CENTER);
     canevas_->SetHoverOffset(IntVector2::ZERO);

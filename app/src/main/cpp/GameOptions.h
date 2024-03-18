@@ -1,14 +1,16 @@
 #pragma once
-#define GOC_COMPLETED
+
 
 #define FORCECPPPRE2011
-
 #if !defined(FORCECPPPRE2011)
-#if __cplusplus >= 201103L
-#define CPP2011
+    #if __cplusplus >= 201103L
+        #define CPP2011
+    #endif
 #endif
-#endif
+
 #include <Urho3D/Urho3D.h>
+
+#define GOC_COMPLETED
 
 #include "DefsGame.h"
 

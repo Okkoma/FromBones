@@ -56,7 +56,8 @@ bool UIPanel::onKeyDrag_ = false;
 UIPanel::UIPanel(Context* context) :
     Object(context),
     feeder_(0),
-    lockSceneInteraction_(false)
+    lockSceneInteraction_(false),
+    switchVisibleMode_(VM_ANIMATED)
 { }
 
 UIPanel::~UIPanel()
@@ -203,32 +204,56 @@ void UIPanel::SetVisible(bool state, bool saveposition)
 
 void UIPanel::ToggleVisible()
 {
-    if (!panel_->IsVisible())
+    if (switchVisibleMode_ == VM_SIMPLE)
+        ToggleVisibleSimple();
+    else if (switchVisibleMode_ == VM_ANIMATED)
+        ToggleVisibleAnimated();
+}
+
+void UIPanel::ToggleVisibleSimple()
+{
+    if (!GetElement()->IsVisible())
+    {
+        GetElement()->SetEnabled(true);
+        SetVisible(true);
+
+        URHO3D_LOGINFOF("UIPanel() - ToggleVisibleSimple : panel=%s ... Visible !", name_.CString());
+    }
+    else if (GetElement()->IsEnabled())
+    {
+        GetElement()->SetEnabled(false);
+        OnRelease();
+    }
+}
+
+void UIPanel::ToggleVisibleAnimated()
+{
+    if (!GetElement()->IsVisible())
     {
         SetVisible(true);
 
-        UIElement* frontelement = GetSubsystem<UI>()->GetFrontElement();
-        if (frontelement && frontelement != panel_)
-            panel_->SetPriority(frontelement->GetPriority()+1);
+        UIElement* frontelement = GameContext::Get().ui_->GetFrontElement();
+        if (frontelement && frontelement != GetElement())
+            GetElement()->SetPriority(frontelement->GetPriority()+1);
 
         GameHelpers::ClampPositionToScreen(lastPosition_);
-        IntVector2 exitpoint = GameHelpers::GetUIExitPoint(panel_, lastPosition_);
-        GameHelpers::SetMoveAnimationUI(panel_, exitpoint, lastPosition_, 0.f, SWITCHSCREENTIME);
-        TimerRemover::Get()->Start(panel_, SWITCHSCREENTIME + 0.05f, ENABLE);
+        IntVector2 exitpoint = GameHelpers::GetUIExitPoint(GetElement(), lastPosition_);
+        GameHelpers::SetMoveAnimationUI(GetElement(), exitpoint, lastPosition_, 0.f, SWITCHSCREENTIME);
+        TimerRemover::Get()->Start(GetElement(), SWITCHSCREENTIME + 0.05f, ENABLE);
 
-        panel_->SetBringToFront(true);
-        panel_->BringToFront();
+        GetElement()->SetBringToFront(true);
+        GetElement()->BringToFront();
 
 //        URHO3D_LOGINFOF("UIPanel() - ToggleVisible : panel=%s ... Visible !", name_.CString());
     }
-    else if (panel_->IsEnabled())
+    else if (GetElement()->IsEnabled())
     {
-        lastPosition_ = panel_->GetPosition();
-        panel_->SetEnabled(false);
+        lastPosition_ = GetElement()->GetPosition();
+        GetElement()->SetEnabled(false);
 
-        IntVector2 exitpoint = GameHelpers::GetUIExitPoint(panel_, lastPosition_);
-        GameHelpers::SetMoveAnimationUI(panel_, lastPosition_, exitpoint, 0.f, SWITCHSCREENTIME);
-        TimerRemover::Get()->Start(panel_, SWITCHSCREENTIME + 0.05f, DISABLE);
+        IntVector2 exitpoint = GameHelpers::GetUIExitPoint(GetElement(), lastPosition_);
+        GameHelpers::SetMoveAnimationUI(GetElement(), lastPosition_, exitpoint, 0.f, SWITCHSCREENTIME);
+        TimerRemover::Get()->Start(GetElement(), SWITCHSCREENTIME + 0.05f, DISABLE);
 
         OnRelease();
 
@@ -328,8 +353,6 @@ void UIPanel::OnSetVisible()
         SubscribeToEvent(panel_, E_DRAGEND, URHO3D_HANDLER(UIPanel, OnDrag));
         SubscribeToEvent(panel_, E_FOCUSED, URHO3D_HANDLER(UIPanel, OnFocusChange));
         SubscribeToEvent(panel_, E_DEFOCUSED, URHO3D_HANDLER(UIPanel, OnFocusChange));
-
-//        URHO3D_LOGINFOF("UIPanel() - OnSetVisible : %s pos=%s size=%s", name_.CString(), GetElement()->GetPosition().ToString().CString(), GetElement()->GetSize().ToString().CString());
     }
     else
     {
@@ -337,22 +360,19 @@ void UIPanel::OnSetVisible()
         UnsubscribeFromEvent(panel_, E_DRAGEND);
         UnsubscribeFromEvent(panel_, E_FOCUSED);
         UnsubscribeFromEvent(panel_, E_DEFOCUSED);
-
-//        URHO3D_LOGINFOF("UIPanel() - OnSetVisible : %s novisible", name_.CString());
-
-//        panel_->SetFocus(false);
     }
 }
 
 void UIPanel::OnSwitchVisible(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("UIPanel() - OnSwitchVisible : %s become %s", name_.CString(), panel_->IsVisible() ? "hide":"show");
+    URHO3D_LOGINFOF("UIPanel() - OnSwitchVisible : %s switch to %s", name_.CString(), GetElement()->IsVisible() ? "hide":"show");
+
     ToggleVisible();
 }
 
 void UIPanel::OnFocusChange(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("UIPanel() - OnFocusChange : %s hasfocus=%s ... !", panel_->GetName().CString(), panel_->HasFocus() ? "true":"false");
+    URHO3D_LOGINFOF("UIPanel() - OnFocusChange : %s focus = %s ... !", panel_->GetName().CString(), panel_->HasFocus() ? "true":"false");
     Text* titletext = panel_->GetChildStaticCast<Text>(String("TitleText"), true);
     if (titletext)
         titletext->SetColor(panel_->HasFocus() ? Color::YELLOW : Color::WHITE);
@@ -927,7 +947,7 @@ int UISlotPanel::UseSlotItem(Slot& slot, int fromSlotId, bool allowdrop, const I
     // Check dropon mode
     if (useon && droppedPosition != IntVector2::NEGATIVE_ONE)
     {
-        Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(ViewManager::GetViewportAt(droppedPosition.x_, droppedPosition.y_));
+        Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(ViewManager::Get()->GetViewportAt(droppedPosition.x_, droppedPosition.y_));
         Vector3 itemWorldPosition = viewport->ScreenToWorldPoint(droppedPosition.x_, droppedPosition.y_, 12.f);
         itemWorldPosition.z_ = 0.f;
 

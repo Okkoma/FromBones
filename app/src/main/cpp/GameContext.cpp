@@ -130,7 +130,7 @@ GameConfig::GameConfig() :
     forceTouch_(false),  // force show touch Emulation
     screenJoystick_(false),
     autoHideCursorEnable_(true),
-    ctrlCameraEnabled_(false),
+    ctrlCameraEnabled_(true),
 
     HUDEnabled_(true),
     logLevel_(LOG_DEBUG),
@@ -160,9 +160,13 @@ GameConfig::GameConfig() :
     initState_(String::EMPTY),
     saveDir_(String::EMPTY),
 
-    uiUpdateDelay_(2),
     screenJoystickID_(-1),
     screenJoysticksettingsID_(-1),
+
+    uiUpdateDelay_(2),
+
+    uiMapOpacityFrame_(0.8f),
+    uiMapOpacityBack_(0.6f),
 
     tileSpanning_(0.f)
 { }
@@ -575,6 +579,12 @@ void GameContext::Initialize()
     UIElement* uiroot = ui_->GetRoot();
     uiroot->SetDefaultStyle(cache->GetResource<XMLFile>("UI/DefaultStyle.xml"));
 
+    renderPaths_.Resize(2);
+    renderPaths_[0] = new RenderPath();
+    renderPaths_[0]->Load(cache->GetResource<XMLFile>("RenderPaths/Forward.xml"));
+    renderPaths_[1] = new RenderPath();
+    renderPaths_[1]->Load(cache->GetResource<XMLFile>("RenderPaths/ForwardUrho2D.xml"));
+
     // Create Root Scene
     rootScene_ = new Scene(context_);
     rootScene_->SetName("RootScene");
@@ -648,7 +658,7 @@ void GameContext::Initialize()
     if (!ViewManager::Get())
         new ViewManager(context_);
 
-    ViewManager::Get()->SetViewportLayout(1);
+    ViewManager::Get()->SetViewportLayout(1, true);
     cameraNode_->SetPosition(Vector3::ZERO);
 
     ResetScreen();
@@ -1073,9 +1083,6 @@ void GameContext::ResetScreen()
 
     // Resize Viewports
     ViewManager::Get()->ResizeViewports();
-
-    if (camera_)
-        rootScene_->GetOrCreateComponent<Renderer2D>()->UpdateFrustumBoundingBox(camera_);
 
     // Resize Preloader Icon
     if (preloaderIcon_)

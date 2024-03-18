@@ -1,5 +1,8 @@
 Todos:
 
+    ☐ 11/03/2024 : lorsque l'on monte sur un Darkren, l'avatar disparait (le node est detruit)
+        -> cela arrive lorsque Darkren est un player CPU
+
     ✔ 28/02/2024 : crash du au montage d'entité après lancement d'une partie, arret puis relancement
         => il faut toujours demonter les entités car ObjectPool ne purge pas ce comportement
         ==> ajout de GOC_Controller::Unmount dans GOC_Controller::Stop

@@ -1495,9 +1495,7 @@ void MapData::UpdateEntityNode(Node* node, EntityData* entitydata)
     }
 
     // Update the Position and Orientation
-    Vector2 positionintile = entitydata->GetNormalizedPositionInTile();
-    node->SetWorldPosition2D(map_->GetWorldTilePosition(map_->GetTileCoords(entitydata->tileindex_), positionintile));
-//    URHO3D_LOGINFOF("MapData() - UpdateEntityNode : tileindex=%u position=%s positionintile=%s ...", entitydata->tileindex_, node->GetWorldPosition2D().ToString().CString(), positionintile.ToString().CString());
+    node->SetWorldPosition2D(map_->GetWorldTilePosition(map_->GetTileCoords(entitydata->tileindex_), entitydata->GetNormalizedPositionInTile()));
 
     if (entitydata->drawableprops_ & FlagRotate_)
         node->SetWorldRotation2D(90.f);
@@ -1507,7 +1505,24 @@ void MapData::UpdateEntityNode(Node* node, EntityData* entitydata)
 
     StaticSprite2D* drawable = node->GetDerivedComponent<StaticSprite2D>();
     if (drawable)
+    {
+        // version for modified StaticSprite2D::UpdateDrawRectangle() (with no parameter flipX,flipY)
+        // Graphics.TODO 13/03/2024
+        // get the automatic hotspot from sprite setted from spritesheet
+//        if (flipX || flipY)
+//        {
+//            Vector2 hotspot = drawable->GetSprite()->GetHotSpot();
+//            if (flipX)
+//                hotspot.x_ = 1.f - hotspot.x_;
+//            if (flipY)
+//                hotspot.y_ = 1.f - hotspot.y_;
+//
+//            drawable->SetUseHotSpot(true);
+//            drawable->SetHotSpot(hotspot);
+//        }
+
         drawable->SetFlip(flipX, flipY);
+    }
 
     GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
     if (animator)

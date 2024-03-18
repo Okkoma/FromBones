@@ -57,18 +57,18 @@ const float CAMERAFOCUS_VELRATIO = 0.85f;
 
 void ViewportInfo::Clear()
 {
-    focusEnabled_ = false;
-    cameraFocusZoom_ = 1.f;
-    cameraYaw_ = 0.f;
-    cameraPitch_ = 0.f;
-    camMotionSpeed_ = 0.f;
+    focusEnabled_          = false;
+    cameraFocusZoom_       = 1.f;
+    cameraYaw_             = 0.f;
+    cameraPitch_           = 0.f;
+    camMotionSpeed_        = 0.f;
     currentCamMotionSpeed_ = 0.f;
-    cameraFocus_ = Vector2::ZERO;
-    cameraMotion_ = Vector3::ZERO;
+    cameraFocus_           = Vector2::ZERO;
+    cameraMotion_          = Vector3::ZERO;
 
     // never remove the default camera node
-    if (cameraNode_ && cameraNode_ != GameContext::Get().cameraNode_)
-        cameraNode_->Remove();
+    if (camera_ && camera_ != GameContext::Get().camera_)
+        camera_->GetNode()->Remove();
 
     if (cameraFocusNode_)
         cameraFocusNode_->Remove();
@@ -232,12 +232,96 @@ void ViewManager::RegisterEffectView(int Z, unsigned viewmask)
     effectMask_[Z] = viewmask;
 }
 
-void ViewManager::SetViewportLayout(int numviewports, bool force)
+
+void ViewManager::SetViewportLayout(int numviewports, bool reset)
 {
+    if (numViewports_ == numviewports || !GameContext::Get().renderer_)
+        return;
+
+    numviewports = Clamp(numviewports, 1, (int)MAX_VIEWPORTS);
+
     URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : numviewports=%d ...", numviewports);
 
-    if (numViewports_ == numviewports && !force)
+    // reset the cameras
+    if (reset)
+    {
+        for (unsigned i = 0; i < MAX_VIEWPORTS; i++)
+            viewportInfos_[i].Clear();
+    }
+
+    RenderPath* renderpath = GameContext::Get().gameConfig_.fluidEnabled_ ? GameContext::Get().renderPaths_[1] : GameContext::Get().renderPaths_[0];
+
+    // create viewports infos
+    for (int i = 0; i < numviewports; i++)
+    {
+        ViewportInfo& vinfo = viewportInfos_[i];
+
+        // create camera focus node
+        if (!vinfo.cameraFocusNode_)
+            vinfo.cameraFocusNode_ = GameContext::Get().rootScene_->CreateChild("CameraFocus", LOCAL);
+
+        // get or create camera
+        if (!vinfo.camera_)
+        {
+            if (i == 0)
+            {
+                if (!GameContext::Get().camera_)
+                {
+                    GameContext::Get().camera_     = GameContext::Get().rootScene_->CreateChild("Camera", LOCAL)->CreateComponent<Camera>(LOCAL);
+                    GameContext::Get().cameraNode_ = GameContext::Get().camera_->GetNode();
+                }
+                vinfo.camera_ = GameContext::Get().camera_;
+            }
+            else
+            {
+                vinfo.camera_ = GameContext::Get().rootScene_->CreateChild("Camera", LOCAL)->CreateComponent<Camera>(LOCAL);
+            }
+
+            // update camera parameters
+            vinfo.camera_->SetNearClip(-100.f);
+            vinfo.camera_->SetFarClip(100.f);
+            vinfo.camera_->SetFov(60.f);
+            vinfo.camera_->SetOrthographic(true);
+            vinfo.camera_->SetViewport(i);
+        }
+
+        // reset the current viewZ
+        vinfo.viewZindex_ = -1;
+
+        // create viewport : the rect of the viewport will be setted in ResetLayouts()
+        // TODO : why can we reuse last viewport ? pb in urho ?
+//        if (!vinfo.viewport_)
+        {
+            vinfo.viewport_ = new Viewport(GameContext::Get().context_, GameContext::Get().rootScene_, vinfo.camera_, renderpath);
+        }
+
+        URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : viewport=%d use camera=%u ...", i, vinfo.camera_.Get());
+    }
+
+    // update renderer
+    GameContext::Get().renderer_->SetNumViewports(numviewports);
+
+    for (int i = 0; i < numviewports; i++)
+    {
+        ViewportInfo& vinfo = viewportInfos_[i];
+        GameContext::Get().renderer_->SetCullMode(CULL_NONE, vinfo.camera_);
+        GameContext::Get().renderer_->SetViewport(i, vinfo.viewport_);
+    }
+
+    ResizeViewports(numviewports);
+
+    numViewports_ = numviewports;
+
+    URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : numviewports=%d ... OK !", numviewports);
+}
+
+void ViewManager::ResizeViewports(int numviewports)
+{
+    if (numviewports == numViewports_)
         return;
+
+    if (numviewports == -1)
+        numviewports = numViewports_;
 
     if (numviewports < 1 || numviewports > MAX_VIEWPORTS)
         return;
@@ -246,121 +330,11 @@ void ViewManager::SetViewportLayout(int numviewports, bool force)
     if (!renderer)
         return;
 
-    numViewports_ = numviewports;
-
-    renderer->SetNumViewports(numviewports);
-
-    // Reset the Cameras
-    for (unsigned i=0; i < MAX_VIEWPORTS; i++)
-        viewportInfos_[0].Clear();
-
-    // Clone the default render path so that we do not interfere with the other viewport, then add
-    // bloom and FXAA post process effects to the front viewport. Render path commands can be tagged
-    // for example with the effect name to allow easy toggling on and off. We start with the effects
-    // disabled.
-//    ResourceCache* cache = GetSubsystem<ResourceCache>();
-//    SharedPtr<RenderPath> effectRenderPath = viewport->GetRenderPath()->Clone();
-//    effectRenderPath->Append(cache->GetResource<XMLFile>("PostProcess/Bloom.xml"));
-//    effectRenderPath->Append(cache->GetResource<XMLFile>("PostProcess/FXAA2.xml"));
-//    // Make the bloom mixing parameter more pronounced
-//    effectRenderPath->SetShaderParameter("BloomMix", Vector2(0.9f, 0.6f));
-//    effectRenderPath->SetEnabled("Bloom", false);
-//    effectRenderPath->SetEnabled("FXAA2", false);
-//    viewport->SetRenderPath(effectRenderPath);
-
-    String renderPathFilename_ = GameContext::Get().gameConfig_.fluidEnabled_ ? "RenderPaths/ForwardUrho2D.xml" : "RenderPaths/Forward.xml";
-
-    SharedPtr<RenderPath> renderpath(new RenderPath());
-    renderpath->Load(GetSubsystem<ResourceCache>()->GetResource<XMLFile>(renderPathFilename_));
-
-    // create viewports
-    for (unsigned i=0; i < numviewports; i++)
-    {
-        ViewportInfo& vinfo = viewportInfos_[i];
-
-        // create camera focus node
-        Node* node = GameContext::Get().rootScene_->CreateChild("CameraFocus", LOCAL);
-        vinfo.cameraFocusNode_ = WeakPtr<Node>(node);
-        // get or create camera node
-        node = (i == 0 && GameContext::Get().cameraNode_) ? GameContext::Get().cameraNode_ : GameContext::Get().rootScene_->CreateChild("Camera", LOCAL);
-        vinfo.cameraNode_ = WeakPtr<Node>(node);
-
-        // create camera
-        Camera* camera = node->GetOrCreateComponent<Camera>(LOCAL);
-        camera->SetNearClip(-100.f);
-        camera->SetFarClip(100.f);
-        camera->SetFov(60.f);
-        camera->SetOrthographic(true);
-        camera->SetViewport(i);
-
-        renderer->SetCullMode(CULL_NONE, camera);
-        GameContext::Get().renderer2d_->UpdateFrustumBoundingBox(camera);
-        vinfo.camera_ = camera;
-
-        // reset the current viewZ
-        vinfo.viewZindex_ = -1;
-
-        // create viewport : the rect of the viewport will be setted in ResetLayouts()
-        SharedPtr<Viewport> viewport(new Viewport(GameContext::Get().context_, GameContext::Get().rootScene_, camera, renderpath));
-        renderer->SetViewport(i, viewport);
-
-        URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : viewport(%u) added with camera=%u ...", i, camera);
-    }
-
-    // update gamestatics
-    GameContext::Get().camera_ = viewportInfos_[0].camera_;
-    GameContext::Get().cameraNode_ = viewportInfos_[0].cameraNode_;
-
-    World2D::SetWorldViewportInfos();
-
-    URHO3D_LOGINFOF("ViewManager() - SetViewportLayout : numviewports=%d renderPathFilename_=%s ... OK !", numviewports, renderPathFilename_.CString());
-}
-
-void ViewManager::ResizeViewportRects(int numviewports)
-{
-    Graphics* graphics = GameContext::Get().context_->GetSubsystem<Graphics>();
-
     // Single viewport
-    viewportRects_[0][0] = IntRect(0, 0, graphics->GetWidth(), graphics->GetHeight());
-    if (numviewports > 1)
-    {
-        const int border = 2;
-
-        // 2 viewports
-        viewportRects_[1][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight());
-        viewportRects_[1][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight());
-        if (numviewports > 2)
-        {
-            // 3 viewports
-            viewportRects_[2][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight()/2 -border);
-            viewportRects_[2][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight()/2 -border);
-            viewportRects_[2][2] = IntRect(graphics->GetWidth()/4, graphics->GetHeight()/2 +border, 3 * graphics->GetWidth() / 4, graphics->GetHeight());
-            if (numviewports > 3)
-            {
-                // 4 viewports
-                viewportRects_[3][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight()/2 -border);
-                viewportRects_[3][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight()/2 -border);
-                viewportRects_[3][2] = IntRect(0, graphics->GetHeight()/2 +border, graphics->GetWidth()/2 -border, graphics->GetHeight());
-                viewportRects_[3][3] = IntRect(graphics->GetWidth()/2 +border, graphics->GetHeight()/2 +border, graphics->GetWidth(), graphics->GetHeight());
-            }
-        }
-    }
-}
-
-void ViewManager::ResizeViewports()
-{
-    if (numViewports_ < 1 || numViewports_ > MAX_VIEWPORTS)
-        return;
-
-    Renderer* renderer = GameContext::Get().context_->GetSubsystem<Renderer>();
-    if (!renderer)
-        return;
-
-    // Single viewport
-    ResizeViewportRects(numViewports_);
+    ResizeViewportRects(numviewports);
 
     // update viewports rects & cameras orthosizes
-    for (unsigned i=0; i < numViewports_; i++)
+    for (unsigned i=0; i < numviewports; i++)
     {
         Viewport* viewport = renderer->GetViewport(i);
         if (!viewport)
@@ -370,26 +344,11 @@ void ViewManager::ResizeViewports()
         if (!camera)
             continue;
 
-        viewport->SetRect(viewportRects_[numViewports_-1][i]);
+        viewport->SetRect(viewportRects_[numviewports-1][i]);
 
         float zoom = GameContext::Get().CameraZoomDefault_;
         float height = 1080.f;
-        /*
-                float height = (float)viewportRects_[numViewports_-1][i].Height();
 
-                // small window : cut scene
-                if (height <= 768.f)
-                {
-                    zoom = GameContext::Get().cameraZoomFactor_ * height / 1080.f;
-                    //zoom = 1.f;
-                }
-                // large window : adjust orthosize to 1080
-                else
-                {
-                    zoom = GameContext::Get().cameraZoomFactor_;
-                    height = 1080.f;
-                }
-        */
 #ifdef __ANDROID__
         height = 768.f;
 #endif
@@ -401,29 +360,58 @@ void ViewManager::ResizeViewports()
     // Add Debug viewport for rttscene
     if (GameContext::Get().gameConfig_.debugRttScene_ && GameContext::Get().rttScene_)
     {
-        if (renderer->GetNumViewports() < numViewports_+1)
+        if (renderer->GetNumViewports() < numviewports+1)
         {
             SharedPtr<Viewport> viewport(new Viewport(GameContext::Get().context_, GameContext::Get().rttScene_, GameContext::Get().rttScene_->GetChild("Camera")->GetComponent<Camera>()));
-            renderer->SetNumViewports(numViewports_+1);
-            renderer->SetViewport(numViewports_, viewport);
+            renderer->SetNumViewports(numviewports+1);
+            renderer->SetViewport(numviewports, viewport);
         }
 
         int border = 5;
         int w = GameContext::Get().screenwidth_/3;
         int h = GameContext::Get().screenheight_/3;
 
-        Viewport* viewport = renderer->GetViewport(numViewports_);
+        Viewport* viewport = renderer->GetViewport(numviewports);
         viewport->SetRect(IntRect(GameContext::Get().screenwidth_ - w - border, GameContext::Get().screenheight_ - h - border,
                                   GameContext::Get().screenwidth_ - border, GameContext::Get().screenheight_ - border));
     }
     else
     {
-        if (renderer->GetNumViewports() > numViewports_)
-            renderer->SetNumViewports(numViewports_);
+        if (renderer->GetNumViewports() > numviewports)
+            renderer->SetNumViewports(numviewports);
     }
 
-    renderer->SetClearBack(numViewports_ > 1 && !GameContext::Get().gameConfig_.debugRttScene_);
+    renderer->SetClearBack(numviewports > 1 && !GameContext::Get().gameConfig_.debugRttScene_);
 }
+
+void ViewManager::ResizeViewportRects(int numviewports)
+{
+    Graphics* graphics = GameContext::Get().context_->GetSubsystem<Graphics>();
+    const int border = 2;
+
+    switch (numviewports)
+    {
+    case 2 :
+        viewportRects_[1][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight());
+        viewportRects_[1][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight());
+        break;
+    case 3 :
+        viewportRects_[2][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight()/2 -border);
+        viewportRects_[2][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight()/2 -border);
+        viewportRects_[2][2] = IntRect(graphics->GetWidth()/4, graphics->GetHeight()/2 +border, 3 * graphics->GetWidth() / 4, graphics->GetHeight());
+        break;
+    case 4 :
+        viewportRects_[3][0] = IntRect(0, 0, graphics->GetWidth()/2 -border, graphics->GetHeight()/2 -border);
+        viewportRects_[3][1] = IntRect(graphics->GetWidth()/2 +border, 0, graphics->GetWidth(), graphics->GetHeight()/2 -border);
+        viewportRects_[3][2] = IntRect(0, graphics->GetHeight()/2 +border, graphics->GetWidth()/2 -border, graphics->GetHeight());
+        viewportRects_[3][3] = IntRect(graphics->GetWidth()/2 +border, graphics->GetHeight()/2 +border, graphics->GetWidth(), graphics->GetHeight());
+        break;
+    default:
+        viewportRects_[0][0] = IntRect(0, 0, graphics->GetWidth(), graphics->GetHeight());
+        break;
+    }
+}
+
 
 void ViewManager::SetScene(Scene* scene, const Vector2& focus)
 {
@@ -462,6 +450,7 @@ void ViewManager::SetMiniMapEnable(bool enable)
         minimap->SetVisible(enable);
 #endif // HANDLE_MINIMAP
 }
+
 
 int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
 {
@@ -509,9 +498,9 @@ int ViewManager::SwitchToViewIndex(int viewZindex, Node* node, int viewport)
             return viewZ;
         }
         /// multiviewport actived => use the viewport assigned to the player
-        else if (controller && ViewManager::Get()->GetNumViewports() > 1)
+        else if (controller)
         {
-            viewport = Min(controller->GetThinker() ? controller->GetThinker()->GetControlID() : 0, (int)ViewManager::Get()->GetNumViewports()-1);
+            viewport = GetControllerViewport(controller->GetThinker());
         }
     }
 
@@ -622,13 +611,13 @@ int ViewManager::SwitchPreviousZ(Node* node)
     return SwitchToViewIndex(prevViewZindex, node);
 }
 
+
 int ViewManager::GetViewport(Camera* camera) const
 {
-    if (GetNumViewports() <= 1)
+    if (numViewports_ <= 1)
         return 0;
 
-    int numviewports = GetNumViewports();
-    for (int viewport=0; viewport < numviewports; viewport++)
+    for (int viewport=0; viewport < numViewports_; viewport++)
         if (viewportInfos_[viewport].camera_ == camera)
             return viewport;
 
@@ -637,14 +626,13 @@ int ViewManager::GetViewport(Camera* camera) const
 
 int ViewManager::GetViewportAt(int screenx, int screeny)
 {
-    if (Get()->GetNumViewports() <= 1)
+    if (numViewports_ <= 1)
         return 0;
 
-    int numviewports = Get()->GetNumViewports();
     IntVector2 screenpoint(screenx, screeny);
-    IntRect* viewportrects = viewportRects_[numviewports-1];
+    IntRect* viewportrects = viewportRects_[numViewports_-1];
 
-    for (int viewport=0; viewport < numviewports; viewport++)
+    for (int viewport=0; viewport < numViewports_; viewport++)
         if (viewportrects[viewport].IsInside(screenpoint) == INSIDE)
             return viewport;
 
@@ -660,6 +648,46 @@ Rect ViewManager::GetViewRect(int viewport) const
 const IntRect& ViewManager::GetViewportRect(int viewport) const
 {
     return viewportRects_[numViewports_-1][viewport];
+}
+
+int ViewManager::GetControllerViewport(Actor* actor) const
+{
+    if (actor && numViewports_ > 1)
+    {
+        for (int viewport = 0; viewport < numViewports_; viewport++)
+        {
+            List<WeakPtr<Node> >::ConstIterator it = viewportInfos_[viewport].nodesOnFocus_.Find(WeakPtr<Node>(actor->GetAvatar()));
+            if (it != viewportInfos_[viewport].nodesOnFocus_.End())
+                return viewport;
+        }
+    }
+
+    return 0;
+}
+
+unsigned ViewManager::GetControllerLightMask(Actor* actor) const
+{
+    if (!actor->IsMainController())
+        return NOLIGHT_MASK;
+
+    for (int viewport = 0; viewport < numViewports_; viewport++)
+    {
+        List<WeakPtr<Node> >::ConstIterator it = viewportInfos_[viewport].nodesOnFocus_.Find(WeakPtr<Node>(actor->GetAvatar()));
+        if (it != viewportInfos_[viewport].nodesOnFocus_.End())
+        {
+            if (it == --viewportInfos_[viewport].nodesOnFocus_.End())
+                return ((VIEWPORTSCROLLER_OUTSIDE_MASK << viewport) | (VIEWPORTSCROLLER_INSIDE_MASK << viewport));
+            else
+                return NOLIGHT_MASK;
+        }
+    }
+
+    return NOLIGHT_MASK;
+}
+
+Node* ViewManager::GetCameraNode(int viewport) const
+{
+    return viewportInfos_[viewport].camera_ ? viewportInfos_[viewport].camera_->GetNode() : 0;
 }
 
 int ViewManager::GetNearLayerZ(int z, int dir)
@@ -772,8 +800,8 @@ void ViewManager::SetCamera(const Vector2& focus, int viewport)
         vinfo.cameraFocus_ = focus;
         vinfo.cameraMotion_ = Vector3::ZERO;
 
-        vinfo.cameraNode_->SetPosition2D(focus);
         vinfo.cameraFocusNode_->SetPosition2D(focus);
+        vinfo.camera_->GetNode()->SetPosition2D(focus);
         vinfo.camera_->SetNearClip(-100.f);
         vinfo.camera_->SetFarClip(100.f);
         vinfo.camera_->SetFov(60.f);
@@ -782,7 +810,7 @@ void ViewManager::SetCamera(const Vector2& focus, int viewport)
         // TODO : add SoundListener on the main viewport
         if (!GetContext()->GetSubsystem<Audio>()->GetListener())
         {
-            SoundListener* soundListener = vinfo.cameraNode_->GetOrCreateComponent<SoundListener>(LOCAL);
+            SoundListener* soundListener = vinfo.camera_->GetNode()->GetOrCreateComponent<SoundListener>(LOCAL);
             GetContext()->GetSubsystem<Audio>()->SetListener(soundListener);
         }
 
@@ -790,6 +818,7 @@ void ViewManager::SetCamera(const Vector2& focus, int viewport)
         viewport++;
     }
 }
+
 
 void ViewManager::AddFocus(Node* nodeToFocus, bool center, int viewport)
 {
@@ -808,16 +837,15 @@ void ViewManager::AddFocus(Node* nodeToFocus, bool center, int viewport)
 
     SetFocusEnable(true, viewport);
 
-    if (GetCurrentViewZ(viewport) != viewZ)
+    if (vinfo.nodesOnFocus_.Size() == 1 && GetCurrentViewZ(viewport) != viewZ)
         SwitchToViewZ(viewZ, 0, viewport);
 
     if (center)
     {
         vinfo.cameraFocusNode_->SetPosition2D(nodeToFocus->GetWorldPosition2D());
-        vinfo.cameraNode_->SetPosition2D(nodeToFocus->GetWorldPosition2D());
+        vinfo.camera_->GetNode()->SetPosition2D(nodeToFocus->GetWorldPosition2D());
 
         UpdateFocus(viewport);
-//        World2D::GetWorld()->UpdateInstant(viewport, nodeToFocus->GetWorldPosition2D(), 1.f);
     }
 
     URHO3D_LOGINFOF("ViewManager() - AddFocus : %s(%u) - viewport=%d viewZ=%d NodePosition=%s NumNodesOnFocus=%u ... OK !",
@@ -859,7 +887,7 @@ void ViewManager::SetFocusEnable(bool enable, int viewport)
 
 #ifdef HANDLE_MINIMAP
         if (viewport == 0 && !vinfo.nodesOnFocus_.Empty() && vinfo.nodesOnFocus_.Front() != 0)
-            vinfo.cameraNode_->GetOrCreateComponent<UIC_MiniMap>()->SetFollowedNode(enable ? vinfo.nodesOnFocus_.Front() : vinfo.cameraNode_);
+            vinfo.camera_->GetNode()->GetOrCreateComponent<UIC_MiniMap>()->SetFollowedNode(enable ? vinfo.nodesOnFocus_.Front() : vinfo.camera_->GetNode());
 #endif
 
         if (vinfo.nodesOnFocus_.Empty())
@@ -870,8 +898,8 @@ void ViewManager::SetFocusEnable(bool enable, int viewport)
         if (enable)
         {
             // Desactive the Camera Animations
-            if (vinfo.cameraNode_->GetObjectAnimation())
-                vinfo.cameraNode_->SetAnimationEnabled(false);
+            if (vinfo.camera_->GetNode()->GetObjectAnimation())
+                vinfo.camera_->GetNode()->SetAnimationEnabled(false);
             if (vinfo.camera_->GetObjectAnimation())
                 vinfo.camera_->SetAnimationEnabled(false);
 
@@ -909,20 +937,20 @@ void ViewManager::MoveCamera(int viewport, const float& timeStep)
     /// Simple Move
     {
 //        URHO3D_LOGINFOF("ViewManager() - MoveCamera SIMPLE : cameraFocus_=%s cameraFocusNode_=%s(%u) cameraNode_=%u",
-//                        vinfo.cameraFocus_.ToString().CString(), vinfo.cameraFocusNode_->GetName().CString(), vinfo.cameraFocusNode_->GetID(), vinfo.cameraNode_);
-        vinfo.cameraNode_->SetPosition2D(vinfo.cameraFocus_);
+//                        vinfo.cameraFocus_.ToString().CString(), vinfo.cameraFocusNode_->GetName().CString(), vinfo.cameraFocusNode_->GetID(), vinfo.camera_->GetNode());
+        vinfo.camera_->GetNode()->SetPosition2D(vinfo.cameraFocus_);
         return;
     }
 #else
     /// LERP Move
     {
 //        URHO3D_LOGINFOF("ViewManager() - MoveCamera LERP : cameraFocus_=%s cameraFocusNode_=%s(%u) cameraNode_=%u",
-//                        vinfo.cameraFocus_.ToString().CString(), vinfo.cameraFocusNode_->GetName().CString(), vinfo.cameraFocusNode_->GetID(), vinfo.cameraNode_);
+//                        vinfo.cameraFocus_.ToString().CString(), vinfo.cameraFocusNode_->GetName().CString(), vinfo.cameraFocusNode_->GetID(), vinfo.camera_->GetNode());
 
-        vinfo.cameraMotion_ = vinfo.cameraFocus_ - vinfo.cameraNode_->GetPosition2D();
+        vinfo.cameraMotion_ = vinfo.cameraFocus_ - vinfo.camera_->GetNode()->GetPosition2D();
 
         if (Abs(vinfo.cameraMotion_.x_) > 0.25f || Abs(vinfo.cameraMotion_.y_) > 0.25f)
-            vinfo.cameraNode_->Translate(vinfo.cameraMotion_ * timeStep);
+            vinfo.camera_->GetNode()->Translate(vinfo.cameraMotion_ * timeStep);
     }
 #endif
 }
@@ -1056,6 +1084,7 @@ void ViewManager::HandleSwitchViewZ(StringHash eventType, VariantMap& eventData)
         }
     }
 }
+
 
 void ViewManager::Dump() const
 {

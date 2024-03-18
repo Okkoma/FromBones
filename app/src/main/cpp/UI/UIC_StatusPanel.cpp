@@ -99,19 +99,31 @@ void UIC_StatusPanel::Start(Object* user, Object* feeder)
         characterArrowTimer_ = new Timer();
     }
 
-    // Get Ability Panel if it's a popup (multiplayers mode)
+    // Get Ability Panel
     abilityPanel_ = player->GetPanel(ABILITYPANEL);
-
-    UIElement* firstbutton = panel_->GetChild("QuestButton", true);
-    UIElement* lastbutton = panel_->GetChild("MapButton", true);
-    statusChildRange_.x_ = panel_->FindChild(firstbutton);
-    statusChildRange_.y_ = panel_->FindChild(lastbutton);
-    // MapButton is disable for the second players so reduce the range
-    if (lastbutton && player->GetID() > 1)
+    // Always disable ability button before collecting the buttons for key or joystick control
+    // we don't need it because the abilitButton is just for mouse/ touch
+    UIElement* abilityButton = panel_->GetChild(String("AbilityButton"));
+    if (abilityButton)
+        abilityButton->SetVisible(false);
+    // Check if it's the first player and enable the MapButton
+    UIElement* mapButton = panel_->GetChild(String("MapButton"));
+    if (mapButton)
+        mapButton->SetVisible(player->GetID() == 1);
+    // Find the buttons for key or joy control
+    buttons_.Clear();
+    const Vector<SharedPtr<UIElement> >& children = panel_->GetChildren();
+    for (Vector<SharedPtr<UIElement> >::ConstIterator it = children.Begin(); it != children.End(); it++)
     {
-        lastbutton->SetVisible(false);
-        statusChildRange_.y_--;
+        if ((it->Get()->IsInstanceOf<Button>()) && it->Get()->IsVisible())
+        {
+            buttons_.Push(WeakPtr<Button>(static_cast<Button*>(it->Get())));
+            URHO3D_LOGERRORF("UIC_StatusPanel() - Start : ... Find Button=%s", buttons_.Back()->GetName().CString());
+        }
     }
+    // Check if it's a popup and reactive the AbilityButton
+    if (abilityButton && abilityPanel_ && static_cast<UIC_AbilityPanel*>(abilityPanel_.Get())->IsPopup())
+        abilityButton->SetVisible(true);
 
     characterlistChildRange_.x_ = characterList->FindChild(characterList->GetChild("Slot_1", true));
     characterlistChildRange_.y_ = characterList->FindChild(characterList->GetChild("Slot_3", true));
@@ -186,9 +198,9 @@ void UIC_StatusPanel::OnSetVisible()
                 if (lastSelectedElement_ != panel_)
                     lastSelectedElement_ = panel_;
 
-                lastSelector_ = Clamp(lastSelector_, statusChildRange_.x_, statusChildRange_.y_);
+                lastSelector_ = Clamp(lastSelector_, 0, (int)buttons_.Size()-1);
 
-                SelectElement(lastSelectedElement_, panel_->GetChild(lastSelector_), lastSelector_);
+                SelectElement(lastSelectedElement_, buttons_[lastSelector_], lastSelector_);
 
                 // Allow Selection Access to other UIC with the keyboard Arrows
                 if (controltype == CT_KEYBOARD)
@@ -660,7 +672,8 @@ void UIC_StatusPanel::SelectElement(UIElement* element, UIElement* focuselement,
     if (focusedElement_)
         focusedElement_->SetKeepHovering(true);
 
-    URHO3D_LOGINFOF("UIC_StatusPanel() - SelectElement : element=%s selector=%d elementfocused=%s!", selectedElement_ ? selectedElement_->GetName().CString() : "none", selector_, focusedElement_ ? focusedElement_->GetName().CString() : "none");
+    URHO3D_LOGINFOF("UIC_StatusPanel() - SelectElement : element=%s selector=%d elementfocused=%s!",
+                    selectedElement_ ? selectedElement_->GetName().CString() : "none", selector_, focusedElement_ ? focusedElement_->GetName().CString() : "none");
 }
 
 
@@ -867,7 +880,7 @@ void UIC_StatusPanel::OnEscapePanel(StringHash eventType, VariantMap& eventData)
     {
         URHO3D_LOGINFOF("UIC_StatusPanel() - OnEscapePanel : ... close selection !");
         CloseCharacterSelection();
-        SelectElement(GetElement(), GetElement()->GetChild(statusChildRange_.x_), statusChildRange_.x_);
+        SelectElement(GetElement(), buttons_.Front(), 0);
     }
     else if (selectedElement_ == GetElement())
     {
@@ -878,7 +891,7 @@ void UIC_StatusPanel::OnEscapePanel(StringHash eventType, VariantMap& eventData)
     }
     else
     {
-        GetSubsystem<UI>()->SetFocusElement(0);
+        GameContext::Get().ui_->SetFocusElement(0);
     }
 }
 
@@ -908,9 +921,9 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
         }
 
         int newselection = selector_ + selectordirection_;
-        if (newselection >= statusChildRange_.x_ && newselection <= statusChildRange_.y_)
+        if (newselection >= 0 && newselection < buttons_.Size())
         {
-            SelectElement(GetElement(), GetElement()->GetChild(newselection), newselection);
+            SelectElement(GetElement(), buttons_[newselection], newselection);
             URHO3D_LOGINFOF("UIC_StatusPanel() - OnKey : selector=%d in statuspanel ...", selector_);
         }
         else
@@ -940,7 +953,7 @@ void UIC_StatusPanel::OnKey(StringHash eventType, VariantMap& eventData)
             else if (scancode == keymap[ACTION_UP] || scancode == keymap[ACTION_DOWN]) // Close and Focus on StatusPanel
             {
                 CloseCharacterSelection();
-                SelectElement(GetElement(), GetElement()->GetChild(statusChildRange_.x_), statusChildRange_.x_);
+                SelectElement(GetElement(), buttons_.Front(), 0);
             }
             else if (scancode == keymap[ACTION_INTERACT]) // Apply Avatar Selection And Close/UnFocus
             {

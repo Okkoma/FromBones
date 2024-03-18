@@ -332,31 +332,27 @@ void WeatherManager::SetRainTime(int viewport, float hour, float delayinhour, in
 
 void WeatherManager::SetSunLight(int viewport)
 {
-    WeatherViewData& viewdata = weatherviewdatas_[viewport];
-
     Node* cameranode = ViewManager::Get()->GetCameraNode(viewport);
-
     if (!cameranode)
         return;
 
-    unsigned mask = (VIEWPORTSCROLLER_OUTSIDE_MASK << viewport);
-
     Node* sunLightNode = cameranode->GetChild("SunLight", LOCAL);
-
     if (!sunLightNode)
+    {
         sunLightNode = cameranode->CreateChild("SunLight", LOCAL);
+        sunLightNode->SetPosition(Vector3(0.f, 15.f, 0.f));
 
-    sunLightNode->SetPosition(Vector3(0.f, 15.f, 0.f));
+        WeatherViewData& viewdata = weatherviewdatas_[viewport];
+        viewdata.sunlight_ = sunLightNode->GetOrCreateComponent<Light>();
+        viewdata.sunlight_->SetLightType(LIGHT_POINT);
+        viewdata.sunlight_->SetRange(75.f);
+        viewdata.sunlight_->SetPerVertex(true);
+        viewdata.sunlight_->SetColor(Color::WHITE);
+        viewdata.sunlight_->SetOccludee(false);
+        viewdata.sunlight_->SetViewMask(VIEWPORTSCROLLER_OUTSIDE_MASK << viewport);
 
-    viewdata.sunlight_ = sunLightNode->GetOrCreateComponent<Light>();
-    viewdata.sunlight_->SetLightType(LIGHT_POINT);
-    viewdata.sunlight_->SetRange(75.f);
-    viewdata.sunlight_->SetPerVertex(true);
-    viewdata.sunlight_->SetColor(Color::WHITE);
-    viewdata.sunlight_->SetOccludee(false);
-    viewdata.sunlight_->SetViewMask(mask);
-
-//    URHO3D_LOGINFOF("WeatherManager() - SetSunLight : viewport=%d sunlight node=%s(%u) ... ", viewport, viewdata.sunlight_->GetNode()->GetName().CString(), viewdata.sunlight_->GetNode()->GetID());
+        URHO3D_LOGINFOF("WeatherManager() - SetSunLight : viewport=%d sunlight node=%s(%u) ... ", viewport, viewdata.sunlight_->GetNode()->GetName().CString(), viewdata.sunlight_->GetNode()->GetID());
+    }
 }
 
 void WeatherManager::SetEffect(int viewport, WeatherEffect effect, int intensity)
@@ -365,7 +361,7 @@ void WeatherManager::SetEffect(int viewport, WeatherEffect effect, int intensity
 
 #ifdef ACTIVE_WEATHEREFFECTS
 
-    viewport = Random((int)ViewManager::Get()->GetNumViewports());
+//    viewport = Random((int)ViewManager::Get()->GetNumViewports());
 
     WeatherViewData& viewdata = weatherviewdatas_[viewport];
 
@@ -532,7 +528,7 @@ void WeatherManager::Stop()
     }
 }
 
-void WeatherManager::Active(int viewport, bool state, bool forced)
+void WeatherManager::SetActive(int viewport, bool state, bool forced)
 {
     if (viewport == -1)
     {
@@ -545,8 +541,12 @@ void WeatherManager::Active(int viewport, bool state, bool forced)
 
             viewdata.active_ = state;
 
+            if (!viewdata.sunlight_)
+                SetSunLight(viewport);
+
             if (viewdata.sun_ && viewdata.sun_->IsEnabled() != state)
                 viewdata.sun_->SetEnabled(state);
+
             if (viewdata.moon_ && viewdata.moon_->IsEnabled() != state)
                 viewdata.moon_->SetEnabled(state);
 
@@ -573,35 +573,39 @@ void WeatherManager::Active(int viewport, bool state, bool forced)
     {
         WeatherViewData& viewdata = weatherviewdatas_[viewport];
 
-        viewdata.active_ = state;
-
         if (viewdata.active_ != state || forced)
         {
-            URHO3D_LOGERRORF("WeatherManager() - Active : viewport=%d state=%s ...", viewport, state?"true":"false");
+            URHO3D_LOGERRORF("WeatherManager() - SetActive : viewport=%d state=%s ...", viewport, state?"true":"false");
 
-        if (viewdata.sun_ && viewdata.sun_->IsEnabled() != state)
-            viewdata.sun_->SetEnabled(state);
-        if (viewdata.moon_ && viewdata.moon_->IsEnabled() != state)
-            viewdata.moon_->SetEnabled(state);
+            if (!viewdata.sunlight_)
+                SetSunLight(viewport);
+
+            if (viewdata.sun_ && viewdata.sun_->IsEnabled() != state)
+                viewdata.sun_->SetEnabled(state);
+
+            if (viewdata.moon_ && viewdata.moon_->IsEnabled() != state)
+                viewdata.moon_->SetEnabled(state);
 
 #ifdef ACTIVE_WEATHEREFFECTS
-        if (viewdata.rain_->IsEnabled() != state)
-            viewdata.rain_->SetEnabledRecursive(state);
+            if (viewdata.rain_->IsEnabled() != state)
+                viewdata.rain_->SetEnabledRecursive(state);
 
 #if defined(ACTIVE_CLOUDEFFECTS_SCROLLINGSHAPE)
-        if (viewdata.cloud_->GetChild(0U)->IsEnabled() != state)
-            viewdata.cloud_->SetEnabledRecursive(state);
+            if (viewdata.cloud_->GetChild(0U)->IsEnabled() != state)
+                viewdata.cloud_->SetEnabledRecursive(state);
 #else
-        if (viewdata.cloudeffect_)
-        {
+            if (viewdata.cloudeffect_)
+            {
                 if (state)
                     viewdata.cloudeffect_->Start(forced);
                 else if (!state)
                     viewdata.cloudeffect_->Stop(forced);
-        }
+            }
 #endif
 #endif
-            URHO3D_LOGERRORF("WeatherManager() - Active ... OK !");
+            viewdata.active_ = state;
+
+            URHO3D_LOGERRORF("WeatherManager() - SetActive ... OK !");
         }
     }
 }
@@ -609,7 +613,7 @@ void WeatherManager::Active(int viewport, bool state, bool forced)
 // Master Active/Desactive over pass all viewport active states
 void WeatherManager::ToggleStartStop()
 {
-    Active(-1, !active_);
+    SetActive(-1, !active_);
 }
 
 void WeatherManager::UpdateTimePeriod()
@@ -687,7 +691,7 @@ void WeatherManager::Update()
     for (int viewport=0; viewport < numviewports; viewport++)
     {
         // Desactive if in fullbackground
-        Active(viewport, !World2D::IsVisibleRectInFullBackGround(viewport));
+        SetActive(viewport, !World2D::IsVisibleRectInFullBackGround(viewport));
 
         WeatherViewData& viewdata = weatherviewdatas_[viewport];
         if (!viewdata.active_)
@@ -907,7 +911,7 @@ void WeatherManager::HandleCameraPositionChanged(StringHash eventType, VariantMa
 
         URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
 
-        Active(viewport, !infullbackground, true);
+        SetActive(viewport, !infullbackground, true);
     }
 
     URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged !");

@@ -23,11 +23,11 @@ public :
 
     static void RegisterObject(Context* context);
 
-    void SetPopup(bool enable) { popup_ = enable; }
+    void SetPopup(bool enable) { popup_ = enable; switchVisibleMode_ = enable ? VM_SIMPLE : VM_ANIMATED; }
 
     virtual void Start(Object* user, Object* feeder);
     virtual void GainFocus();
-    virtual void LoseFocus();    
+    virtual void LoseFocus();
 
     bool IsPopup() const { return popup_; }
     virtual bool CanFocus() const;
@@ -47,8 +47,12 @@ protected :
     void OnNodesChange(StringHash eventType, VariantMap& eventData);
     void OnKey(StringHash eventType, VariantMap& eventData);
 
+    void OnHoverBegin(StringHash eventType, VariantMap& eventData);
+    void OnHoverEnd(StringHash eventType, VariantMap& eventData);
+
     bool popup_;
     int slotselector_;
+    int hoveringCount_;
 
     WeakPtr<Actor> holder_;
     WeakPtr<Node> holderNode_;

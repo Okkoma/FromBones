@@ -5,6 +5,7 @@
 **/.cxx
 **/.cache
 **/.gradle
+**/tmp-*/
 /bin-tool/Output
 /bin-tool/Input/PNG
 /bin-tool/TexturePacker

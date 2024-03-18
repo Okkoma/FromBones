@@ -3023,7 +3023,7 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
     if (drawable)
     {
         // because the scene is not enable to update, we force by marking in the view and update manually the scene
-        drawable->MarkInView(GameContext::Get().renderer2d_->GetFrameInfo());
+        drawable->MarkInView(GameContext::Get().renderer2d_->GetCurrentFrameInfo());
         scene_->Update(GameContext::Get().engine_->GetNextTimeStep());
     }
 }

@@ -45,11 +45,13 @@ struct TravelerViewportInfo
 {
     TravelerViewportInfo();
 
-    bool Update();
     void Clear();
+
+    bool Update(bool useMapPos=false);
 
     IntRect GetReducedArea(const IntRect& area);
     void GetMapsToShow(Vector<ShortIntVector2>& mapsToShow);
+    void GetEffectiveVisibleMaps(const Vector<ShortIntVector2>& mapsToShow);
 
     Map* currentMap_;
 
@@ -77,10 +79,13 @@ struct TravelerViewportInfo
 
     Rect extVisibleRect_;
     Rect tiledVisibleRect_;
+    Rect collidingBorderRect_;
 
     bool visibleRectInFullBackground_;
     bool isUnderground_;
     bool needUpdateCurrentMap_;
+
+    Vector<Map*> effectiveVisibleMaps_;
 
     static const unsigned MaxVisibleMaps;
 };
@@ -196,8 +201,8 @@ public:
     static bool IsInsideWorldBounds(const Vector2& worldPosition);
     static bool IsInsideWorldBounds(const ShortIntVector2& mPoint);
     static bool IsInsideVisibleAreas(const ShortIntVector2& mPoint);
-    static bool IsVisibleRectInFullBackGround(int viewport=0) { return world_->viewinfos_[viewport].visibleRectInFullBackground_; }
-    static bool IsUnderground(int viewport=0) { return world_->viewinfos_[viewport].isUnderground_; }
+    static bool IsVisibleRectInFullBackGround(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].visibleRectInFullBackground_ : false; }
+    static bool IsUnderground(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].isUnderground_ : false; }
 
     static Rect GetMapBounds(const Vector2& worldPosition);
     static const IntRect& GetWorldBounds() { return worldBounds_; }
@@ -210,12 +215,12 @@ public:
     static const Rect& GetExtendedVisibleRect(int viewport=0);
     static const Rect& GetTiledVisibleRect(int viewport=0);
     static Rect GetVisibleRect(int viewport=0);
-    static const IntRect& GetVisibleAreas(int viewport=0) { return world_->viewinfos_[viewport].visibleArea_; }
+    static const IntRect& GetVisibleAreas(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].visibleArea_ : IntRect::ZERO; }
     static IntRect GetVisibleAreas(const Vector2& wposition);
     static const Vector<ShortIntVector2>& GetKeepedVisibleMaps() { return keepedVisibleMaps_; }
 
-    static const ShortIntVector2& GetCurrentMapPoint(int viewport=0) { return world_->viewinfos_[viewport].mPoint_; }
-    static Map* GetCurrentMap(int viewport=0) { return world_->viewinfos_[viewport].currentMap_; }
+    static const ShortIntVector2& GetCurrentMapPoint(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].mPoint_ : ShortIntVector2::ZERO; }
+    static Map* GetCurrentMap(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].currentMap_ : 0; }
     static const Vector2& GetCurrentMapOrigin(int viewport=0);
 
     static Map* GetMapAt(const ShortIntVector2& mPoint, bool createIfMissing=false);
@@ -268,7 +273,7 @@ public:
     static void ReinitAllWorlds();
     static void SaveWorld(bool saveEntities=false);
 
-    static TravelerNodeInfo& AddTraveler(Node* node, int viewport=0);
+    static TravelerNodeInfo& GetOrCreateTraveler(Node* node, int viewport=0);
     static void RemoveTraveler(Node* node);
 
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
@@ -316,10 +321,12 @@ public:
     /// Update visible maps
     bool UpdateVisibility(float timestep);
     /// Update the Viewport at the worldposition or by default at the default viewport position WorldViewInfo::dMapPosition_
-    void UpdateInstant(int viewport=0, const Vector2& position=Vector2::ZERO, float timestep=0.f, bool sendevent=true);
+    void UpdateInstant(int viewport=0, const Vector2& position=Vector2::ZERO, bool sendevent=true);
     /// Update buffer and visible maps : no timer
     void UpdateAll();
     void UpdateVisibleRectInfos(int viewport=0);
+
+    void UpdateViewports();
 
 private:
     void UpdateWorldBounds();
@@ -406,7 +413,6 @@ private :
 
     static WeakPtr<Node> entitiesRootNodes_[2];
     static Vector<ShortIntVector2> keepedVisibleMaps_;
-    static Vector<Map*> effectiveVisibleMaps_[MAX_VIEWPORTS];
     static HashMap<ShortIntVector2, MapEntityInfo > mapEntities_;
     static HashMap<ShortIntVector2, MapFurnitureLocation> mapFurnitures_;
 

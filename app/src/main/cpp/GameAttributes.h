@@ -125,7 +125,7 @@ enum GOControllerType
     GO_None = 0,
     GO_Player = 0x01,       // 0000001 => Player
     GO_NetPlayer = 0x03,    // 0000011 => Net Player
-    GO_AI = 0x04,           // 0000100 => AI Player
+    GO_AI 				= 0x04, // 0000100 => Ai Player
     GO_AI_None = 0x08,      // 0001000 => Ai No Alignement
     GO_AI_Ally = 0x10,      // 0010000 => Ai friendly
     GO_AI_Enemy = 0x20,     // 0100000 => Ai enemy
@@ -136,10 +136,19 @@ enum GOControllerType
 enum ControlType
 {
     CT_KEYBOARD = 0,
-    CT_JOYSTICK,
-    CT_SCREENJOYSTICK,
-    CT_TOUCH,
-    CT_CPU,
+    CT_JOYSTICK			= 1,
+    CT_SCREENJOYSTICK	= 2,
+    CT_TOUCH			= 3,
+    CT_CPU				= 4,
+	
+    CTFLAG_KEYBOARD		= 1U << CT_KEYBOARD,
+    CTFLAG_JOYSTICK		= 1U << CT_JOYSTICK,
+    CTFLAG_SCREENJOY 	= 1U << CT_SCREENJOYSTICK,
+    CTFLAG_TOUCH		= 1U << CT_TOUCH,
+    CTFLAG_CPU			= 1U << CT_CPU,
+	
+	CTFLAGS_ALL   = CTFLAG_KEYBOARD | CTFLAG_JOYSTICK | CTFLAG_SCREENJOY | CTFLAG_TOUCH | CTFLAG_CPU,
+	CTFLAGS_NOCPU = CTFLAG_KEYBOARD | CTFLAG_JOYSTICK | CTFLAG_SCREENJOY | CTFLAG_TOUCH,
 };
 
 enum ControlAction
