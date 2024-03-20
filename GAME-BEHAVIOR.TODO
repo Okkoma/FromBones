@@ -1,7 +1,12 @@
 Todos:
 
+    ✔ 18/03/2024 : en multiviewport en world les joueurs n'arrivent pas à frapper les lizard
+        -> cela ne se produit que s'y l'on active le fenetrage dynamique et que l'on lance la partie la premiere fois.
+        => OK : GOC_Collide2D::lastHurtTime_ doit bien etre initialisé à 0 sinon dans GOC_Collide2D::HandleBeginContact() ça peut bloquer.
+
     ☐ 11/03/2024 : lorsque l'on monte sur un Darkren, l'avatar disparait (le node est detruit)
-        -> cela arrive lorsque Darkren est un player CPU
+        -> cela arrive lorsque Darkren est un player CPU.
+        => 20/03/2024 : cela n'a plus l'air de se produire.
 
     ✔ 28/02/2024 : crash du au montage d'entité après lancement d'une partie, arret puis relancement
         => il faut toujours demonter les entités car ObjectPool ne purge pas ce comportement

@@ -1242,7 +1242,7 @@ Node* GameHelpers::SpawnParticleEffectInNode(Context* context, Node* node, const
 #endif
 }
 
-void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
+void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint, IntVector2 dPosition, int dViewZ)
 {
     if (!World2D::GetWorld())
         return;
@@ -1251,38 +1251,47 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
     if (!World2D::IsInsideWorldBounds(mPoint))
         return;
 
-    IntVector2 dMap(mPoint.x_, mPoint.y_);
-    IntVector2 dPosition;
-    int dViewZ = ViewManager::Get()->GetCurrentViewZ(0);
+    int viewport = 0;
 
-    URHO3D_LOGINFOF("GameHelpers() - TransferPlayerToMap : map=%s ...",  mPoint.ToString().CString());
+    IntVector2 dMap(mPoint.x_, mPoint.y_);
+
+    if (dViewZ == -1)
+        dViewZ = ViewManager::Get()->GetCurrentViewZ(viewport);
 
     ViewManager::Get()->SetFocusEnable(false);
 
     // Just Load instant map (no move camera)
-    World2D::GetWorld()->GoToMap(mPoint, 0);
-    World2D::GetWorld()->UpdateInstant(0, Vector2::ZERO, false);
+    World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, viewport);
+    World2D::GetWorld()->UpdateInstant(viewport, Vector2::ZERO, false);
 
     // Find a default start position on this map
-    Node* destinationArea = GameContext::Get().FindMapPositionAt("GOT_START", mPoint, dPosition, dViewZ);
-    if (!destinationArea)
+    if (dPosition.x_ == 0 && dPosition.y_ == 0)
     {
-        // Reset to Default Point
-        dPosition.x_ = MapInfo::info.width_/2;
-        dPosition.y_ = MapInfo::info.height_/2;
-        if (dViewZ != INNERVIEW)
-            dViewZ = FRONTVIEW;
+        Node* destinationArea = GameContext::Get().FindMapPositionAt("GOT_START", mPoint, dPosition, dViewZ);
+        if (!destinationArea)
+        {
+            // Reset to Default Point
+            dPosition.x_ = MapInfo::info.width_/2;
+            dPosition.y_ = MapInfo::info.height_/2;
+            if (dViewZ != INNERVIEW)
+                dViewZ = FRONTVIEW;
+        }
     }
+
+    URHO3D_LOGINFOF("GameHelpers() - TransferPlayerToMap : map=%s position=%s viewZ=%d ...",
+                    mPoint.ToString().CString(), dPosition.ToString().CString(), dViewZ);
 
 //    if (GameContext::Get().gameConfig_.multiviews_)
     {
         // Transfer Players
+        WorldMapPosition wposition;
         for (int i=0; i < GameContext::Get().numPlayers_; i++)
         {
             if (GameContext::Get().playerAvatars_[i])
             {
-                GameContext::Get().players_[i]->SetWorldMapPosition(WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ), true);
-                World2D::GetWorld()->GoToMap(mPoint, dPosition, dViewZ, ViewManager::Get()->GetControllerViewport(GameContext::Get().players_[i]));
+                wposition = WorldMapPosition(World2D::GetWorldInfo(), dMap, dPosition+IntVector2(i,0), dViewZ);
+                GameContext::Get().players_[i]->SetWorldMapPosition(wposition, true);
+                World2D::GetWorld()->GoToMap(wposition.mPoint_, wposition.mPosition_, wposition.viewZ_, ViewManager::Get()->GetControllerViewport(GameContext::Get().players_[i]));
             }
         }
 
@@ -1309,7 +1318,10 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint)
 
     ViewManager::Get()->SetFocusEnable(true);
 
+    VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
+    eventData[World_CameraChanged::VIEWPORT] = viewport;
     World2D::GetWorld()->SendEvent(WORLD_CAMERACHANGED);
+
     GameContext::Get().rootScene_->SendEvent(WORLD_MAPUPDATE);
 
     URHO3D_LOGINFOF("GameHelpers() - TransferPlayerToMap : map=%s dviewZ=%d... OK !", mPoint.ToString().CString(), dViewZ);
@@ -4872,13 +4884,28 @@ TextMessage* GameHelpers::ShowUIMessage(const String& maintext, const String& en
     return message;
 }
 
-TextMessage* GameHelpers::ShowUIMessage3D(const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale, float duration, float delaystart)
+TextMessage* GameHelpers::ShowUIMessage3D(int viewport, const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale, float duration, float delaystart)
 {
-//    void Set(Node* node, const String& message, const char *fontName, int fontSize,
-//             float duration, float fadescale=1.f, bool follow=true, bool autoRemove=true, bool loop=false, float delayedStart=0.f, float delayedRemove=0.f);
-    TextMessage* message = new TextMessage(GameContext::Get().context_);
-    message->Set(ViewManager::Get()->GetCameraNode(), localize ? GameContext::Get().context_->GetSubsystem<Localization>()->Get(maintext) + endtext : maintext+endtext, GameContext::Get().txtMsgFont_,
+    TextMessage* message;
+    if (viewport == -1)
+    {
+        for (viewport = 0; viewport < ViewManager::Get()->GetNumViewports(); viewport++)
+        {
+            // todo : add viewmask
+            message = new TextMessage(GameContext::Get().context_);
+            ViewManager::Get()->GetCamera(viewport)->GetViewMask();
+            message->Set(viewport, ViewManager::Get()->GetCameraNode(viewport), localize ? GameContext::Get().context_->GetSubsystem<Localization>()->Get(maintext) + endtext : maintext+endtext, GameContext::Get().txtMsgFont_,
+                        fontsize * GameContext::Get().uiScale_, duration, fadescale, true, true, delaystart);
+        }
+    }
+    else
+    {
+        message = new TextMessage(GameContext::Get().context_);
+        message->Set(viewport, ViewManager::Get()->GetCameraNode(viewport), localize ? GameContext::Get().context_->GetSubsystem<Localization>()->Get(maintext) + endtext : maintext+endtext, GameContext::Get().txtMsgFont_,
                  fontsize * GameContext::Get().uiScale_, duration, fadescale, true, true, delaystart);
+    }
+
+    // return the last message created
     return message;
 }
 

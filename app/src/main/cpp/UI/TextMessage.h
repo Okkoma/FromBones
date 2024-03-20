@@ -21,7 +21,7 @@ public :
 
     void Remove();
 
-    void Set(Node* node, const String& message, const char *fontName, int fontSize,
+    void Set(int viewport, Node* node, const String& message, const char *fontName, int fontSize,
              float duration, float fadescale=1.f, bool follow=true, bool autoRemove=true, float delayedStart=0.f, float delayedRemove=0.f);
     void Set(const String& message, const char *fontName, int fontSize,
              float duration, IntVector2 position=IntVector2::ZERO, float fadescale=1.f, bool autoRemove=true, float delayedStart=0.f, float delayedRemove=0.f);

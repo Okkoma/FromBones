@@ -777,13 +777,25 @@ void GameCommands::Launch(const String& input)
             return;
 
         Vector<String> coords = inputs[1].Split(',');
-        if (coords.Size() < 2)
+
+        if (coords.Size() < 3)
             return;
 
-        ShortIntVector2 mpoint(ToInt(coords[0]), ToInt(coords[1]));
-        URHO3D_LOGINFOF("go2map(%s) => waiting ...", mpoint.ToString().CString());
+        int viewport = ToInt(coords[0]);
+        ShortIntVector2 mpoint(ToInt(coords[1]), ToInt(coords[2]));
+        IntVector2 position;
+        int viewZ = -1;
 
-        GameHelpers::TransferPlayersToMap(mpoint);
+        if (coords.Size() >= 5)
+            position = IntVector2(ToInt(coords[3]), ToInt(coords[4]));
+
+        if (coords.Size() > 5)
+            viewZ = ToInt(coords[5]);
+
+        URHO3D_LOGINFOF("go2map=%d,%s,%s,%d => waiting ...", viewport, mpoint.ToString().CString(), position.ToString().CString(), viewZ);
+
+//        GameHelpers::TransferPlayersToMap(mpoint, position, viewZ);
+        GameContext::Get().TransferPlayersToMapV2(viewport, mpoint, position, viewZ);
     }
     else if (input0 == "convert2map")
     {

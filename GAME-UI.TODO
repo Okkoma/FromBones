@@ -1,5 +1,8 @@
 Todos:
 
+    ✔ 18/03/2024 : le texte de demarrage "C'est Parti" doit etre lié au viewport et pas afficher sur les autres. Il faut un texte par viewport du coup
+        -> OK : modification de TextMessage
+
     ✔ 15/03/2024 : lorsque l'on joue en multiplayer multiviews, les abilities ne peuvent etre changé à la souris.
         -> ajouter un bouton supplementaire dans le StatusPanel qui represente l'abilité active
         --> en cliquant dessus le panel ability mini s'ouvre permettant la selection de l'ability

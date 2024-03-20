@@ -267,7 +267,6 @@ void GOManager::HandleGODestroy(StringHash eventType, VariantMap& eventData)
                 activePlayer.Remove(nodeId);
             }
             break;
-
         }
     }
 }

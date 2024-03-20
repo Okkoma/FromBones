@@ -98,6 +98,8 @@ void GOC_Collide2D::OnSetEnabled()
 
         // Active all colliders
         SetCollidersEnable(true, CONTACT_ALL);
+
+        lastHurtTime_ = 0.f;
     }
     else
         UnsubscribeFromAllEvents();
@@ -714,9 +716,12 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
         return;
     }
 
-    // Trigger Attack
+    // Not a Trigger Attack
     if (!csOther->GetNode()->GetName().StartsWith(TRIGATTACK))
         return;
+
+//    URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : %s(%u) Receive Attack from %s(%u) step1 ...",
+//                     body->GetNode()->GetName().CString(), body->GetNode()->GetID(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
 
     if (GameContext::Get().time_->GetElapsedTime() - lastHurtTime_ < 0.2f)
         return;
@@ -746,7 +751,7 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 //        if (zOther == INNERVIEW || zOther > zBody)
 //            return;
 
-//    URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : %s(%u) Receive Attack from %s(%u)!!!",
+//    URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : %s(%u) Receive Attack from %s(%u) step2 ...",
 //                     body->GetNode()->GetName().CString(), body->GetNode()->GetID(), other->GetNode()->GetName().CString(), other->GetNode()->GetID());
 
     // Skip during Invulnerability

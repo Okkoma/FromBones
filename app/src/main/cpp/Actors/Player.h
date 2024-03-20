@@ -78,7 +78,7 @@ public :
     }
     void SetMissionWin();
 
-    void SetWorldMapPosition(const WorldMapPosition& position, bool findsafeplace=false);
+    void SetWorldMapPosition(WorldMapPosition& position, bool findsafeplace=false);
     void SetWorldMapPosition(VariantMap& eventData);
     int FindASafePlace(WorldMapPosition& position);
 

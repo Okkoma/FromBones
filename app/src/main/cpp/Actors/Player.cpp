@@ -339,7 +339,7 @@ void Player::SetFaction(unsigned faction)
         avatar_->SetVar(GOA::FACTION, faction_);
 
     URHO3D_LOGINFOF("---------------------------------------------------");
-    URHO3D_LOGINFOF("- Player() - SetFaction : player ID=%u faction=%u", GetID(), faction_);
+    URHO3D_LOGINFOF("- Player() - SetFaction : player ID=%u avatar=%u faction=%u", GetID(), avatar_ ? avatar_->GetID() : 0, faction_);
     URHO3D_LOGINFOF("---------------------------------------------------");
 }
 
@@ -349,15 +349,23 @@ void Player::SetMissionWin()
         missionManager_->SetMissionToState(missionManager_->GetFirstMissionToComplete(), IsCompleted);
 }
 
-void Player::SetWorldMapPosition(const WorldMapPosition& position, bool findsafeplace)
+void Player::SetWorldMapPosition(WorldMapPosition& position, bool findsafeplace)
 {
-    findSafePlace_ = findsafeplace;
-
     if (avatar_)
     {
-        const bool enable = findSafePlace_ == false;
+        URHO3D_LOGINFOF("Player() - SetWorldMapPosition : player ID=%u position=%s !", GetID(), position.ToString().CString());
 
-        URHO3D_LOGINFOF("Player() - SetWorldMapPosition : player ID=%u position=%s enableposition=%s !", GetID(), position.ToString().CString(), enable?"true":"false");
+        if (findsafeplace)
+        {
+            int status = FindASafePlace(position);
+            if (status >= 0)
+            {
+                URHO3D_LOGINFOF("Player() - SetWorldMapPosition : player ID=%u safe place position=%s !", GetID(), position.ToString().CString());
+                findsafeplace = false;
+            }
+        }
+
+        const bool enable = findsafeplace == false;
 
         GOC_Destroyer* destroyer = avatar_->GetComponent<GOC_Destroyer>();
         if (destroyer)
@@ -366,11 +374,13 @@ void Player::SetWorldMapPosition(const WorldMapPosition& position, bool findsafe
             destroyer->SetEnablePositionUpdate(enable);
         }
 
-        if (GameContext::Get().ClientMode_)
+        if (!GameContext::Get().ServerMode_)
         {
             ViewManager::Get()->SwitchToViewZ(position.viewZ_, 0, ViewManager::Get()->GetControllerViewport(this));
             GameHelpers::SetLightActivation(this);
-
+        }
+        if (GameContext::Get().ClientMode_)
+        {
             VariantMap& eventData = context_->GetEventDataMap();
             eventData[Net_ObjectCommand::P_NODEID] = avatar_->GetID();
             eventData[Net_ObjectCommand::P_CLIENTOBJECTPOSITION] = avatar_->GetWorldPosition2D();
@@ -378,6 +388,8 @@ void Player::SetWorldMapPosition(const WorldMapPosition& position, bool findsafe
             GameNetwork::Get()->PushObjectCommand(SETPLAYERPOSITION, &eventData, false, GameNetwork::Get()->GetClientID());
         }
     }
+    else
+        findSafePlace_ = findsafeplace;
 }
 
 void Player::SetWorldMapPosition(VariantMap& eventData)
@@ -901,6 +913,7 @@ void Player::UpdateComponents()
 
     SmoothedTransform* smooth = avatar_->GetOrCreateComponent<SmoothedTransform>(LOCAL);
 
+    URHO3D_LOGINFOF("Player() - UpdateComponents ... faction=%u !", faction_);
     avatar_->SetVar(GOA::FACTION, faction_);
 
     active = true;
@@ -2658,7 +2671,7 @@ void Player::OnAvatarDestroy(StringHash eventType, VariantMap& eventData)
 
         Actor::Stop();
 
-        nodeID_ = 0;
+//        nodeID_ = 0;
     }
     else
     {

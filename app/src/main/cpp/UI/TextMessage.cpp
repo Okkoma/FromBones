@@ -5,6 +5,7 @@
 #include <Urho3D/IO/Log.h>
 
 #include <Urho3D/Resource/ResourceCache.h>
+
 #include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/Graphics/Material.h>
 
@@ -19,6 +20,9 @@
 #include <Urho3D/UI/UI.h>
 #include <Urho3D/UI/UIElement.h>
 
+#include "DefsViews.h"
+
+#include "GameContext.h"
 #include "GameEvents.h"
 
 #include "TextMessage.h"
@@ -80,7 +84,7 @@ void TextMessage::Remove()
     this->~TextMessage();
 }
 
-void TextMessage::Set(Node* node, const String& message, const char *fontName, int fontSize,
+void TextMessage::Set(int viewport, Node* node, const String& message, const char *fontName, int fontSize,
                       float duration, float fadescale, bool follow, bool autoRemove, float delayedStart, float delayedRemove)
 {
     type_ = 1;
@@ -120,6 +124,9 @@ void TextMessage::Set(Node* node, const String& message, const char *fontName, i
     text3D_->SetFont(font, fontSize);
     text3D_->SetAlignment(HA_CENTER, VA_CENTER);
 
+    if (viewport != -1)
+        text3D_->SetViewMask((VIEWPORTSCROLLER_OUTSIDE_MASK << viewport) | (VIEWPORTSCROLLER_INSIDE_MASK << viewport));
+
     autoRemove_ = autoRemove;
     expirationTime1_ = delayedStart;
     expirationTime2_ = delayedStart + duration;
@@ -128,7 +135,7 @@ void TextMessage::Set(Node* node, const String& message, const char *fontName, i
 
     SubscribeToEvent(TextMessageUpdateEvent, URHO3D_HANDLER(TextMessage, handleUpdate1_3D));
 
-//    URHO3D_LOGINFOF("TextMessage() - Set : %u type=ui text=%s", this, message.CString());
+    URHO3D_LOGINFOF("TextMessage() - Set : %u type=ui text=%s node=%s(%u)", this, message.CString(), node->GetName().CString(), node->GetID());
 }
 
 void TextMessage::Set(const String& message, const char *fontName, int fontSize,

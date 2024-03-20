@@ -217,7 +217,6 @@ void PlayState::Begin()
     // Get the scene instantiate by Game
     rootScene_ = GameContext::Get().rootScene_;
     scene_ = 0;
-    activeviewport_ = 0;
 
     debugCameraWithMouse_ = false;
 
@@ -484,7 +483,12 @@ void PlayState::CheckGameLogic()
                         // Survivor Mode
                         if (localPlayers_.Size() > 1)
                         {
-                            if (GOManager::GetNumActiveBots() == 0)
+                            if (GOManager::GetNumActiveBots() == 1)
+                            {
+                                URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : a CPU wins ! => GameOver for the player !");
+                                SetGameOver();
+                            }
+                            else
                             {
                                 URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : the last of them ! => GameWin !");
                                 SetGameWin();
@@ -523,7 +527,7 @@ void PlayState::CheckSplitScreen()
     if (GameContext::Get().arenaZoneOn_)
         return;
 
-    SetViewports(GameContext::Get().gameConfig_.multiviews_);
+    SetViewports(GameContext::Get().gameConfig_.multiviews_, false);
 }
 
 
@@ -1193,9 +1197,13 @@ void PlayState::SetGameWin()
         GameHelpers::PlayMusic(rootScene_, "Music/gagne.wav", false);
 
         if (GameContext::Get().arenaZoneOn_)
-            winMessage = GameHelpers::ShowUIMessage("gamewin", " !", true, 120, IntVector2::ZERO, 2.5f, 1.f, 0.f);
+        {
+            PODVector<Player* > players;
+            GetLocalPlayers(players, true);
+            winMessage = GameHelpers::ShowUIMessage3D(ViewManager::Get()->GetControllerViewport(players.Front()), "gamewin", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 0.f);
+        }
         else
-            winMessage = GameHelpers::ShowUIMessage("nextlevel", " !", true, 120, IntVector2::ZERO, 1.f, 3.f, 3.f);
+            winMessage = GameHelpers::ShowUIMessage3D(-1, "nextlevel", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 0.f);
 
         if (winMessage)
         {
@@ -1597,7 +1605,7 @@ void PlayState::SetPlayers(bool init, bool restart)
     const bool editoron = false;
 #endif
 
-    SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_);
+    SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_, true);
 
     if (!localActivePlayersIds.Size() || editoron)
     {
@@ -1652,7 +1660,7 @@ void PlayState::RemovePlayers()
 
 #define ACTIVE_PLAYERCPU_VIEWPORTS
 
-void PlayState::SetViewports(bool dynamic)
+void PlayState::SetViewports(bool dynamic, bool init)
 {
     static Vector<PODVector<Player* > > viewportplayers;
     viewportplayers.Reserve(MAX_VIEWPORTS);
@@ -1661,9 +1669,9 @@ void PlayState::SetViewports(bool dynamic)
     // get the local active players
     PODVector<Player*> activeplayers;
 #ifdef ACTIVE_PLAYERCPU_VIEWPORTS
-    GetLocalPlayers(activeplayers, true, false);
+    GetLocalPlayers(activeplayers, dynamic, false);
 #else
-    GetLocalPlayers(activeplayers, true, false, CTFLAG_NOCPU);
+    GetLocalPlayers(activeplayers, dynamic, false, CTFLAG_NOCPU);
 #endif
 
     // dispatch Players on Viewport
@@ -1764,7 +1772,7 @@ void PlayState::SetViewports(bool dynamic)
         }
     }
 
-    if (updateNumViewports)
+    if (updateNumViewports || init)
     {
         for (int viewport = 0; viewport < viewportplayers.Size(); viewport++)
         {
@@ -1779,10 +1787,10 @@ void PlayState::SetViewports(bool dynamic)
         }
 
         // update World
-        World2D::GetWorld()->UpdateViewports();
+        World2D::GetWorld()->UpdateViewports(init);
 
         // clamp the active viewport
-        activeviewport_ = Clamp(activeviewport_, 0, (int)ViewManager::Get()->GetNumViewports()-1);
+        GameContext::Get().activeviewport_ = Clamp(GameContext::Get().activeviewport_, 0, (int)ViewManager::Get()->GetNumViewports()-1);
 
         URHO3D_LOGINFOF("PlayState() - SetViewports : Update ... OK !");
     }
@@ -2070,7 +2078,7 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
 
 #ifdef ACTIVE_INITIALDEZOOMONSTART
     if (activeplayers.Size() > 0)
-        SetViewports();
+        SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_, true);
 #endif
 
     SetVisibleUI(true);
@@ -2097,9 +2105,9 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
 
         levelText_ = GameHelpers::ShowUIMessage(GameContext::Get().sceneToLoad_[GameContext::Get().indexLevel_-1][2], String::EMPTY, false, 120, IntVector2::ZERO, 1.f, 2.3f);
         if (GameContext::Get().arenaZoneOn_)
-            levelGOText_ = GameHelpers::ShowUIMessage3D(GOManager::GetNumActivePlayers() > 1 ? "killallplayers" : "killallenemies", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 2.5f);
+            levelGOText_ = GameHelpers::ShowUIMessage3D(-1, numActivePlayers_ > 1 ? "killallplayers" : "killallenemies", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 2.5f);
         else
-            levelGOText_ = GameHelpers::ShowUIMessage3D("levelgo", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 2.5f);
+            levelGOText_ = GameHelpers::ShowUIMessage3D(-1, "levelgo", " !", true, 100, IntVector2::ZERO, 3.f, 4.f, 2.5f);
 
         goManager->Dump();
         SubscribeToEvent(this, GAME_START, URHO3D_HANDLER(PlayState, OnGameStart));
@@ -2142,7 +2150,7 @@ void PlayState::HandleUpdateScores(StringHash eventType, VariantMap& eventData)
             if (gocPlayer)
             {
                 TextMessage* scoreText = new TextMessage(context_);
-                scoreText->Set(rootScene_->GetNode(ID_Dead),ToString("%dpts",1000), "Fonts/jokerman24pts.sdf", 24, 3.f);
+                scoreText->Set(-1, rootScene_->GetNode(ID_Dead), ToString("%dpts",1000), "Fonts/jokerman24pts.sdf", 24, 3.f);
 
                 Player* playerPtr = localPlayers_[gocPlayer->playerID];
                 playerPtr->UpdatePoints(1000);
@@ -2268,8 +2276,6 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         return;
     }
 
-
-
     // Editor Mode
 #ifdef ACTIVE_CREATEMODE
     if (input.GetKeyPress(KEY_F3) || (MapEditor::Get() && input.GetKeyPress(KEY_ESCAPE)))
@@ -2310,7 +2316,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
     {
         if (input.GetKeyPress(KEY_TAB) && input.GetKeyDown(KEY_CTRL))
         {
-            Camera* camera = ViewManager::Get()->GetCamera(activeviewport_);
+            Camera* camera = ViewManager::Get()->GetCamera(GameContext::Get().activeviewport_);
             debugCameraWithMouse_ = !debugCameraWithMouse_;
 
             if (debugCameraWithMouse_)
@@ -2336,7 +2342,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         if (debugCameraWithMouse_)
         {
             // Move active camera
-            Camera* camera = ViewManager::Get()->GetCamera(activeviewport_);
+            Camera* camera = ViewManager::Get()->GetCamera(GameContext::Get().activeviewport_);
             IntVector2 mouseMove = input.GetMouseMove();
             cameraYaw_ += 0.1f * mouseMove.x_;
             cameraPitch_ += 0.1f * mouseMove.y_;
@@ -2356,19 +2362,19 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                 return;
 
             int newactiveviewport = ViewManager::Get()->GetViewportAt(x, y);
-            if (newactiveviewport != activeviewport_)
+            if (newactiveviewport != GameContext::Get().activeviewport_)
             {
-                activeviewport_ = newactiveviewport;
-                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Active Viewport=%d !", activeviewport_);
+                GameContext::Get().activeviewport_ = newactiveviewport;
+                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Active Viewport=%d !", GameContext::Get().activeviewport_);
             }
 
-            Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(activeviewport_);
+            Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(GameContext::Get().activeviewport_);
             Ray ray = viewport->GetScreenRay(x, y);
             Vector3 wpoint3 = viewport->ScreenToWorldPoint(x, y, ray.HitDistance(GameContext::Get().GroundPlane_));
             Vector2 wpoint = Vector2(wpoint3.x_, wpoint3.y_);
             WorldMapPosition wmPosition;
             World2D::GetWorldInfo()->Convert2WorldMapPosition(wpoint, wmPosition, wmPosition.positionInTile_);
-            wmPosition.viewZIndex_ = ViewManager::Get()->GetCurrentViewZIndex(activeviewport_);
+            wmPosition.viewZIndex_ = ViewManager::Get()->GetCurrentViewZIndex(GameContext::Get().activeviewport_);
             wmPosition.viewZ_ = ViewManager::Get()->GetCurrentViewZ();
 
             /// Test Tiles
@@ -2428,7 +2434,8 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
                         URHO3D_LOGINFOF("PlayState() - HandleUpdate : SpawnEntity at map=%s Point=%s", wmPosition.mPoint_.ToString().CString(), wmPosition.mPosition_.ToString().CString());
 
-                        Node* node = World2D::SpawnEntity(got, RandomEntityFlag|RandomMappingFlag, 0, 0, ViewManager::Get()->GetCurrentViewZ(activeviewport_), PhysicEntityInfo(wpoint.x_, wpoint.y_), SceneEntityInfo(), 0, false);
+                        Node* node = World2D::SpawnEntity(got, RandomEntityFlag|RandomMappingFlag, 0, 0, ViewManager::Get()->GetCurrentViewZ(GameContext::Get().activeviewport_),
+                                                          PhysicEntityInfo(wpoint.x_, wpoint.y_), SceneEntityInfo(), 0, false);
                     }
                     else
                     {
@@ -2693,12 +2700,12 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
     }
 #endif
     // Handle Player1 Animation Speed
-    if (localPlayers_.Size() && localPlayers_[activeviewport_]->GetAvatar())
+    if (localPlayers_.Size() && localPlayers_[GameContext::Get().activeviewport_]->GetAvatar())
     {
         // Tip : Player1 LoadStuff
         if (input.GetKeyPress(KEY_F5))
         {
-            GOC_Inventory::LoadInventory(localPlayers_[activeviewport_]->GetAvatar());
+            GOC_Inventory::LoadInventory(localPlayers_[GameContext::Get().activeviewport_]->GetAvatar());
         }
         // Save Scene
         if (input.GetKeyPress(KEY_F6))
@@ -2708,19 +2715,19 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Decrease Animation Speed
         if (input.GetKeyPress(KEY_F10))
         {
-            AnimatedSprite2D* animatedSprite = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
+            AnimatedSprite2D* animatedSprite = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
             animatedSprite->SetSpeed(animatedSprite->GetSpeed() > 0 ? animatedSprite->GetSpeed() - 0.1f : 0.0f);
         }
         // Increase Animation Speed
         if (input.GetKeyPress(KEY_F11))
         {
-            AnimatedSprite2D* animatedSprite = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
+            AnimatedSprite2D* animatedSprite = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
             animatedSprite->SetSpeed(animatedSprite->GetSpeed() + 0.1f);
         }
         // Restore Animation Speed
         if (input.GetKeyPress(KEY_F12))
         {
-            AnimatedSprite2D* animatedSprite = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
+            AnimatedSprite2D* animatedSprite = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetComponent<AnimatedSprite2D>();
             animatedSprite->SetSpeed(1.0f);
         }
     }
@@ -2731,15 +2738,15 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         if (input.GetScancodePress(SCANCODE_KP_0))
         {
 #ifndef ACTIVE_CREATEMODE
-            bool playerswitch = localPlayers_.Size() && localPlayers_.Size() >= activeviewport_;
+            bool playerswitch = localPlayers_.Size() && localPlayers_.Size() >= GameContext::Get().activeviewport_;
 #else
-            bool playerswitch = !MapEditor::Get() && localPlayers_.Size() && localPlayers_.Size() >= activeviewport_ ;
+            bool playerswitch = !MapEditor::Get() && localPlayers_.Size() && localPlayers_.Size() >= GameContext::Get().activeviewport_ ;
 #endif
             if (playerswitch)
             {
-                playerswitch = localPlayers_[activeviewport_]->GetAvatar() ? localPlayers_[activeviewport_]->GetAvatar()->IsEnabled() : false;
+                playerswitch = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar() ? localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->IsEnabled() : false;
                 if (playerswitch)
-                    localPlayers_[activeviewport_]->SwitchViewZ();
+                    localPlayers_[GameContext::Get().activeviewport_]->SwitchViewZ();
             }
             if (!playerswitch)
                 ViewManager::Get()->SwitchNextZ(0);
@@ -2750,9 +2757,9 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
         // Tip : Node Focus Enable/Disable
         if (input.GetScancodePress(SCANCODE_HOME))
         {
-            bool enable = !ViewManager::Get()->GetFocusEnable(activeviewport_);
-            URHO3D_LOGINFOF("PlayState() - HandleUpdate : SetFocusEnable=%s on activeviewport=%u !", enable ? "true":"false", activeviewport_);
-            ViewManager::Get()->SetFocusEnable(enable, activeviewport_);
+            bool enable = !ViewManager::Get()->GetFocusEnable(GameContext::Get().activeviewport_);
+            URHO3D_LOGINFOF("PlayState() - HandleUpdate : SetFocusEnable=%s on activeviewport=%u !", enable ? "true":"false", GameContext::Get().activeviewport_);
+            ViewManager::Get()->SetFocusEnable(enable, GameContext::Get().activeviewport_);
         }
         // Tip : Pause Without Window
         if (input.GetScancodePress(SCANCODE_P))
@@ -2823,18 +2830,18 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             // Tip player suicide
             if (input.GetScancodePress(SCANCODE_J))
             {
-                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide on viewport=%d ...", activeviewport_);
+                URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide on viewport=%d ...", GameContext::Get().activeviewport_);
 
-                if (localPlayers_[activeviewport_]->GetAvatar())
+                if (localPlayers_[GameContext::Get().activeviewport_]->GetAvatar())
                 {
-                    eventData[GOC_Life_Events::GO_ID] = localPlayers_[activeviewport_]->nodeID_;
+                    eventData[GOC_Life_Events::GO_ID] = localPlayers_[GameContext::Get().activeviewport_]->nodeID_;
                     eventData[GOC_Life_Events::GO_KILLER] = 0;
-                    eventData[GOC_Life_Events::GO_TYPE] = localPlayers_[activeviewport_]->GetAvatar()->GetVar(GOA::TYPECONTROLLER).GetInt();
+                    eventData[GOC_Life_Events::GO_TYPE] = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetVar(GOA::TYPECONTROLLER).GetInt();
                     eventData[GOC_Life_Events::GO_WORLDCONTACTPOINT] = 0;
 
-                    localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::ISDEAD, true);
-                    localPlayers_[activeviewport_]->GetAvatar()->SetVar(GOA::LIFE, 0);
-                    localPlayers_[activeviewport_]->GetAvatar()->SendEvent(GOC_LIFEDEAD, eventData);
+                    localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->SetVar(GOA::ISDEAD, true);
+                    localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->SetVar(GOA::LIFE, 0);
+                    localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->SendEvent(GOC_LIFEDEAD, eventData);
 
                     URHO3D_LOGINFOF("PlayState() - HandleUpdate : Player Suicide ... numActivePlayers=%u OK !", GOManager::GetNumActivePlayers());
                 }
@@ -2939,13 +2946,13 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
             // Debug Text3D
             if (input.GetScancodePress(SCANCODE_K))
             {
-                Node* text = localPlayers_[activeviewport_]->GetAvatar()->GetChild("Text3D");
+                Node* text = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetChild("Text3D");
                 if (!text)
                 {
                     Vector3 position;
-                    position.y_ = localPlayers_[activeviewport_]->GetAvatar()->GetComponent<GOC_Animator2D>()->GetAnimated()->GetWorldBoundingBox().Size().y_;
+                    position.y_ = localPlayers_[GameContext::Get().activeviewport_]->GetAvatar()->GetComponent<GOC_Animator2D>()->GetAnimated()->GetWorldBoundingBox().Size().y_;
                     position.z_ = 0.1f;
-                    TextTest(context_, localPlayers_[activeviewport_]->GetAvatar(), position, "Hello !", "Fonts/Lycanthrope.ttf", 2.f, 1.5f, 50);
+                    TextTest(context_, localPlayers_[GameContext::Get().activeviewport_]->GetAvatar(), position, "Hello !", "Fonts/Lycanthrope.ttf", 2.f, 1.5f, 50);
                 }
                 else
                     text->Remove();
@@ -2960,7 +2967,7 @@ float moveZoomFactor=1.f;
 void PlayState::HandleCamera(float timeStep)
 {
     Input* input = GetSubsystem<Input>();
-    Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(activeviewport_);
+    Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(GameContext::Get().activeviewport_);
 
     // Camera Zoom
     if (input->GetScancodeDown(SCANCODE_KP_9))

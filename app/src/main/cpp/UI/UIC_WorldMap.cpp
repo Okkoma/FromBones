@@ -230,8 +230,10 @@ Sprite* UIC_WorldMap::CreatePoint(UIElement* root, const Color& color, int size)
 
     GameHelpers::SetUIElementFrom(uipoint, UIEQUIPMENT, "point");
 
+    uipoint->SetUseDerivedOpacity(false);
     uipoint->SetFocusMode(FM_NOTFOCUSABLE);
     uipoint->SetColor(color);
+    uipoint->SetOpacity(0.8f);
     uipoint->SetSize(size, size);
     uipoint->SetHotSpot(size/2, size/2);
     uipoint->SetAlignment(HA_LEFT, VA_TOP);
@@ -447,6 +449,7 @@ void UIC_WorldMap::UpdateSnapShotGrid()
                 for (int i = numchildren; i < numgridpoints; i++)
                 {
                     BorderImage* gridpoint = gridroot->CreateChild<BorderImage>();
+                    gridpoint->SetUseDerivedOpacity(false);
                     gridpoint->SetFocusMode(FM_NOTFOCUSABLE);
                     gridpoint->SetTexture(texture);
                     gridpoint->SetImageRect(IntRect(0, 0, texture->GetWidth(), texture->GetHeight()));
@@ -576,7 +579,8 @@ void UIC_WorldMap::HandleWorldSnapShotClicked(StringHash eventType, VariantMap& 
 
                 URHO3D_LOGINFOF("go2map(%s) => waiting ...", hovermap.ToString().CString());
 
-                GameHelpers::TransferPlayersToMap(hovermap);
+//                GameHelpers::TransferPlayersToMap(hovermap);
+                GameContext::Get().TransferPlayersToMapV2(GameContext::Get().activeviewport_, hovermap);
             }
             else
             {

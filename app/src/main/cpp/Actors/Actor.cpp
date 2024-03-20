@@ -906,7 +906,7 @@ DialogMessage* Actor::GetMessage(const String& msgkey) const
 #define CLONE_METHOD
 void Actor::ResetAvatar(const Vector2& newposition)
 {
-    URHO3D_LOGINFOF("Actor() - ResetAvatar : ... newposition=%s ... avatar=%u", newposition.ToString().CString(), avatar_.Get());
+    URHO3D_LOGINFOF("Actor() - ResetAvatar : ... nodeID_=%u newposition=%s ... avatar=%u", nodeID_, newposition.ToString().CString(), avatar_.Get());
 
     if (avatar_)
     {
@@ -926,7 +926,7 @@ void Actor::ResetAvatar(const Vector2& newposition)
 
     if (!avatar_ && nodeID_)
     {
-        if (scene_ && !info_.name_.Empty())
+        if (scene_)
         {
             URHO3D_LOGINFOF("Actor() - ResetAvatar : ... Existing nodeId=%u try to get Avatar in the scene ...", nodeID_);
             avatar_ = scene_->GetNode(nodeID_);

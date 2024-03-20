@@ -113,7 +113,7 @@ public:
     static void SpawnCollectableFromSlot(Context* context, Slot& slot, Node* node, unsigned int qty = M_MAX_UNSIGNED);
     static Node* SpawnParticleEffectInNode(Context* context, Node* node, const String& effectName, int layer, int viewmask, const Vector2& position, float angle, float fscale=1.f, bool removeTimer=true, float duration=-1.f, const Color& color=Color::WHITE, CreateMode mode=REPLICATED);
     static void SpawnParticleEffect(Context* context, const String& effectName, int layer, int viewmask, const Vector2& position, float worldAngle=0.f, float worldScale=1.f, bool removeTimer=true, float duration=-1.f, const Color& color=Color::WHITE, CreateMode mode=REPLICATED, Material* material=0, const float zf=0.f);
-    static void TransferPlayersToMap(const ShortIntVector2& mPoint);
+    static void TransferPlayersToMap(const ShortIntVector2& mPoint, IntVector2 position = IntVector2::ZERO, int viewZ=-1);
     static bool SpawnScraps(const StringHash& type, unsigned numscraps, const Color& color, bool iscollider, int layer, int viewZ, int viewMask, const Vector2& position, const Vector2& scale, float maxsize, float lifetime, float impulse, float density);
     static void SetControllabledNode(Node* node, int controlID=0, int movetype=MOVE2D_WALK, int numjumps=1, int viewZ=-1);
     static void SetDrawableLayerView(Node* node, int viewz=0);
@@ -235,7 +235,7 @@ public:
     static Window* GetModalWindow();
     static void SetEnableScissor(UIElement* elt, bool enable);
     static TextMessage* ShowUIMessage(const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale=1.f, float duration=2.f, float delaystart=0.f);
-    static TextMessage* ShowUIMessage3D(const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale=1.f, float duration=2.f, float delaystart=0.f);
+    static TextMessage* ShowUIMessage3D(int viewport, const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale=1.f, float duration=2.f, float delaystart=0.f);
     static void ParseText(const String& text, Vector<String>& lines, int nummaxchar);
 
     /// Dump Helpers

@@ -239,6 +239,7 @@ public :
     bool IsAvatarNodeID(unsigned id, int clientid=-1) const;
 
     void CreatePreloaderIcon();
+    void SetEnabledPreloaderIcon(bool enable);
     bool PreloadResources();
     bool UnloadResources();
     bool IsPreloading() const { return preloading_; }
@@ -265,6 +266,8 @@ public :
     Node* FindMapPositionAt(const String& favoriteArea, const ShortIntVector2& mPoint, IntVector2& position, int& viewZ, Node* excludeNode=0);
     void SetWorldStartPosition();
     bool GetStartPosition(WorldMapPosition& position, int index=0);
+    void TransferPlayersToMapV2(int viewport, const ShortIntVector2& mPoint, IntVector2 position = IntVector2::ZERO, int viewZ=-1);
+    void HandleTransferPlayersToMap(StringHash eventType, VariantMap& eventData);
 
     void Dump() const;
 
@@ -305,6 +308,7 @@ public :
     WeakPtr<Node> preloadGOTNode_;
     WeakPtr<Node> controllablesNode_;
     Camera* camera_;
+    int activeviewport_;
     static const float cameraZoomFactor_;
     static const float CameraZoomDefault_;
     static const float CameraZoomBoss_;

@@ -66,7 +66,10 @@ URHO3D_EVENT(WORLD_ENTITYUPDATE, World_EntityUpdate)
 URHO3D_EVENT(WORLD_MAPUPDATE, World_MapUpdate) { }
 /// => Sender : World2D
 /// => Subscribers : DrawableScroller, ScrollingShape
-URHO3D_EVENT(WORLD_CAMERACHANGED, World_CameraChanged) { }
+URHO3D_EVENT(WORLD_CAMERACHANGED, World_CameraChanged)
+{
+    URHO3D_PARAM(VIEWPORT, Viewport);  // int
+}
 /// => Sender : Map
 /// => Subscribers : UIC_MiniMap
 URHO3D_EVENT(MAP_UPDATE, Map_Update) { }

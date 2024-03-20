@@ -217,6 +217,7 @@ public:
     static Rect GetVisibleRect(int viewport=0);
     static const IntRect& GetVisibleAreas(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].visibleArea_ : IntRect::ZERO; }
     static IntRect GetVisibleAreas(const Vector2& wposition);
+    static void GetVisibleMapPointsAt(PODVector<ShortIntVector2>& mpoints, const ShortIntVector2& mpoint, IntVector2 position);
     static const Vector<ShortIntVector2>& GetKeepedVisibleMaps() { return keepedVisibleMaps_; }
 
     static const ShortIntVector2& GetCurrentMapPoint(int viewport=0) { return viewport < world_->viewinfos_.Size() ? world_->viewinfos_[viewport].mPoint_ : ShortIntVector2::ZERO; }
@@ -267,6 +268,7 @@ public:
 
     static void SetWorldViewportInfos();
 
+    static void AddKeepedVisibleMap(const ShortIntVector2& mpoint);
     static void SetKeepedVisibleMaps(bool state);
 
     static void ReinitWorld(const IntVector2& wPoint);
@@ -325,15 +327,15 @@ public:
     /// Update buffer and visible maps : no timer
     void UpdateAll();
     void UpdateVisibleRectInfos(int viewport=0);
-
-    void UpdateViewports();
+    void UpdateViewport(int viewport, bool init);
+    void UpdateViewports(bool init);
 
 private:
     void UpdateWorldBounds();
     void UpdateTextureLevels();
     void UpdateVisibleLists();
     void UpdateVisibleAreas(HiresTimer* timer=0);
-    void UpdateVisibleCollideBorders();
+    void UpdateCollideBorders();
     void UpdateActors(HiresTimer* timer);
     void UpdateZones();
     void UpdateMaps(HiresTimer* timer);

@@ -106,7 +106,7 @@ private:
     void ResetPlayers();
     void RemovePlayers();
     void UpdateNumActivePlayers();
-    void SetViewports(bool dynamic=false);
+    void SetViewports(bool dynamic, bool init);
 
     void SubscribeToEvents();
     void UnsubscribeToEvents();
@@ -137,8 +137,6 @@ private:
 
     Scene* rootScene_;
     Node* scene_;
-
-    int activeviewport_;
 
     float cameraYaw_;
     float cameraPitch_;

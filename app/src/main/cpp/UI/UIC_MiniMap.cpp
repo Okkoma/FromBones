@@ -327,7 +327,9 @@ Sprite* UIC_MiniMap::CreatePoint(const Color& color, int size)
 //    GameHelpers::SetUIElementFrom(uipoint, UIMAIN, "UIPoint");
     GameHelpers::SetUIElementFrom(uipoint, UIEQUIPMENT, "point");
 
+    uipoint->SetUseDerivedOpacity(false);
     uipoint->SetColor(color);
+    uipoint->SetOpacity(0.8f);
     uipoint->SetSize(size, size);
     uipoint->SetHotSpot(size/2, size/2);
     uipoint->SetAlignment(HA_CENTER, VA_CENTER);

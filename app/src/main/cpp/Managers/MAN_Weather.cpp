@@ -334,15 +334,22 @@ void WeatherManager::SetSunLight(int viewport)
 {
     Node* cameranode = ViewManager::Get()->GetCameraNode(viewport);
     if (!cameranode)
+    {
         return;
+    }
 
-    Node* sunLightNode = cameranode->GetChild("SunLight", LOCAL);
+    String name = "SunLight" + String(viewport);
+
+    Node* sunLightNode = cameranode->GetChild(name, LOCAL);
     if (!sunLightNode)
     {
-        sunLightNode = cameranode->CreateChild("SunLight", LOCAL);
+        sunLightNode = cameranode->CreateChild(name, LOCAL);
         sunLightNode->SetPosition(Vector3(0.f, 15.f, 0.f));
+    }
 
-        WeatherViewData& viewdata = weatherviewdatas_[viewport];
+    WeatherViewData& viewdata = weatherviewdatas_[viewport];
+    if (!viewdata.sunlight_)
+    {
         viewdata.sunlight_ = sunLightNode->GetOrCreateComponent<Light>();
         viewdata.sunlight_->SetLightType(LIGHT_POINT);
         viewdata.sunlight_->SetRange(75.f);
@@ -567,6 +574,9 @@ void WeatherManager::SetActive(int viewport, bool state, bool forced)
             }
 #endif
 #endif
+            URHO3D_LOGERRORF("WeatherManager() - SetActive : viewport=%d state=%s sunlight=%s(%s)... OK !",
+                             viewport, state?"true":"false", viewdata.sunlight_ ? viewdata.sunlight_->GetNode()->GetName().CString() : "none",
+                             viewdata.sunlight_ && viewdata.sunlight_->IsEnabled() ? "true":"false");
         }
     }
     else
@@ -708,7 +718,7 @@ void WeatherManager::Update()
 
             if (viewdata.sunlight_->IsEnabled() != enabled)
             {
-//                URHO3D_LOGINFOF("WeatherManager() - Update : viewport=%d sunlight node=%s(%u) ... enabled=%s", viewport, viewdata.sunlight_->GetNode()->GetName().CString(), viewdata.sunlight_->GetNode()->GetID(), enabled ? "true":"false");
+                URHO3D_LOGINFOF("WeatherManager() - Update : viewport=%d sunlight node=%s(%u) ... enabled=%s", viewport, viewdata.sunlight_->GetNode()->GetName().CString(), viewdata.sunlight_->GetNode()->GetID(), enabled ? "true":"false");
                 viewdata.sunlight_->SetEnabled(enabled);
             }
 
@@ -902,8 +912,23 @@ void WeatherManager::HandleSceneUpdate(StringHash eventType, VariantMap& eventDa
 
 void WeatherManager::HandleCameraPositionChanged(StringHash eventType, VariantMap& eventData)
 {
-    unsigned numviewports = ViewManager::Get()->GetNumViewports();
-    for (int viewport=0; viewport < numviewports; viewport++)
+    int viewport = eventData[World_CameraChanged::VIEWPORT].GetInt();
+
+    if (viewport == -1)
+    {
+        unsigned numviewports = ViewManager::Get()->GetNumViewports();
+        for (int viewport=0; viewport < numviewports; viewport++)
+        {
+            // Desactive if in fullbackground
+            World2D::GetWorld()->UpdateVisibleRectInfos(viewport);
+            bool infullbackground = World2D::IsVisibleRectInFullBackGround(viewport);
+
+            URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
+
+            SetActive(viewport, !infullbackground, true);
+        }
+    }
+    else
     {
         // Desactive if in fullbackground
         World2D::GetWorld()->UpdateVisibleRectInfos(viewport);

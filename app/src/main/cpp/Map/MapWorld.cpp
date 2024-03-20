@@ -488,38 +488,18 @@ void World2D::SetWorldViewportInfos()
     if (!world_)
         return;
 
-    const int numviewports = ViewManager::Get()->GetNumViewports();
-    const int lastnumviewports = world_->viewinfos_.Size();
-
-    // stop effects for the unsed viewports
-    if (numviewports < lastnumviewports)
-    {
-        for (int i = numviewports; i < lastnumviewports; i++)
-            DrawableScroller::SetActive(i, false);
-
-        if (WeatherManager::Get())
-            for (int i = numviewports; i < lastnumviewports; i++)
-                WeatherManager::Get()->SetActive(i, false);
-    }
-
     // update Viewport Infos
-    world_->viewinfos_.Resize(numviewports);
-    for (int i = 0; i < numviewports; i++)
+    world_->viewinfos_.Resize(ViewManager::Get()->GetNumViewports());
+    for (int i = 0; i < world_->viewinfos_.Size(); i++)
     {
         world_->viewinfos_[i].Clear();
         world_->viewinfos_[i].viewport_ = i;
     }
+
     world_->OnViewportUpdated();
 
     TravelerNodeInfo::visibleRectHalfSize_.x_ = viewSpanFactor * GameContext::Get().camera_->GetOrthoSize() / GameContext::Get().CameraZoomDefault_;
     TravelerNodeInfo::visibleRectHalfSize_.y_ = TravelerNodeInfo::visibleRectHalfSize_.x_ / GameContext::Get().camera_->GetAspectRatio();
-
-    // start effects for the new viewports
-    for (int i = 0; i < numviewports; i++)
-        DrawableScroller::SetActive(i, true);
-
-    if (WeatherManager::Get())
-        WeatherManager::Get()->SetActive(-1, true);
 }
 
 static bool world2DVisibleCollideRectDirty_ = false;
@@ -1770,6 +1750,40 @@ IntRect World2D::GetVisibleAreas(const Vector2& wposition)
                    (int)floor(wposition.x_ / mWidth_+ 0.5f), (int)floor(wposition.y_ / mHeight_ + 0.5f));
 }
 
+void World2D::GetVisibleMapPointsAt(PODVector<ShortIntVector2>& mpoints, const ShortIntVector2& mpoint, IntVector2 position)
+{
+    mpoints.Push(mpoint);
+
+    // get the visible Rect of the first viewport and convert it in a tiles size
+    Vector2 visibleSize = GetExtendedVisibleRect(0).Size();
+    visibleSize.x_ /= mTileWidth_;
+    visibleSize.y_ /= mTileHeight_;
+    visibleSize *= 0.5f;
+
+    // add mpoints in the visible rect
+    if (position.x_ + visibleSize.x_ > MapInfo::info.width_)
+        mpoints.Push(ShortIntVector2(mpoint.x_+1, mpoint.y_));
+    else if (position.x_ - visibleSize.x_ < 0)
+        mpoints.Push(ShortIntVector2(mpoint.x_-1, mpoint.y_));
+
+    if (position.y_ + visibleSize.y_ > MapInfo::info.height_)
+    {
+        mpoints.Push(ShortIntVector2(mpoint.x_, mpoint.y_-1));
+        if (position.x_ + visibleSize.x_ > MapInfo::info.width_)
+            mpoints.Push(ShortIntVector2(mpoint.x_+1, mpoint.y_-1));
+        else if (position.x_ - visibleSize.x_ < 0)
+            mpoints.Push(ShortIntVector2(mpoint.x_-1, mpoint.y_-1));
+    }
+    else if (position.y_ - visibleSize.y_ < 0)
+    {
+        mpoints.Push(ShortIntVector2(mpoint.x_, mpoint.y_+1));
+        if (position.x_ + visibleSize.x_ > MapInfo::info.width_)
+            mpoints.Push(ShortIntVector2(mpoint.x_+1, mpoint.y_+1));
+        else if (position.x_ - visibleSize.x_ < 0)
+            mpoints.Push(ShortIntVector2(mpoint.x_-1, mpoint.y_+1));
+    }
+}
+
 const Vector2& World2D::GetCurrentMapOrigin(int viewport)
 {
     return world_ && world_->viewinfos_[viewport].currentMap_ ? world_->viewinfos_[viewport].currentMap_->GetTopography().maporigin_ : Vector2::ZERO;
@@ -2558,6 +2572,11 @@ void World2D::HandleObjectDestroy(StringHash eventType, VariantMap& eventData)
 
 /// Updaters
 
+void World2D::AddKeepedVisibleMap(const ShortIntVector2& mpoint)
+{
+    keepedVisibleMaps_.Push(mpoint);
+}
+
 void World2D::SetKeepedVisibleMaps(bool state)
 {
     URHO3D_LOGINFOF("World2D() - SetKeepedVisibleMaps ...");
@@ -2655,7 +2674,7 @@ void World2D::OnMapVisibleChanged(Map* updatedMap)
     }
 }
 
-void World2D::UpdateVisibleCollideBorders()
+void World2D::UpdateCollideBorders()
 {
     if (!world2DVisibleCollideRectDirty_)
         return;
@@ -2753,7 +2772,7 @@ void World2D::UpdateVisibleCollideBorders()
 
     world2DVisibleCollideRectDirty_ = false;
 
-//    URHO3D_LOGERRORF("World2D() - UpdateVisibleCollideBorders : update box p[0]=%s p[2]=%s !", sVisibleCollideBorderShape[0].ToString().CString(), sVisibleCollideBorderShape[2].ToString().CString());
+//    URHO3D_LOGERRORF("World2D() - UpdateCollideBorders : update box p[0]=%s p[2]=%s !", sVisibleCollideBorderShape[0].ToString().CString(), sVisibleCollideBorderShape[2].ToString().CString());
 }
 
 void World2D::UpdateVisibleAreas(HiresTimer* timer)
@@ -3379,7 +3398,7 @@ void World2D::UpdateStep(float timestep)
 
     UpdateVisibleAreas(&timer_);
 
-    UpdateVisibleCollideBorders();
+    UpdateCollideBorders();
 
     GAME_SETGAMELOGENABLE(GAMELOG_WORLDUPDATE, true);
 
@@ -3512,14 +3531,59 @@ void World2D::UpdateInstant(int viewport, const Vector2& position, bool sendeven
     URHO3D_LOGINFOF("---------------------------------------------------");
 }
 
-void World2D::UpdateViewports()
+void World2D::UpdateViewport(int viewport, bool init)
 {
-    SetWorldViewportInfos();
+    if (!init)
+    {
+        viewinfos_[viewport].Update();
+//        UpdateInstant(viewport, viewinfos_[viewport].camera_->GetNode()->GetWorldPosition2D(), false);
 
-    for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
-        UpdateInstant(it->viewport_, it->camera_->GetNode()->GetWorldPosition2D(), false);
+        // start effects for the viewport
+//        DrawableScroller::SetActive(viewport, true);
+    }
 
-    UpdateVisibleCollideBorders();
+    UpdateCollideBorders();
+
+//    if (WeatherManager::Get())
+//        WeatherManager::Get()->SetActive(viewport, true, init);
+}
+
+void World2D::UpdateViewports(bool init)
+{
+    if (!init)
+    {
+        const int numviewports = ViewManager::Get()->GetNumViewports();
+        const int lastnumviewports = world_->viewinfos_.Size();
+
+        // stop effects for the unsed viewports
+        if (numviewports < lastnumviewports)
+        {
+            for (int i = numviewports-1; i < lastnumviewports; i++)
+                DrawableScroller::SetActive(i, false);
+
+            if (WeatherManager::Get())
+                for (int i = numviewports-1; i < lastnumviewports; i++)
+                    WeatherManager::Get()->SetActive(i, false);
+        }
+
+        SetWorldViewportInfos();
+
+        for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
+            UpdateInstant(it->viewport_, it->camera_->GetNode()->GetWorldPosition2D(), false);
+
+        // start effects for the new viewports
+        for (int i = 0; i < numviewports; i++)
+            DrawableScroller::SetActive(i, true);
+    }
+    else
+    {
+        SetWorldViewportInfos();
+    }
+
+    UpdateCollideBorders();
+
+    if (WeatherManager::Get())
+        WeatherManager::Get()->SetActive(-1, true, init);
 }
 
 void World2D::UpdateAll()

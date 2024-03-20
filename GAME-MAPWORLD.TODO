@@ -1,5 +1,17 @@
 Todos:
 
+    ✔ 18/03/2024 : il y a des decalages avec les DrawableScrollers (les montagnes et forets) lorsque l'on passe du mode arena vers le mode world
+        -> il s'agit de flatmode_ qui n'était setté que dans DrawableScroller::Start() => ajout dans DrawableScroller::SetActive()
+
+    ✔ 18/03/2024 : lorsque l'on commence en mode arena en multiviews puis que l'on change vers le mode world la sunlight du viewport 1 ne fonctionne pas
+        -> a priori la light est detruite mais pas le node ... modification de WeatherManager::SetSunLight
+
+    ✔ 18/03/2024 : lorsque l'on se teleporte, il faut absolument que les maps ou apparait le joueur soient chargées et visibles.
+        -> faire un essai avec "go2map" en bordure de 3 autres maps
+        => utiliser go2map=0,23,14,62,1,70
+        ==> les maps à créer et à afficher directement sont 23,14 | 23,15 | 24,14 | 24,15.
+        ==> 20/03/2024 : creation de GameContext::TransferPlayersToMapV2 qui ne crée que les map indispensables grace à World2D::GetVisibleMapPointsAt et qui est async.
+
     ✔ 31/01/2024 : lors de la teleportation par GOC_Portal, il y avait une erreur d'arret de creation de Map coté Client du à l'utilisation de MapCreator::PurgeMap dans MapStorage::UpdateBufferedArea()
         -> OK : ne pas purger si World2D::AllowClearMaps() est faux.
 

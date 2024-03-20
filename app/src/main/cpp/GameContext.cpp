@@ -91,7 +91,8 @@
 #include "GOC_ControllerPlayer.h"
 #include "CraftRecipes.h"
 #include "ScrapsEmitter.h"
-
+#include "Player.h"
+#include "MapCreator.h"
 #include "ViewManager.h"
 #include "MapWorld.h"
 #include "Map.h"
@@ -351,6 +352,7 @@ GameContext::GameContext(Context* context) :
     ui_(0),
     time_(0),
     camera_(0),
+    activeviewport_(0),
     cursorShape_(-1),
     uiScale_(1.f),
     uiScaleMin_(0.75f),
@@ -1174,9 +1176,15 @@ void GameContext::CreatePreloaderIcon()
     objectAnimation->AddAttributeAnimation("Rotation", rotateAnimation, WM_LOOP);
     preloaderIcon_->SetObjectAnimation(objectAnimation);
 
-    preloaderIcon_->SetVisible(true);
+    SetEnabledPreloaderIcon(true);
 
     URHO3D_LOGINFOF("GameContext() - CreateLoaderIcon ... OK !");
+}
+
+void GameContext::SetEnabledPreloaderIcon(bool enable)
+{
+    preloaderIcon_->SetVisible(enable);
+    preloaderIcon_->SetAnimationEnabled(enable);
 }
 
 bool GameContext::PreloadResources()
@@ -1293,11 +1301,9 @@ bool GameContext::PreloadResources()
 
         preloadGOTNode_->SetEnabled(false);
         preloaderState_ = 0;
-        if (preloaderIcon_)
-        {
-            preloaderIcon_->SetVisible(false);
-            preloaderIcon_->SetAnimationEnabled(false);
-        }
+
+        SetEnabledPreloaderIcon(false);
+
         preloading_ = false;
 
         return true;
@@ -1872,6 +1878,158 @@ bool GameContext::GetStartPosition(WorldMapPosition& position, int i)
                     position.position_.x_, position.position_.y_, mpoint.ToString().CString(),
                     startnode ? startnode->GetName().CString() : "NONE", startnode ? startnode->GetID() : 0);
     return true;
+}
+
+struct TransferMapsData
+{
+    void Set(int viewport, const ShortIntVector2& mPoint, IntVector2 position, int viewZ)
+    {
+        Clear();
+
+        state_    = 0;
+        viewport_ = viewport;
+        mPoint_   = mPoint;
+        position_ = position;
+        viewZ_    = viewZ;
+
+        World2D::GetVisibleMapPointsAt(mPoints_, mPoint, position);
+    }
+    void Clear()
+    {
+        state_ = -1;
+        mPoints_.Clear();
+        maps_.Clear();
+        players_.Clear();
+    }
+
+    int state_;
+    int viewport_;
+    ShortIntVector2 mPoint_;
+    IntVector2 position_;
+    int viewZ_;
+    PODVector<ShortIntVector2> mPoints_;
+    PODVector<Map*> maps_;
+    PODVector<Player*> players_;
+};
+
+TransferMapsData sTransfer_;
+
+void GameContext::TransferPlayersToMapV2(int viewport, const ShortIntVector2& mPoint, IntVector2 position, int viewZ)
+{
+    URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : start ... ");
+
+    SetEnabledPreloaderIcon(true);
+
+    if (viewZ == -1)
+        viewZ = ViewManager::Get()->GetCurrentViewZ(viewport);
+
+    ViewManager::Get()->SetFocusEnable(false, viewport);
+
+    // get a centered default start position on the map if needed
+    if (position.x_ == 0 && position.y_ == 0)
+    {
+        position.x_ = MapInfo::info.width_ / 2;
+        position.y_ = MapInfo::info.height_ / 2;
+    }
+
+    // Push the maps to be visible at the destination in MapCreator
+    sTransfer_.Set(viewport, mPoint, position, viewZ);
+
+    for (PODVector<ShortIntVector2>::ConstIterator it = sTransfer_.mPoints_.Begin(); it != sTransfer_.mPoints_.End(); ++it)
+    {
+        URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : map=%s ...", it->ToString().CString());
+        World2D::AddKeepedVisibleMap(*it);
+        MapCreator::Get()->AddMapToCreate(*it);
+    }
+    for (int i=0; i < numPlayers_; i++)
+    {
+        if (ViewManager::Get()->GetControllerViewport(players_[i].Get()) == viewport)
+        {
+            URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : player=%d ...", players_[i]->GetID());
+            sTransfer_.players_.Push(players_[i]);
+        }
+    }
+    // => HandleTransferPlayersToMap
+    SubscribeToEvent(rootScene_, E_SCENEUPDATE, URHO3D_HANDLER(GameContext, HandleTransferPlayersToMap));
+}
+
+void GameContext::HandleTransferPlayersToMap(StringHash eventType, VariantMap& eventData)
+{
+    // Wait for availability of all the maps
+    if (sTransfer_.state_ == 0)
+    {
+        // Check for all maps to be available
+        unsigned numAvailableMaps = 0;
+        for (PODVector<ShortIntVector2>::ConstIterator it = sTransfer_.mPoints_.Begin(); it != sTransfer_.mPoints_.End(); ++it)
+        {
+            if (World2D::GetAvailableMapAt(*it))
+                numAvailableMaps++;
+        }
+        if (numAvailableMaps != sTransfer_.mPoints_.Size())
+            return;
+
+        // All the requested maps are avaibles => push maps to visible
+        sTransfer_.state_ = 1;
+        for (PODVector<ShortIntVector2>::ConstIterator it = sTransfer_.mPoints_.Begin(); it != sTransfer_.mPoints_.End(); ++it)
+        {
+            URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : availableMap=%s ...", it->ToString().CString());
+            sTransfer_.maps_.Push(World2D::GetAvailableMapAt(*it));
+        }
+
+        HiresTimer timer;
+        for (PODVector<Map*>::ConstIterator it = sTransfer_.maps_.Begin(); it != sTransfer_.maps_.End(); ++it)
+            (*it)->ShowMap(&timer);
+    }
+
+    // Wait for visibility of all the maps
+    if (sTransfer_.state_ == 1)
+    {
+        // Check for all maps to be visible
+        unsigned numVisibleMaps = 0;
+        for (PODVector<Map*>::ConstIterator it = sTransfer_.maps_.Begin(); it != sTransfer_.maps_.End(); ++it)
+        {
+            if ((*it)->IsEffectiveVisible())
+                numVisibleMaps++;
+        }
+        if (numVisibleMaps != sTransfer_.maps_.Size())
+            return;
+
+        // All the requested maps are visible => transfer players
+        sTransfer_.state_ = 2;
+
+        URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : allMapsVisible transfer players ...");
+
+        // Transfer Camera
+        Vector2 position;
+        World2D::GetWorldInfo()->Convert2WorldPosition(sTransfer_.mPoint_, sTransfer_.position_, position);
+        ViewManager::Get()->GetCameraNode(sTransfer_.viewport_)->SetPosition2D(position);
+        ViewManager::Get()->SwitchToViewZ(sTransfer_.viewZ_, 0, sTransfer_.viewport_);
+        ViewManager::Get()->SetFocusEnable(true, sTransfer_.viewport_);
+
+        // Transfer Players of the viewport
+        WorldMapPosition wposition;
+        for (int i = 0; i < sTransfer_.players_.Size(); i++)
+        {
+            wposition = WorldMapPosition(World2D::GetWorldInfo(), IntVector2(sTransfer_.mPoint_.x_, sTransfer_.mPoint_.y_), sTransfer_.position_ + IntVector2(i,0), sTransfer_.viewZ_);
+            sTransfer_.players_[i]->SetWorldMapPosition(wposition, true);
+            sTransfer_.players_[i]->UpdateAvatar(true);
+        }
+
+        World2D::GetWorld()->SetKeepedVisibleMaps(false);
+        World2D::GetWorld()->UpdateViewport(sTransfer_.viewport_, false);
+
+        // Update Weather and Scrollings
+        eventData[World_CameraChanged::VIEWPORT] = sTransfer_.viewport_;
+        World2D::GetWorld()->SendEvent(WORLD_CAMERACHANGED, eventData);
+
+        // Update MiniMap
+        if (sTransfer_.viewport_ == 0)
+            GameContext::Get().rootScene_->SendEvent(WORLD_MAPUPDATE);
+
+        SetEnabledPreloaderIcon(false);
+
+        URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : ... finished !");
+    }
 }
 
 void GameContext::Dump() const
