@@ -1,5 +1,10 @@
 Todos:
 
+    ✔ 21/03/2024 : il faut pour PlayState::CheckGameLogic() voir à corriger GOManager::GetNumActiveBots() qui ne renvoit pas le bon resultat
+        -> ok correctif
+
+    ☐ 21/03/2024 : le mouvement de Ours en attack est interrompu alors qu'il n'a pas encore frappé ...
+
     ✔ 18/03/2024 : en multiviewport en world les joueurs n'arrivent pas à frapper les lizard
         -> cela ne se produit que s'y l'on active le fenetrage dynamique et que l'on lance la partie la premiere fois.
         => OK : GOC_Collide2D::lastHurtTime_ doit bien etre initialisé à 0 sinon dans GOC_Collide2D::HandleBeginContact() ça peut bloquer.

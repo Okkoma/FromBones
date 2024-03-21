@@ -67,12 +67,13 @@ void GameCommands::Launch(const String& input)
     {
         GameContext::Get().Dump();
     }
-    else if (inputLower == "aicontrol")
+    else if (inputLower == "dumpgo")
     {
         URHO3D_LOGINFOF("Num active players=%u", GOManager::GetNumActivePlayers());
         URHO3D_LOGINFOF("Num active enemies=%u", GOManager::GetNumActiveEnemies());
         URHO3D_LOGINFOF("Num active bots=%u", GOManager::GetNumActiveBots());
         URHO3D_LOGINFOF("Num active controlled Nodes=%u", GOManager::GetNumActiveAiNodes());
+        GOManager::Get()->Dump();
     }
     else if (inputLower == "seed")
     {
@@ -167,7 +168,7 @@ void GameCommands::Launch(const String& input)
             GameNetwork::Get()->DumpClientInfos();
         }
     }
-    else if (inputLower == "dumpgos")
+    else if (inputLower == "dumpGOS")
     {
         GOS::DumpAll();
     }

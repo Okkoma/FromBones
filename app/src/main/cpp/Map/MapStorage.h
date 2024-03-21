@@ -134,7 +134,7 @@ public:
     const HashMap<ShortIntVector2, MapData* >& GetMapDatas() const { return mapDatas_; }
 
     bool IsInsideBufferedArea(const ShortIntVector2& mPoint) const;
-    void UpdateBufferedArea();
+    void UpdateBufferedArea(bool maximizeMapsToLoad=false);
     void UpdateAllMaps();
     bool UpdateMapsInMemory(HiresTimer* timer=0);
 

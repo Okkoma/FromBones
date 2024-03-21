@@ -1,5 +1,10 @@
 Todos:
 
+    ✔ 21/03/2024 : revoir le chargement initial des maps => il faut prendre en compte plus tot les maps des differents viewports / joueurs cad dans la phase PLAYSTATE_LOADING
+        => cf World2D::ResetFocusPositions() qui est la procedure utiliser lorsque world est démarré.
+        ==> OK : ajout du param maximizeMaps qui permet laisser le BufferExpandInfo vide de valeur pour dx,dy (pas de direction d'expansion)
+            ce qui permet dans MapStorage::UpdateBufferedArea de garder toutes les maps autour du mpoint.
+
     ✔ 18/03/2024 : il y a des decalages avec les DrawableScrollers (les montagnes et forets) lorsque l'on passe du mode arena vers le mode world
         -> il s'agit de flatmode_ qui n'était setté que dans DrawableScroller::Start() => ajout dans DrawableScroller::SetActive()
 

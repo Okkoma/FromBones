@@ -529,7 +529,7 @@ void World2D::SaveFocusPositions()
     }
 }
 
-void World2D::ResetFocusPositions()
+void World2D::ResetFocusPositions(bool maximizeMapsToLoad)
 {
     bool change = false;
     const unsigned numviewports = viewManager_->GetNumViewports();
@@ -569,7 +569,7 @@ void World2D::ResetFocusPositions()
     if (change)
     {
         mapStorage_->SetBufferDirty(true);
-        mapStorage_->UpdateBufferedArea();
+        mapStorage_->UpdateBufferedArea(maximizeMapsToLoad);
     }
 
     allowClearMaps_ = true;
@@ -2339,7 +2339,7 @@ void World2D::OnSetEnabled()
             // Start here before loading map for Handle Appear Entities
             Start();
 
-            ResetFocusPositions();
+            ResetFocusPositions(true);
 
             URHO3D_LOGINFOF("World2D() - OnSetEnabled = true OK !");
         }
@@ -3308,15 +3308,19 @@ void World2D::SetAllowClearMaps(bool state)
     URHO3D_LOGERRORF("World2D() - SetAllowClearMaps : state=%s !", state?"true":"false");
 }
 
-void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const
+void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints, bool maximizeMapsToLoad) const
 {
     mappoints.Clear();
 
     // Use a hashset to get only unique (Mpoint,ExpandInfo)
     HashSet<BufferExpandInfo> hashexpand;
 
-    for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
-        hashexpand += it->mPosExpand_;
+    if (maximizeMapsToLoad)
+        for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
+            hashexpand += BufferExpandInfo(it->mPosExpand_.x_, it->mPosExpand_.y_, 0, 0);
+    else
+        for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
+            hashexpand += it->mPosExpand_;
 
     for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
         if (it->node_)// && it->node_->IsEnabled())

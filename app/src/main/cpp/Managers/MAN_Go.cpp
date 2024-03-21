@@ -169,9 +169,11 @@ void GOManager::HandleGOAppear(StringHash eventType, VariantMap& eventData)
         {
         case GO_AI :
             if (!bots.Contains(nodeId))
-            {
                 bots.Push(nodeId);
+            if (!activeBots.Contains(nodeId))
+            {
                 activeBots.Push(nodeId);
+                lastUpdate_++;
             }
         case GO_AI_Enemy :
             if (!enemy.Contains(nodeId))
@@ -232,6 +234,7 @@ void GOManager::HandleGODestroy(StringHash eventType, VariantMap& eventData)
             {
                 bots.Remove(nodeId);
                 activeBots.Remove(nodeId);
+                lastUpdate_++;
             }
         case GO_AI_Enemy :
             if (enemy.Contains(nodeId))
@@ -286,6 +289,7 @@ void GOManager::HandleGOActive(StringHash eventType, VariantMap& eventData)
             if (!activeBots.Contains(nodeId))
             {
                 activeBots.Push(nodeId);
+                lastUpdate_++;
             }
         case GO_AI_Enemy :
             if (mainController)
@@ -326,14 +330,18 @@ void GOManager::HandleGODead(StringHash eventType, VariantMap& eventData)
     if (eventType == GOC_LIFEDEAD)
     {
         unsigned nodeId = eventData[GOC_Life_Events::GO_ID].GetUInt();
-        int goType =  eventData[GOC_Life_Events::GO_TYPE].GetInt();
-//        URHO3D_LOGINFOF("GOManager() - HandleGODead : GO GOC_LIFEDEAD node=%u type=%d", nodeId, goType);
+        int goType      = eventData[GOC_Life_Events::GO_TYPE].GetInt();
+
+        URHO3D_LOGINFOF("GOManager() - HandleGODead : GO GOC_LIFEDEAD node=%u type=%d", nodeId, goType);
+
         switch (goType)
         {
         case GO_AI :
             if (activeBots.Contains(nodeId))
             {
                 activeBots.Remove(nodeId);
+                lastUpdate_++;
+                URHO3D_LOGINFOF("GOManager() - HandleGODead : Ai Bot %u dead : num = %u", nodeId, activeBots.Size());
             }
         case GO_AI_None :
         case GO_AI_Ally :
@@ -451,4 +459,8 @@ void GOManager::Dump() const
     URHO3D_LOGINFOF("GOManager() - Dump : ActivePlayers size = %u ...", activePlayer.Size());
     for (unsigned i=0; i < activePlayer.Size(); i++)
         URHO3D_LOGINFOF("GOManager() - Dump : ActivePlayer[%d] = (id=%u)", i, activePlayer[i]);
+
+    URHO3D_LOGINFOF("GOManager() - Dump : ActiveBots size = %u ...", activeBots.Size());
+    for (unsigned i=0; i < activeBots.Size(); i++)
+        URHO3D_LOGINFOF("GOManager() - Dump : ActiveBots[%d] = (id=%u)", i, activeBots[i]);
 }

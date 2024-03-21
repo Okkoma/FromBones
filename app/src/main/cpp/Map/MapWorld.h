@@ -185,7 +185,7 @@ public:
 
 /// Getters
     bool IsVisible() const;
-    void GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints) const;
+    void GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints, bool maximizeMapsToLoad=false) const;
     void SetVisibleListDirty(bool dirty);
     void PushVisibleArea(const IntRect& visibleArea);
 
@@ -258,7 +258,7 @@ public:
     void SetInfo(World2DInfo* info);
     void SetUpdateLoadingDelay(int delay = MAP_MAXDELAY);
     void SetCamera(float zoom=1.f, const Vector2& focus=Vector2::ZERO);
-    void ResetFocusPositions();
+    void ResetFocusPositions(bool maximizeMapsToLoad);
     void SaveFocusPositions();
     void AddScrollers(int viewport);
 

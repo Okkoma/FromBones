@@ -483,7 +483,7 @@ void PlayState::CheckGameLogic()
                         // Survivor Mode
                         if (localPlayers_.Size() > 1)
                         {
-                            if (GOManager::GetNumActiveBots() == 1)
+                            if (GOManager::GetNumActiveBots())
                             {
                                 URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : a CPU wins ! => GameOver for the player !");
                                 SetGameOver();
@@ -497,7 +497,7 @@ void PlayState::CheckGameLogic()
                         // Enemy Killer Mode
                         else
                         {
-                            if (GOManager::GetNumActiveEnemies() == 0)
+                            if (!GOManager::GetNumActiveEnemies())
                             {
                                 URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Killer : no more active enemies ! => GameWin !");
                                 SetGameWin();
@@ -510,7 +510,7 @@ void PlayState::CheckGameLogic()
                     return;
 
                     // TODO conditions for World
-                    if (GOManager::GetNumActiveEnemies() == 0)
+                    if (!GOManager::GetNumActiveEnemies())
                     {
                         URHO3D_LOGINFOF("PlayState() - CheckGameLogic : No More Enemies ! => GameWin !");
                         SetGameWin();

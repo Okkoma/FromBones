@@ -1478,23 +1478,23 @@ bool MapStorage::IsInsideBufferedArea(const ShortIntVector2& mPoint) const
     return false;
 }
 
-void MapStorage::UpdateBufferedArea()
+void MapStorage::UpdateBufferedArea(bool maximizeMapsToLoad)
 {
     if (!bufferedAreaDirty_)
         return;
 
-    World2D::GetWorld()->GetBufferExpandInfos(bufferExpandInfos_);
+    World2D::GetWorld()->GetBufferExpandInfos(bufferExpandInfos_, maximizeMapsToLoad);
 
     // Set the new buffer Areas
-    bufferAreas_.Clear();
-    for (Vector<BufferExpandInfo>::ConstIterator it = bufferExpandInfos_.Begin(); it != bufferExpandInfos_.End(); ++it)
+    bufferAreas_.Resize(bufferExpandInfos_.Size());
+    for (unsigned i = 0; i < bufferAreas_.Size(); i++)
     {
-        bufferAreas_.Resize(bufferAreas_.Size()+1);
-        IntRect& newBufferedArea = bufferAreas_.Back();
-        newBufferedArea.left_   = it->x_ - bOffset_;
-        newBufferedArea.top_    = it->y_ - bOffset_;
-        newBufferedArea.right_  = it->x_ + bOffset_;
-        newBufferedArea.bottom_ = it->y_ + bOffset_;
+        const BufferExpandInfo& expand = bufferExpandInfos_[i];
+        IntRect& newBufferedArea = bufferAreas_[i];
+        newBufferedArea.left_   = expand.x_ - bOffset_;
+        newBufferedArea.top_    = expand.y_ - bOffset_;
+        newBufferedArea.right_  = expand.x_ + bOffset_;
+        newBufferedArea.bottom_ = expand.y_ + bOffset_;
     }
 
 //    currentWorld2DInfo_->ConvertMapRect2WorldRect(bufferedArea_[viewport], bufferedAreaRect_[viewport]);
