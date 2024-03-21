@@ -66,7 +66,7 @@ struct TravelerViewportInfo
     int viewport_;
     Camera* camera_;
 
-    CollisionChain2D* visibleCollideBorder_;
+    WeakPtr<CollisionChain2D> visibleCollideBorder_;
 
     float camOrtho_;
     float camRatio_;
@@ -327,7 +327,7 @@ public:
     /// Update buffer and visible maps : no timer
     void UpdateAll();
     void UpdateVisibleRectInfos(int viewport=0);
-    void UpdateViewport(int viewport, bool init);
+    void UpdateViewport(int viewport=0);
     void UpdateViewports(bool init);
 
 private:

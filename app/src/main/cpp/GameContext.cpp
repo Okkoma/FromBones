@@ -2016,7 +2016,7 @@ void GameContext::HandleTransferPlayersToMap(StringHash eventType, VariantMap& e
         }
 
         World2D::GetWorld()->SetKeepedVisibleMaps(false);
-        World2D::GetWorld()->UpdateViewport(sTransfer_.viewport_, false);
+        World2D::GetWorld()->UpdateViewport(sTransfer_.viewport_);
 
         // Update Weather and Scrollings
         eventData[World_CameraChanged::VIEWPORT] = sTransfer_.viewport_;

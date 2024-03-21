@@ -266,11 +266,11 @@
 		"fr":"C'est Parti"
 	},
 	"killallplayers":{
-		"en":"Kill Other Players",
-		"fr":"Tuer les Joueurs"
+		"en":"Challenge each other",
+		"fr":"Affrontez-vous"
 	},
 	"killallenemies":{
-		"en":"Kill All Monsters",
+		"en":"Kill the Monsters",
 		"fr":"Tuer les Monstres"
 	},		
 	"nextlevel":{

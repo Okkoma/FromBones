@@ -524,9 +524,6 @@ void PlayState::CheckGameLogic()
 
 void PlayState::CheckSplitScreen()
 {
-    if (GameContext::Get().arenaZoneOn_)
-        return;
-
     SetViewports(GameContext::Get().gameConfig_.multiviews_, false);
 }
 
@@ -1605,7 +1602,7 @@ void PlayState::SetPlayers(bool init, bool restart)
     const bool editoron = false;
 #endif
 
-    SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_, true);
+    SetViewports(GameContext::Get().gameConfig_.multiviews_, true);
 
     if (!localActivePlayersIds.Size() || editoron)
     {
@@ -1691,6 +1688,7 @@ void PlayState::SetViewports(bool dynamic, bool init)
 
             if (activeplayers.Size())
             {
+                int viewZ = player->GetViewZ();
                 for (int i = activeplayers.Size()-1; i >= 0; i--)
                 {
                     Player*& playernext = activeplayers[i];
@@ -1698,7 +1696,7 @@ void PlayState::SetViewports(bool dynamic, bool init)
                         continue;
 
                     Vector2 delta = player->GetAvatar()->GetWorldPosition2D() - playernext->GetAvatar()->GetWorldPosition2D();
-                    if (Abs(delta.x_) < 9.f && Abs(delta.y_) < 9.f)
+                    if (Abs(delta.x_) < 9.f && Abs(delta.y_) < 8.f && viewZ == playernext->GetViewZ())
                     {
                         viewportplayers.Back().Push(playernext);
                         playernext = 0;
@@ -2078,7 +2076,7 @@ void PlayState::HandleAppearPlayer(StringHash eventType, VariantMap& eventData)
 
 #ifdef ACTIVE_INITIALDEZOOMONSTART
     if (activeplayers.Size() > 0)
-        SetViewports(GameContext::Get().gameConfig_.multiviews_ && !GameContext::Get().arenaZoneOn_, true);
+        SetViewports(GameContext::Get().gameConfig_.multiviews_, true);
 #endif
 
     SetVisibleUI(true);

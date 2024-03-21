@@ -1,6 +1,12 @@
 Todos:
 
-    15/03/2024 : un plus serait de pouvoir avoir des viewports non-rectangulaire : surtout pour 3 viewports
+    ✔ 21/03/2024 : changer de viewport en dynamic lorsque l'un des joueurs du viewport n'est plus sur le meme viewz
+        => OK : modification de PlayState::SetViewports
+
+    ✔ 21/03/2024 : l'une des bougie du lustre n'est pas flipX correctement
+        => OK : cela provient de GOC_Animator2D::SetDirection qui a été modifié depuis le 03/02/2024
+
+    ☐ 15/03/2024 : un plus serait de pouvoir avoir des viewports non-rectangulaire : surtout pour 3 viewports
 
     ✔ 15/03/2024 : en multiview dynamic, si deux avatars sont sur un viewport et juste l'un deux se teleporte par un portail alors crash
         -> ajout de la condition viewport < world_->viewinfos_.Size() dans tous les getters de  World2D qui le necessitent.
@@ -38,7 +44,7 @@ Todos:
         => cf GameHelpers::SetLightActivation, GOC_Destroyer::SetViewZ ?
         ==> OK modification de GameHelpers::SetLightActivation(Player) et ajout de ViewManager::GetControllerLightMask()
 
-    ☐ 11/03/2024 : ajouter le multi-viewport automatique et ne plus mettre l'option
+    ✔ 11/03/2024 : ajouter le multi-viewport automatique et ne plus mettre l'option
         -> en confrontation, splitter directement l'écran.
         ==> OK en arenaZone (cf : PlayState::SetPlayers)
         -> en collaboratif, lorsque l'un des joueurs locaux est trop loin, splitter l'écran
@@ -48,6 +54,7 @@ Todos:
         ====> ajout du merge des collidingBorders lorsqu'elles se chevauchent (cf. World2D::UpdateCollideBorders())
         ====> lorsqu'un viewport s'eloigne des autre, cela devrait rendre le collingBorder independant.
               peut-etre un pb avec effectiveVisibleMaps_...
+        =====> 21/03/2024 OK : modification de World2D::UpdateCollideBorders() et surtout TravelerViewportInfo::Update() lorsque la nouvelle visibleArea est differente => world2DVisibleCollideRectDirty_ = true
 
     ☐ 10/03/2024 : en multi-Viewports water ne fonctionne pas correctement
         -> 1. ne prend pas en compte les autres viewports pour l'update de l'eau

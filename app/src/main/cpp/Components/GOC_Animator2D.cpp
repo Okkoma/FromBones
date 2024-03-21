@@ -1077,16 +1077,21 @@ void GOC_Animator2D::SetDirection(const Vector2& dir)
     if (animatedSprite)
     {
         // Check the animatedSprite and flip it if not good orientation
-        animatedSprite->SetFlipX(orientation * direction.x_ < 0.f);
+        bool newFlipX = orientation * direction.x_ < 0.f;
+        if (animatedSprite->GetFlipX() != newFlipX)
+        {
+            animatedSprite->SetFlipX(!animatedSprite->GetFlipX());
+            if (animatedSprites.Size() > 1)
+                for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
+                    (*it)->SetFlipX(!(*it)->GetFlipX());
+        }
+
         if (physicFlipX_ != animatedSprite->GetFlipX())
         {
             physicFlipX_ = animatedSprite->GetFlipX();
             GameHelpers::SetPhysicFlipX(node_);
 //            URHO3D_LOGINFOF("GOC_Animator2D() - SetDirection : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
         }
-        if (animatedSprites.Size() > 1)
-            for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
-                (*it)->SetFlipX(physicFlipX_);
     }
 
     if (controller_)
@@ -1106,16 +1111,23 @@ void GOC_Animator2D::SetDirectionSilent(const Vector2& dir)
     // Check the animatedSprite and flip it for the good orientation
     if (animatedSprite)
     {
-        animatedSprite->SetFlipX(orientation * direction.x_ < 0.f);
+        // Check the animatedSprite and flip it if not good orientation
+        bool newFlipX = orientation * direction.x_ < 0.f;
+        if (animatedSprite->GetFlipX() != newFlipX)
+        {
+            animatedSprite->SetFlipX(!animatedSprite->GetFlipX());
+            if (animatedSprites.Size() > 1)
+                for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
+                    (*it)->SetFlipX(!(*it)->GetFlipX());
+        }
+
         if (physicFlipX_ != animatedSprite->GetFlipX())
         {
             physicFlipX_ = animatedSprite->GetFlipX();
             GameHelpers::SetPhysicFlipX(node_);
-            //        URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
+//            URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... physflipX=%s ! ", GetNode()->GetName().CString(), GetNode()->GetID(), physicFlipX_ ? "true":"false");
         }
-        if (animatedSprites.Size() > 1)
-            for (PODVector<AnimatedSprite2D*>::Iterator it=animatedSprites.Begin()+1; it!=animatedSprites.End(); ++it)
-                (*it)->SetFlipX(physicFlipX_);
+
     }
 //    URHO3D_LOGINFOF("GOC_Animator2D() - SetDirectionSilent : Node=%s(%u) ... direction=%s ... OK!",
 //                    node_->GetName().CString(), node_->GetID(), direction.ToString().CString());

@@ -2682,64 +2682,66 @@ void World2D::UpdateCollideBorders()
     // prepare the components for the collidingBorder of each viewport
     for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
     {
-        if (it->visibleCollideBorder_)
-            continue;
-
-        String bordername = "WorldVisibleBorder" + String(it->viewport_);
-        Node* node = node_->GetChild(bordername);
-        if (!node)
+        TravelerViewportInfo& viewInfo = *it;
+        if (!viewInfo.visibleCollideBorder_)
         {
-            // create node and rigidbody
-            node = node_->CreateChild(bordername, LOCAL);
-            node->SetWorldPosition2D(node_->GetWorldPosition2D());
-            node->SetWorldScale2D(node_->GetWorldScale2D());
-            node->SetTemporary(true);
-
-            RigidBody2D* borderbody = node->CreateComponent<RigidBody2D>(LOCAL);
-            borderbody->SetBodyType(BT_STATIC);
-        }
-        if (node)
-        {
-            it->visibleCollideBorder_ = node->GetComponent<CollisionChain2D>();
-            if (!it->visibleCollideBorder_)
+            // create node and the shape if not exist
+            String bordername = "WorldVisibleBorder" + String(viewInfo.viewport_);
+            Node* node = node_->GetChild(bordername);
+            if (!node)
             {
-                // create shape
-                TravelerViewportInfo& viewInfo = *it;
-                viewInfo.visibleCollideBorder_ = node->CreateComponent<CollisionChain2D>(LOCAL);
-                // collision with all other entities
-                viewInfo.visibleCollideBorder_->SetFilterBits(CC_ALLWALLS, CM_ALLWALL);
-                // no collision with mapcollider collisionchains
-                viewInfo.visibleCollideBorder_->SetGroupIndex(-1);
-                viewInfo.visibleCollideBorder_->SetLoop(true);
-                URHO3D_LOGERRORF("World2D() - UpdateVisibleCollideBorders : viewport=%d Create Border Node and CollisionChain !", viewInfo.viewport_);
+                // create node and rigidbody
+                node = node_->CreateChild(bordername, LOCAL);
+                node->SetWorldPosition2D(node_->GetWorldPosition2D());
+                node->SetWorldScale2D(node_->GetWorldScale2D());
+                node->SetTemporary(true);
+
+                RigidBody2D* borderbody = node->CreateComponent<RigidBody2D>(LOCAL);
+                borderbody->SetBodyType(BT_STATIC);
+            }
+            if (node)
+            {
+                viewInfo.visibleCollideBorder_ = node->GetComponent<CollisionChain2D>();
+                if (!viewInfo.visibleCollideBorder_)
+                {
+                    // create shape
+
+                    viewInfo.visibleCollideBorder_ = node->CreateComponent<CollisionChain2D>(LOCAL);
+                    // collision with all other entities
+                    viewInfo.visibleCollideBorder_->SetFilterBits(CC_ALLWALLS, CM_ALLWALL);
+                    // no collision with mapcollider collisionchains
+                    viewInfo.visibleCollideBorder_->SetGroupIndex(-1);
+                    viewInfo.visibleCollideBorder_->SetLoop(true);
+                    URHO3D_LOGERRORF("World2D() - UpdateVisibleCollideBorders : viewport=%d Create Border Node and CollisionChain !", viewInfo.viewport_);
+                }
             }
         }
-    }
-    // get the world rect really shown for each viewport
-    for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
-    {
-        it->collidingBorderRect_.Clear();
-        for (unsigned i = 0; i < it->effectiveVisibleMaps_.Size(); i++)
+        // get the world rect really shown
+        viewInfo.collidingBorderRect_.Clear();
+        for (unsigned i = 0; i < viewInfo.effectiveVisibleMaps_.Size(); i++)
         {
-            if (it->collidingBorderRect_.Defined())
-                it->collidingBorderRect_.Merge(it->effectiveVisibleMaps_[i]->GetBounds());
+            if (viewInfo.collidingBorderRect_.Defined())
+                viewInfo.collidingBorderRect_.Merge(viewInfo.effectiveVisibleMaps_[i]->GetBounds());
             else
-                it->collidingBorderRect_.Define(it->effectiveVisibleMaps_[i]->GetBounds());
+                viewInfo.collidingBorderRect_.Define(viewInfo.effectiveVisibleMaps_[i]->GetBounds());
         }
     }
     // check intersection between visibleCollideBorders, if overlaped rects merge them
-    Rect rect;
-    for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
     {
-        if (it->collidingBorderRect_.Defined())
+        Rect rect;
+        for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
         {
-            rect = it->collidingBorderRect_.Adjusted(0.01f);
-            for (Vector<TravelerViewportInfo>::Iterator jt = viewinfos_.Begin(); jt != viewinfos_.End(); ++jt)
+            TravelerViewportInfo& viewInfo = *it;
+            if (viewInfo.collidingBorderRect_.Defined())
             {
-                if (it != jt && jt->collidingBorderRect_.Defined() && rect.IsInside(jt->collidingBorderRect_) != OUTSIDE)
+                rect = viewInfo.collidingBorderRect_.Adjusted(0.01f);
+                for (Vector<TravelerViewportInfo>::Iterator jt = viewinfos_.Begin(); jt != viewinfos_.End(); ++jt)
                 {
-                    it->collidingBorderRect_.Merge(jt->collidingBorderRect_);
-                    jt->collidingBorderRect_ = it->collidingBorderRect_;
+                    if (it != jt && jt->collidingBorderRect_.Defined() && rect.IsInside(jt->collidingBorderRect_) != OUTSIDE)
+                    {
+                        viewInfo.collidingBorderRect_.Merge(jt->collidingBorderRect_);
+                        jt->collidingBorderRect_ = viewInfo.collidingBorderRect_;
+                    }
                 }
             }
         }
@@ -2748,31 +2750,29 @@ void World2D::UpdateCollideBorders()
     for (Vector<TravelerViewportInfo>::Iterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
     {
         TravelerViewportInfo& viewinfo = *it;
-        if (viewinfo.visibleCollideBorder_)
+
+        if (viewinfo.collidingBorderRect_.Defined())
         {
-            if (viewinfo.collidingBorderRect_.Defined())
-            {
-                static PODVector<Vector2> sRectVertices_;
-                sRectVertices_.Resize(4);
-                sRectVertices_[0].x_ = viewinfo.collidingBorderRect_.min_.x_ / node_->GetWorldScale2D().x_;
-                sRectVertices_[0].y_ = viewinfo.collidingBorderRect_.min_.y_ / node_->GetWorldScale2D().y_;
-                sRectVertices_[1].x_ = sRectVertices_[0].x_;
-                sRectVertices_[1].y_ = viewinfo.collidingBorderRect_.max_.y_ / node_->GetWorldScale2D().y_;
-                sRectVertices_[2].x_ = viewinfo.collidingBorderRect_.max_.x_ / node_->GetWorldScale2D().x_;
-                sRectVertices_[2].y_ = sRectVertices_[1].y_;
-                sRectVertices_[3].x_ = sRectVertices_[2].x_;
-                sRectVertices_[3].y_ = sRectVertices_[0].y_;
+            static PODVector<Vector2> sRectVertices_;
+            sRectVertices_.Resize(4);
+            sRectVertices_[0].x_ = viewinfo.collidingBorderRect_.min_.x_ / node_->GetWorldScale2D().x_;
+            sRectVertices_[0].y_ = viewinfo.collidingBorderRect_.min_.y_ / node_->GetWorldScale2D().y_;
+            sRectVertices_[1].x_ = sRectVertices_[0].x_;
+            sRectVertices_[1].y_ = viewinfo.collidingBorderRect_.max_.y_ / node_->GetWorldScale2D().y_;
+            sRectVertices_[2].x_ = viewinfo.collidingBorderRect_.max_.x_ / node_->GetWorldScale2D().x_;
+            sRectVertices_[2].y_ = sRectVertices_[1].y_;
+            sRectVertices_[3].x_ = sRectVertices_[2].x_;
+            sRectVertices_[3].y_ = sRectVertices_[0].y_;
 
-                viewinfo.visibleCollideBorder_->SetVertices(sRectVertices_);
-            }
-
-            viewinfo.visibleCollideBorder_->SetEnabled(viewinfo.collidingBorderRect_.Defined());
+            viewinfo.visibleCollideBorder_->SetVertices(sRectVertices_);
         }
+
+        viewinfo.visibleCollideBorder_->SetEnabled(viewinfo.collidingBorderRect_.Defined());
+        if (viewinfo.visibleCollideBorder_->IsEnabled())
+            URHO3D_LOGERRORF("World2D() - UpdateCollideBorders : viewport=%d colliderRect=%s !", viewinfo.viewport_, viewinfo.collidingBorderRect_.ToString().CString());
     }
 
     world2DVisibleCollideRectDirty_ = false;
-
-//    URHO3D_LOGERRORF("World2D() - UpdateCollideBorders : update box p[0]=%s p[2]=%s !", sVisibleCollideBorderShape[0].ToString().CString(), sVisibleCollideBorderShape[2].ToString().CString());
 }
 
 void World2D::UpdateVisibleAreas(HiresTimer* timer)
@@ -3109,6 +3109,7 @@ bool TravelerViewportInfo::Update(bool useMapPos)
             lastVisibleArea_ = newvisibleMapArea;
             visibleArea_ = GetReducedArea(lastVisibleArea_);
             World2D::GetWorld()->SetVisibleListDirty(true);
+            world2DVisibleCollideRectDirty_ = true;
 
             URHO3D_LOGINFOF("TravelerViewportInfo() - Update : viewport=%u mpoint=%s visibleArea=%s center=%s",
                             viewport_, mPoint_.ToString().CString(), visibleArea_.ToString().CString(), visibleArea_.Center().ToString().CString());
@@ -3328,9 +3329,9 @@ void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints, bool max
 
     hashexpand.GetValues(mappoints);
 
-    URHO3D_LOGERRORF("World2D() - GetBufferExpandInfos : Dump ...");
-    for (Vector<BufferExpandInfo>::ConstIterator it = mappoints.Begin(); it != mappoints.End(); ++it)
-        URHO3D_LOGERRORF("    BufferExpansion[%d] = %s", it - mappoints.Begin(), it->ToString().CString());
+//    URHO3D_LOGERRORF("World2D() - GetBufferExpandInfos : Dump ...");
+//    for (Vector<BufferExpandInfo>::ConstIterator it = mappoints.Begin(); it != mappoints.End(); ++it)
+//        URHO3D_LOGERRORF("    BufferExpansion[%d] = %s", it - mappoints.Begin(), it->ToString().CString());
 }
 
 TravelerNodeInfo& World2D::GetOrCreateTraveler(Node* node, int viewport)
@@ -3535,21 +3536,10 @@ void World2D::UpdateInstant(int viewport, const Vector2& position, bool sendeven
     URHO3D_LOGINFOF("---------------------------------------------------");
 }
 
-void World2D::UpdateViewport(int viewport, bool init)
+void World2D::UpdateViewport(int viewport)
 {
-    if (!init)
-    {
-        viewinfos_[viewport].Update();
-//        UpdateInstant(viewport, viewinfos_[viewport].camera_->GetNode()->GetWorldPosition2D(), false);
-
-        // start effects for the viewport
-//        DrawableScroller::SetActive(viewport, true);
-    }
-
+    viewinfos_[viewport].Update();
     UpdateCollideBorders();
-
-//    if (WeatherManager::Get())
-//        WeatherManager::Get()->SetActive(viewport, true, init);
 }
 
 void World2D::UpdateViewports(bool init)
@@ -3650,7 +3640,7 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
         for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
         {
             const TravelerViewportInfo& viewInfo = *it;
-            GameHelpers::DrawDebugRect(mapStorage_->GetBufferedAreaRect(viewInfo.viewport_).Adjusted(5.f), debug, false, Color::GRAY);
+//            GameHelpers::DrawDebugRect(mapStorage_->GetBufferedAreaRect(viewInfo.viewport_).Adjusted(5.f), debug, false, Color::GRAY);
 #ifdef ACTIVE_WORLD2D_DYNAMICZOOM
             Rect rect;
             rect.min_.x_ = viewInfo.visibleArea_.left_ * info_->mWidth_;
@@ -3660,15 +3650,15 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
             GameHelpers::DrawDebugRect(rect, debug, false, Color::BLUE);
 #else
             GameHelpers::DrawDebugRect(viewInfo.extVisibleRect_, debug, false, Color::BLUE);
-            GameHelpers::DrawDebugRect(viewInfo.visibleRect_.Adjusted(-0.25f), debug, false, Color::BLUE);
+//            GameHelpers::DrawDebugRect(viewInfo.visibleRect_.Adjusted(-0.25f), debug, false, Color::BLUE);
 
 
 //            GameHelpers::DrawDebugRect(Rect(GameContext::Get().renderer2d_->GetFrustumBoundingBox().min_.ToVector2(), GameContext::Get().renderer2d_->GetFrustumBoundingBox().max_.ToVector2()).Adjusted(-0.25f), debug, false, Color::RED);
 #endif
         }
 
-        for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
-            GameHelpers::DrawDebugRect(it->visibleRect_.Adjusted(-0.25f), debug, false, Color::MAGENTA);
+//        for (Vector<TravelerNodeInfo>::ConstIterator it = travelerInfos_.Begin(); it != travelerInfos_.End(); ++it)
+//            GameHelpers::DrawDebugRect(it->visibleRect_.Adjusted(-0.25f), debug, false, Color::MAGENTA);
 
         if (delayTemporaryDrawRect_ > 0.f)
         {
@@ -3677,14 +3667,10 @@ void World2D::DrawDebugGeometry(DebugRenderer* debug, bool activeTagText)
             delayTemporaryDrawRect_ -= 0.1f;
         }
 
-        if (!noBounds_)
-            GameHelpers::DrawDebugRect(worldFloatBounds_, debug, false, Color::RED);
-        else
-        {
-            for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
-                if (it->collidingBorderRect_.Defined())
-                    GameHelpers::DrawDebugRect(it->collidingBorderRect_.Adjusted(-1.f), debug, false, Color::RED);
-        }
+        for (Vector<TravelerViewportInfo>::ConstIterator it = viewinfos_.Begin(); it != viewinfos_.End(); ++it)
+            if (it->collidingBorderRect_.Defined())
+                GameHelpers::DrawDebugRect(it->collidingBorderRect_.Adjusted(-0.5f), debug, false, Color::MAGENTA);
+
 #ifdef DRAWDEBUG_MAPBORDER
         const HashMap<ShortIntVector2, Map* >& maps = mapStorage_->GetMapsInMemory();
         for (HashMap<ShortIntVector2, Map* >::ConstIterator it=maps.Begin(); it != maps.End(); ++it)
