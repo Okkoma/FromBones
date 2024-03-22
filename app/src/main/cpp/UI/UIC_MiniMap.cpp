@@ -560,8 +560,13 @@ void UIC_MiniMap::UpdateMapViewRect()
 void UIC_MiniMap::UpdateMapTexture()
 {
     int viewzindex = ViewManager::Get()->GetCurrentViewZIndex();
+    if (viewzindex == -1)
+    {
+        URHO3D_LOGERRORF("UIC_MiniMap() - UpdateMapTexture ... viewzindex=-1 !");
+        viewzindex = 0;
+    }
 
-    for (int i=0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
     {
         int mapstatus = currentMaps_[i] ? currentMaps_[i]->GetStatus() : Uninitialized;
         Image* minimap = mapstatus > Setting_MiniMap && mapstatus <= Available ? currentMaps_[i]->GetMiniMap(viewzindex) : 0;

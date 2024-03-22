@@ -1,5 +1,12 @@
 Todos:
 
+    ✔ 22/03/2024 : lors de la teleportation via la worldMap, il faut bien s'assurer de faire un SetViewZ sur les avatars transferés.
+        => OK : modification de GameContext::HandleTransferPlayersToMap : on switch le viewport sur la viewZ du premier avatar.
+
+    ✔ 21/03/2024 : les scrollers n'ont pas l'air de bien s'initialiser suivant x en arena en mutliviewports.
+        => c'est ok en world en initialisant avec differentes localisations on a le meme pb
+        ==> 22/03/2024 : OK il s'agit de la position initiale y qui ne doit pas etre modifié en flatmode ainsi que d'erreurs dans DrawableScroller::OnSetEnabled().
+
     ✔ 21/03/2024 : revoir le chargement initial des maps => il faut prendre en compte plus tot les maps des differents viewports / joueurs cad dans la phase PLAYSTATE_LOADING
         => cf World2D::ResetFocusPositions() qui est la procedure utiliser lorsque world est démarré.
         ==> OK : ajout du param maximizeMaps qui permet laisser le BufferExpandInfo vide de valeur pour dx,dy (pas de direction d'expansion)

@@ -735,7 +735,8 @@ void MenuState::HandleScreenResized(StringHash eventType, VariantMap& eventData)
 
     UpdateAnimButtons();
 
-    SendEvent(WORLD_CAMERACHANGED);
+    eventData[World_CameraChanged::VIEWPORT] = -1;
+    SendEvent(WORLD_CAMERACHANGED, eventData);
 
     URHO3D_LOGINFO("MenuState() - HandleScreenResized ... OK !");
 }

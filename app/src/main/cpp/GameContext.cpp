@@ -123,6 +123,7 @@ GameConfig::GameConfig() :
     renderShapes_(true),
     multiviews_(false),
     asynLoadingWorldMap_(false),
+    tileSpanning_(0.f),
 
     physics3DEnabled_(false),
     physics2DEnabled_(true),
@@ -131,13 +132,16 @@ GameConfig::GameConfig() :
     forceTouch_(false),  // force show touch Emulation
     screenJoystick_(false),
     autoHideCursorEnable_(true),
-    ctrlCameraEnabled_(true),
+    commonWorldStartPoint_(true),
 
-    HUDEnabled_(true),
+    uiUpdateDelay_(2),
+    uiMapOpacityFrame_(0.8f),
+    uiMapOpacityBack_(0.6f),
+
     logLevel_(LOG_DEBUG),
-
+    HUDEnabled_(true),
     debugRenderEnabled_(true),
-
+    debugViewEnabled_(true),
     debugPathFinder_(false),
     debugPhysics_(true),
     debugLights_(false),
@@ -145,16 +149,13 @@ GameConfig::GameConfig() :
     debugWorld2DTagged_(false),
     debugUI_(false),
     debugFluid_(false),
-
     debugSprite2D_(false),
     debugBodyExploder_(false),
     debugScrollingShape_(false),
     debugObjectTiled_(false),
     debugRenderShape_(false),
-
     debugPlayer_(true),
     debugDestroyers_(false),
-
     debugRttScene_(false),
 
     splashviewed_(0),
@@ -162,14 +163,7 @@ GameConfig::GameConfig() :
     saveDir_(String::EMPTY),
 
     screenJoystickID_(-1),
-    screenJoysticksettingsID_(-1),
-
-    uiUpdateDelay_(2),
-
-    uiMapOpacityFrame_(0.8f),
-    uiMapOpacityBack_(0.6f),
-
-    tileSpanning_(0.f)
+    screenJoysticksettingsID_(-1)
 { }
 
 const int GameContext::targetwidth_ = 1920;
@@ -1916,8 +1910,6 @@ TransferMapsData sTransfer_;
 
 void GameContext::TransferPlayersToMapV2(int viewport, const ShortIntVector2& mPoint, IntVector2 position, int viewZ)
 {
-    URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : start ... ");
-
     SetEnabledPreloaderIcon(true);
 
     if (viewZ == -1)
@@ -1934,6 +1926,9 @@ void GameContext::TransferPlayersToMapV2(int viewport, const ShortIntVector2& mP
 
     // Push the maps to be visible at the destination in MapCreator
     sTransfer_.Set(viewport, mPoint, position, viewZ);
+
+    URHO3D_LOGINFOF("GameContext() - TransferPlayersToMapV2 : start ... viewport=%d mPoint=%s position=%s viewZ=%d ...",
+                    viewport, mPoint.ToString().CString(), position.ToString().CString(), viewZ);
 
     for (PODVector<ShortIntVector2>::ConstIterator it = sTransfer_.mPoints_.Begin(); it != sTransfer_.mPoints_.End(); ++it)
     {
@@ -2003,17 +1998,17 @@ void GameContext::HandleTransferPlayersToMap(StringHash eventType, VariantMap& e
         Vector2 position;
         World2D::GetWorldInfo()->Convert2WorldPosition(sTransfer_.mPoint_, sTransfer_.position_, position);
         ViewManager::Get()->GetCameraNode(sTransfer_.viewport_)->SetPosition2D(position);
-        ViewManager::Get()->SwitchToViewZ(sTransfer_.viewZ_, 0, sTransfer_.viewport_);
-        ViewManager::Get()->SetFocusEnable(true, sTransfer_.viewport_);
 
         // Transfer Players of the viewport
-        WorldMapPosition wposition;
         for (int i = 0; i < sTransfer_.players_.Size(); i++)
         {
-            wposition = WorldMapPosition(World2D::GetWorldInfo(), IntVector2(sTransfer_.mPoint_.x_, sTransfer_.mPoint_.y_), sTransfer_.position_ + IntVector2(i,0), sTransfer_.viewZ_);
+            WorldMapPosition wposition(World2D::GetWorldInfo(), IntVector2(sTransfer_.mPoint_.x_, sTransfer_.mPoint_.y_), sTransfer_.position_ + IntVector2(i, 0), sTransfer_.viewZ_);
             sTransfer_.players_[i]->SetWorldMapPosition(wposition, true);
             sTransfer_.players_[i]->UpdateAvatar(true);
         }
+
+        ViewManager::Get()->SwitchToViewZ(sTransfer_.players_.Front()->GetViewZ(), 0, sTransfer_.viewport_);
+        ViewManager::Get()->SetFocusEnable(true, sTransfer_.viewport_);
 
         World2D::GetWorld()->SetKeepedVisibleMaps(false);
         World2D::GetWorld()->UpdateViewport(sTransfer_.viewport_);

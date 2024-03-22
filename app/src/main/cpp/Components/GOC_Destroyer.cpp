@@ -390,13 +390,19 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     for (PODVector<Node* >::Iterator it=children.Begin(); it!=children.End(); ++it)
     {
         Node* node = *it;
+        if (node == node_)
+        {
+            URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) ... can not be !",
+                             node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
+            continue;
+        }
 
         GOC_Controller* othercontroller = node->GetDerivedComponent<GOC_Controller>();
 
         bool otherIsAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker() && othercontroller->GetThinker()->IsInstanceOf<Player>();
         if (otherIsAplayer)
         {
-            URHO3D_LOGINFOF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
+            URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
                              node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
             hasAlocalMountedPlayer = true;
         }

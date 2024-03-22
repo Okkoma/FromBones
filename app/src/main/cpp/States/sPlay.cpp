@@ -478,30 +478,27 @@ void PlayState::CheckGameLogic()
                 // check condition to win
                 if (GameContext::Get().arenaZoneOn_)
                 {
-                    if (numActivePlayers_ == 1)
+                    // Survivor Mode
+                    if (localPlayers_.Size() > 1)
                     {
-                        // Survivor Mode
-                        if (localPlayers_.Size() > 1)
+                        if (GOManager::GetNumActiveBots() && !GOManager::GetNumActivePlayers())
                         {
-                            if (GOManager::GetNumActiveBots())
-                            {
-                                URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : a CPU wins ! => GameOver for the player !");
-                                SetGameOver();
-                            }
-                            else
-                            {
-                                URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : the last of them ! => GameWin !");
-                                SetGameWin();
-                            }
+                            URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : CPU wins ! => GameOver for the player !");
+                            SetGameOver();
                         }
-                        // Enemy Killer Mode
-                        else
+                        else if (!GOManager::GetNumActiveBots() && GOManager::GetNumActivePlayers() == 1)
                         {
-                            if (!GOManager::GetNumActiveEnemies())
-                            {
-                                URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Killer : no more active enemies ! => GameWin !");
-                                SetGameWin();
-                            }
+                            URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Survivor : the last of them ! => GameWin !");
+                            SetGameWin();
+                        }
+                    }
+                    // Enemy Killer Mode
+                    else
+                    {
+                        if (!GOManager::GetNumActiveEnemies())
+                        {
+                            URHO3D_LOGINFOF("PlayState() - CheckGameLogic : Arena Mod Player Killer : no more active enemies ! => GameWin !");
+                            SetGameWin();
                         }
                     }
                 }
@@ -1561,7 +1558,7 @@ void PlayState::SetPlayers(bool init, bool restart)
         Player* player = localPlayers_[playerindex];
 
         // Set Start Position
-		if (!GameContext::Get().arenaZoneOn_ || localPlayers_.Size() == 1)
+        if ((!GameContext::Get().arenaZoneOn_ && GameContext::Get().gameConfig_.commonWorldStartPoint_) || localPlayers_.Size() == 1)
 			startposition = GameContext::Get().worldStartPosition_;
 		else
 			bool result = GameContext::Get().GetStartPosition(startposition, clientid+playerindex);
@@ -1816,7 +1813,9 @@ void PlayState::SubscribeToEvents()
     if (!GameContext::Get().createModeOn_)
     {
         weather_->Start();
-        SendEvent(WORLD_CAMERACHANGED);
+        VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
+        eventData[World_CameraChanged::VIEWPORT] = -1;
+        SendEvent(WORLD_CAMERACHANGED, eventData);
     }
 
 //    if (GameContext::Get().DrawDebug_)
@@ -2310,7 +2309,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
     // Tips Mode
 #ifdef ACTIVE_TIPMODE
     // Toggle Camera Control
-    if (GameContext::Get().gameConfig_.ctrlCameraEnabled_)
+    if (GameContext::Get().gameConfig_.debugViewEnabled_)
     {
         if (input.GetKeyPress(KEY_TAB) && input.GetKeyDown(KEY_CTRL))
         {

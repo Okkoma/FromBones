@@ -75,6 +75,7 @@ struct FROMBONES_API GameConfig
     bool multiviews_;
     bool renderShapes_;
     bool asynLoadingWorldMap_;
+    float tileSpanning_;
 
     // physics
     bool physics3DEnabled_;
@@ -85,16 +86,18 @@ struct FROMBONES_API GameConfig
     bool forceTouch_;
     bool screenJoystick_;
     bool autoHideCursorEnable_;
-    bool ctrlCameraEnabled_;
+    bool commonWorldStartPoint_;
 
     // UI
-    bool HUDEnabled_;
+    int uiUpdateDelay_;
+    float uiMapOpacityFrame_;
+    float uiMapOpacityBack_;
 
-    // log
+    // log / debug
     int logLevel_;
-    // debug
+    bool HUDEnabled_;
     bool debugRenderEnabled_;
-
+    bool debugViewEnabled_;
     bool debugPathFinder_;
     bool debugPhysics_;
     bool debugLights_;
@@ -102,16 +105,13 @@ struct FROMBONES_API GameConfig
     bool debugWorld2DTagged_;
     bool debugUI_;
     bool debugFluid_;
-
     bool debugSprite2D_;
     bool debugBodyExploder_;
     bool debugScrollingShape_;
     bool debugObjectTiled_;
     bool debugRenderShape_;
-
     bool debugPlayer_;
     bool debugDestroyers_;
-
     bool debugRttScene_;
 
     // living data ?
@@ -122,12 +122,6 @@ struct FROMBONES_API GameConfig
 
     int screenJoystickID_;
     int screenJoysticksettingsID_;
-
-    int uiUpdateDelay_;
-    float uiMapOpacityFrame_;
-    float uiMapOpacityBack_;
-
-    float tileSpanning_;
 };
 
 enum

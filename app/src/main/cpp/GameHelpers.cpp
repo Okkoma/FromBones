@@ -1320,7 +1320,7 @@ void GameHelpers::TransferPlayersToMap(const ShortIntVector2& mPoint, IntVector2
 
     VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
     eventData[World_CameraChanged::VIEWPORT] = viewport;
-    World2D::GetWorld()->SendEvent(WORLD_CAMERACHANGED);
+    World2D::GetWorld()->SendEvent(WORLD_CAMERACHANGED, eventData);
 
     GameContext::Get().rootScene_->SendEvent(WORLD_MAPUPDATE);
 

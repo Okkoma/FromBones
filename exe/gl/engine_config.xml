@@ -47,7 +47,7 @@
 	<variable name="touchEnabled_" value ="false" />
 	<variable name="forceTouch_" value="false" />
 	<variable name="screenJoystick_" value="false" />
-	<variable name="ctrlCameraEnabled_" value ="true" />
+	<variable name="commonWorldStartPoint_" value="false" />
 
 	<variable name="networkMode_" value ="local" />
 	<!-- <variable name="networkServerIP_" value="88.163.159.128" /> -->
@@ -61,6 +61,7 @@
 	<variable name="asynLoadingWorldMap_" value ="true" />
 
 	<variable name="debugRenderEnabled_" value ="true" />
+	<variable name="debugViewEnabled_" value ="true" />	
 	<variable name="debugPathFinder_" value ="false" />
 	<variable name="debugPhysics_" value ="true" />
 	<variable name="debugLights_" value ="false" />

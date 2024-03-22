@@ -339,32 +339,32 @@ void Game::Setup()
 
     if (engineConfigApplied_.Empty())
     {
-        engineParameters_["WindowTitle"]   = GameContext::GAMENAME;
-        engineParameters_["WindowIcon"]    = "Textures/UI/icone.png";
-        engineParameters_["ResourcePaths"] = "CoreData;Data";
+        engineParameters_["WindowTitle"]        = GameContext::GAMENAME;
+        engineParameters_["WindowIcon"]         = "Textures/UI/icone.png";
+        engineParameters_["ResourcePaths"]      = "CoreData;Data";
 
-        engineParameters_["FlushGPU"]        = true;
-        engineParameters_["WorkerThreads"]   = true;
+        engineParameters_["FlushGPU"]           = true;
+        engineParameters_["WorkerThreads"]      = true;
         /*
-        engineParameters_["WindowWidth"]     = 1920;
-        engineParameters_["WindowHeight"]    = 1080;
+        engineParameters_["WindowWidth"]        = 1920;
+        engineParameters_["WindowHeight"]       = 1080;
         */
-        engineParameters_["Headless"]        = false;
-        engineParameters_["Shadows"]         = false;
+        engineParameters_["Headless"]           = false;
+        engineParameters_["Shadows"]            = false;
 
-        engineParameters_["TripleBuffer"]    = false;
-        engineParameters_["FullScreen"]      = true;
-        engineParameters_["VSync"]           = true;
-        config.frameLimiter_                 = false;
-        //config.frameLimiter_                 = 51;
+        engineParameters_["TripleBuffer"]       = false;
+        engineParameters_["FullScreen"]         = true;
+        engineParameters_["VSync"]              = true;
+        config.frameLimiter_                    = false;
+        //config.frameLimiter_                  = 51;
 
-        engineParameters_["LogQuiet"] = true;
-        engineParameters_["LogLevel"] = 1;      // 0:LOGDEBUG 1: LOGINFO+LOGWARNING+LOGERROR 2: LOGWARNING+LOGERROR  3: LOGERROR ONLY
+        engineParameters_["LogQuiet"]           = true;
+        engineParameters_["LogLevel"]           = 1;      // 0:LOGDEBUG 1: LOGINFO+LOGWARNING+LOGERROR 2: LOGWARNING+LOGERROR  3: LOGERROR ONLY
 
-        engineParameters_["MaterialQuality"]   = 0;
-        engineParameters_["TextureQuality"]    = 2;
-        engineParameters_["TextureFilterMode"] = 0;
-        engineParameters_["MultiSample"]       = 0;
+        engineParameters_["MaterialQuality"]    = 0;
+        engineParameters_["TextureQuality"]     = 2;
+        engineParameters_["TextureFilterMode"]  = 0;
+        engineParameters_["MultiSample"]        = 0;
 
         engineParameters_["SoundBuffer"]        = 50;
         engineParameters_["SoundMixRate"]       = 44100;
@@ -372,43 +372,43 @@ void Game::Setup()
         engineParameters_["SoundInterpolation"] = false;
 
         if (config.splashviewed_)
-            config.initState_ = "MainMenu";
+            config.initState_      = "MainMenu";
         else
-            config.splashviewed_ = true;
+            config.splashviewed_   = true;
 
-        config.networkMode_  = "local";
-        config.language_     = 1;
-        config.deviceDPI_    = DPI_M;
-        config.uiDeviceDPI_  = DPI_M;
+        config.networkMode_        = "local";
+        config.language_           = 1;
+        config.deviceDPI_          = DPI_M;
+        config.uiDeviceDPI_        = DPI_M;
 
-        config.soundEnabled_ = true;
-        config.musicEnabled_ = false;
+        config.soundEnabled_       = true;
+        config.musicEnabled_       = false;
 
-        if (GetPlatform() == "Android" || GetPlatform() == "iOS")
+        if (GetPlatform()          == "Android" || GetPlatform() == "iOS")
         {
-            config.touchEnabled_ = true;
+            config.touchEnabled_   = true;
             config.screenJoystick_ = true;
         }
         else
         {
-            config.touchEnabled_ = false;
+            config.touchEnabled_   = false;
             config.screenJoystick_ = false;
         }
 
-        config.HUDEnabled_ = false;
-        config.ctrlCameraEnabled_ = false;
+        config.HUDEnabled_         = false;
+        config.debugViewEnabled_   = false;
 
         config.debugRenderEnabled_ = false;
-        config.physics3DEnabled_ = false;
-        config.physics2DEnabled_ = true;
-        config.enlightScene_ = false;
-        config.renderShapes_ = true;
-        config.multiviews_ = false;
-        config.tileSpanning_ = 0.1f;
-        config.debugPhysics_ = false;
-        config.debugLights_ = false;
-        config.debugUI_ = false;
-        config.debugRenderShape_ = false;
+        config.physics3DEnabled_   = false;
+        config.physics2DEnabled_   = true;
+        config.enlightScene_       = false;
+        config.renderShapes_       = true;
+        config.multiviews_         = false;
+        config.tileSpanning_       = 0.1f;
+        config.debugPhysics_       = false;
+        config.debugLights_        = false;
+        config.debugUI_            = false;
+        config.debugRenderShape_   = false;
     }
 
     if (engineParameters_["LogName"].GetString().Empty() && !GetExecutableName().Empty())
@@ -598,37 +598,64 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
         else
         {
             bool value = varElem.attribute("value").as_bool();
-            if (name == "SoundEnabled_") config->soundEnabled_ = value;
-            else if (name == "MusicEnabled_") config->musicEnabled_ = value;
-
-            else if (name == "touchEnabled_") config->touchEnabled_ = value;
-            else if (name == "forceTouch_") config->forceTouch_ = value;
-            else if (name == "screenJoystick_") config->screenJoystick_ = value;
-
-            else if (name == "ctrlCameraEnabled_") config->ctrlCameraEnabled_ = value;
-            else if (name == "HUDEnabled_") config->HUDEnabled_ = value;
-            else if (name == "physics3DEnabled_") config->physics3DEnabled_ = value;
-            else if (name == "physics2DEnabled_") config->physics2DEnabled_ = value;
-            else if (name == "asynLoadingWorldMap_") config->asynLoadingWorldMap_ = value;
-            else if (name == "enlightScene_") config->enlightScene_ = value;
-            else if (name == "fluidEnabled_") config->fluidEnabled_ = value;
-
-            else if (name == "multiViews_") config->multiviews_ = value;
-            else if (name == "renderShapes_") config->renderShapes_ = value;
-
-            else if (name == "debugRenderEnabled_") config->debugRenderEnabled_ = value;
-            else if (name == "debugPathFinder_") config->debugPathFinder_ = value;
-            else if (name == "debugPhysics_") config->debugPhysics_ = value;
-            else if (name == "debugLights_") config->debugLights_ = value;
-            else if (name == "debugWorld2D_") config->debugWorld2D_ = value;
-            else if (name == "debugWorld2DTagged_") config->debugWorld2DTagged_ = value;
-            else if (name == "debugUI_") config->debugUI_ = value;
-            else if (name == "debugFluid_") config->debugFluid_ = value;
-            else if (name == "debugSprite2D_") config->debugSprite2D_ = value;
-            else if (name == "debugBodyExploder_") config->debugBodyExploder_ = value;
-            else if (name == "debugScrollingShape_") config->debugScrollingShape_ = value;
-            else if (name == "debugObjectTiled_") config->debugObjectTiled_ = value;
-            else if (name == "debugRenderShape_") config->debugRenderShape_ = value;
+            if (name == "SoundEnabled_")
+                config->soundEnabled_ = value;
+            else if (name == "MusicEnabled_")
+                config->musicEnabled_ = value;
+            else if (name == "touchEnabled_")
+                config->touchEnabled_ = value;
+            else if (name == "forceTouch_")
+                config->forceTouch_ = value;
+            else if (name == "screenJoystick_")
+                config->screenJoystick_ = value;
+            else if (name == "autoHideCursorEnable_")
+                config->autoHideCursorEnable_ = value;
+            else if (name == "commonWorldStartPoint_")
+                config->commonWorldStartPoint_ = value;
+            else if (name == "HUDEnabled_")
+                config->HUDEnabled_ = value;
+            else if (name == "physics3DEnabled_")
+                config->physics3DEnabled_ = value;
+            else if (name == "physics2DEnabled_")
+                config->physics2DEnabled_ = value;
+            else if (name == "asynLoadingWorldMap_")
+                config->asynLoadingWorldMap_ = value;
+            else if (name == "enlightScene_")
+                config->enlightScene_ = value;
+            else if (name == "fluidEnabled_")
+                config->fluidEnabled_ = value;
+            else if (name == "multiViews_")
+                config->multiviews_ = value;
+            else if (name == "renderShapes_")
+                config->renderShapes_ = value;
+            else if (name == "debugViewEnabled_")
+                config->debugViewEnabled_ = value;
+            else if (name == "debugRenderEnabled_")
+                config->debugRenderEnabled_ = value;
+            else if (name == "debugPathFinder_")
+                config->debugPathFinder_ = value;
+            else if (name == "debugPhysics_")
+                config->debugPhysics_ = value;
+            else if (name == "debugLights_")
+                config->debugLights_ = value;
+            else if (name == "debugWorld2D_")
+                config->debugWorld2D_ = value;
+            else if (name == "debugWorld2DTagged_")
+                config->debugWorld2DTagged_ = value;
+            else if (name == "debugUI_")
+                config->debugUI_ = value;
+            else if (name == "debugFluid_")
+                config->debugFluid_ = value;
+            else if (name == "debugSprite2D_")
+                config->debugSprite2D_ = value;
+            else if (name == "debugBodyExploder_")
+                config->debugBodyExploder_ = value;
+            else if (name == "debugScrollingShape_")
+                config->debugScrollingShape_ = value;
+            else if (name == "debugObjectTiled_")
+                config->debugObjectTiled_ = value;
+            else if (name == "debugRenderShape_")
+                config->debugRenderShape_ = value;
 
             config->logString += ToString("  (bool) %s = %s \n", name.CString(), value ? "true":"false");
 //            std::cout << config->logString.CString();

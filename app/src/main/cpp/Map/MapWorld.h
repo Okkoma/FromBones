@@ -85,7 +85,7 @@ struct TravelerViewportInfo
     bool isUnderground_;
     bool needUpdateCurrentMap_;
 
-    Vector<Map*> effectiveVisibleMaps_;
+    List<Map*> effectiveVisibleMaps_;
 
     static const unsigned MaxVisibleMaps;
 };

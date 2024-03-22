@@ -987,18 +987,17 @@ void DrawableScroller::Start()
     flatmode_ = !World2D::GetWorldInfo()->worldModel_;
 
     unsigned numviewports = ViewManager::Get()->GetNumViewports();
-    for (int viewport=0; viewport < numviewports; viewport++)
+    for (int viewport = 0; viewport < numviewports; viewport++)
     {
-        ScrollerViewInfo& info = scrollerinfos_[viewport];
-        info.camPosition_ = info.lastCamPosition_ = Vector2::ZERO;
-        info.nodeToFollow_ = ViewManager::Get()->GetCameraNode(viewport);
-        info.initialPosition_ = info.nodeToFollow_->GetWorldPosition2D();
+        ScrollerViewInfo& info   = scrollerinfos_[viewport];
+        info.nodeToFollow_       = ViewManager::Get()->GetCameraNode(viewport);
+        info.initialPosition_.x_ = info.nodeToFollow_->GetWorldPosition2D().x_ + PIXEL_SIZE;
+        info.initialPosition_.y_ = flatmode_ ? World2D::GetCurrentMap(viewport)->GetTopography().GetY(0.f) : info.nodeToFollow_->GetWorldPosition2D().y_;
+        info.camPositionCount_   = 0;
 
         unsigned numscrollers = info.drawableScrollers_.Size();
         for (unsigned i = 0; i < numscrollers; ++i)
             info.drawableScrollers_[i]->SetEnabled(true);
-
-        info.camPositionCount_ = 0;
 
         URHO3D_LOGINFOF("DrawableScroller() - Start() : viewport=%d numscrollers=%u !", viewport, numscrollers);
     }
@@ -1011,7 +1010,7 @@ void DrawableScroller::Stop()
     {
         ScrollerViewInfo& info = scrollerinfos_[viewport];
         info.camPositionCount_ = 0;
-        info.camPosition_ = info.initialPosition_ = info.lastCamPosition_ = Vector2::ZERO;
+        info.camPosition_ = info.lastCamPosition_ = Vector2::ZERO;
         info.nodeToFollow_.Reset();
 
         unsigned numscrollers = info.drawableScrollers_.Size();
@@ -1071,24 +1070,22 @@ void DrawableScroller::SetActive(int viewport, bool state)
     {
         URHO3D_LOGINFOF("DrawableScroller() - SetActive : true");
 
+        info.nodeToFollow_       = ViewManager::Get()->GetCameraNode(viewport);
+        info.initialPosition_.x_ = info.nodeToFollow_->GetWorldPosition2D().x_ + PIXEL_SIZE;
+        info.initialPosition_.y_ = flatmode_ ? World2D::GetCurrentMap(viewport)->GetTopography().GetY(0.f) : info.nodeToFollow_->GetWorldPosition2D().y_;
+
         // StaticSprite and derived need to be explicitly enabled
         // since we have change this behavior in Urho3D to gain in performance
-        if (info.drawableScrollers_.Front()->IsEnabled() == state)
-        {
+        if (info.drawableScrollers_.Front()->IsEnabled())
             for (unsigned i = 0; i < info.drawableScrollers_.Size(); ++i)
                 info.drawableScrollers_[i]->OnSetEnabled();
-        }
         else
-        {
-            info.camPosition_      = info.lastCamPosition_ = Vector2::ZERO;
-            info.nodeToFollow_     = ViewManager::Get()->GetCameraNode(viewport);
-            info.initialPosition_  = info.nodeToFollow_->GetWorldPosition2D();
             for (unsigned i = 0; i < info.drawableScrollers_.Size(); ++i)
-                info.drawableScrollers_[i]->SetEnabled(state);
-        }
+                info.drawableScrollers_[i]->SetEnabled(true);
 
-        VariantMap& eventdata = GameContext::Get().context_->GetEventDataMap();
-        info.drawableScrollers_[0]->HandleCameraPositionChanged(StringHash(), eventdata);
+        VariantMap& eventData = GameContext::Get().context_->GetEventDataMap();
+        eventData[World_CameraChanged::VIEWPORT] = viewport;
+        info.drawableScrollers_[0]->HandleCameraPositionChanged(StringHash(), eventData);
     }
     else
     {
@@ -1222,22 +1219,13 @@ void DrawableScroller::OnSetEnabled()
                         this, viewport_, flatmode_?"true":"false", info.nodeToFollow_ ? info.nodeToFollow_->GetName().CString() :
                         "NONE", info.nodeToFollow_ ? info.nodeToFollow_->GetID() : 0, drawables_.Size());
 
-        info.camPosition_ = info.lastCamPosition_ = info.nodeToFollow_ ? info.nodeToFollow_->GetWorldPosition2D() : Vector2::ZERO;
-
         if (flatmode_)
-        {
             boundcurve_ = 0;
-            SubscribeToEvent(scene, E_SCENEUPDATE, URHO3D_HANDLER(DrawableScroller, HandleUpdateFlatMode));
-        }
-        else
-        {
-            SubscribeToEvent(scene, E_SCENEUPDATE, URHO3D_HANDLER(DrawableScroller, HandleUpdateEllipseMode));
-        }
 
-        if (!info.camPositionCount_)
-        {
+        SubscribeToEvent(scene, E_SCENEUPDATE, flatmode_ ? URHO3D_HANDLER(DrawableScroller, HandleUpdateFlatMode) :
+                                                           URHO3D_HANDLER(DrawableScroller, HandleUpdateEllipseMode));
+        if (info.camPositionCount_ == 0)
             SubscribeToEvent(WORLD_CAMERACHANGED, URHO3D_HANDLER(DrawableScroller, HandleCameraPositionChanged));
-        }
 
         SetDrawableObjects();
     }
@@ -1552,11 +1540,11 @@ bool DrawableScroller::SetDrawableObjects()
         return false;
     }
 
-    DrawableObjectInfo* dinfo = GetWorldScrollerObjectInfo(World2D::GetCurrentMapPoint(viewport_), 0);
+    DrawableObjectInfo* dinfo = GetWorldScrollerObjectInfo(map->GetMapPoint(), 0);
     if (!dinfo)
     {
         if (logtest_)
-            URHO3D_LOGWARNINGF("DrawableScroller() - SetDrawableObjects : viewport=%d map=%s => no dinfo ... skip !", viewport_, World2D::GetCurrentMapPoint(viewport_).ToString().CString());
+            URHO3D_LOGWARNINGF("DrawableScroller() - SetDrawableObjects : viewport=%d map=%s => no dinfo ... skip !", viewport_, map->GetMapPoint().ToString().CString());
         return false;
     }
 
@@ -2466,12 +2454,12 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
 
     if (info.camPosition_ == info.lastCamPosition_ && GameContext::Get().luminosity_ == GameContext::Get().lastluminosity_)
     {
-//        if (logtest_)
-//            URHO3D_LOGERRORF("DrawableScroller() - HandleUpdateFlatMode : SetDrawableObjects same positions and luminosity => skip !");
+        if (logtest_)
+            URHO3D_LOGERRORF("DrawableScroller() - HandleUpdateFlatMode : viewport=%d SetDrawableObjects same positions and luminosity => skip !", viewport_);
         return;
     }
 
-    Vector2 deltamotion = info.camPosition_ - info.lastCamPosition_;
+    const Vector2 camMotion = info.camPosition_ - info.lastCamPosition_;
 
     // update lastCamPosition (update just once for all DrawableScrollers)
     info.camPositionCount_++;
@@ -2497,8 +2485,8 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
         scrollerposition_.y_ = (info.camPosition_.y_ - boundcurve_->GetY(boundcurve_->ClampX(info.camPosition_.x_))) * parallax_.y_;
     }
 
-//    if (logtest_)
-//        URHO3D_LOGINFOF("DrawableScroller() - HandleUpdateFlatMode : this=%u scrollerposition_=%s", this, scrollerposition_.ToString().CString());
+    if (logtest_)
+        URHO3D_LOGINFOF("DrawableScroller() - HandleUpdateFlatMode : this=%u scrollerposition_=%s", this, scrollerposition_.ToString().CString());
 
     const Rect& visibleRect = World2D::GetExtendedVisibleRect(viewport_);
 
@@ -2506,7 +2494,7 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
     DrawableObject* rightdrawable = drawables_.Back();
 
     // camera move to right : check right drawable go inside visiblerect => get left drawable and put it at right, change the sprite considering the current map
-    if (deltamotion.x_ > 0.f)
+    if (camMotion.x_ > 0.f)
     {
         if (rightdrawable->info_->drawRect_.max_.x_ + rightdrawable->position_.x_ + scrollerposition_.x_ - drawableoverlap_ <= visibleRect.max_.x_)
         {
@@ -2528,7 +2516,7 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
         }
     }
     // camera move to left : check left drawable go inside visiblerect => get right drawable and put it at left, change the sprite considering the current map
-    else if (deltamotion.x_ < 0.f)
+    else if (camMotion.x_ < 0.f)
     {
         if (leftdrawable->info_->drawRect_.min_.x_ + leftdrawable->position_.x_ + scrollerposition_.x_ + drawableoverlap_ >= visibleRect.min_.x_)
         {
@@ -2555,8 +2543,6 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
 
 void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGERRORF("DrawableScroller() - HandleCameraPositionChanged : on viewport ...", viewport_);
-
     int viewport = eventData[World_CameraChanged::VIEWPORT].GetInt();
     if (viewport == -1 || viewport == viewport_)
     {
@@ -2566,6 +2552,7 @@ void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, Variant
 
         unsigned numscrollers = info.drawableScrollers_.Size();
 
+        // empty the drawable pool to be sure that SetDrawableObjects will be called to recenter the drawables on the viewport
         for (unsigned i = 0; i < numscrollers; ++i)
             info.drawableScrollers_[i]->drawablePool_.Clear();
 
@@ -2573,8 +2560,9 @@ void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, Variant
         if (info.nodeToFollow_)
             info.camPosition_ = info.nodeToFollow_->GetWorldPosition2D();
 
-    //    logtest_ = true;
+        logtest_ = true;
 
+        // update the scrollers
         if (flatmode_)
         {
             for (unsigned i = 0; i < numscrollers; ++i)
@@ -2586,7 +2574,7 @@ void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, Variant
                 info.drawableScrollers_[i]->HandleUpdateEllipseMode(eventType, eventData);
         }
 
-    //    logtest_ = false;
+        logtest_ = false;
 
         URHO3D_LOGERRORF("DrawableScroller() - HandleCameraPositionChanged : viewport=%d ... this=%u camerapos=%s!", viewport_, this, info.camPosition_.ToString().CString());
     }
