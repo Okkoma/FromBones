@@ -63,12 +63,12 @@
 	<variable name="debugRenderEnabled_" value ="true" />
 	<variable name="debugViewEnabled_" value ="true" />	
 	<variable name="debugPathFinder_" value ="false" />
-	<variable name="debugPhysics_" value ="true" />
+	<variable name="debugPhysics_" value ="false" />
 	<variable name="debugLights_" value ="false" />
 	<variable name="debugWorld2D_" value ="false" />
 	<variable name="debugWorld2DTagged_" value ="false" />
 	<variable name="debugUI_" value ="false" />
-	<variable name="debugFluid_" value ="false" />
+	<variable name="debugFluid_" value ="true" />
 	<variable name="debugSprite2D_" value ="false" />
 	<variable name="debugBodyExploder_" value ="false" />
 	<variable name="debugScrollingShape_" value ="false" />

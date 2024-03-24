@@ -383,6 +383,9 @@ void GOC_Detector::BecomeStickOn(CollisionShape2D* targetshape, const ContactInf
     if (targetsprite && !targetsprite->GetWorldBoundingBox().IsInside(cinfo.contactPoint_))
         return;
 
+    if (targetbody->GetNode()->GetName().StartsWith(TRIGATTACK))
+        return;
+
 //    URHO3D_LOGINFOF("GOC_Detector() - BecomeStickOn : node=%s(%u) with target=%s(%u) stick=%s", node_->GetName().CString(), node_->GetID(),
 //                    targetbody->GetNode()->GetName().CString(), targetbody->GetNode()->GetID(), stickTarget_?"true":"false");
 

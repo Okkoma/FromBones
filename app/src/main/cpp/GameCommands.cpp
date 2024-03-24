@@ -139,6 +139,7 @@ void GameCommands::Launch(const String& input)
     else if (inputLower == "fluidenable")
     {
         GameContext::Get().gameConfig_.fluidEnabled_ = !GameContext::Get().gameConfig_.fluidEnabled_;
+        GameContext::Get().gameConfig_.forceChangeRenderPath_ = true;
         URHO3D_LOGINFOF("fluidenable = %s", GameContext::Get().gameConfig_.fluidEnabled_ ? "true" : "false");
     }
     else if (inputLower == "fluidpull")
@@ -147,6 +148,7 @@ void GameCommands::Launch(const String& input)
             return;
 
         GameContext::Get().gameConfig_.fluidEnabled_ = false;
+        GameContext::Get().gameConfig_.forceChangeRenderPath_ = true;
 
         const HashMap<ShortIntVector2, Map* >&  maps = World2D::GetWorld()->GetStorage()->GetMapsInMemory();
         for (HashMap<ShortIntVector2, Map* >::ConstIterator it=maps.Begin(); it != maps.End(); ++it)

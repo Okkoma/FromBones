@@ -121,19 +121,21 @@ struct WaterLayerData
 {
     WaterLayerData();
 
-    void Clear();
+    void Clear(int viewZ=0);
 
     bool UpdateSimulation();
 
-    void UpdateTiledBatch(const ViewportRenderData& viewportdata, FluidDatas& fluiddata);
+    void UpdateTiledBatch(int viewZ, const ViewportRenderData& data, FluidDatas& fluiddata);
     void UpdateBatches();
 
     int viewport_;
 
-    Vector<ViewportRenderData* > viewportdatas_;
+    // each objecttiled (map) has a ViewportRenderData
+    Vector<ViewportRenderData* > mapdatas_;
     Vector<WaterSurface> waterSurfaces_;
     Vector<WaterLine> waterLines_;
 
+    bool batchesDirty_;
     SourceBatch2D watertilesBackBatch_, watertilesFrontBatch_, waterlinesBatch_;
 };
 
@@ -153,7 +155,7 @@ public:
 
     void Clear();
 
-    void SetViewportData(bool enable, ViewportRenderData* viewportdata);
+    void SetViewportData(bool enable, ViewportRenderData* data);
 
     void AddSplashAt(const float x, const float y, const float velocity);
 
@@ -184,7 +186,7 @@ private:
 
     virtual void OnNodeSet(Node* node);
 
-    void UpdateBatches(int viewport);
+    void UpdateBatches(WaterLayerData& layerData);
 
     void HandleUpdateFluids(StringHash eventType, VariantMap& eventData);
     void HandleBeginFluidContact(StringHash eventType, VariantMap& eventData);
@@ -199,8 +201,7 @@ private:
 
     Vector<WaterDeformationPoint> waterDeformationPoints_;
 
-    bool fluidUpdated_;
-    float fluidTime_;
+    float fluidUpdateTime_;
 
     static WaterLayer* waterLayer_;
 };

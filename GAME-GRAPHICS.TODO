@@ -1,5 +1,22 @@
 Todos:
 
+     ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
+        => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.
+        => en GL, le waterbacklayer a un pb d'affichage, il disparait puis reapparait de façon intempestive en fonction du deplacement de l'avatar.
+        ==> surement un pb de material ou de texture id
+        => en VK multiviews, c'est un probleme du backend VK qui prend la texture rendu en pass precedente (qui inclut les differents viewports).
+        ==> il faudrait une texture de rendu par viewport
+
+    ✔ 23/03/2024 : depuis la version multiviewport, le waterlayer ne s'affiche plus correctement
+        => la derniere version frombones fonctionnant (FromBones-20240228-BCv2-WindowsBuildShared)
+        ==> test ok, fait en utilisant Urho3D-20240315-BCv2-VulkanMultiViewport
+        ==> il s'agit du RenderPath qui doit etre changé par le bon, seulement il y a une erreur dans PlayState::SetViewports
+        ===> il faut autoriser la recreation de viewport si le renderpath doit etre changé
+        ====> ajout de GameConfig.forceChangeRenderPath_ mais cela ne semble pas fonctionner
+        ====> en mettant directement dans engine_config.xml fluidEnabled_=true il n'y a plus de pb de water.
+        ====> voir ce que l'on peut faire dans ViewManager::Get()->SetViewportLayout
+        =====> OK il faut utiliser directement viewport->SetRenderPath avec chaque viewport du renderer
+
     ✔ 21/03/2024 : changer de viewport en dynamic lorsque l'un des joueurs du viewport n'est plus sur le meme viewz
         => OK : modification de PlayState::SetViewports
 

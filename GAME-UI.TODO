@@ -1,5 +1,12 @@
 Todos:
 
+    ✔ 22/03/2024 : l'icone feu sur l'epee de feu a disparu
+        -> essai en mingw pour prendre l'initialstuff qui a une epee de feu qui fonctionnait bien
+        ==> elle fonctionne tjrs bien, donc le probleme provient de l'inventaire courant local.
+        ==> soit cet inventaire a mal ete sauvegardé, soit l'objet généré à mal été transformé en slot
+        ==> en le droppant et le ramassant de nouveau, l'icone feu reapparait => donc c'est un pb de sauvegarde
+        ===> OK : en refaisant une nouvelle sauvegarde F6, il n'y a pas de pb au rechargement. surement un pb de la sauvegarde faite avec une ancienne version ?
+
     ✔ 18/03/2024 : le texte de demarrage "C'est Parti" doit etre lié au viewport et pas afficher sur les autres. Il faut un texte par viewport du coup
         -> OK : modification de TextMessage
 

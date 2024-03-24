@@ -19,7 +19,7 @@ public:
     }
     static void SetSimulationMode(int mode, int numiterations)
     {
-        mode_=mode;
+        mode_ = mode;
         numiterations_ = numiterations;
     }
 

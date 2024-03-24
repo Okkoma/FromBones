@@ -1693,7 +1693,7 @@ void PlayState::SetViewports(bool dynamic, bool init)
                         continue;
 
                     Vector2 delta = player->GetAvatar()->GetWorldPosition2D() - playernext->GetAvatar()->GetWorldPosition2D();
-                    if (Abs(delta.x_) < 9.f && Abs(delta.y_) < 8.f && viewZ == playernext->GetViewZ())
+                    if (Abs(delta.x_) < 8.f && Abs(delta.y_) < 6.f && viewZ == playernext->GetViewZ())
                     {
                         viewportplayers.Back().Push(playernext);
                         playernext = 0;
@@ -1715,8 +1715,11 @@ void PlayState::SetViewports(bool dynamic, bool init)
     bool updateNumViewports = ViewManager::Get()->GetNumViewports() != viewportplayers.Size();
     if (updateNumViewports)
     {
-        URHO3D_LOGINFOF("PlayState() - SetViewports : Update numviewports=%u ...", viewportplayers.Size());
+        URHO3D_LOGINFOF("PlayState() - SetViewports : Update numviewports=%u forceChangeRenderPath_=%s ...",
+                        viewportplayers.Size(), GameContext::Get().gameConfig_.forceChangeRenderPath_? "true":"false");
+
         ViewManager::Get()->SetViewportLayout(viewportplayers.Size());
+        GameContext::Get().gameConfig_.forceChangeRenderPath_ = false;
     }
 
     // update the focused nodes for each viewport
@@ -1765,6 +1768,15 @@ void PlayState::SetViewports(bool dynamic, bool init)
             for (int i = 0; i < players.Size(); i++)
                 players[i]->ResizeUI(players.Size()-i-1);
         }
+    }
+
+    if (GameContext::Get().gameConfig_.forceChangeRenderPath_)
+    {
+        RenderPath* renderpath = GameContext::Get().gameConfig_.fluidEnabled_ ? GameContext::Get().renderPaths_[1] : GameContext::Get().renderPaths_[0];
+        for (int viewport = 0; viewport < viewportplayers.Size(); viewport++)
+            GameContext::Get().renderer_->GetViewport(viewport)->SetRenderPath(renderpath);
+
+        GameContext::Get().gameConfig_.forceChangeRenderPath_ = false;
     }
 
     if (updateNumViewports || init)

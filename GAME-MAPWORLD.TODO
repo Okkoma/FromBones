@@ -1,5 +1,11 @@
 Todos:
 
+    ☐ 23/03/2024 : adapter les furnitures flore en fonction de la zone (biome : prendre en compte si sous l'eau aussi)
+
+    ☐ 23/03/2024 : rajouter les lacs et mers
+        => creer une world ellipse pour le liquide, à l'interieur de cette ellipse on pourra remplir en eau.
+        => il faudra identifier les zones ou l'on voudra remplir en lac ou en mer
+
     ✔ 22/03/2024 : lors de la teleportation via la worldMap, il faut bien s'assurer de faire un SetViewZ sur les avatars transferés.
         => OK : modification de GameContext::HandleTransferPlayersToMap : on switch le viewport sur la viewZ du premier avatar.
 

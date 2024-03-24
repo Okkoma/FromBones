@@ -555,7 +555,7 @@ struct ObjectFeatured;
 
 struct FluidDatas
 {
-    FluidDatas() : viewZ_(0), indexFluidZ_(0), featureMap_(0), checkMap_(0), linkedCells_(false) { }
+    FluidDatas() : lastFrameUpdate_(0U), viewZ_(0), indexFluidZ_(0), featureMap_(0), checkMap_(0), linkedCells_(false) { }
     void Resize(int index, unsigned width, unsigned height);
 
     void LinkFeatureMaps(ObjectFeatured* features, PODVector<FeatureType>* featureMap, PODVector<FeatureType>* checkMap)
@@ -574,6 +574,8 @@ struct FluidDatas
     bool UpdateMapData(HiresTimer* timer);
 
     ObjectFeatured* features_;
+
+    unsigned lastFrameUpdate_;
 
     int viewZ_;
     int indexFluidZ_;

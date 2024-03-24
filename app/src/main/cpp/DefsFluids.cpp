@@ -522,6 +522,8 @@ void FluidDatas::Pull()
         if (it->patternType_ >= WATER)
             it->Clear();
     }
+
+    lastFrameUpdate_ = 0U;
 }
 
 const float fluidFromIntToFloat = (FLUID_MAXVALUE + FLUID_MAXCOMPRESSIONVALUE) / 255.f;

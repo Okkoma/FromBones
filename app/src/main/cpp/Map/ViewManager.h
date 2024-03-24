@@ -2,7 +2,6 @@
 
 
 #include <Urho3D/Core/Object.h>
-#include <Urho3D/Graphics/RenderPath.h>
 
 #include "DefsViews.h"
 

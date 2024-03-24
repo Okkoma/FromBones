@@ -1,7 +1,9 @@
 #include <Urho3D/Urho3D.h>
 #include <Urho3D/IO/Log.h>
+#include <Urho3D/Urho2D/Renderer2D.h>
 
 #include "GameOptionsTest.h"
+#include "GameContext.h"
 
 #include "MemoryObjects.h"
 
@@ -31,6 +33,12 @@ MapSimulatorLiquid::~MapSimulatorLiquid()
 
 int MapSimulatorLiquid::Update(FluidDatas& fluiddatas)
 {
+    if (fluiddatas.lastFrameUpdate_ == GameContext::Get().renderer2d_->GetCurrentFrameInfo().frameNumber_)
+    {
+//        URHO3D_LOGWARNINGF("MapSimulatorLiquid() - Update : fluidDatas_=%u ... already done this frame ...", &fluiddatas);
+        return 1;
+    }
+
     fluidDatas_ = &fluiddatas;
 
 //    URHO3D_LOGINFOF("MapSimulatorLiquid() - Update : fluidDatas_=%u ... xSize=%d ySize=%d ...", fluidDatas_, xSize_, ySize_);
@@ -58,6 +66,8 @@ int MapSimulatorLiquid::Update(FluidDatas& fluiddatas)
         while (numiterations--)
             Simulate6();
 //        URHO3D_LOGINFOF("MapSimulatorLiquid() - Update : Simulation=%d Iterations=%d ... amountUpdated=%u OK !", params_[0], params_.Size() > 1 ? params_[1] : 1, amountUpdated_);
+
+    fluidDatas_->lastFrameUpdate_ = GameContext::Get().renderer2d_->GetCurrentFrameInfo().frameNumber_;
 
     return amountUpdated_;
 }

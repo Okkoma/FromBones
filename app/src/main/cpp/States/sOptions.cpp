@@ -2407,6 +2407,7 @@ void OptionState::HandleFluidEnableChanged(StringHash eventType, VariantMap& eve
     if (optionParameters_[OPTION_FluidEnable].control_->GetSelection() != GameContext::Get().gameConfig_.fluidEnabled_)
     {
         GameContext::Get().gameConfig_.fluidEnabled_ = optionParameters_[OPTION_FluidEnable].control_->GetSelection();
+        GameContext::Get().gameConfig_.forceChangeRenderPath_ = true;
 
         if (World2D::GetWorld()->GetStorage() && !GameContext::Get().gameConfig_.fluidEnabled_)
         {

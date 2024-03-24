@@ -202,8 +202,8 @@ inline void GOC_PlayerController::UpdateKeyControls(Input& input)
     control_.SetButtons(CTRL_PREVENTITY, input.GetScancodePress(keysMap_[ACTION_PREVENTITY]));
     control_.SetButtons(CTRL_NEXTENTITY, input.GetScancodePress(keysMap_[ACTION_NEXTENTITY]));
 
-    if (control_.IsButtonDown(CTRL_FIRE1))
-        URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u) CTRL_FIRE1 !", node_->GetName().CString(), node_->GetID());
+//    if (control_.IsButtonDown(CTRL_FIRE1))
+//        URHO3D_LOGINFOF("GOC_PlayerController() - UpdateKeyControls : Node=%s(%u) CTRL_FIRE1 !", node_->GetName().CString(), node_->GetID());
 }
 
 inline void GOC_PlayerController::UpdateTouchControls(Input& input)

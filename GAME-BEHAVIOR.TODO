@@ -1,5 +1,9 @@
 Todos:
 
+    ✔ 22/03/2024 : le souffle de darkren genere un collider qui entre en collision, il ne faut pas c'est du feu. De plus la lance va se sticker dessus ...
+        -> corriger pour que la lance ne stick pas sur les TA
+        => OK : modification de GOC_Detector::BecomeStickOn
+
     ✔ 21/03/2024 : il faut pour PlayState::CheckGameLogic() voir à corriger GOManager::GetNumActiveBots() qui ne renvoit pas le bon resultat
         -> ok correctif
 
@@ -142,6 +146,7 @@ Todos:
 
     ☐ 07/10/2023 : creer nouveaux objets de jeu et behaviors necessaires
         -> "graine" : fait pousser une plante
+        ==> deja fait avec le craft d'eliogorseed+potion puis drop
         -> "poudre de pluie" : declenche la pluie
         -> "une potion d'eau" : change le pouvoir de feu de la sorciere en pouvoir d'eau, et rend plus puissant les entités de type "eau"
 
@@ -151,7 +156,7 @@ Todos:
         ☐ ajouter l'abilité Teleportation. Lorsque l'ability est activée, le curseur sur la WorldMap changera : par clic sur un point de cette map.
             ===> OK : ajout du curseur "cursorTP" et utilisation du Qual CTRL pour activation
             ===> creer l'ability Teleportation
-        ☐ pour la teleportation "instant", il faut aussi chargée les cartes dans la zone de visibilité au repop => cf GOC_Portal.
+        ✔ 18/03/2024 OK : pour la teleportation "instant", il faut aussi chargée les cartes dans la zone de visibilité au repop => cf GOC_Portal.
 
     ☐ 06/04/2023 : pouvoir planter les eliegor seed
         => passer par le CRAFTPANEL, ajout de la recette EliegorSeed + Potion, lorsque l'on jette l'EliegorSeed modifié alors elle doit se planter.

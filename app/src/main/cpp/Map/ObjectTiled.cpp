@@ -651,6 +651,7 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
     if (IsEnabledEffective())
     {
         int viewport = ViewManager::Get()->GetViewport(renderer_->GetCurrentFrameInfo().camera_);
+
         ViewportRenderData& viewportdata = viewportDatas_[viewport];
 
         if (viewportdata.isPaused_)
@@ -3127,20 +3128,16 @@ bool ObjectTiled::UpdateDirtyChunks(HiresTimer* timer, const long long& delay)
 
 void ObjectTiled::UpdateChunksVisiblity(ViewportRenderData& viewportdata)
 {
-    ChunkGroup& chunkgroup = viewportdata.chunkGroup_;
-    const IntRect& visiblerect = viewportdata.visibleRect_;
-    int viewport = viewportdata.viewport_;
-
 #ifdef DUMP_OBJECTTILED_UPDATEINFOS
     URHO3D_LOGINFOF("ObjectTiled() - UpdateChunksVisiblity ... %s viewport=%d viewrect=%s ...",
-                    node_->GetName().CString(), viewport, visiblerect.ToString().CString());
+                    node_->GetName().CString(), viewportdata.viewport_, viewportdata.visibleRect_.ToString().CString());
 #endif
 
     // update Visible Chunks group
-    chinfo_->Convert2ChunkGroup(visiblerect, chunkgroup);
+    chinfo_->Convert2ChunkGroup(viewportdata.visibleRect_, viewportdata.chunkGroup_);
 
     // Check the Rect to Render is Enough
-    if (!chunkgroup.numChunks_ || chunkgroup.rect_.Width() < 1 || chunkgroup.rect_.Height() < 1)
+    if (!viewportdata.chunkGroup_.numChunks_ || viewportdata.chunkGroup_.rect_.Width() < 1 || viewportdata.chunkGroup_.rect_.Height() < 1)
     {
 //        URHO3D_LOGWARNINGF("ObjectTiled() - UpdateChunksVisiblity  .. %s : No Chunks To Render !", node_->GetName().CString());
         return;
@@ -3151,7 +3148,7 @@ void ObjectTiled::UpdateChunksVisiblity(ViewportRenderData& viewportdata)
     // Show furnitures inside visible chunks
 #ifdef DUMP_OBJECTTILED_UPDATEINFOS
     URHO3D_LOGINFOF("ObjectTiled() - UpdateChunksVisiblity ... %s viewport=%d viewrect=%s chunkrect=%s numchunks=%u ... OK !",
-                    node_->GetName().CString(), viewport, visiblerect.ToString().CString(), chunkgroup.rect_.ToString().CString(), chunkgroup.numChunks_);
+                    node_->GetName().CString(), viewportdata.viewport_, viewportdata.visibleRect_.ToString().CString(), viewportdata.chunkGroup_.rect_.ToString().CString(), viewportdata.chunkGroup_.numChunks_);
 #endif
 }
 

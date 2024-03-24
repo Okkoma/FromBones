@@ -159,6 +159,7 @@ GameConfig::GameConfig() :
     debugRttScene_(false),
 
     splashviewed_(0),
+    forceChangeRenderPath_(true),
     initState_(String::EMPTY),
     saveDir_(String::EMPTY),
 

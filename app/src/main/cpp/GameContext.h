@@ -116,6 +116,7 @@ struct FROMBONES_API GameConfig
 
     // living data ?
     bool splashviewed_;
+    bool forceChangeRenderPath_;
     String initState_;
     String logString;
     String saveDir_;

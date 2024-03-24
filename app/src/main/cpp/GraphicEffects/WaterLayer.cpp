@@ -99,7 +99,7 @@ bool CheckConnectedNeighborsAt(WaterSurface*& surface, Vector<WaterSurface>& sur
     WaterSurface* neighbor = 0;
 
     // find the neighbor in surfaces bank
-    for (int i=0; i < surfaces.Size(); i++)
+    for (int i = 0; i < surfaces.Size(); i++)
         if (surfaces[i].addr_ == neighboraddr)
             neighbor = &surfaces[i];
 
@@ -363,7 +363,7 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
             const float clampedTopY = topclamp ? mapPosition.y_ + (MapInfo::info.height_ - surface->addr_ / FluidDatas::width_) * tileSize.y_  : 0.f;
 
             // Set the vertices for each division of the surface
-            for (unsigned d=0; d < numDivisions && addr < vertices.Size(); d++, addr+=4)
+            for (unsigned d = 0; d < numDivisions && addr < vertices.Size(); d++, addr+=4)
             {
                 /*
                     V1---------V2
@@ -602,9 +602,9 @@ void WaterDeformationPoint::Update()
     }
 
     // Smooth the heights
-    for (unsigned i=0; i < smoothPasses_; i++)
+    for (unsigned i = 0; i < smoothPasses_; i++)
     {
-        for (int j=start; j < end; j++)
+        for (int j = start; j < end; j++)
         {
             // Spring Euler Method
             leftDeltas_[j]  = spread_ * (deformations_[j].yDelta_ - deformations_[j - 1].yDelta_);
@@ -642,69 +642,68 @@ WaterLayerData::WaterLayerData()
 
     // Set Water Batch Materials
     watertilesFrontBatch_.material_ = World2DInfo::WATERMATERIAL_REFRACT;
-    watertilesBackBatch_.material_ = World2DInfo::WATERMATERIAL_TILE;
-    waterlinesBatch_.material_ = World2DInfo::WATERMATERIAL_LINE;
+    watertilesBackBatch_.material_  = World2DInfo::WATERMATERIAL_TILE;
+    waterlinesBatch_.material_      = World2DInfo::WATERMATERIAL_LINE;
 }
 
-void WaterLayerData::Clear()
+void WaterLayerData::Clear(int viewZ)
 {
     waterSurfaces_.Clear();
-    for (int i=0; i < waterLines_.Size(); i++)
+    for (int i = 0; i < waterLines_.Size(); i++)
         waterLines_[i].Clear();
+
+    if (viewZ)
+    {
+        int draworder = (viewZ + LAYER_FLUID) << 20;
+        if (watertilesFrontBatch_.drawOrder_ != draworder)
+        {
+            watertilesFrontBatch_.drawOrder_ = (viewZ + LAYER_FLUID) << 20;
+            watertilesBackBatch_.drawOrder_  = ((viewZ == FRONTVIEW ? INNERVIEW : BACKGROUND) + LAYER_FLUID) << 20;
+            waterlinesBatch_.drawOrder_      = watertilesFrontBatch_.drawOrder_ - 1;
+        }
+    }
 
     watertilesFrontBatch_.vertices_.Clear();
     watertilesBackBatch_.vertices_.Clear();
     waterlinesBatch_.vertices_.Clear();
-
-    int viewZ = ViewManager::Get()->GetCurrentViewZ(viewport_);
-    watertilesFrontBatch_.drawOrder_ = (viewZ + LAYER_FLUID) << 20;
-    watertilesBackBatch_.drawOrder_  = ((viewZ == FRONTVIEW ? INNERVIEW : BACKGROUND) + LAYER_FLUID) << 20;
-    waterlinesBatch_.drawOrder_ = watertilesFrontBatch_.drawOrder_ - 1;
 }
-
 
 bool WaterLayerData::UpdateSimulation()
 {
-    bool fluidupdated = false;
+    bool updated = false;
 
-    for (unsigned i=0; i < viewportdatas_.Size(); i++)
+    for (unsigned i = 0; i < mapdatas_.Size(); i++)
     {
-        ViewportRenderData* viewportData = viewportdatas_[i];
-
-        //    URHO3D_LOGINFOF("WaterLayerData() - UpdateSimulation ...");
-
-        ObjectFeatured* featureData = viewportData->objectTiled_->GetObjectFeatured();
-
+        ViewportRenderData* mapdata = mapdatas_[i];
+        ObjectFeatured* featureData = mapdata->objectTiled_->GetObjectFeatured();
         int numFluidViews = featureData->fluidView_.Size();
         if (!numFluidViews)
             continue;
 
-        for (int i=0; i < numFluidViews; i++)
+        bool mapSimulUpdated = false;
+        for (int i = 0; i < numFluidViews; i++)
         {
             // Update Fluid Simulation
             if (MapSimulatorLiquid::Get()->Update(featureData->fluidView_[i]))
-                fluidupdated = true;
+                mapSimulUpdated = true;
         }
 
-        if (fluidupdated)
-            viewportData->sourceBatchFluidDirty_ = true;
+        updated |= mapSimulUpdated;
     }
+//    URHO3D_LOGINFOF("WaterLayerData() - UpdateSimulation ... viewport=%d updated=%s ... OK !", viewport_, updated ? "true" : "false");
 
-    return fluidupdated;
+    if (updated)
+        batchesDirty_ = true;
 
-//    URHO3D_LOGDEBUGF("WaterLayerData() - UpdateSimulation : this=%u", this);
-
-//    URHO3D_LOGINFOF("WaterLayerData() - UpdateSimulation ... node=%s(%u) fluidupdated=%s ... OK !", node_->GetName().CString(), node_->GetID(),
-//                    fluidUpdated_ ? "true" : "false");
+    return updated;
 }
 
-
 // Patterned Fluid Batches
-void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, FluidDatas& fluiddata)
+void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapdata, FluidDatas& fluiddata)
 {
-    const Matrix2x3& worldTransform2D = viewportdata.objectTiled_->GetNode()->GetWorldTransform2D();
+    const Matrix2x3& worldTransform2D = mapdata.objectTiled_->GetNode()->GetWorldTransform2D();
 
-    const IntRect& rect = viewportdata.chunkGroup_.rect_;
+    const IntRect& rect = mapdata.chunkGroup_.rect_;
 
     const Rect fullWaterRect(0.05f, 1.f, 0.95f, 0.2f);
 
@@ -717,13 +716,11 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
 
     FluidMap& fluidmap = fluiddata.fluidmap_;
 
-    int currentViewZ = ViewManager::Get()->GetCurrentViewZ(viewport_);
+    const float zf = viewZ == fluiddata.viewZ_ || fluiddata.viewZ_ == INNERVIEW ? 1.f - PIXEL_SIZE * (fluiddata.viewZ_ + LAYER_FLUID) : 1.f;
 
-    const float zf = currentViewZ == fluiddata.viewZ_ || fluiddata.viewZ_ == INNERVIEW ? 1.f - PIXEL_SIZE * (fluiddata.viewZ_ + LAYER_FLUID) : 1.f;
+//    const float zf = viewZ != fluiddata.viewZ_ && viewZ == INNERVIEW ? 1.f : 1.f - PIXEL_SIZE * (fluiddata.viewZ_ + LAYER_FLUID);
 
-//    const float zf = currentViewZ != fluiddata.viewZ_ && currentViewZ == INNERVIEW ? 1.f : 1.f - PIXEL_SIZE * (fluiddata.viewZ_ + LAYER_FLUID);
-
-    bool checkDepth = currentViewZ == FRONTVIEW && currentViewZ != fluiddata.viewZ_;
+    bool checkDepth = viewZ == FRONTVIEW && viewZ != fluiddata.viewZ_;
 
     /*
     V1---------V2
@@ -735,7 +732,7 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
     V0---------V3
     */
 
-    SourceBatch2D& batch = currentViewZ == fluiddata.viewZ_ ? watertilesFrontBatch_ : watertilesBackBatch_;
+    SourceBatch2D& batch = viewZ == fluiddata.viewZ_ ? watertilesFrontBatch_ : watertilesBackBatch_;
 
     Vector<Vertex2D>& vertices = batch.vertices_;
     Vertex2D vertex[16];
@@ -746,7 +743,7 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
     unsigned surfaceVertexIndex[2];
 
 #ifdef URHO3D_VULKAN
-    if (currentViewZ != fluiddata.viewZ_)
+    if (viewZ != fluiddata.viewZ_)
     {
         // initialize Texture Unit=1 for WaterTiles (ShaderGrounds without BackShape)
         unsigned texmode = 0;
@@ -759,14 +756,14 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
     const float alpha = 0.12f;
     const unsigned coloruint = Color(0.5f, 0.75f, 1.f, alpha).ToUInt();
 
-    for (int i=0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
         vertex[i].uv_    = fullWaterRect.min_;
         vertex[i+1].uv_  = Vector2(fullWaterRect.min_.x_, fullWaterRect.max_.y_);
         vertex[i+2].uv_  = fullWaterRect.max_;
         vertex[i+3].uv_  = Vector2(fullWaterRect.max_.x_, fullWaterRect.min_.y_);
     }
-    for (int i=0; i < 16; i++)
+    for (int i = 0; i < 16; i++)
     {
         vertex[i].color_ = coloruint;
     }
@@ -1629,13 +1626,13 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
                 vertex[i].color_ = coloruint;
 #endif
 
-            bool drawSurface = currentViewZ == fluiddata.viewZ_ && allowWaterline;
+            bool drawSurface = viewZ == fluiddata.viewZ_ && allowWaterline;
             bool drawQuads = !drawSurface || cell.pattern_ < PTRN_LeftSurface;
 
             if (drawQuads)
             {
                 // Add WaterTile
-                for (int i=0; i < 4*numQuads; i++)
+                for (int i = 0; i < 4 * numQuads; i++)
                     vertices.Push(vertex[i]);
             }
 
@@ -1651,11 +1648,11 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
                     unsigned baseindex = vertices.Size() - 4 * numQuads;
                     Vertex2D& vertice0 = vertices[baseindex + surfaceVertexIndex[0]];
                     Vertex2D& vertice1 = vertices[baseindex + surfaceVertexIndex[1]];
-                    waterSurfaces_.Back().Set(viewportdata.objectTiled_->map_, &cell, addr, bottomy, vertice0, vertice1, numQuads == 1);
+                    waterSurfaces_.Back().Set(mapdata.objectTiled_->map_, &cell, addr, bottomy, vertice0, vertice1, numQuads == 1);
                 }
                 else
                 {
-                    waterSurfaces_.Back().Set(viewportdata.objectTiled_->map_, &cell, addr, bottomy, vertex[surfaceVertexIndex[0]], vertex[surfaceVertexIndex[1]], false);
+                    waterSurfaces_.Back().Set(mapdata.objectTiled_->map_, &cell, addr, bottomy, vertex[surfaceVertexIndex[0]], vertex[surfaceVertexIndex[1]], false);
                 }
 
 #ifdef FLUID_RENDER_COLORDEBUG
@@ -1669,36 +1666,35 @@ void WaterLayerData::UpdateTiledBatch(const ViewportRenderData& viewportdata, Fl
 
 void WaterLayerData::UpdateBatches()
 {
-    Clear();
-
     int viewZ = ViewManager::Get()->GetCurrentViewZ(viewport_);
+
+    Clear(viewZ);
 
     // WaterTiles
     {
-        for (unsigned i=0; i < viewportdatas_.Size(); i++)
+        for (unsigned i = 0; i < mapdatas_.Size(); i++)
         {
-            ViewportRenderData& viewportdata = *viewportdatas_[i];
-            ObjectFeatured* featureData = viewportdata.objectTiled_->GetObjectFeatured();
+            ViewportRenderData& mapdata = *mapdatas_[i];
+
+            ObjectFeatured* featureData = mapdata.objectTiled_->GetObjectFeatured();
 
             const Vector<int>& fluidViewIds = featureData->GetFluidViewIDs(viewZ);
-            for (int i=0; i < fluidViewIds.Size(); i++)
-                UpdateTiledBatch(viewportdata, featureData->GetFluidView(fluidViewIds[i]));
-
-            viewportdata.sourceBatchFluidDirty_ = false;
+            for (int j = 0; j < fluidViewIds.Size(); j++)
+                UpdateTiledBatch(viewZ, mapdata, featureData->GetFluidView(fluidViewIds[j]));
         }
     }
 
     // WaterLines
     {
         // Reset FluidCell drawn status before Expand the Waterlines
-        for (int i=0; i < waterSurfaces_.Size(); i++)
+        for (int i = 0; i < waterSurfaces_.Size(); i++)
             waterSurfaces_[i].cell_->drawn_ = false;
 
         // Find WaterLines
         // Get WaterSurfaces not again used, and create new waterlines.
         unsigned waterlineIndex = 0;
 
-        for (int i=0; i < waterSurfaces_.Size(); i++)
+        for (int i = 0; i < waterSurfaces_.Size(); i++)
         {
             WaterSurface* surface = &waterSurfaces_[i];
             if (surface->cell_->drawn_)
@@ -1768,6 +1764,8 @@ void WaterLayerData::UpdateBatches()
         URHO3D_LOGDEBUGF("WaterLayerData() - UpdateBatches : numwatersurfaces=%u numwaterlines=%u(%u)", waterSurfaces_.Size(), numwaterlines, waterLines_.Size());
 #endif
     }
+
+    batchesDirty_ = false;
 }
 
 
@@ -1804,14 +1802,13 @@ void WaterLayer::Init()
         waterDeformationPoints_[i].point_ = Vector3::ZERO;
 
     layerDatas_.Resize(MAX_VIEWPORTS);
-    for (unsigned i=0; i < layerDatas_.Size(); i++)
+    for (unsigned i = 0; i < layerDatas_.Size(); i++)
     {
         layerDatas_[i].viewport_ = i;
         layerDatas_[i].Clear();
     }
 
-    fluidUpdated_ = false;
-    fluidTime_ = 0.f;
+    fluidUpdateTime_ = FLUID_SIMULATION_UPDATEINTERVAL+1;
 }
 
 void WaterLayer::Clear()
@@ -1821,25 +1818,25 @@ void WaterLayer::Clear()
     OnSetEnabled();
 }
 
-void WaterLayer::SetViewportData(bool enable, ViewportRenderData* viewportdata)
+void WaterLayer::SetViewportData(bool enable, ViewportRenderData* mapdata)
 {
-    WaterLayerData& layerData = layerDatas_[viewportdata->viewport_];
+    WaterLayerData& layerData = layerDatas_[mapdata->viewport_];
 
     if (enable)
     {
-        if (!layerData.viewportdatas_.Contains(viewportdata))
-            layerData.viewportdatas_.Push(viewportdata);
+        if (!layerData.mapdatas_.Contains(mapdata))
+            layerData.mapdatas_.Push(mapdata);
     }
     else
     {
-        if (layerData.viewportdatas_.Contains(viewportdata))
-            layerData.viewportdatas_.Remove(viewportdata);
+        if (layerData.mapdatas_.Contains(mapdata))
+            layerData.mapdatas_.Remove(mapdata);
     }
 }
 
 void WaterLayer::AddSplashAt(const float x, const float y, const float velocity)
 {
-    for (unsigned i=0; i < waterDeformationPoints_.Size(); i++)
+    for (unsigned i = 0; i < waterDeformationPoints_.Size(); i++)
     {
         if (waterDeformationPoints_[i].point_.z_ == 0.f)
         {
@@ -1882,7 +1879,7 @@ void WaterLayer::OnSetEnabled()
     {
         if (IsEnabledEffective() && GameContext::Get().gameConfig_.fluidEnabled_)
         {
-            fluidTime_ = FLUID_SIMULATION_UPDATEINTERVAL+1;
+            fluidUpdateTime_ = FLUID_SIMULATION_UPDATEINTERVAL+1;
 
             SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(WaterLayer, HandleUpdateFluids));
             SubscribeToEvent(node_, E_PHYSICSBEGINCONTACT2D, URHO3D_HANDLER(WaterLayer, HandleBeginFluidContact));
@@ -1898,46 +1895,37 @@ void WaterLayer::OnSetEnabled()
     }
 }
 
-void WaterLayer::UpdateBatches(int viewport)
+void WaterLayer::UpdateBatches(WaterLayerData& layerData)
 {
 //    URHO3D_LOGDEBUGF("WaterLayer() - Update : viewport=%d numFluidBatchesUpdated=%d...", viewport, numMapBatchesUpdates_[viewport]);
 
     // Update Deformation velocity values once a time (first viewport only)
-    if (viewport == 0)
+    if (layerData.viewport_ == 0)
     {
-        for (unsigned i=0; i < waterDeformationPoints_.Size(); i++)
+        for (unsigned i = 0; i < waterDeformationPoints_.Size(); i++)
             waterDeformationPoints_[i].Update();
     }
 
-    layerDatas_[viewport].UpdateBatches();
+    layerData.UpdateBatches();
 
 //    URHO3D_LOGDEBUGF("WaterLayer() - Update : viewport=%d ... numMapsDrawn=%u OK !", viewport, numMapsDrawn);
 }
 
 const Vector<SourceBatch2D*>& WaterLayer::GetSourceBatchesToRender(Camera* camera)
 {
-    // if paused return the last batches
-    if (fluidUpdated_)
+    WaterLayerData& layerData = layerDatas_[camera->GetViewport()];
+
+    if (layerData.batchesDirty_)
     {
-        URHO3D_PROFILE(WaterLayer_UpdateSourceBatches);
-
-        fluidUpdated_ = false;
-
-        int viewport = camera->GetViewport();
-
-//		URHO3D_LOGDEBUGF("WaterLayer - GetSourceBatchesToRender() : ...");
-
-        /// TODO : update if needed
-        UpdateBatches(viewport);
-
-        sourceBatchesToRender_[0].Clear();
-
-        // Add Batches
-        WaterLayerData& layerData = layerDatas_[viewport];
-        sourceBatchesToRender_[0].Push(&layerData.watertilesBackBatch_);
-        sourceBatchesToRender_[0].Push(&layerData.watertilesFrontBatch_);
-        sourceBatchesToRender_[0].Push(&layerData.waterlinesBatch_);
+        URHO3D_LOGINFOF("WaterLayer - GetSourceBatchesToRender() : viewport=%d ...", layerData.viewport_);
+        UpdateBatches(layerData);
     }
+
+    // Add Batches
+    sourceBatchesToRender_[0].Clear();
+    sourceBatchesToRender_[0].Push(&layerData.watertilesBackBatch_);
+    sourceBatchesToRender_[0].Push(&layerData.watertilesFrontBatch_);
+    sourceBatchesToRender_[0].Push(&layerData.waterlinesBatch_);
 
     return sourceBatchesToRender_[0];
 }
@@ -1949,24 +1937,23 @@ void WaterLayer::HandleUpdateFluids(StringHash eventType, VariantMap& eventData)
         return;
 
     // if paused no update
-    if (!layerDatas_[0].viewportdatas_.Size() || layerDatas_[0].viewportdatas_[0]->isPaused_)
+    if (!layerDatas_.Front().mapdatas_.Size() ||
+        layerDatas_.Front().mapdatas_.Front()->isPaused_)
         return;
 
 //	URHO3D_LOGDEBUGF("WaterLayer - HandleUpdateFluids() : ...");
 
     URHO3D_PROFILE(WaterLayer_UpdateFluids);
 
-    fluidTime_ += eventData[SceneUpdate::P_TIMESTEP].GetFloat();
+    fluidUpdateTime_ += eventData[SceneUpdate::P_TIMESTEP].GetFloat();
 
-    if (fluidTime_ > FLUID_SIMULATION_UPDATEINTERVAL)
+    if (fluidUpdateTime_ > FLUID_SIMULATION_UPDATEINTERVAL)
     {
-        fluidUpdated_ = false;
-
         unsigned numviewports = ViewManager::Get()->GetNumViewports();
         for (unsigned viewport = 0; viewport < numviewports; viewport++)
-            fluidUpdated_ |= layerDatas_[viewport].UpdateSimulation();
+            bool update = layerDatas_[viewport].UpdateSimulation();
 
-        fluidTime_ = 0.f;
+        fluidUpdateTime_ = 0.f;
     }
 }
 
@@ -2107,27 +2094,27 @@ void WaterLayer::DrawDebugWaterQuads(DebugRenderer* debug, const FluidDatas& flu
                     }
 
                     if (cell.align_ & FA_Left)
-                        AddDebugSquare(debug, worldTransform * Vector3(centerx-4*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
+                        AddDebugWaterSquare(debug, worldTransform * Vector3(centerx-4*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
                     if (cell.align_ & FA_Right)
-                        AddDebugSquare(debug, worldTransform * Vector3(centerx+4*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
+                        AddDebugWaterSquare(debug, worldTransform * Vector3(centerx+4*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
                     if (cell.align_ & FA_Center)
-                        AddDebugSquare(debug, worldTransform * Vector3(centerx, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
+                        AddDebugWaterSquare(debug, worldTransform * Vector3(centerx, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
                     if (cell.align_ == FA_None)
-                        AddDebugSquare(debug, worldTransform * Vector3(centerx - twidth/2 + 10*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
+                        AddDebugWaterSquare(debug, worldTransform * Vector3(centerx - twidth/2 + 10*PIXEL_SIZE, centery+theight/2-10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, color, false);
                 }
 #endif
 #if defined(FLUID_RENDER_DRAWDEBUG_SIMULATION5_MORE) || defined(FLUID_RENDER_DRAWDEBUG_SIMULATION6_MORE)
                 // Draw Flow Directions
-                AddDebugSquare(debug, worldTransform * Vector3(centerx, centery+2*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Top ? Color::WHITE : Color::GRAY, false);
-                AddDebugSquare(debug, worldTransform * Vector3(centerx, centery-2*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Bottom ? Color::WHITE : Color::GRAY, false);
-                AddDebugSquare(debug, worldTransform * Vector3(centerx-2*PIXEL_SIZE, centery, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Left ? Color::WHITE : Color::GRAY, false);
-                AddDebugSquare(debug, worldTransform * Vector3(centerx+2*PIXEL_SIZE, centery, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Right ? Color::WHITE : Color::GRAY, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx, centery+2*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Top ? Color::WHITE : Color::GRAY, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx, centery-2*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Bottom ? Color::WHITE : Color::GRAY, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx-2*PIXEL_SIZE, centery, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Left ? Color::WHITE : Color::GRAY, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx+2*PIXEL_SIZE, centery, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowdir_ & FD_Right ? Color::WHITE : Color::GRAY, false);
 #endif
 #if (FLUID_SIMULATION == 6) && defined(FLUID_RENDER_DRAWDEBUG_SIMULATION6_MORE)
                 // Draw 3Flows
-                AddDebugSquare(debug, worldTransform * Vector3(centerx, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowC_ < FLUID_MINVALUE ? Color::GRAY : cell.flowC_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
-                AddDebugSquare(debug, worldTransform * Vector3(centerx-2*PIXEL_SIZE, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowL_ < FLUID_MINVALUE ? Color::GRAY : cell.flowL_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
-                AddDebugSquare(debug, worldTransform * Vector3(centerx+2*PIXEL_SIZE, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowR_ < FLUID_MINVALUE ? Color::GRAY : cell.flowR_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowC_ < FLUID_MINVALUE ? Color::GRAY : cell.flowC_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx-2*PIXEL_SIZE, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowL_ < FLUID_MINVALUE ? Color::GRAY : cell.flowL_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
+                AddDebugWaterSquare(debug, worldTransform * Vector3(centerx+2*PIXEL_SIZE, centery-theight/2+10*PIXEL_SIZE, 0.f), 8*PIXEL_SIZE, 8*PIXEL_SIZE, cell.flowR_ < FLUID_MINVALUE ? Color::GRAY : cell.flowR_ < FLUID_MAXVALUE*.5f ? Color::YELLOW : Color::GREEN, false);
 #endif
             }
     }
@@ -2166,61 +2153,62 @@ void WaterLayer::DrawDebugWaterQuads(DebugRenderer* debug, const FluidDatas& flu
 
 void WaterLayer::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
 {
-    int viewport = 0;
-
-    const WaterLayerData& layerData = layerDatas_[viewport];
-
-    int viewZ = ViewManager::Get()->GetCurrentViewZ(viewport);
-
-    for (unsigned i = 0; i < layerData.viewportdatas_.Size(); i++)
+    unsigned numviewports = ViewManager::Get()->GetNumViewports();
+    for (unsigned viewport = 0; viewport < numviewports; viewport++)
     {
-        ObjectTiled* objectTiled = layerData.viewportdatas_[i]->objectTiled_;
+        const WaterLayerData& layerData = layerDatas_[viewport];
+        int viewZ = ViewManager::Get()->GetCurrentViewZ(viewport);
 
-        if (objectTiled->IsEnabledEffective())
+        for (unsigned i = 0; i < layerData.mapdatas_.Size(); i++)
         {
-            ObjectFeatured* featureData = objectTiled->GetObjectFeatured();
-            const Vector<int>& fluidViewIds = featureData->GetFluidViewIDs(viewZ);
-            if (fluidViewIds.Size())
+            ObjectTiled* objectTiled = layerData.mapdatas_[i]->objectTiled_;
+
+            if (objectTiled->IsEnabledEffective())
             {
-                for (Vector<int>::ConstIterator it = fluidViewIds.Begin(); it != fluidViewIds.End(); ++it)
-                    if (*it != NOVIEW)
-                        DrawDebugWaterQuads(debug, featureData->GetFluidView(*it), *layerData.viewportdatas_[i]);
+                ObjectFeatured* featureData = objectTiled->GetObjectFeatured();
+                const Vector<int>& fluidViewIds = featureData->GetFluidViewIDs(viewZ);
+                if (fluidViewIds.Size())
+                {
+                    for (Vector<int>::ConstIterator it = fluidViewIds.Begin(); it != fluidViewIds.End(); ++it)
+                        if (*it != NOVIEW)
+                            DrawDebugWaterQuads(debug, featureData->GetFluidView(*it), *layerData.mapdatas_[i]);
+                }
             }
         }
-    }
-#ifdef FLUID_RENDER_DRAWDEBUG_MESH
-    const Vector<Vertex2D>& vertices = layerData.watertilesFrontBatch_.vertices_;
-    if (vertices.Size())
-    {
-        Vector3 v0, v1, v2, v3;
-
-        unsigned count = 0;
-        unsigned size = vertices.Size();
-        unsigned uintColor = Color::BLUE.ToUInt();
-        while (count < size)
+    #ifdef FLUID_RENDER_DRAWDEBUG_MESH
+        const Vector<Vertex2D>& vertices = layerData.watertilesFrontBatch_.vertices_;
+        if (vertices.Size())
         {
-            v0 = vertices[count].position_;
-            v1 = vertices[count+1].position_;
-            v2 = vertices[count+2].position_;
-            v3 = vertices[count+3].position_;
+            Vector3 v0, v1, v2, v3;
 
-            debug->AddLine(v0, v1, uintColor, false);
-            debug->AddLine(v1, v2, uintColor, false);
-            debug->AddLine(v2, v0, uintColor, false);
-            debug->AddLine(v0, v3, uintColor, false);
-            debug->AddLine(v3, v2, uintColor, false);
+            unsigned count = 0;
+            unsigned size = vertices.Size();
+            unsigned uintColor = Color::BLUE.ToUInt();
+            while (count < size)
+            {
+                v0 = vertices[count].position_;
+                v1 = vertices[count+1].position_;
+                v2 = vertices[count+2].position_;
+                v3 = vertices[count+3].position_;
 
-            count += 4;
+                debug->AddLine(v0, v1, uintColor, false);
+                debug->AddLine(v1, v2, uintColor, false);
+                debug->AddLine(v2, v0, uintColor, false);
+                debug->AddLine(v0, v3, uintColor, false);
+                debug->AddLine(v3, v2, uintColor, false);
+
+                count += 4;
+            }
         }
+    #endif
+    #ifdef FLUID_RENDER_WATERLINE_RECTS
+        for (unsigned i = 0; i < GetWaterLines(0).Size(); i++)
+        {
+            const WaterLine& waterline = GetWaterLines(0)[i];
+            if (waterline.expanded_)
+                GameHelpers::DrawDebugRect(waterline.boundingRect_, debug, false, Color::RED);
+        }
+    #endif
     }
-#endif
-#ifdef FLUID_RENDER_WATERLINE_RECTS
-    for (unsigned i=0; i < GetWaterLines(0).Size(); i++)
-    {
-        const WaterLine& waterline = GetWaterLines(0)[i];
-        if (waterline.expanded_)
-            GameHelpers::DrawDebugRect(waterline.boundingRect_, debug, false, Color::RED);
-    }
-#endif
 }
 
