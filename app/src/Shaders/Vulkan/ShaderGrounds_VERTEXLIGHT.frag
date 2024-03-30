@@ -12,7 +12,6 @@ layout(location=6) in vec3 vVertexLight;
 layout(set=2, binding=0) uniform sampler2D sGroundsMaps[8];
 
 layout(location=0) out vec4 fragColor;
-layout(location=1) out vec4 fragColor2;
 
 vec4 ApplyBackShape(sampler2D texSampler)
 {
@@ -68,6 +67,6 @@ vec4 ApplyTextureEffects(sampler2D texSampler)
 void main()
 {		
     vec4 diffInput = fTextureId < 8 ? ApplyTextureEffects(sGroundsMaps[nonuniformEXT(fTextureId)]) : vec4(1.0);
-    fragColor = fragColor2 = vColor * diffInput; 
+    fragColor = vColor * diffInput; 
 }
 

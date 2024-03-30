@@ -6,10 +6,9 @@ layout(location=1) in vec2 vTextCoord;
 layout(set=1, binding=0) uniform sampler2D diffmap;
 
 layout(location=0) out vec4 fragColor;
-layout(location=1) out vec4 fragColor2;
 
 void main()
 {
-	fragColor = fragColor2 = texture(diffmap, vTextCoord) * vColor;
+	fragColor = texture(diffmap, vTextCoord) * vColor;
 }
 

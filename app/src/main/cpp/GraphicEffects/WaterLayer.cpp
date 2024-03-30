@@ -1917,7 +1917,7 @@ const Vector<SourceBatch2D*>& WaterLayer::GetSourceBatchesToRender(Camera* camer
 
     if (layerData.batchesDirty_)
     {
-        URHO3D_LOGINFOF("WaterLayer - GetSourceBatchesToRender() : viewport=%d ...", layerData.viewport_);
+//        URHO3D_LOGINFOF("WaterLayer - GetSourceBatchesToRender() : viewport=%d ...", layerData.viewport_);
         UpdateBatches(layerData);
     }
 

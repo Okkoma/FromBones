@@ -13,7 +13,9 @@
 			"typeinfo": "cpp",
 			"__node_handle": "cpp",
 			"system_error": "cpp",
-			"__locale": "cpp"
+			"__locale": "cpp",
+			"functional": "cpp",
+			"__functional_base": "cpp"
 		},
 		"cmake.automaticReconfigure": false,
 		"cmake.skipConfigureIfCachePresent": true,
