@@ -1,6 +1,6 @@
 Todos:
 
-     ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
+     ✔ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
         => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.
         => en GL, le waterbacklayer a un pb d'affichage, il disparait puis reapparait de façon intempestive en fonction du deplacement de l'avatar.
         ==> surement un pb de material ou de texture id
@@ -18,12 +18,14 @@ Todos:
         => ajout d'une passe de Clear + une passe de Presentation
         => les Attachement RENDERSLOT_x sont par frame. On doit pouvoir les reutiliser pour tous les renderpath, renderpasses.
             On a un tableau de RenderAttachement qui contient tous les attachements necessaire par frame : index = FrameId * MAX_RENDERSLOTS + slotId
-        => si on a 2 views à générer, on generera la 1ere view dans un attachment TARGET1 par exemple puis la seconde dans TARGET2
         => urho3d genere vue par vue ... cad il va proceder à toutes les passes pour une view puis passer à la view suivante ...
-        => on va utiliser une renderpass par view vers une TARGET avec differente sous passes
-           puis une renderpass finale qui recopiera toute les RenderTarget dans la frame de swapchain, generera l'ui si necessaire puis presentation
-        => suppression de l'attachement 2 (TARGET) dans les shaders (suppression de fragColor2)
-        => suppression modification des RenderPathInfo : GraphicsImpl::SetRenderPath
+        => on va utiliser une renderpass par view vers une TARGET avec differentes sous passes
+           puis une renderpass finale qui recopiera la derniere RenderTarget dans la frame de swapchain, generera l'ui si necessaire puis presentation
+        => ajout d'une passe de Copy (Shader CopyFrameBuffer) : il reste un probleme de bord (surement dans le shader, ce n'est pas l'addressMode de la texture)
+        ==> 06/04/2024 : on arrive à un resultat avec le layer water en multiviewport
+        ==> deux versions de renderpath sont disponibles : une en maximisant les subpasses (peut-etre mieux pour mobile ?), l'autre en se calquant plus sur le renderpath decrit dans ForwardUrho2D.
+        ==> RAF : on a un gros lag au debut : le profiler indique un pb dans Physic2D ... surtout en release
+        ==> RAF : tester si pas trop de degat en GL
 
     ✔ 23/03/2024 : depuis la version multiviewport, le waterlayer ne s'affiche plus correctement
         => la derniere version frombones fonctionnant (FromBones-20240228-BCv2-WindowsBuildShared)
