@@ -68,6 +68,10 @@ jobs:
           echo "Restored Cache."
         fi
 
+    - name: Configure Git for private repository access
+      run: |
+        git config --global url."https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
     - name: Configure CMake (Linux/Windows)
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
