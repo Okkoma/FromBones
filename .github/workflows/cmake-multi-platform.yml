@@ -1,0 +1,86 @@
+name: CMake (Windows, Linux)
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            build_type: Release
+            target: windows
+
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            build_type: Release
+            target: linux
+
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: Release
+            target: linux
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Setup Build Environnement Linux
+      run: |
+        sudo apt update
+        sudo apt install -y --no-install-recommends libglu1-mesa-dev libxcursor-dev libxi-dev libxinerama-dev
+        sudo apt install -y --no-install-recommends libxrandr-dev libxrender-dev libxss-dev libxxf86vm-dev
+        sudo apt install -y --no-install-recommends libasound2-dev libpulse-dev libibus-1.0-dev
+        sudo apt install -y --no-install-recommends libdbus-1-dev libreadline6-dev libssl-dev libudev-dev
+      if: matrix.os == 'ubuntu-latest'
+        
+    - name: Cache Chocolatey packages
+      if: matrix.os == 'windows-latest'
+      uses: actions/cache@v4
+      with:
+        path: C:\ProgramData\chocolatey\bin
+        key: ${{ runner.os }}-choco-${{ hashFiles('**/choco-requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-choco-
+
+    - name: Setup Windows dependencies
+      if: matrix.os == 'windows-latest'
+      shell: bash
+      run: |
+        # check cache if restored
+        if [ -d "C:\ProgramData\chocolatey\bin" ]; then
+          echo "Restored Cache."
+        fi
+
+    - name: Configure CMake (Linux/Windows)
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -S ${{ github.workspace }}
+
+    - name: Build (Linux/Windows)
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Test (Linux/Windows)
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: ctest --build-config ${{ matrix.build_type }}
+
+

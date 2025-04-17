@@ -5,6 +5,7 @@
 A 2D plateformer game with integrated editor.
 Up to 4 local players.
 
+[![build](../../actions/workflows/cmake-multi-platform.yml/badge.svg?branch=master)](../../actions/workflows/cmake-multi-platform.yml)
 
 ## Build Prerequisites
 
