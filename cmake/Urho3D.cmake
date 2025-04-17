@@ -34,7 +34,7 @@
 # GIT_U3D_TAG: can be a commit hash, a branch name or a tag
 # by default use U3D-community repository
 
-set (DEFAULT_URHO3D_FETCH_CONDITION "never")
+set (DEFAULT_URHO3D_FETCH_CONDITION "if_not_found")
 set (DEFAULT_GIT_U3D_REPOSITORY "https://github.com/u3d-community/U3D.git")
 set (DEFAULT_GIT_U3D_TAG "master")
 
