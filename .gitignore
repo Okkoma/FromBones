@@ -6,9 +6,7 @@
 **/.cache
 **/.gradle
 **/tmp-*/
-/bin-tool/Output
-/bin-tool/Input/PNG
-/bin-tool/TexturePacker
+/bin-tool
 /exe/*/*.log
 /exe/*/*-shared
 /exe/*/*.so
