@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.txt": "c",
+			"typeinfo": "cpp",
+			"__node_handle": "cpp",
+			"system_error": "cpp",
+			"__locale": "cpp",
+			"functional": "cpp",
+			"__functional_base": "cpp"
+		},
+		"cmake.automaticReconfigure": false,
+		"cmake.skipConfigureIfCachePresent": true,
+		"cmake.configureOnEdit": false,
+		"todo.timer.statusbar.color": ""
+	}
+}

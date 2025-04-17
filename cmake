@@ -1,1 +1,0 @@
-../../Urho3D/Urho3D/cmake

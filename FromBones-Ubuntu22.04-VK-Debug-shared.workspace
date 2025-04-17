@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<CodeBlocks_workspace_file>
-	<Workspace title="Workspace">
-		<Project filename="build/Ubuntu22.04Vk/shared/debug/FromBones.cbp" />
-		<Project filename="../../Urho3D/Urho3D/build/Ubuntu22.04Vk/shared/debug/Urho3D.cbp" />
-	</Workspace>
-</CodeBlocks_workspace_file>

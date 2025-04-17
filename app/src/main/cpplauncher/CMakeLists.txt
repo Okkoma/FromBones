@@ -5,16 +5,16 @@ file (GLOB_RECURSE SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.cpp" "*.
 
 # Add TODO files
 set (SOURCE_FILES "${SOURCE_FILES}"
-     "../../../../GAME-AI.TODO"
-     "../../../../GAME-BEHAVIOR.TODO"
-     "../../../../GAME-EDITOR.TODO"
-     "../../../../GAME-GENERAL.TODO"
-     "../../../../GAME-GRAPHICS.TODO"
-     "../../../../GAME-MAPWORLD.TODO"
-     "../../../../GAME-NETWORK.TODO"
-     "../../../../GAME-SOUND.TODO"
-     "../../../../GAME-STORY.TODO"
-     "../../../../GAME-UI.TODO" )
+     "../../../../notes/GAME-AI.TODO"
+     "../../../../notes/GAME-BEHAVIOR.TODO"
+     "../../../../notes/GAME-EDITOR.TODO"
+     "../../../../notes/GAME-GENERAL.TODO"
+     "../../../../notes/GAME-GRAPHICS.TODO"
+     "../../../../notes/GAME-MAPWORLD.TODO"
+     "../../../../notes/GAME-NETWORK.TODO"
+     "../../../../notes/GAME-SOUND.TODO"
+     "../../../../notes/GAME-STORY.TODO"
+     "../../../../notes/GAME-UI.TODO" )
 
 # Add C_FLAGS Compiler c99 idiom => enable "for (int i= ...)" syntax
 set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")

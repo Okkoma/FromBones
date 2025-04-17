@@ -31,3 +31,5 @@ build.gradle.kts
 /script/zipper
 /app/keystore
 /app/*.keystore
+restorelinks
+

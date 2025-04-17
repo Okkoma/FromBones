@@ -34,16 +34,6 @@ echo "..."
 echo "... Restore symbolic links on $PLATFORM"
 echo "..."
 
-ln -srf $URHO3D/cmake
-ln -srf $URHO3D/gradle
-ln -srf $URHO3D/script
-ln -srf $URHO3D/.clang-format
-ln -srf $URHO3D/.clang-tidy
-ln -srf $URHO3D/gradle.properties
-ln -srf $URHO3D/gradlew
-ln -srf $URHO3D/gradlew.bat
-ln -srf $URHO3D/rakefile
-
 mkdir -p exe/vk exe/gl
 
 ln -srf $FROMBONES/bin/CoreData exe/gl
