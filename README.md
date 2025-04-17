@@ -1,6 +1,6 @@
 # FromBones
 
-![presentation.webp](bin/Data/UI/Graphics/mdpi/Textures/UI/splash2.png)
+![presentation](app/snapshots/2players.png)
 
 A 2D plateformer game with integrated editor.
 Up to 4 local players.
