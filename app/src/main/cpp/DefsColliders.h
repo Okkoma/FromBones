@@ -2,8 +2,8 @@
 
 namespace Urho3D
 {
-class Node;
-class CollisionBox2D;
+    class Node;
+    class CollisionBox2D;
 }
 
 using namespace Urho3D;
@@ -38,7 +38,7 @@ enum ColliderCategory
 
     CC_INSIDEOBJECT      = 1 << 9, // 512
     CC_OUTSIDEOBJECT     = 1 << 10, // 1024
-    CC_OBJECT			 = CC_INSIDEOBJECT + CC_OUTSIDEOBJECT, // 1536
+    CC_OBJECT			 = CC_INSIDEOBJECT | CC_OUTSIDEOBJECT, // 1536
     CC_INSIDEEFFECT      = 1 << 11, // 2048
     CC_OUTSIDEEFFECT     = 1 << 12, // 4096
 
@@ -58,7 +58,7 @@ enum ColliderCategory
     CC_OUTSIDEENTITIES   = CC_OUTSIDEAVATAR | CC_OUTSIDEMONSTER | CC_OUTSIDEOBJECT, // 64 + 256 + 1024 = 1344
 
     // define the mapborder like as an projectile/effect => so the projectiles/effects dont' collide with it
-    CC_MAPBORDER         = CC_ALLPROJECTILES,
+    CC_MAPBORDER         = CC_ALLPROJECTILES
 };
 
 /// ColliderMask means "Collides With ..."
@@ -114,7 +114,7 @@ enum ColliderMask
     CM_SCENEUI           = CC_SCENEUI, // 8192
 
     CM_INSIDEFURNITURE   = CC_INSIDEWALLS,  // 2
-    CM_OUTSIDEFURNITURE  = CC_OUTSIDEWALLS,  // 4
+    CM_OUTSIDEFURNITURE  = CC_OUTSIDEWALLS  // 4
 };
 
 enum ExtraContactBits
@@ -132,7 +132,6 @@ enum ExtraContactBits
     CONTACT_UNSTABLE  = CONTACT_ALL,
     CONTACT_STABLE    = CONTACT_ALL | CONTACT_ISSTABLE, // 31
     CONTACT_PLATEFORM = CONTACT_TOP | CONTACT_ISSTABLE | CONTACT_STAIRS
-
 };
 
 enum MapColliderMode
@@ -156,7 +155,7 @@ enum ColliderShapeTypeMode
     SHT_BOX,
     SHT_CHAIN,
     SHT_EDGE,
-    NUM_COLLIDERSHAPETYPEMODES,
+    NUM_COLLIDERSHAPETYPEMODES
 };
 
 enum ColliderType
@@ -164,13 +163,13 @@ enum ColliderType
     DUNGEONINNERTYPE = 0,
     CAVEINNERTYPE = 1,
     ASTEROIDTYPE = 2,
-    MOBILECASTLETYPE = 3,
+    MOBILECASTLETYPE = 3
 };
 
 enum MapColliderType
 {
     PHYSICCOLLIDERTYPE = 0,
-    RENDERCOLLIDERTYPE = 1,
+    RENDERCOLLIDERTYPE = 1
 };
 
 class MapBase;
@@ -318,7 +317,7 @@ struct PixelShape
     const PODVector<unsigned char>& GetData() const
     {
         return data_;
-    };
+    }
     const Vector<IntVector2>& GetPixelCoords() const
     {
         return pixelcoords_;
