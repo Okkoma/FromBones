@@ -17,7 +17,7 @@
 #include <Urho3D/Audio/Audio.h>
 
 #include <Urho3D/Graphics/Graphics.h>
-#ifdef URHO3D_VULKAN
+#if defined(URHO3D_OPENGL) || defined(URHO3D_VULKAN)
 #include <Urho3D/Graphics/GraphicsImpl.h>
 #endif
 #include <Urho3D/Graphics/GraphicsEvents.h>
