@@ -1,5 +1,5 @@
 {
     "cmake.automaticReconfigure": false,
-    "cmake.useCMakePresets": "auto",
-    "cmake.configureOnEdit": false
+    "cmake.useCMakePresets": "never",
+    "cmake.buildTask": true
 }

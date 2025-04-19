@@ -1,28 +1,96 @@
 {
+    "version": "2.0.0",
     "tasks": [
         {
-            "type": "cppbuild",
-            "label": "C/C++: g++ générer le fichier actif",
-            "command": "/usr/lib/ccache/g++",
-            "args": [
-                "-fdiagnostics-color=always",
-                "-g",
-                "${file}",
-                "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
-            ],
+            "label": "Configure",
+            "type": "shell",
+            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug",
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}"
             },
-            "problemMatcher": [
-                "$gcc"
+            "group": "build"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "cmake --build build/gcc -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": [
+                "Configure"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Tâche générée par le débogueur."
+            "problemMatcher": [] 
+        },
+        {
+            "label": "Build (GCC)",
+            "type": "shell",
+            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/gcc -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Build With Tests (GCC)",
+            "type": "shell",
+            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ && cmake --build build/gcc --config ${command:cmake.buildType} -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Run Tests (GCC)",
+            "type": "shell",
+            "command": "ctest --test-dir build/gcc --output-on-failure",
+            "dependsOn": [
+                "Build With Tests (GCC)"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build (Clang)",
+            "type": "shell",
+            "command": "cmake -S . -B build/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && cmake --build build/clang -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Build With Tests (Clang)",
+            "type": "shell",
+            "command": "cmake -S . -B build/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && cmake --build build/clang --config ${command:cmake.buildType} -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
+        {
+            "label": "Run Tests (Clang)",
+            "type": "shell",
+            "command": "ctest --test-dir build/clang --output-on-failure",
+            "dependsOn": [
+                "Build With Tests (Clang)"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "test"
         }
-    ],
-    "version": "2.0.0"
+    ]
 }
