@@ -4,7 +4,7 @@
         {
             "label": "Configure",
             "type": "shell",
-            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug",
+            "command": "cmake -S . -B build/debug/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -13,7 +13,7 @@
         {
             "label": "Build",
             "type": "shell",
-            "command": "cmake --build build/gcc -j$(nproc)",
+            "command": "cmake --build build/debug/gcc -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -29,7 +29,7 @@
         {
             "label": "Build (GCC)",
             "type": "shell",
-            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/gcc -j$(nproc)",
+            "command": "cmake -S . -B build/debug/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/debug/gcc -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -39,9 +39,21 @@
             "problemMatcher": []
         },
         {
+            "label": "Build (GCC) Release",
+            "type": "shell",
+            "command": "cmake -S . -B build/release/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release && cmake --build build/release/gcc -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": []
+        },        
+        {
             "label": "Build With Tests (GCC)",
             "type": "shell",
-            "command": "cmake -S . -B build/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ && cmake --build build/gcc --config ${command:cmake.buildType} -j$(nproc)",
+            "command": "cmake -S . -B build/debug/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/debug/gcc --config ${command:cmake.buildType} -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -50,7 +62,7 @@
         {
             "label": "Run Tests (GCC)",
             "type": "shell",
-            "command": "ctest --test-dir build/gcc --output-on-failure",
+            "command": "ctest --test-dir build/debug/gcc --output-on-failure",
             "dependsOn": [
                 "Build With Tests (GCC)"
             ],
@@ -65,16 +77,25 @@
         {
             "label": "Build (Clang)",
             "type": "shell",
-            "command": "cmake -S . -B build/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && cmake --build build/clang -j$(nproc)",
+            "command": "cmake -S . -B build/debug/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/debug/clang -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": "build"
         },
         {
+            "label": "Build (Clang) Release",
+            "type": "shell",
+            "command": "cmake -S . -B build/release/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release && cmake --build build/release/clang -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },        
+        {
             "label": "Build With Tests (Clang)",
             "type": "shell",
-            "command": "cmake -S . -B build/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ && cmake --build build/clang --config ${command:cmake.buildType} -j$(nproc)",
+            "command": "cmake -S . -B build/debug/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug && cmake --build build/debug/clang --config ${command:cmake.buildType} -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -83,7 +104,7 @@
         {
             "label": "Run Tests (Clang)",
             "type": "shell",
-            "command": "ctest --test-dir build/clang --output-on-failure",
+            "command": "ctest --test-dir build/debug/clang --output-on-failure",
             "dependsOn": [
                 "Build With Tests (Clang)"
             ],
@@ -92,5 +113,6 @@
             },
             "group": "test"
         }
+
     ]
 }

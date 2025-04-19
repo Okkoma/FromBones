@@ -1747,7 +1747,7 @@ macro (setup_executable)
         add_make_clean_files (${RUNTIME_DIR}/${DIRECT3D_DLL})
     endif ()
     # Need to check if the destination variable is defined first because this macro could be called by downstream project that does not wish to install anything
-    if (NOT ARG_PRIVATE)
+    if (NOT ARG_PRIVATE AND (NOT URHO3D_SKIP_INSTALL OR NOT PROJECT_NAME STREQUAL Urho3D))
         if (WEB AND DEST_BUNDLE_DIR)
             set (LOCATION $<TARGET_FILE_DIR:${TARGET_NAME}>)
             unset (FILES)
@@ -1954,7 +1954,7 @@ macro (setup_main_executable)
 
     # Install Resource Dirs
     if (RESOURCE_DIRS)
-        if (CMAKE_PROJECT_NAME STREQUAL Urho3D AND DEST_SHARE_DIR)
+        if (CMAKE_PROJECT_NAME STREQUAL Urho3D AND DEST_SHARE_DIR AND NOT URHO3D_SKIP_INSTALL)
             # Only need to install the resource directories once in case they are referenced by multiple targets
             foreach (DIR ${RESOURCE_DIRS})
                 unset (FOUND_INDEX)

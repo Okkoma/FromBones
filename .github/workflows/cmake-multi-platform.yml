@@ -1,10 +1,17 @@
 name: CMake (Windows, Linux)
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Cible à builder (windows, linux, all)"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows
+          - linux
 
 jobs:
   build:
@@ -35,6 +42,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Extract version from CMakeLists.txt
+      id: extract_version
+      shell: bash
+      run: |
+        VERSION=$(sed -nE 's/.*project\s*\(\s*FromBones\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt)
+        echo "VERSION=$VERSION"
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        
     - name: Set reusable strings
       id: strings
       shell: bash
@@ -64,7 +79,6 @@ jobs:
       if: matrix.os == 'windows-latest'
       shell: bash
       run: |
-        # check cache if restored
         if [ -d "C:\ProgramData\chocolatey\bin" ]; then
           echo "Restored Cache."
         fi
@@ -73,7 +87,7 @@ jobs:
       run: |
         git config --global url."https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
-    - name: Configure CMake (Linux/Windows)
+    - name: Configure CMake
       run: >
         cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
@@ -81,11 +95,54 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
 
-    - name: Build (Linux/Windows)
+    - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
-    - name: Test (Linux/Windows)
+    - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: ctest --build-config ${{ matrix.build_type }}
 
+    - name: Package with CPack
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: cpack -G ZIP
+      if: |
+        (matrix.target == 'windows' && matrix.build_type == 'Release') ||
+        (matrix.target == 'linux' && matrix.cpp_compiler == 'clang++' && matrix.build_type == 'Release')
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.target }}-${{ matrix.cpp_compiler }}-release-package
+        path: ${{ steps.strings.outputs.build-output-dir }}/*.zip
+      if: |
+        (matrix.target == 'windows' && matrix.build_type == 'Release') ||
+        (matrix.target == 'linux' && matrix.cpp_compiler == 'clang++' && matrix.build_type == 'Release')
+        
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from CMakeLists.txt
+        id: extract_version
+        shell: bash
+        run: |
+            VERSION=$(sed -nE 's/.*project\s*\(\s*FromBones\s+VERSION\s+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt)
+            echo "VERSION=$VERSION"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.extract_version.outputs.version }}
+          name: "FromBones v${{ steps.extract_version.outputs.version }}"
+          draft: true
+          prerelease: false
+          files: ./artifacts/**/*.zip          
 
