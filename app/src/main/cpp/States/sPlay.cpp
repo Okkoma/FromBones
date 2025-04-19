@@ -1736,7 +1736,7 @@ void PlayState::SetViewports(bool dynamic, bool init)
             {
                 for (int i = 0; i < players.Size(); i++)
                 {
-                    if (!nodesOnFocus.Contains(WeakPtr<Node>(players[i]->GetAvatar())))
+                    if (players[i]->GetAvatar() && !nodesOnFocus.Contains(WeakPtr<Node>(players[i]->GetAvatar())))
                     {
                         focusChanged = true;
                         break;
@@ -1754,11 +1754,14 @@ void PlayState::SetViewports(bool dynamic, bool init)
             for (int i = 1; i <= players.Size(); i++)
             {
                 Player* player = players[players.Size() - i];
-                ViewManager::Get()->AddFocus(player->GetAvatar(), true, viewport);
-                World2D::GetOrCreateTraveler(player->GetAvatar()).viewport_ = viewport;
+                if (player->GetAvatar())
+                {
+                    ViewManager::Get()->AddFocus(player->GetAvatar(), true, viewport);
+                    World2D::GetOrCreateTraveler(player->GetAvatar()).viewport_ = viewport;
 
-                URHO3D_LOGINFOF("PlayState() - SetViewports : viewport=%d localPlayer ID=%u focused at %s !",
+                    URHO3D_LOGINFOF("PlayState() - SetViewports : viewport=%d localPlayer ID=%u focused at %s !",
                                 viewport, player->GetID(), player->GetAvatar()->GetWorldPosition2D().ToString().CString());
+                }
             }
         }
 
