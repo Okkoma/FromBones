@@ -3627,8 +3627,9 @@ void MapEditorLibImpl::Render()
 
     if (lines_.Size())
     {
+#if defined(MAPEDITOR_OGL)
         graphics->SetLineWidth(linewidth);
-
+#endif
         count = lines_.Size() * 2;
         graphics->Draw(LINE_LIST, start, count);
         start += count;
@@ -3647,8 +3648,9 @@ void MapEditorLibImpl::Render()
 
     if (triangles_.Size())
     {
+#if defined(MAPEDITOR_OGL)        
         graphics->SetLineWidth(1.f);
-
+#endif
         count = triangles_.Size() * 3;
         graphics->Draw(TRIANGLE_LIST, start, count);
         start += count;
@@ -3656,7 +3658,9 @@ void MapEditorLibImpl::Render()
 
     if (contours_.Size())
     {
+#if defined(MAPEDITOR_OGL)        
         graphics->SetLineWidth(2.5f);
+#endif        
         graphics->SetLineAntiAlias(true);
 
         count = contours_.Size() * 2;
@@ -3666,7 +3670,9 @@ void MapEditorLibImpl::Render()
 
     graphics->SetDepthWrite(false);
     graphics->SetLineAntiAlias(false);
+#if defined(MAPEDITOR_OGL)    
     graphics->SetLineWidth(1.f);
+#endif
 }
 
 void MapEditorLibImpl::AddShapeToRender(Drawable* shape, unsigned linecolor, unsigned pointcolor)

@@ -3,6 +3,8 @@
 
 #include "Noise.h"
 
+#include "ViewManager.h"
+
 #include "MapGeneratorGround.h"
 
 /*
@@ -94,9 +96,6 @@ void MapGeneratorGround::Make(MapGeneratorStatus& genStatus)
 
     URHO3D_LOGINFOF("MapGeneratorGround() - Make ... OK !");
 }
-
-//#include "GameHelpers.h"
-#include "ViewManager.h"
 
 void MapGeneratorGround::GenerateSpots(MapGeneratorStatus& genStatus)
 {

@@ -2,6 +2,8 @@
 
 #include <Urho3D/Core/Context.h>
 
+#include <Urho3D/Graphics/Graphics.h>
+
 #include <Urho3D/IO/Deserializer.h>
 #include <Urho3D/IO/Serializer.h>
 #include <Urho3D/IO/FileSystem.h>
@@ -35,6 +37,9 @@
 #define ANL_SCREENSHOT_MAPEXPANDED 35
 
 typedef anl::CImplicitModuleBase *AnlModule;
+
+extern const char* anl::ANLModuleTypeVMStr[];
+
 
 static int terrainBound_;
 
@@ -92,8 +97,6 @@ static const char* ANLModuleTypeV1Str[] =
     "TranslateDomain",
     0
 };
-
-extern const char* anl::ANLModuleTypeVMStr[];
 
 static const char* MapTypeStr[] =
 {

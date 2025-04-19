@@ -1,9 +1,5 @@
 #pragma once
 
-#include <Urho3D/Graphics/Graphics.h>
-#include <Urho3D/Graphics/GraphicsImpl.h>
-#include <Urho3D/Graphics/Drawable.h>
-
 #include "GameOptionsTest.h"
 
 const unsigned MAX_VIEWPORTS = 4;
@@ -102,7 +98,7 @@ const float SCROLLERBACKVIEW_ALPHA   = 0.3f;
 const float SCROLLERINNERVIEW_ALPHA  = 0.5f;
 
 // Layer Mask
-const unsigned BACKGROUND_MASK          = Urho3D::DRAWABLE_ANY+1;
+const unsigned BACKGROUND_MASK          = 256U;//Urho3D::DRAWABLE_ANY+1;
 const unsigned BACKVIEW_MASK            = BACKGROUND_MASK << 1;
 const unsigned INNERVIEW_MASK           = BACKGROUND_MASK << 2;
 const unsigned INNERBIOME_MASK          = BACKGROUND_MASK << 3;

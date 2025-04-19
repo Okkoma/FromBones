@@ -1,14 +1,10 @@
 #pragma once
 
-#include <Urho3D/Core/Profiler.h>
-
-#include <Urho3D/Scene/Component.h>
-
-#include <Urho3D/Urho2D/Drawable2D.h>
-
 //#define USE_WATERLINE_COLLISIONCHAIN
 
-
+#include <Urho3D/Core/Profiler.h>
+#include <Urho3D/Scene/Component.h>
+#include <Urho3D/Urho2D/Drawable2D.h>
 #ifdef USE_WATERLINE_COLLISIONCHAIN
 #include <Urho3D/Urho2D/CollisionChain2D.h>
 #else
@@ -17,19 +13,18 @@
 
 namespace Urho3D
 {
-class Node;
-class Drawable2D;
+    class Node;
+    class Drawable2D;
 #ifdef USE_WATERLINE_COLLISIONCHAIN
-class CollisionChain2D;
+    class CollisionChain2D;
 #else
-class CollisionBox2D;
+    class CollisionBox2D;
 #endif
 }
 
 using namespace Urho3D;
 
 #include "GameOptionsTest.h"
-
 #include "DefsChunks.h"
 #include "DefsFluids.h"
 

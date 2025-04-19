@@ -1,26 +1,21 @@
 #pragma once
 
-#include "DefsGame.h"
-#include "GameOptions.h"
 #include "GameStateManager.h"
-
 
 namespace Urho3D
 {
-class Camera;
-class Connection;
-class UIElement;
-class Text;
+    class Camera;
+    class Connection;
+    class UIElement;
+    class Text;
 }
-
-using namespace Urho3D;
-
 
 class PlayState;
 class SplashScreen;
 class Player;
 class GOManager;
 
+using namespace Urho3D;
 
 struct SceneCleaner
 {
@@ -41,7 +36,6 @@ struct SceneCleaner
     PlayState* playstate_;
     bool sceneDirty_;
 };
-
 
 class PlayState : public GameState
 {

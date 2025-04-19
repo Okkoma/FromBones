@@ -3,13 +3,9 @@
 
 namespace Urho3D
 {
-class UIElement;
-class Font;
+    class UIElement;
+    class Font;
 }
-
-class GOC_Inventory;
-class Equipment;
-
 
 using namespace Urho3D;
 
@@ -18,6 +14,9 @@ enum SwitchVisibleMode
     VM_SIMPLE = 0,
     VM_ANIMATED
 };
+
+class GOC_Inventory;
+class Equipment;
 
 class UIPanel : public Object
 {

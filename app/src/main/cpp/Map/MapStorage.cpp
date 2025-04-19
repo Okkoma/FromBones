@@ -42,11 +42,10 @@
 
 #include "MapStorage.h"
 
-extern const char* mapStatusNames[];
-extern const char* mapAsynStateNames[];
-
 #define MAPSTORAGE_ONLYSERIALIZEATSTARTANDEND
 
+extern const char* mapStatusNames[];
+extern const char* mapAsynStateNames[];
 
 /// MapSerializer
 

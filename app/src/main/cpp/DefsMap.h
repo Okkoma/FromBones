@@ -7,11 +7,10 @@
 
 #include "ShortIntVector2.h"
 
-#include "DefsGame.h"
+#include "GameOptions.h"
+
 #include "DefsViews.h"
 #include "DefsColliders.h"
-
-#include "GameOptions.h"
 
 #include "MapFeatureTypes.h"
 #include "MapTiles.h"

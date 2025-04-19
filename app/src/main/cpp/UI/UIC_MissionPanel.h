@@ -4,14 +4,13 @@
 
 namespace Urho3D
 {
-class Sprite2D;
-class UIElement;
+    class Sprite2D;
+    class UIElement;
 }
-
-class Mission;
 
 using namespace Urho3D;
 
+class Mission;
 
 class UIC_MissionPanel : public UIPanel
 {

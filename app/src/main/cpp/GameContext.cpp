@@ -17,7 +17,6 @@
 #include <Urho3D/IO/FileSystem.h>
 
 #include <Urho3D/Graphics/Graphics.h>
-#include <Urho3D/Graphics/GraphicsImpl.h>
 #include <Urho3D/Graphics/Renderer.h>
 #include <Urho3D/Graphics/DebugRenderer.h>
 #include <Urho3D/Graphics/Viewport.h>

@@ -2,11 +2,11 @@
 
 #include <Urho3D/IO/Log.h>
 
-#include "GameOptionsTest.h"
-#include "GameHelpers.h"
-//#include "DefsMap.h"
 #include "Map.h"
-#include "ViewManager.h"
+
+#ifdef DUMP_MAPDEBUG_FLUIDVIEW
+#include "GameHelpers.h"
+#endif
 
 #include "DefsFluids.h"
 

@@ -3,11 +3,10 @@
 #include <Urho3D/Urho2D/RigidBody2D.h>
 #include <Urho3D/Resource/Resource.h>
 
-#include "DefsCore.h"
-#include "DefsGame.h"
 #include "DefsMap.h"
 #include "DefsFluids.h"
 #include "DefsEntityInfo.h"
+
 #include "GameOptionsTest.h"
 
 #ifdef USE_TILERENDERING
@@ -16,24 +15,20 @@
 #include "ObjectSkinned.h"
 #endif // USE_TILERENDERING
 
-
-
 namespace Urho3D
 {
-class Serializer;
-class Deserializer;
-class File;
-class TmxFile2D;
-class TmxLayer2D;
-class TmxTileLayer2D;
-class Image;
-class XMLFile;
-class VectorBuffer;
-class CollisionBox2D;
-class CollisionChain2D;
+    class Serializer;
+    class Deserializer;
+    class File;
+    class TmxFile2D;
+    class TmxLayer2D;
+    class TmxTileLayer2D;
+    class Image;
+    class XMLFile;
+    class VectorBuffer;
+    class CollisionBox2D;
+    class CollisionChain2D;
 }
-
-using namespace Urho3D;
 
 class MapCreator;
 class MapData;
@@ -44,6 +39,8 @@ struct ChunkInfo;
 class ViewManager;
 class GOC_Destroyer;
 class GameNetwork;
+
+using namespace Urho3D;
 
 class FROMBONES_API MapBase
 {

@@ -1,25 +1,28 @@
 #pragma once
 
-
 #include <Urho3D/Core/Object.h>
-
-#include "DefsViews.h"
+#include <Urho3D/Graphics/Viewport.h>
 
 namespace Urho3D
 {
-class Node;
-class Scene;
-class Camera;
+    class Node;
+    class Scene;
+    class Camera;
+
+    /// ViewManager Event
+    URHO3D_EVENT(VIEWMANAGER_SWITCHVIEW, ViewManager_SwitchView)
+    {
+        URHO3D_PARAM(VIEWPORT, Viewport);  // int
+        URHO3D_PARAM(VIEWZINDEX, ViewZindex);  // int
+        URHO3D_PARAM(VIEWZ, ViewZ);            // int
+        URHO3D_PARAM(FORCEDMODE, ForcedMode); // bool
+    }
 }
 
-/// ViewManager Event
-URHO3D_EVENT(VIEWMANAGER_SWITCHVIEW, ViewManager_SwitchView)
-{
-    URHO3D_PARAM(VIEWPORT, Viewport);  // int
-    URHO3D_PARAM(VIEWZINDEX, ViewZindex);  // int
-    URHO3D_PARAM(VIEWZ, ViewZ);            // int
-    URHO3D_PARAM(FORCEDMODE, ForcedMode); // bool
-}
+#include "DefsCore.h"
+#include "DefsViews.h"
+
+class Actor;
 
 using namespace Urho3D;
 
@@ -46,8 +49,6 @@ struct ViewportInfo
     WeakPtr<Node> cameraFocusNode_;
     List<WeakPtr<Node> > nodesOnFocus_;
 };
-
-class Actor;
 
 class FROMBONES_API ViewManager : public Object
 {
@@ -94,21 +95,9 @@ public:
     {
         return fluidZ_[index];
     }
-    static unsigned GetLayerMask(int viewZ)
-    {
-        HashMap<int, unsigned>::ConstIterator it = layerMask_.Find(viewZ);
-        return it != layerMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
-    }
-    static unsigned GetViewMask(int viewZ)
-    {
-        HashMap<int, unsigned>::ConstIterator it = viewMask_.Find(viewZ);
-        return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
-    }
-    static unsigned GetEffectMask(int viewZ)
-    {
-        HashMap<int, unsigned>::ConstIterator it = effectMask_.Find(viewZ);
-        return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
-    }
+    static unsigned GetLayerMask(int viewZ);
+    static unsigned GetViewMask(int viewZ);
+    static unsigned GetEffectMask(int viewZ);
     static int GetViewZIndex(int viewZ)
     {
         HashMap<int, unsigned>::ConstIterator it = viewZIndexes_.Find(viewZ);

@@ -232,6 +232,23 @@ void ViewManager::RegisterEffectView(int Z, unsigned viewmask)
     effectMask_[Z] = viewmask;
 }
 
+unsigned ViewManager::GetLayerMask(int viewZ)
+{
+    HashMap<int, unsigned>::ConstIterator it = layerMask_.Find(viewZ);
+    return it != layerMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
+}
+
+unsigned ViewManager::GetViewMask(int viewZ)
+{
+    HashMap<int, unsigned>::ConstIterator it = viewMask_.Find(viewZ);
+    return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
+}
+
+unsigned ViewManager::GetEffectMask(int viewZ)
+{
+    HashMap<int, unsigned>::ConstIterator it = effectMask_.Find(viewZ);
+    return it != effectMask_.End() ? it->second_ : DEFAULT_VIEWMASK;
+}
 
 void ViewManager::SetViewportLayout(int numviewports, bool reset)
 {
