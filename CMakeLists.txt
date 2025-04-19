@@ -5,6 +5,15 @@ project (FromBones)
 #set (URHO3D_HOME ${CMAKE_SOURCE_DIR}/../Urho3D-FromBones-git-local)
 set (GIT_U3D_REPO "https://github.com/Okkoma/Urho3D-FromBones.git")
 
+# Disable some thirdparty/engine build options.
+option (SDL_ATOMIC "Enable the Atomic subsystem" TRUE)
+option (SDL_HAPTIC "Enable the Haptic subsystem" FALSE)
+option (SDL_LOCALE "Enable the Locale subsystem" FALSE)
+option (SDL_POWER "Enable the Power subsystem" FALSE)
+option (SDL_SENSOR "Enable the Sensor subsystem" TRUE)
+option (SDL_THREADS "Enable the Threads subsystem" FALSE)
+option (SDL_TIMERS "Enable the Timers subsystem" TRUE)
+
 include (${CMAKE_SOURCE_DIR}/cmake/Urho3D.cmake)
 
 message (STATUS "Project configuration:")

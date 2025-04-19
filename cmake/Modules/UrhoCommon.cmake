@@ -246,7 +246,7 @@ if (IS_URHO3D)
     option (URHO3D_PHYSICS "Enable physics support" FALSE)
     #option (URHO3D_PHYSICS2D "Enable 2D physics support" TRUE)
     option (URHO3D_URHO2D "Enable 2D graphics support" TRUE)
-    option (URHO3D_WEBP "Enable WebP support" TRUE)
+    option (URHO3D_WEBP "Enable WebP support" FALSE)
 
     option (URHO3D_VULKAN "Use Vulkan" FALSE)
     cmake_dependent_option (URHO3D_VOLK   "Use Volk with Vulkan" TRUE "URHO3D_VULKAN" FALSE)
