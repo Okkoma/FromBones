@@ -1,6 +1,6 @@
 # FromBones
 
-![presentation](app/snapshots/2players.png)
+![presentation](app/snapshots/snapshots.gif)
 
 A 2D plateformer game with integrated editor.
 Up to 4 local players.
