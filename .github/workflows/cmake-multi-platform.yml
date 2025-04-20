@@ -26,19 +26,22 @@ jobs:
             cpp_compiler: cl
             build_type: Release
             target: windows
-
+            cmake_options: "-DURHO3D_OPENGL=1"
+            
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
             build_type: Release
             target: linux
-
+            cmake_options: ""
+            
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
             build_type: Release
             target: linux
-
+            cmake_options: ""
+            
     steps:
     - uses: actions/checkout@v4
 
@@ -93,6 +96,7 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        ${{ matrix.cmake_options }}
         -S ${{ github.workspace }}
 
     - name: Build
