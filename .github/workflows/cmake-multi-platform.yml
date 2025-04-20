@@ -35,7 +35,7 @@ jobs:
             target: linux
             cmake_options: ""
             
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: clang
             cpp_compiler: clang++
             build_type: Release
@@ -67,7 +67,7 @@ jobs:
         sudo apt install -y --no-install-recommends libxrandr-dev libxrender-dev libxss-dev libxxf86vm-dev
         sudo apt install -y --no-install-recommends libasound2-dev libpulse-dev libibus-1.0-dev
         sudo apt install -y --no-install-recommends libdbus-1-dev libreadline6-dev libssl-dev libudev-dev
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.target == 'linux'
         
     - name: Cache Chocolatey packages
       if: matrix.os == 'windows-latest'
