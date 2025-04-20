@@ -379,7 +379,7 @@ void Game::Setup()
             config.splashviewed_   = true;
 
         config.networkMode_        = "local";
-        config.language_           = 1;
+        config.language_           = "en";
         config.deviceDPI_          = DPI_M;
         config.uiDeviceDPI_        = DPI_M;
 
@@ -545,12 +545,10 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
     for (pugi::xml_node varElem = root.child("variable"); varElem; varElem = varElem.next_sibling("variable"))
     {
         const String& name = varElem.attribute("name").value();
-        if (name == "language_" || name == "frameLimiter_" || name == "networkServerPort_")
+        if (name == "frameLimiter_" || name == "networkServerPort_")
         {
             int value = varElem.attribute("value").as_int();
-            if (name == "language_")
-                config->language_ = value;
-            else if (name == "frameLimiter_")
+            if (name == "frameLimiter_")
                 config->frameLimiter_ = value;
             else if (name == "networkServerPort_")
                 config->networkServerPort_ = value;
@@ -559,7 +557,7 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
 //            std::cout << config->logString.CString();
         }
         else if (name == "initState_" || name == "sceneToLoad_" || name == "networkServerIP_" ||
-                 name == "networkMode_" || name == "deviceDPI_" || name == "uiDeviceDPI_")
+                 name == "networkMode_" || name == "deviceDPI_" || name == "uiDeviceDPI_" || name == "language_")
         {
             const String& value = varElem.attribute("value").value();
 
@@ -584,6 +582,8 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
                 if (config->uiDeviceDPI_ == -1)
                     config->uiDeviceDPI_ = DPI_AUTO;
             }
+            else if (name == "language_")
+                config->language_ = value;
             config->logString += ToString("  (String) %s = %s \n", name.CString(), value.CString());
 //            std::cout << config->logString.CString();
         }

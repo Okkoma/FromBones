@@ -41,7 +41,7 @@
 	<variable name="enlightScene_" value ="false" />
 
 	<parameter name="UIEnable" value="true" />
-	<variable name="language_" value ="1" />
+	<variable name="language_" value ="en" />
 	<variable name="HUDEnabled_" value ="false" />
 
 	<variable name="SoundEnabled_" value ="true" />

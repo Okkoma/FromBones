@@ -41,7 +41,7 @@ if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) # Default installation folder
     set_property (CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE ${CMAKE_SOURCE_DIR}/exe)
 endif ()
 install (FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
-install (FILES ${CMAKE_SOURCE_DIR}/bin/Data/EngineConfig/linux.xml DESTINATION bin RENAME EngineConfig.xml)
+install (FILES ${CMAKE_SOURCE_DIR}/bin/Data/EngineConfig/linux.xml DESTINATION bin RENAME engine_config.xml)
 
 # CPack
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FromBones - a 2D plateformer game")

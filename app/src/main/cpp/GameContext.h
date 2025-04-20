@@ -59,7 +59,7 @@ struct FROMBONES_API GameConfig
     int networkServerPort_;
 
     // localization
-    int language_;
+    String language_;
 
     // sounds
     int soundEnabled_;

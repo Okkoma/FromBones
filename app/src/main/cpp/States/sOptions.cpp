@@ -833,10 +833,14 @@ void OptionState::SynchronizeParameters()
 		}
 	}
 
-    if (optionParameters_[OPTION_Language].control_ && optionParameters_[OPTION_Language].control_->GetSelection() != GameContext::Get().gameConfig_.language_)
+    if (optionParameters_[OPTION_Language].control_)
     {
-        optionParameters_[OPTION_Language].control_->SetSelection(GameContext::Get().gameConfig_.language_);
-        ApplyLanguage();
+        int langindex = GetSubsystem<Localization>()->GetLanguageIndex(GameContext::Get().gameConfig_.language_);
+        if (langindex != optionParameters_[OPTION_Language].control_->GetSelection())
+        {
+            optionParameters_[OPTION_Language].control_->SetSelection(langindex);
+            ApplyLanguage();
+        }
     }
 
     if (optionParameters_[OPTION_Reactivity].control_ && optionParameters_[OPTION_Reactivity].control_->GetSelection() != GameContext::Get().gameConfig_.uiUpdateDelay_)
@@ -2286,9 +2290,10 @@ void OptionState::HandleControlP4Changed(StringHash eventType, VariantMap& event
 
 void OptionState::HandleLanguageChanged(StringHash eventType, VariantMap& eventData)
 {
-    if (optionParameters_[OPTION_Language].control_->GetSelection() != GameContext::Get().gameConfig_.language_)
+    String lang = GetSubsystem<Localization>()->GetLanguage(optionParameters_[OPTION_Language].control_->GetSelection());
+    if (lang != GameContext::Get().gameConfig_.language_)
     {
-        GameContext::Get().gameConfig_.language_ = optionParameters_[OPTION_Language].control_->GetSelection();
+        GameContext::Get().gameConfig_.language_ = lang;
         ApplyLanguage();
 
 //        URHO3D_LOGINFOF("OptionState() - HandleLanguageChanged ... language=%d !", GameContext::Get().gameConfig_.language_);

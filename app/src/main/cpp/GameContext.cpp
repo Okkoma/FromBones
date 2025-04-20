@@ -112,7 +112,7 @@
 GameConfig::GameConfig() :
     networkMode_("auto"),
 
-    language_(0),
+    language_("en"),
     soundEnabled_(true),
     musicEnabled_(true),
 
