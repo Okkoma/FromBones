@@ -24,6 +24,8 @@ flat varying uint fTexEffect1;
 flat varying uint fTexEffect2;
 flat varying uint fTexEffect3;
 
+// SHADERS GROUNDS
+
 void VS()
 {
     fTextureId   = int(iTangent.x);

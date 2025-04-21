@@ -962,7 +962,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
 
                     bottom->drawn_ = true;
                 }
-                while (rect.bottom_ > h++);
+                while (++h < rect.bottom_-1);
 
                 bottomy -= (h-y) * theight;
             }
@@ -2148,7 +2148,32 @@ void WaterLayer::DrawDebugWaterQuads(DebugRenderer* debug, const FluidDatas& flu
         }
     }
 #endif
+}
 
+void WaterLayer::DrawDebugWaterMesh(DebugRenderer* debug, const Vector<Vertex2D>& vertices, unsigned color)
+{
+    if (vertices.Size())
+    {
+        Vector3 v0, v1, v2, v3;
+
+        unsigned count = 0;
+        unsigned size = vertices.Size();
+        while (count < size)
+        {
+            v0 = vertices[count].position_;
+            v1 = vertices[count + 1].position_;
+            v2 = vertices[count + 2].position_;
+            v3 = vertices[count + 3].position_;
+
+            debug->AddLine(v0, v1, color, false);
+            debug->AddLine(v1, v2, color, false);
+            debug->AddLine(v2, v0, color, false);
+            debug->AddLine(v0, v3, color, false);
+            debug->AddLine(v3, v2, color, false);
+
+            count += 4;
+        }
+    }
 }
 
 void WaterLayer::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
@@ -2176,30 +2201,8 @@ void WaterLayer::DrawDebugGeometry(DebugRenderer* debug, bool depthTest)
             }
         }
     #ifdef FLUID_RENDER_DRAWDEBUG_MESH
-        const Vector<Vertex2D>& vertices = layerData.watertilesFrontBatch_.vertices_;
-        if (vertices.Size())
-        {
-            Vector3 v0, v1, v2, v3;
-
-            unsigned count = 0;
-            unsigned size = vertices.Size();
-            unsigned uintColor = Color::BLUE.ToUInt();
-            while (count < size)
-            {
-                v0 = vertices[count].position_;
-                v1 = vertices[count+1].position_;
-                v2 = vertices[count+2].position_;
-                v3 = vertices[count+3].position_;
-
-                debug->AddLine(v0, v1, uintColor, false);
-                debug->AddLine(v1, v2, uintColor, false);
-                debug->AddLine(v2, v0, uintColor, false);
-                debug->AddLine(v0, v3, uintColor, false);
-                debug->AddLine(v3, v2, uintColor, false);
-
-                count += 4;
-            }
-        }
+        DrawDebugWaterMesh(debug, layerData.watertilesBackBatch_.vertices_, Color::GRAY.ToUInt());
+        DrawDebugWaterMesh(debug, layerData.watertilesFrontBatch_.vertices_, Color::BLUE.ToUInt());
     #endif
     #ifdef FLUID_RENDER_WATERLINE_RECTS
         for (unsigned i = 0; i < GetWaterLines(0).Size(); i++)

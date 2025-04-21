@@ -1,6 +1,11 @@
 Todos:
 
-     ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
+    ☐ 21/04/2025 : reprise du todo fermé du 19/10/2022 "l'affichage des fluidcell d'arriere plan est chaotique."
+        => il y a surement un pb avec l'index texture du watertile. correction faite dans le material, on repasse à l'index 0.
+        ==> ce qui résout le todo du 23/03/2024 pour GL. (tester avec ACTIVE_LAYERMATERIALS)
+        => supression du chevauchement des watertiles entre 2 map adjacentes verticalement. cf WaterLayerData::UpdateTiledBatch.
+
+    ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
         => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.
         => en GL, le waterbacklayer a un pb d'affichage, il disparait puis reapparait de façon intempestive en fonction du deplacement de l'avatar.
         ==> surement un pb de material ou de texture id

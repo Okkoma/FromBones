@@ -24,6 +24,8 @@ flat varying uint fTexEffect1;
 flat varying uint fTexEffect2;
 flat varying uint fTexEffect3;
 
+// SHADERS ACTORS
+
 void VS()
 {
     vec3 worldPos = vec3((iPos * iModelMatrix).xy, 1.0);

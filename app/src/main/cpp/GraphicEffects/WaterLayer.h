@@ -188,6 +188,7 @@ private:
     void HandleEndFluidContact(StringHash eventType, VariantMap& eventData);
 
     void DrawDebugWaterQuads(DebugRenderer* debug, const FluidDatas& fluiddata, const ViewportRenderData& viewportdata);
+    void DrawDebugWaterMesh(DebugRenderer* debug, const Vector<Vertex2D>& vertices, unsigned color);
 
     // for optimization, think to abstract the viewport because it can be render for multiple viewports if there cameras are closed.
     // Waterlines with deformation waves

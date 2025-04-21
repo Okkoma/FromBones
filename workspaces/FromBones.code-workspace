@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": ".."
+		},
+		{
+			"path": "../../Urho3D-FromBones-git-local"
 		}
 	],
 	"settings": {
