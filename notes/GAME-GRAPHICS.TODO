@@ -1,14 +1,17 @@
 Todos:
 
-    ☐ 21/04/2025 : reprise du todo fermé du 19/10/2022 "l'affichage des fluidcell d'arriere plan est chaotique."
-        => il y a surement un pb avec l'index texture du watertile. correction faite dans le material, on repasse à l'index 0.
-        ==> ce qui résout le todo du 23/03/2024 pour GL. (tester avec ACTIVE_LAYERMATERIALS)
-        => supression du chevauchement des watertiles entre 2 map adjacentes verticalement. cf WaterLayerData::UpdateTiledBatch.
+    ✔ 21/04/2025 : reprise du todo fermé du 19/10/2022 "l'affichage des fluidcell d'arriere plan est chaotique."
+        => il y a surement un pb avec l'index texture du watertile.
+        ==> correctif rapide dans le material, on repasse à l'index 0.
+        ===> OK : ce qui résout le todo du 23/03/2024 pour GL. (tester avec ACTIVE_LAYERMATERIALS)
+        ===> il y a un flipping de texture avec des flammes (correspond à particules.png) lors du changement de viewZ
+        ====> OK : modification du material WaterInside.xml : ajout de la Texture watertiles.png en index 0 et Texture particules.png en index1.
+        => OK : supression du chevauchement des watertiles entre 2 map adjacentes verticalement. cf WaterLayerData::UpdateTiledBatch.
+        => OK : Ferme correctement la derniere sub-division d'une watertile sous une Waterline. cf WaterLine::Update.
 
     ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
         => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.
         => en GL, le waterbacklayer a un pb d'affichage, il disparait puis reapparait de façon intempestive en fonction du deplacement de l'avatar.
-        ==> surement un pb de material ou de texture id
         => en VK multiviews, c'est un probleme du backend VK qui prend la texture rendu en pass precedente (qui inclut les differents viewports).
         ==> il faudrait une texture de rendu par viewport
 

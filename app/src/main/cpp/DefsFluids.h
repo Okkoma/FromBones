@@ -116,6 +116,9 @@ enum FluidPattern
     PTRN_FullTest,
 };
 
+extern const char* FluidPatternTypeStr[];
+extern const char* FluidPatternStr[];
+
 const bool WaterLineAllowed_[] =
 {
     false,

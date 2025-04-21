@@ -3133,13 +3133,12 @@ void GameHelpers::DumpTile(const WorldMapPosition& position)
 
     unsigned chunk = MapInfo::info.chinfo_->GetChunk(position.mPosition_.x_, position.mPosition_.y_);
 
+    String featureString, maskString, fluidString;
+
     PODVector<FeatureType> features;
-    String featureString, maskString;
     map->GetObjectFeatured()->GetAllViewFeatures(position.tileIndex_, features);
     for (unsigned i=0; i < features.Size(); i++)
-    {
         featureString += ToString("%s(%d)=>%s(%d);",ViewManager::GetViewName(i).CString(), i, MapFeatureType::GetName(features[i]), features[i]);
-    }
 
     FeatureType feat;
     bool result = map->FindSolidTile(position.tileIndex_, feat, layerZ);
@@ -3152,14 +3151,20 @@ void GameHelpers::DumpTile(const WorldMapPosition& position)
 
     const Vector<FeaturedMap>& masks = map->GetObjectFeatured()->GetMaskedViews(position.viewZIndex_);
     for (int i=masks.Size()-1; i >= 0; i--)
-    {
         maskString += ToString("indexV=%d=>%s(%d);", i, MapFeatureType::GetName(masks[i][position.tileIndex_]), masks[i][position.tileIndex_]);
+
+    const Vector<int>& fluidViewIds = map->GetObjectFeatured()->GetFluidViewIDs(FRONTVIEW);
+    for (unsigned i=0; i < fluidViewIds.Size(); i++)
+    {
+        const FluidCell& c = map->GetObjectFeatured()->GetFluidView(fluidViewIds[i]).fluidmap_[position.tileIndex_];
+        fluidString += ToString("%s(%d)=>pattern=(%s)%d;patternType=(%s)%d;", ViewManager::GetViewName(i).CString(), i, FluidPatternStr[c.pattern_], c.pattern_, FluidPatternTypeStr[c.patternType_], c.patternType_);
     }
 
-    URHO3D_LOGINFOF("GameHelpers() : DumpTile => map=%s pos=%s ti=%u chunkid=%u : ...", position.mPoint_.ToString().CString(), position.mPosition_.ToString().CString(), position.tileIndex_, chunk);
+    URHO3D_LOGINFOF("GameHelpers() : DumpTile => z=%d map=%s pos=%s ti=%u chunkid=%u : ...", layerZ, position.mPoint_.ToString().CString(), position.mPosition_.ToString().CString(), position.tileIndex_, chunk);
     URHO3D_LOGINFOF("   %s", solidTileString.CString());
     URHO3D_LOGINFOF("   features = %s", featureString.CString());
     URHO3D_LOGINFOF("   masks    = %s", maskString.CString());
+    URHO3D_LOGINFOF("   fluid    = %s", fluidString.CString());
 }
 
 Node* GameHelpers::CreateObjectMapedFrom(const ObjectMapedInfo& info)

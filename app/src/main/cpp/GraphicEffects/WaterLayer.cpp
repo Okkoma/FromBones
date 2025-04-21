@@ -502,6 +502,8 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
                     vertex21.color_ = vertex22.color_ = vertex23.color_ = vertex20.color_ = tilecolor;
 #endif
                 }
+                // Modify the position x of the last vertex of the last column
+                vertices2[addr2-1].position_.x_ = xStart + tileSize.x_;
             }
 
             // next surface
@@ -964,7 +966,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 }
                 while (++h < rect.bottom_-1);
 
-                bottomy -= (h-y) * theight;
+                bottomy = Max(bottomy - (h-y) * theight, 0.f);
             }
 
             bool allowWaterline = WaterLineAllowed_[cell.pattern_];
@@ -1917,7 +1919,7 @@ const Vector<SourceBatch2D*>& WaterLayer::GetSourceBatchesToRender(Camera* camer
 
     if (layerData.batchesDirty_)
     {
-        URHO3D_LOGINFOF("WaterLayer - GetSourceBatchesToRender() : viewport=%d ...", layerData.viewport_);
+        //URHO3D_LOGINFOF("WaterLayer - GetSourceBatchesToRender() : viewport=%d ...", layerData.viewport_);
         UpdateBatches(layerData);
     }
 
