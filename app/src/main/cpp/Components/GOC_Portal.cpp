@@ -457,6 +457,12 @@ void GOC_Portal::HandleApplyDestination(StringHash eventType, VariantMap& eventD
                     URHO3D_LOGERRORF("GOC_Portal() - HandleApplyDestination : repop node=%s(%u) enabled=%s !", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
                 }
 
+               if (!GameContext::Get().ServerMode_)
+               {
+                   for (unsigned i=0; i < dViewports_.Size(); i++)
+                       DrawableScroller::SetActive(dViewports_[i], true);
+               }
+
                 teleportedInfos_.Clear();
                 UnsubscribeFromEvent(GetScene(), E_SCENEUPDATE);
                 World2D::SetAllowClearMaps(true);

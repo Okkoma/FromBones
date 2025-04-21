@@ -1,5 +1,8 @@
 Todos:
 
+    ✔ 21/04/2025 : Lorsque le teleportement est aborté, il n'y a pas de restauration du défilement du scrolling parallax. (DrawableScroller)
+        => OK : correctif dans GOC_Portal lorsque !transferOK_ => DrawableScroller::SetActive(true)
+
     ✔ 22/03/2024 : le souffle de darkren genere un collider qui entre en collision, il ne faut pas c'est du feu. De plus la lance va se sticker dessus ...
         -> corriger pour que la lance ne stick pas sur les TA
         => OK : modification de GOC_Detector::BecomeStickOn
@@ -178,7 +181,7 @@ Todos:
     ☐ 18/01/2023 : encore des pb avec GOC_Portal ? dans certains portails, le transfer de la Camera n'est pas instantané : la camera se déplace d'une map vers une autre.
         => perte du focus ? verifier ViewManager::SetFocusEnable()
         ==> 19/01/2023 : quelques correctifs ainsi que dans MapStorage et MapWorld
-        -> 21/03/2023 : Portal encore à corriger ; teleportement aborté avec défilement de l'écran et retour au premier portail sans possibilité de réativation de celui-ci
+        -> 21/03/2023 : Portal encore à corriger ; teleportement aborté avec défilement de l'écran et retour au premier portail sans possibilité de réactivation de celui-ci
 
     ☐ 22/03/2023 : quand on a popper un boss et que l'on sort et rerentre dans la zone, il faut que la zone soit de nouveau active
         => OK : correctif dans BossZone::OnFinished()
