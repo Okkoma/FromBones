@@ -9,11 +9,31 @@ Todos:
         => OK : supression du chevauchement des watertiles entre 2 map adjacentes verticalement. cf WaterLayerData::UpdateTiledBatch.
         => OK : Ferme correctement la derniere sub-division d'une watertile sous une Waterline. cf WaterLine::Update.
 
-    ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
+    ✔ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
         => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.
         => en GL, le waterbacklayer a un pb d'affichage, il disparait puis reapparait de façon intempestive en fonction du deplacement de l'avatar.
         => en VK multiviews, c'est un probleme du backend VK qui prend la texture rendu en pass precedente (qui inclut les differents viewports).
-        ==> il faudrait une texture de rendu par viewport
+        ==> il faut que la texture de rendu ait les dimensions du viewport et non pas de l'ecran
+        ==> cf GraphicsImpl::CreateRenderPasses() : les framebuffer prennent la dimension des frames de la swapchain (donc de l'ecran)
+        ===> à modifier par les dimension du viewport
+        ==> cf GraphicsImpl::CreateAttachment() : les imageview prennent aussi la dimension des frames de la swapchain
+        ===> à modifier par les dimension du viewport
+        ==> si l'on change de nombres de viewports, il faut recreer les RenderPasses et Pipelines ?
+        ==> si l'on crée differentes passes de rendu pour chaque viewport, on n'arrive pas à les rendre dans la frame de la swapchain
+        ===> il faut recopier le framebuffer de chaque viewport obtenu dans la swapchain.
+        ===> essayer de créer une sous-passe par viewport puis à la fin de chaque sous-passe copie du framebuffer obtenu vers la frame de la swapchain.
+        ===> attention il faut garder le meme depthbuffer jusqu'à la pass water
+        => ajout d'une passe de Clear + une passe de Presentation
+        => les Attachement RENDERSLOT_x sont par frame. On doit pouvoir les reutiliser pour tous les renderpath, renderpasses.
+            On a un tableau de RenderAttachement qui contient tous les attachements necessaire par frame : index = FrameId * MAX_RENDERSLOTS + slotId
+        => urho3d genere vue par vue ... cad il va proceder à toutes les passes pour une view puis passer à la view suivante ...
+        => on va utiliser une renderpass par view vers une TARGET avec differentes sous passes
+           puis une renderpass finale qui recopiera la derniere RenderTarget dans la frame de swapchain, generera l'ui si necessaire puis presentation
+        => ajout d'une passe de Copy (Shader CopyFrameBuffer) : il reste un probleme de bord (surement dans le shader, ce n'est pas l'addressMode de la texture)
+        ==> 06/04/2024 : on arrive à un resultat avec le layer water en multiviewport
+        ==> deux versions de renderpath sont disponibles : une en maximisant les subpasses (peut-etre mieux pour mobile ?), l'autre en se calquant plus sur le renderpath decrit dans ForwardUrho2D.
+        ==> RAF : on a un gros lag au debut : le profiler indique un pb dans Physic2D ... surtout en release
+        ==> RAF : tester si pas trop de degat en GL
 
     ✔ 23/03/2024 : depuis la version multiviewport, le waterlayer ne s'affiche plus correctement
         => la derniere version frombones fonctionnant (FromBones-20240228-BCv2-WindowsBuildShared)

@@ -10,7 +10,7 @@ flat layout(location=5) in uint fTexEffect3;
 
 layout(set=1, binding=0) uniform sampler2D sActorsMaps[8];
 
-layout(location=0) out vec4 fragColor;
+layout(location=0) out vec4 fragColor1;
 layout(location=1) out vec4 fragColor2;
 
 vec4 ApplyTextureEffects(sampler2D texSampler)
@@ -38,6 +38,6 @@ vec4 ApplyTextureEffects(sampler2D texSampler)
 void main()
 {
     vec4 diffInput = fTextureId < 8 ? ApplyTextureEffects(sActorsMaps[nonuniformEXT(fTextureId)]) : vec4(1.0);
-    fragColor = fragColor2 = vColor * diffInput;
+    fragColor1 = fragColor2 = vColor * diffInput;
 }
 
