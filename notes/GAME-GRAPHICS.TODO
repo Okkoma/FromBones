@@ -1,13 +1,19 @@
 Todos:
 
-    ✔ 21/04/2025 : reprise du todo fermé du 19/10/2022 "l'affichage des fluidcell d'arriere plan est chaotique."
+    ✔ 22/04/2025 : la pluie apparait dans le waterlayer. Il faut tester dans GEF_Rain si les droplet à apparaitre vont etre sur une cell contenant un liquide.
+        => OK : ajout de Droplet::CheckInFluid
+
+    ☐ 22/04/2025 : avec vk, backwaterlayer n'est pas afficher (dans master ou bien VkNew)
+
+    ☐ 21/04/2025 : reprise du todo fermé du 19/10/2022 "l'affichage des fluidcell d'arriere plan est chaotique."
         => il y a surement un pb avec l'index texture du watertile.
         ==> correctif rapide dans le material, on repasse à l'index 0.
         ===> OK : ce qui résout le todo du 23/03/2024 pour GL. (tester avec ACTIVE_LAYERMATERIALS)
         ===> il y a un flipping de texture avec des flammes (correspond à particules.png) lors du changement de viewZ
         ====> OK : modification du material WaterInside.xml : ajout de la Texture watertiles.png en index 0 et Texture particules.png en index1.
         => OK : supression du chevauchement des watertiles entre 2 map adjacentes verticalement. cf WaterLayerData::UpdateTiledBatch.
-        => OK : Ferme correctement la derniere sub-division d'une watertile sous une Waterline. cf WaterLine::Update.
+        => Ferme correctement la derniere sub-division d'une watertile sous une Waterline. cf WaterLine::Update.
+        ==> ca solutionne localement mais crée d'autres effets encore plus indésirable.
 
     ☐ 23/03/2024 : en multiviewport, pb graphics en vulkan et pour toutes versions, il doit y avoir un pb d'update des batches car generer uniquement sur un viewport sans repercution sur les autres
         => OK solutionne le pb d'update avec un correctif dans MapSimulatorLiquid::Update avec test si deja updaté cette frame.

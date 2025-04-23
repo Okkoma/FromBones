@@ -19,8 +19,11 @@ using namespace Urho3D;
 
 struct Droplet
 {
+    static void SetSpawningMap(int viewport);
+
     void Set(Node* root, AnimationSet2D* animationSet, int viewport, unsigned x, unsigned y, unsigned layerIndex);
     void Reset();
+    bool CheckInFluid();
     void Update(float timeStep);
     void Clear();
 
@@ -40,6 +43,7 @@ struct Droplet
     static PhysicsWorld2D* physicsWorld_;
     static PhysicsRaycastResult2D rayresult_;
     static float intensity_[MAX_VIEWPORTS];
+    static Map* spawningMap_[MAX_VIEWPORTS];    
     static Spriter::Animation* animationHit_;
     static Vector<unsigned> hittedTiles_;
     static const unsigned NUM_SCREENPARTS;
