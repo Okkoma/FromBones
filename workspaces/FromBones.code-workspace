@@ -15,7 +15,10 @@
 			"system_error": "cpp",
 			"__locale": "cpp",
 			"functional": "cpp",
-			"__functional_base": "cpp"
+			"__functional_base": "cpp",
+			"__tree": "cpp",
+			"map": "cpp",
+			"regex": "cpp"
 		},
 		"cmake.automaticReconfigure": false,
 		"cmake.skipConfigureIfCachePresent": true,

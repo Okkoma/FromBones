@@ -39,6 +39,18 @@
             "problemMatcher": []
         },
         {
+            "label": "Build (GCC) Vulkan",
+            "type": "shell",
+            "command": "cmake -S . -B build/debugVk/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug -DURHO3D_VULKAN=1 && cmake --build build/debugVk/gcc -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": []
+        },        
+        {
             "label": "Build (GCC) Release",
             "type": "shell",
             "command": "cmake -S . -B build/release/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release && cmake --build build/release/gcc -j$(nproc)",
