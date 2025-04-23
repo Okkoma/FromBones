@@ -872,6 +872,8 @@ void Player::UpdateComponents()
 //    AnimatedSprite2D* drawable = avatar_->GetDerivedComponent<AnimatedSprite2D>();
 //    drawable->SetColor(GameContext::Get().playerColor_[ID]);
 
+    avatar_->GetComponents<Light>(lights_, true);
+
     gocDestroyer_ = avatar_->GetComponent<GOC_Destroyer>();
     if (gocDestroyer_)
     {
@@ -922,8 +924,6 @@ void Player::UpdateComponents()
     {
         equipment_->SetHolder(this, equipment_->IsDirty());
     }
-
-    avatar_->GetComponents<Light>(lights_, true);
 
     URHO3D_LOGINFOF("Player() - UpdateComponents ... OK !");
 }
