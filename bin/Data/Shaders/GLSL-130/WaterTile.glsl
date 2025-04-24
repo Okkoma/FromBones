@@ -1,3 +1,5 @@
+#define Urho2DSamplers
+
 #include "Uniforms.glsl"
 #include "Samplers.glsl"
 #include "Transform.glsl"
@@ -17,5 +19,5 @@ void VS()
 
 void PS()
 {
-    gl_FragColor = vec4(cMatDiffColor.rgb * texture2D(sDiffMap , vTexCoord).rgb * vColor.rgb, 1.0);
+    gl_FragColor = vec4(cMatDiffColor.rgb * texture2D(sUrho2DTextures[0] , vTexCoord).rgb * vColor.rgb, 1.0);
 }

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# NOTE : env var VULKAN_SDK must be set.
+
 # Parse Arguments
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
@@ -22,8 +24,7 @@ done
 # restore positional parameters
 set -- "${POSITIONAL[@]}"
 
-INPUT="$1"
-OUTPUT="$2"
+
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	PLATFORM=linux	
@@ -40,44 +41,12 @@ elif [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "msys" ]]; then
 	PLATFORM=win64
 fi
 
-# Obtient la liste des projets
-projectpair=""
-if [[ "$PLATFORM" == "linux" ]]; then
-    projectnames="/home/chris/dev-projects.txt"
-elif [[ "$PLATFORM" == "win64" ]]; then
-	MINGW_DRIVE=/mnt/d
-	DRIVE="D:"
-	projectnames=$MINGW_DRIVE/DEV/Projets/dev-projects.txt
-fi
-
-# Vérifier les correspondances dans la liste des projets pour le repertoire courant
-while IFS= read -r line; do
-    projectname="$(echo "$line" | cut -d ':' -f 1)"
-    if [ -n "$(pwd | grep "$projectname")" ]; then
-        projectpair="$line"
-        break
-    fi
-done < "$projectnames"
-
-# Quitter si aucun projet n'est trouvé
-if [ -z "$projectpair" ]; then
-    echo "Aucun projet trouvé pour $(basename "$PWD") dans $projectnames"
-    exit 1
-else
-    URHO3D="$(echo "$projectpair" | cut -d ':' -f 2)"
-fi
-
 HOME=`pwd`
-
-if [[ "$PLATFORM" == "linux" ]]; then
-    DEVPATH=/media/DATA/Dev/Urho3D
-	COMPILER="/media/DATA/Dev/Vulkan/1.2.198.1/x86_64/bin/glslc"
-	PACKER="$DEVPATH/$URHO3D/tools/SpirvShaderPacker"
-elif [[ "$PLATFORM" == "win64" ]]; then
-	DEVPATH=$MINGW_DRIVE/DEV/Urho3D
-	COMPILER="/mnt/d/DEV/VulkanSdk/1.3.204.1/Bin/glslc.exe"
-	PACKER="$DEVPATH/$URHO3D/tools/SpirvShaderPacker.exe"	
-fi
+DIR_SHADERS="Shaders/Vulkan"
+INPUT="$HOME/app/src/$DIR_SHADERS"
+OUTPUT="$HOME/bin/Data/$DIR_SHADERS"
+PACKER="$HOME/bin-tool/SpirvShaderPacker"
+COMPILER="$VULKAN_SDK/x86_64/bin/glslc"
 
 echo "compiler=$COMPILER $OPTIONCOMP"
 echo "packer=$PACKER $OPTIONPACK"
