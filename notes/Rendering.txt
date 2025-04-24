@@ -36,8 +36,13 @@ Engine::RunFrame()
             {
                 UpdateQueuedViewports(i)
                 {
-                    Octree::Update() // Again ?
+                    RenderSurface rendertarget = queuedViewport[i].first_
+                    Viewport viewport = queuedViewport[i].second_
+                    
                     View = Viewport::GetView()
+                    View::Define(renderTarget, viewport)
+                   
+                    Octree::Update() // Again ?
                     View::Update(FrameInfo)
                     {
                         // Begin View Update

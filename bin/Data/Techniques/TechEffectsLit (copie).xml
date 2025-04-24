@@ -1,3 +1,0 @@
-<technique vs="ShaderActors" ps="ShaderActors" vsdefines="VERTEXLIGHT" psdefines="VERTEXLIGHT" >
-    <pass name="alpha" depthwrite="false" blend="addalpha" />
-</technique>
