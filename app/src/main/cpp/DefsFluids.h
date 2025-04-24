@@ -7,12 +7,12 @@
 
 using namespace Urho3D;
 
-const float FLUID_MINDRAWF = PIXEL_SIZE * 2.f;
+const float FLUID_MINDRAWF = PIXEL_SIZE * 3.f;
 const float FLUID_MAXDRAWF = 1.0f;
 
 // Max and min cell liquid values
 const float FLUID_MAXVALUE = 1.0f;
-const float FLUID_MINVALUE = 0.01f;
+const float FLUID_MINVALUE = 0.05f;
 
 // Extra liquid a cell can store than the cell above it
 const float FLUID_MAXCOMPRESSIONVALUE = 0.1f;

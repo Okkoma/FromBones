@@ -238,21 +238,31 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
 
     unsigned numSurfacesWithTile = 0;
 
-    // Link WaterSurfaces Vertices => Smoothing a little
+    // Link WaterSurfaces Vertices
     {
         WaterSurface* surface = surface_;
         while (surface != surfaceEnd_)
         {
-            surface->x1_ = surface->next_->x0_ = (surface->x0_ + surface->next_->x1_ + surface->x1_ + surface->next_->x0_) * 0.25f;
-            surface->y1_ = surface->next_->y0_ = (surface->y0_ + surface->next_->y1_ + surface->y1_ + surface->next_->y0_) * 0.25f;
+            surface->x1_ = surface->next_->x0_;
+            surface->y1_ = surface->next_->y0_;
+            if (!surface->vertex0_)
+                numSurfacesWithTile++;
+            surface = surface->next_;
+        }
+        if (!surfaceEnd_->vertex0_)
+            numSurfacesWithTile++;
+
+        // Smooth a little
+        surface = surface_;
+        while (surface != surfaceEnd_)
+        {
+            //surface->x1_ = surface->next_->x0_ = (surface->x0_ + surface->next_->x1_ + surface->x1_ + surface->next_->x0_) * 0.25f;
+            //surface->y1_ = surface->next_->y0_ = (surface->y0_ + surface->next_->y1_ + surface->y1_ + surface->next_->y0_) * 0.25f;
             if (surface->vertex0_)
             {
                 surface->vertex1_->position_.x_ = surface->x1_;
                 surface->vertex1_->position_.y_ = surface->y1_;
             }
-            else
-                numSurfacesWithTile++;
-
             surface = surface->next_;
             if (surface->vertex0_)
             {
@@ -260,8 +270,6 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
                 surface->vertex0_->position_.y_ = surface->y0_;
             }
         }
-        if (!surfaceEnd_->vertex0_)
-            numSurfacesWithTile++;
     }
 
     // Add Point Deformations
@@ -502,8 +510,6 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
                     vertex21.color_ = vertex22.color_ = vertex23.color_ = vertex20.color_ = tilecolor;
 #endif
                 }
-                // Modify the position x of the last vertex of the last column
-                vertices2[addr2-1].position_.x_ = xStart + tileSize.x_;
             }
 
             // next surface
@@ -660,7 +666,7 @@ void WaterLayerData::Clear(int viewZ)
         if (watertilesFrontBatch_.drawOrder_ != draworder)
         {
             watertilesFrontBatch_.drawOrder_ = (viewZ + LAYER_FLUID) << 20;
-            watertilesBackBatch_.drawOrder_  = ((viewZ == FRONTVIEW ? INNERVIEW : BACKGROUND) + LAYER_FLUID) << 20;
+            watertilesBackBatch_.drawOrder_  = BACKWATER_2 << 20;//((viewZ == FRONTVIEW ? INNERVIEW : BACKGROUND) + LAYER_FLUID) << 20;
             waterlinesBatch_.drawOrder_      = watertilesFrontBatch_.drawOrder_ - 1;
         }
     }
@@ -735,6 +741,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
     */
 
     SourceBatch2D& batch = viewZ == fluiddata.viewZ_ ? watertilesFrontBatch_ : watertilesBackBatch_;
+    const float alpha = 1.f;
 
     Vector<Vertex2D>& vertices = batch.vertices_;
     Vertex2D vertex[16];
@@ -743,20 +750,19 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
     float yv[16];
     int numQuads;
     unsigned surfaceVertexIndex[2];
-
+/*
 #ifdef URHO3D_VULKAN
     if (viewZ != fluiddata.viewZ_)
     {
         // initialize Texture Unit=1 for WaterTiles (ShaderGrounds without BackShape)
         unsigned texmode = 0;
-        Drawable2D::SetTextureMode(TXM_UNIT, 1, texmode);
+        Drawable2D::SetTextureMode(TXM_UNIT, 0, texmode);
         for (unsigned i=0; i < 16; i++)
             vertex[i].texmode_ = texmode;
     }
 #endif
-
-    const float alpha = 0.12f;
-    const unsigned coloruint = Color(0.5f, 0.75f, 1.f, alpha).ToUInt();
+*/
+    const unsigned coloruint = Color(1.f, 1.f, 1.f, alpha).ToUInt();
 
     for (int i = 0; i < 4; i++)
     {
@@ -1158,7 +1164,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 xv[1] = centerx + halfdx - val*twidth*0.5f;
                 xv[2] = xv[3] = centerx + halfdx;
 #ifdef FLUID_RENDER_COLORDEBUG
-                leftColor = rightColor = Color::RED;
+                leftColor = rightColor = Color::GRAY;
 #endif
                 surfaceVertexIndex[0] = 1;
                 surfaceVertexIndex[1] = 2;
@@ -1174,7 +1180,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 xv[2] = centerx - halfdx + val*twidth*0.5f;
                 xv[3] = centerx - halfdx + val*twidth;
 #ifdef FLUID_RENDER_COLORDEBUG
-                leftColor = rightColor = Color::RED;
+                leftColor = rightColor = Color::GRAY;
 #endif
                 surfaceVertexIndex[0] = 1;
                 surfaceVertexIndex[1] = 2;
@@ -1358,7 +1364,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 xv[6] = xv[7] = centerx + halfdx;
                 xv[4] = xv[5] = xv[6] - val*twidth*0.5f;
 #ifdef FLUID_RENDER_COLORDEBUG
-                leftColor = rightColor = Color::YELLOW;
+                leftColor = rightColor = Color::GRAY;
 #endif
                 surfaceVertexIndex[0] = 1;
                 surfaceVertexIndex[1] = 2;
@@ -1378,7 +1384,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 xv[4] = xv[6] - val*twidth*0.5f;
                 xv[5] = xv[6] - Clamp(cell.Top->GetMass(), 0.f, FLUID_MAXDRAWF)*twidth*0.5f;
 #ifdef FLUID_RENDER_COLORDEBUG
-                leftColor = rightColor = Color::RED;
+                leftColor = rightColor = Color::GRAY;
 #endif
                 surfaceVertexIndex[0] = 1;
                 surfaceVertexIndex[1] = 2;
@@ -1489,7 +1495,7 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
                 yv[3] = yv[5] = Clamp(yv[6] + vall*theight*0.25f, 0.f, topy);
                 yv[10] = yv[12] = Clamp(yv[6] + valr*theight*0.25f, 0.f, topy);
 #ifdef FLUID_RENDER_COLORDEBUG
-                leftColor = rightColor = Color::WHITE;
+                leftColor = rightColor = Color::GRAY;
 #endif
                 surfaceVertexIndex[0] = 3;
                 surfaceVertexIndex[1] = 10;

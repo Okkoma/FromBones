@@ -7,12 +7,14 @@ const unsigned MAX_VIEWPORTS = 4;
 const int NOVIEW             = -1;
 
 // Scroller Back Layers
-const int BACKSCROLL_0       = 0;
-const int BACKSCROLL_1       = 1;
+const int BACKSCROLL_0       = 0;     // Sky
+const int BACKSCROLL_1       = 1;     // First Mountains
 const int BACKSCROLL_2       = 2;
-const int BACKSCROLL_3       = 3;
-const int BACKSCROLL_4       = 4;
-const int BACKSCROLL_5       = 5;
+const int BACKSCROLL_3       = 6;
+const int BACKWATER_1        = 7;
+const int BACKSCROLL_4       = 8;
+const int BACKWATER_2        = 9;
+const int BACKSCROLL_5       = 10;
 
 // View Layers
 //const int BACKBIOME          = 10;

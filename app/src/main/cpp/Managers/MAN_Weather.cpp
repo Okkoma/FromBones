@@ -226,7 +226,7 @@ void WeatherManager::Init()
 #endif
         ScrollingShape::AddQuadScrolling(cloud, BACKSCROLL_0, 0,  material, textureunit, 0, Vector2::ZERO, repeat, Vector2(0.01f, 0.f), Vector2(-0.001f, -0.001f), Color::GRAY);
         ScrollingShape::AddQuadScrolling(cloud, BACKSCROLL_1, 2,  material, textureunit, 16, Vector2::ZERO, repeat, Vector2(0.05f, -0.01f), Vector2(-0.001f, -0.001f), Color::GRAY);
-        ScrollingShape::AddQuadScrolling(cloud, BACKSCROLL_1, 4,  material, textureunit, 48, Vector2(2.f, 2.f), repeat, Vector2(0.075f, -0.01f), Vector2(-0.001f, -0.001f), Color::GRAY);
+        ScrollingShape::AddQuadScrolling(cloud, BACKSCROLL_2, 4,  material, textureunit, 48, Vector2(2.f, 2.f), repeat, Vector2(0.075f, -0.01f), Vector2(-0.001f, -0.001f), Color::GRAY);
         ScrollingShape::AddQuadScrolling(cloud, BACKSCROLL_4, 0,  material, textureunit, 16, Vector2(-2.f, -2.f), repeat, Vector2(0.1f, 0.01f));
         ScrollingShape::AddQuadScrolling(cloud, FRONTSCROLL_5, 0, material, textureunit, 48, Vector2::ZERO, repeat, Vector2(0.15f, -0.01f));
 #else
@@ -240,7 +240,7 @@ void WeatherManager::Init()
 
         // MOUNTAIN CLOUDSEA
         cloudeffect->AddMaterialLayer(material, 1, BACKSCROLL_2, 2, backviewportmask, 0.f, "SpriteSheet2D;Data/2D/fonds.xml@nuage", Vector2(1.f, 0.f), Vector2(-1.f, 0.01f), Vector2::ONE, Color::GRAY);
-        cloudeffect->AddMaterialLayer(material, 1, BACKSCROLL_2, 4, backviewportmask, 0.f, "SpriteSheet2D;Data/2D/fonds.xml@nuage", Vector2(-1.f, -1.f), Vector2(-0.5f, 0.01f), Vector2::ONE, Color::GRAY);
+        cloudeffect->AddMaterialLayer(material, 1, BACKSCROLL_3, 4, backviewportmask, 0.f, "SpriteSheet2D;Data/2D/fonds.xml@nuage", Vector2(-1.f, -1.f), Vector2(-0.5f, 0.01f), Vector2::ONE, Color::GRAY);
         cloudeffect->AddMaterialLayer(material, 1, BACKSCROLL_4, 0, backviewportmask, 0.f, "SpriteSheet2D;Data/2D/nuages.xml@nuage2", Vector2(-2.f, -2.f), Vector2(-3.5f, 0.1f), Vector2(0.f,-0.2f), Color::WHITE);
 
         // FRONT CLOUDS

@@ -849,17 +849,17 @@ void World2D::AddScrollers(int viewport)
 #endif
 
     // ForeGround 1
-    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_2, 11, 2.f*Vector2::ONE, Vector2(0.f, 0.f), Vector2(0.0f, 0.0f), 0, false, false, Vector2::ZERO, Color(0.75f, 0.65f, 0.45f, 1.f), false);
+    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_5, 11, 2.f*Vector2::ONE, Vector2(0.f, 0.f), Vector2(0.0f, 0.0f), 0, false, false, Vector2::ZERO, Color(0.75f, 0.65f, 0.45f, 1.f), false);
     // ForeGround 2
-    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_2, 9, 2.f*Vector2::ONE, Vector2(0.f, 0.f), WorldEllipseParallax, boundcurve, true, true, Vector2(0.f, 2.f), Color(0.55f, 0.55f, 0.45f, 1.f), false);
+    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_4, 9, 2.f*Vector2::ONE, Vector2(0.f, 0.f), WorldEllipseParallax, boundcurve, true, true, Vector2(0.f, 2.f), Color(0.55f, 0.55f, 0.45f, 1.f), false);
     // MiddleGround 1
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_2, 7, 2.f*Vector2::ONE, Vector2(0.f, 1.f*info_->mTileHeight_), Vector2(0.8f, 0.6f), boundcurve, false, true, Vector2(0.f, -2.f), Color::WHITE);
+    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_3, 7, 2.f*Vector2::ONE, Vector2(0.f, 1.f*info_->mTileHeight_), Vector2(0.8f, 0.6f), boundcurve, false, true, Vector2(0.f, -2.f), Color::WHITE);
     // MiddleGround 2
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_2, 5, 2.f*Vector2::ONE, Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.9f, 0.8f), boundcurve, false, true, Vector2(0.f, -1.f), Color(0.85f, 0.85f, 0.85f, 1.f));
+    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_3, 5, 2.f*Vector2::ONE, Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.9f, 0.8f), boundcurve, false, true, Vector2(0.f, -1.f), Color(0.85f, 0.85f, 0.85f, 1.f));
     // MiddleGround 3
     DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_2, 3, 2.f*Vector2(0.9f, 0.9f), Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.95f, 0.9f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.65f, 0.65f, 0.65f, 1.f));
     // BackGround
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_2, 1, 2.f*Vector2(0.85f, 0.85f), Vector2(0.f, 2.5f*info_->mTileHeight_), Vector2(0.99f, 0.95f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.5f, 0.5f, 0.5f, 1.f));
+    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_1, 1, 2.f*Vector2(0.85f, 0.85f), Vector2(0.f, 2.5f*info_->mTileHeight_), Vector2(0.99f, 0.95f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.5f, 0.5f, 0.5f, 1.f));
 }
 
 void World2D::GoToMap(const ShortIntVector2& mpoint, const IntVector2& mposition, int viewZ, int viewport)
