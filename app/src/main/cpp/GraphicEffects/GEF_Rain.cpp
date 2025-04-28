@@ -133,8 +133,7 @@ void Droplet::Reset()
 //    }
 
     position_ = innercave ? iPos_ : iPos_.Lerp(impact_, Random(0.f, 0.5f));
-
-    if (CheckInFluid())
+    if (CheckInFluid(position_))
     {
         node_->SetEnabled(false);
         return;
@@ -150,12 +149,13 @@ void Droplet::Reset()
 
 #ifdef DROPLET_ACTIVE_RAYCAST
     // Initial RayCast
-//    if (ViewManager::Get()->GetCurrentLayerZIndex(viewport_) == layerIndex_)
     if (iPos_ != fPos_)
     {
-        physicsWorld_->RaycastSingle(rayresult_, iPos_, fPos_, layerIndex_ == ViewManager::INNERLAYER_Index ? CM_INSIDERAIN : CM_OUTSIDERAIN);
+        physicsWorld_->RaycastSingle(rayresult_, iPos_, fPos_, layerIndex_ == ViewManager::INNERLAYER_Index ? CM_INSIDERAIN | CC_INSIDEPROJECTILE : CM_OUTSIDERAIN | CC_OUTSIDEPROJECTILE);
         if (rayresult_.body_ && rayresult_.position_.y_ > fPos_.y_ && rayresult_.normal_.y_ >= 0.f)
+        {         
             impact_ = rayresult_.position_;
+        }
     }
 #endif
 
@@ -174,22 +174,20 @@ void Droplet::Reset()
     node_->SetWorldPosition2D(position_);
 }
 
-bool Droplet::CheckInFluid()
+bool Droplet::CheckInFluid(const Vector2& position)
 {
     // 22/04/2025 : test si la droplet est dans du liquide
     Map* map = spawningMap_[viewport_];
-    if (!map->GetBounds().IsInside(position_))
+    if (!map->GetBounds().IsInside(position))
         map = World2D::GetCurrentMap(viewport_);
-    FluidCell* fcell = map ? map->GetFluidCellPtr(map->GetTileIndexAt(position_), ViewManager::FLUIDFRONTVIEW_Index) : nullptr;
-    return (fcell && fcell->mass_ > 0.5f);
+    FluidCell* fcell = map ? map->GetFluidCellPtr(map->GetTileIndexAt(position), ViewManager::FLUIDFRONTVIEW_Index) : nullptr;
+    return fcell && (fcell->mass_ > 0.f || (fcell->type_ == BLOCK && fcell->Top && fcell->Top->mass_ > 0.f));
 }
 
 void Droplet::SetSpawningMap(int viewport)
 {
     const Rect& visibleRect = World2D::GetExtendedVisibleRect(viewport);
     Map* map = World2D::GetMapAt(Vector2(visibleRect.min_.x_ + (visibleRect.max_.x_-visibleRect.min_.x_)*0.5f, visibleRect.max_.y_));
-    // if (!map)
-    //     map = World2D::GetCurrentMap(viewport);
     spawningMap_[viewport] = map;
 }
 
@@ -207,7 +205,6 @@ void Droplet::Update(float timeStep)
     if (!node_->IsEnabled())
         return;
 
-
     position_ = iPos_.Lerp(fPos_, SmoothStep(0.f, maxtime_, time_));
 
     // Out of screen => reset droplet
@@ -217,7 +214,7 @@ void Droplet::Update(float timeStep)
         return;
     }
 #if defined(DROPLET_ACTIVE_FLUID)    
-    if (GameContext::Get().gameConfig_.fluidEnabled_ && CheckInFluid())
+    if (GameContext::Get().gameConfig_.fluidEnabled_ && CheckInFluid(position_))
     {
         Reset();
         return;
@@ -237,6 +234,11 @@ void Droplet::Update(float timeStep)
     // if Impact, set Hit Ground Animation
     if (position_.y_ <= impact_.y_)
     {
+        if (CheckInFluid(impact_))
+        {
+            Reset();
+            return;
+        }
         node_->SetWorldPosition2D(impact_);
         animatedSprite_->SetSpriterAnimation(DROPLET_ANIM_HIT, LM_DEFAULT);
 
@@ -519,5 +521,4 @@ void GEF_Rain::Dump() const
                         droplet.node_ ? (droplet.node_->IsEnabled()?"true":"false") : "NA", droplet.position_.x_, droplet.position_.y_,
                         droplet.layerIndex_, droplet.animatedSprite_, droplet.animatedSprite_ ? droplet.animatedSprite_->GetDrawRect().ToString().CString(): "NA");
     }
-
 }

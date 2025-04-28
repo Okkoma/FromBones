@@ -1,5 +1,15 @@
 Todos:
 
+    ✔ 24/04/2025 : il y a de gros ralentissements en Arena Fluid activé avec 2 players, en GL ou Vk (sans/avec nouveau systeme), 
+        => le profiler montre un surcharge dans Physic2D. (RAF du 23/03/2024).
+        ==> pourquoi dans ARENA et pas en WORLD ? Après quelques tests, il y a un probleme parmi les furnitures qui solliciterait pas mal de ressource physics2d 
+            ce doit être le pont ou le lustre.
+        ==> cela montre aussi que beaucoup de rigidbodies sont pré-créés et sont pris en compte dans le world stepping de box2d. (plus de 22000...)
+        ===> OK : meilleure intégration des poolnodes dans Urho3D. (permet d'alleger à 200 rigidbodies)
+        ====> en desactivé les colliders des waterlines ou bien les lustres, il n'y a plus de ralentissement.
+        =====> 28/04/2025 OK : Remplacement des filtres de collision par CC_PROJECTILES/CM_PROJECTILES pour les waterlines et les physicsRopes (grapin,lustre,ponts) 
+            afin qu'ils n'entrent pas en collision.
+        
     ✔ 24/04/2025 : il y a un flipping de texture avec des flammes (correspond à particules.png) lors du changement de viewZ
         => modification du material WaterInside.xml : ajout de la Texture watertiles.png en index 0 et Texture particules.png en index1.
         ==> OK : modification du shader WaterInside GLSL et Vulkan pour bien pointer vers la textureunit 1.

@@ -960,8 +960,8 @@ bool PlayState::CreateScene()
                 physicsWorld2D_->SetDrawShape(true);
 //                physicsWorld2D_->SetDrawCenterOfMass(true);
             }
-//            physicsWorld2D_->SetVelocityIterations(5);
-//            physicsWorld2D_->SetPositionIterations(2);
+            physicsWorld2D_->SetVelocityIterations(5);
+            physicsWorld2D_->SetPositionIterations(2);
             physicsWorld2D_->SetContinuousPhysics(true);
             physicsWorld2D_->SetSubStepping(false);
             physicsWorld2D_->SetWarmStarting(true);

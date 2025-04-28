@@ -77,7 +77,7 @@
 
 /// Fluid Simulator : MapSimulatorLiquid
 #define FLUID_SIMULATION 5
-#define FLUID_ITERATIONS 2
+#define FLUID_ITERATIONS 1
 #define FLUID_SIMULATION_REMOVEFLOWATEMPTYBORDER
 //#define FLUID_SIMULATION_UPDATEINTERVAL  0.1 // Interval for fluid simulation update in seconds
 #define FLUID_SIMULATION_UPDATEINTERVAL  0.075 // Interval for fluid simulation update in seconds

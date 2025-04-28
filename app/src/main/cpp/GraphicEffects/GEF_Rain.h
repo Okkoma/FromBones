@@ -23,7 +23,7 @@ struct Droplet
 
     void Set(Node* root, AnimationSet2D* animationSet, int viewport, unsigned x, unsigned y, unsigned layerIndex);
     void Reset();
-    bool CheckInFluid();
+    bool CheckInFluid(const Vector2& position);
     void Update(float timeStep);
     void Clear();
 

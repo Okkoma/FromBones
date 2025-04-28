@@ -403,18 +403,8 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
     Material* material = GameContext::Get().layerMaterials_[isfurniture ? LAYERFURNITURES : LAYERACTORS];
 #endif
 
-    unsigned categorybits;
-    unsigned maskbits;
-    if (model_ == RM_FixedRope || model_ == RM_ThrowableRope)
-    {
-        categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEEFFECT : CC_INSIDEEFFECT;
-        maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEFURNITURE | CM_OUTSIDEPLATEFORM  : CM_INSIDEFURNITURE | CM_INSIDEPLATEFORM;
-    }
-    else
-    {
-        categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEOBJECT : CC_INSIDEOBJECT;
-        maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEOBJECT | CM_OUTSIDEPLATEFORM  : CM_INSIDEOBJECT | CM_INSIDEPLATEFORM;
-    }
+    unsigned categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEPROJECTILE : CC_INSIDEPROJECTILE;
+    unsigned maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEPROJECTILE : CM_INSIDEPROJECTILE;
 
     rootNode_= node_->GetScene()->CreateChild("LinksRoot", LOCAL);
     rootNode_->SetTemporary(true);
