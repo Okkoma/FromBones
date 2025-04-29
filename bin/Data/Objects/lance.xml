@@ -26,7 +26,6 @@
 	<component type="CollisionBox2D">
 		<attribute name="Size" value="1 0.1" />
 		<attribute name="Center" value="0 0" />
-		<attribute name="Density" value="10" />
 		<attribute name="Friction" value="2" />
 	</component>
 	<component type="GOC_Animator2D" >

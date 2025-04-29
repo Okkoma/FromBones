@@ -52,8 +52,7 @@ Todos:
         => ajout d'une passe de Copy (Shader CopyFrameBuffer) : il reste un probleme de bord (surement dans le shader, ce n'est pas l'addressMode de la texture)
         ==> 06/04/2024 : on arrive à un resultat avec le layer water en multiviewport
         ==> deux versions de renderpath sont disponibles : une en maximisant les subpasses (peut-etre mieux pour mobile ?), l'autre en se calquant plus sur le renderpath decrit dans ForwardUrho2D.
-        ==> RAF : on a un gros lag au debut : le profiler indique un pb dans Physic2D ... surtout en release
-        ==> RAF : tester si pas trop de degat en GL
+        ==> RAF : on a un gros lag au debut : le profiler indique un pb dans Physic2D ... surtout en release => OK 24/04/2025
 
     ✔ 23/03/2024 : depuis la version multiviewport, le waterlayer ne s'affiche plus correctement
         => la derniere version frombones fonctionnant (FromBones-20240228-BCv2-WindowsBuildShared)

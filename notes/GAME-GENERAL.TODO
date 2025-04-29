@@ -1,5 +1,9 @@
 Todos:
 
+    ✔ 29/04/2025 : Box2D met à jour la masse (via ResetMassData) bien ce ne soit pas souhaité lorsque l'on fixe une masse et un centre de gravité pour un rigidbody
+        => si aucune densité n'est attribué sur les shapes (fixtures) d'un rigidbody alors ResetMassData n'est pas utilisé.
+        ==> OK : suppression de toutes les densités pour les rigidbody qui ont leur masse et centre de gravité fixés.
+        
     ☐ 21/02/2023 : partitionnement de l'implementation pour editor shared
         + une libraire FromBonesLib (source dans app/main/cpp)
         + un Launcher Game (source dans app/main/cpplauncher)

@@ -25,7 +25,6 @@
 	<component type="CollisionBox2D">
 		<attribute name="Size" value="0.9 0.6" />
 		<attribute name="Center" value="0 0.35" />
-		<attribute name="Density" value="2" />
 		<attribute name="Extra Contact Bits" value="31" /> <!-- Contact Stable -->
 		<attribute name="Friction" value="0.9" />
 	</component>

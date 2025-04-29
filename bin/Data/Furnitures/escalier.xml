@@ -28,7 +28,6 @@
 	<component type="CollisionBox2D">
 		<attribute name="Size" value="0.7 0.15" />
 		<attribute name="Center" value="-0.25 0.28" />
-		<attribute name="Density" value="50" />
 		<attribute name="Friction" value="0.5" />
 		<attribute name="Extra Contact Bits" value="3" /> <!-- Top Contact Only & Stable -->
 	</component>	
@@ -36,7 +35,6 @@
 	<component type="CollisionBox2D">
 		<attribute name="Size" value="0.7 0.15" />
 		<attribute name="Center" value="0 0.75" />
-		<attribute name="Density" value="50" />
 		<attribute name="Friction" value="0.5" />
 		<attribute name="Extra Contact Bits" value="3" /> <!-- Top Contact Only & Stable -->
 	</component>	
@@ -44,7 +42,6 @@
 	<component type="CollisionBox2D">
 		<attribute name="Size" value="0.7 0.15" />
 		<attribute name="Center" value="0.25 1.28" />
-		<attribute name="Density" value="50" />
 		<attribute name="Friction" value="0.5" />
 		<attribute name="Extra Contact Bits" value="3" /> <!-- Top Contact Only & Stable -->
 	</component>
@@ -53,7 +50,6 @@
 		<attribute name="Size" value="1.5 0.15" />
 		<attribute name="Angle" value="60" />
 		<attribute name="Center" value="0 0.65" />
-		<attribute name="Density" value="50" />
 		<attribute name="Friction" value="0" />
 		<attribute name="Extra Contact Bits" value="128" /> <!-- Top Contact Only & Stable & Force Ground-->
 	</component>
