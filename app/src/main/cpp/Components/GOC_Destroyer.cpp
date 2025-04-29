@@ -307,15 +307,14 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         return;
     }
 
-    int viewport = 0;
+    PODVector<int> viewportsToSwitch;
     GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
-    bool isLocalPlayer = (controller && controller->IsMainController() && controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>());
-
-    if (isLocalPlayer)
+    // Is a player ?
+    if (controller && controller->IsMainController() && controller->GetThinker() && controller->GetThinker()->IsInstanceOf<Player>())
     {
         // get the viewport
-        viewport = ViewManager::Get()->GetControllerViewport(controller->GetThinker());
-
+        int viewport = ViewManager::Get()->GetControllerViewport(controller->GetThinker());
+        viewportsToSwitch.Push(viewport);
         // update the light viewmask
         Light* light = node_->GetComponent<Light>();
         if (light)
@@ -386,7 +385,6 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     // Force setting the ViewZ to children entities (like mounted entity)
     PODVector<Node* > children;
     node_->GetChildrenWithComponent<GOC_Destroyer>(children, true);
-    bool hasAlocalMountedPlayer = false;
     for (PODVector<Node* >::Iterator it=children.Begin(); it!=children.End(); ++it)
     {
         Node* node = *it;
@@ -398,31 +396,28 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         }
 
         GOC_Controller* othercontroller = node->GetDerivedComponent<GOC_Controller>();
-
-        bool otherIsAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker() && othercontroller->GetThinker()->IsInstanceOf<Player>();
-        if (otherIsAplayer)
+        bool isAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker() && othercontroller->GetThinker()->IsInstanceOf<Player>();
+        if (isAplayer)
         {
             URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
                              node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
-            hasAlocalMountedPlayer = true;
+            int viewport = ViewManager::Get()->GetControllerViewport(othercontroller->GetThinker());
+            if (!viewportsToSwitch.Contains(viewport))
+                viewportsToSwitch.Push(viewport);
         }
-
         node->GetComponent<GOC_Destroyer>()->SetViewZ(viewZ);
-
-        if (otherIsAplayer)
+        if (isAplayer)
             GameHelpers::SetLightActivation(static_cast<Player*>(othercontroller->GetThinker()));
     }
 
-    if (!isLocalPlayer && hasAlocalMountedPlayer)
-    {
+    for (auto viewport : viewportsToSwitch)
         ViewManager::Get()->SwitchToViewZ(viewZ, 0, viewport);
-    }
 
     node_->SendEvent(GO_DIRTY);
 
-    if (isLocalPlayer)
+    if (viewportsToSwitch.Size())
         URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
-                         node_->GetName().CString(), node_->GetID(), viewport, mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,
+                         node_->GetName().CString(), node_->GetID(), viewportsToSwitch.Front(), mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,
                          numdrawables, numdrawables ? drawables[0]->GetID() : 0, drawables[0]->GetLayer2().ToString().CString());
 }
 
