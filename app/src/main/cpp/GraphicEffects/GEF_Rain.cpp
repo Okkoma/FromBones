@@ -178,7 +178,7 @@ bool Droplet::CheckInFluid(const Vector2& position)
 {
     // 22/04/2025 : test si la droplet est dans du liquide
     Map* map = spawningMap_[viewport_];
-    if (!map->GetBounds().IsInside(position))
+    if (!map || !map->GetBounds().IsInside(position))
         map = World2D::GetCurrentMap(viewport_);
     FluidCell* fcell = map ? map->GetFluidCellPtr(map->GetTileIndexAt(position), ViewManager::FLUIDFRONTVIEW_Index) : nullptr;
     return fcell && (fcell->mass_ > 0.f || (fcell->type_ == BLOCK && fcell->Top && fcell->Top->mass_ > 0.f));

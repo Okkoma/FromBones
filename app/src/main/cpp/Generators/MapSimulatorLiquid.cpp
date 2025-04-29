@@ -165,6 +165,22 @@ bool Equalize1SideF(FluidMap& fluidmap, int numPasses)
     return (updated);
 }
 
+bool EqualizeDepthZ(FluidMap& fluidmap)
+{
+    bool updated = false;
+    for (unsigned addr = 0; addr < fluidmap.Size(); ++addr)
+    {
+        FluidCell& cell = fluidmap[addr];
+        if (cell.DepthZ && (!cell.featCheck_ || (*cell.featCheck_) <= MapFeatureType::Threshold) &&
+            cell.pattern_ != FPT_WaterFall && cell.DepthZ->pattern_ != FPT_WaterFall)
+        {
+            cell.mass_ = cell.DepthZ->mass_= cell.massC_ = cell.DepthZ->massC_ = (cell.massC_ + cell.DepthZ->massC_) * 0.5f;
+            updated = true;
+        }    
+    }
+    return (updated);
+}
+
 bool Equalize3SideF(FluidMap& fluidmap, int numPasses)
 {
     bool updated=false;
@@ -252,6 +268,12 @@ void MapSimulatorLiquid::Simulate5()
         for (y = 1; y < ySize_-1; y++)
             fluidmap[(y+1)*xSize_-1].Update();
     }
+
+#ifdef FLUID_EQUALIZE
+    if (fluidDatas_->viewZ_ == INNERVIEW)
+        if (EqualizeDepthZ(fluidmap))
+            amountUpdated_++;
+#endif
 
     // 1 - Transfer Mass
     {

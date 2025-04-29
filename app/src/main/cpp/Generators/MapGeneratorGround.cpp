@@ -105,7 +105,8 @@ void MapGeneratorGround::GenerateSpots(MapGeneratorStatus& genStatus)
 
 //    GameHelpers::DumpData(map_ , 1, 2, xSize_, ySize_);
     GenerateRandomSpots(genStatus, SPOT_START, 1);
-    GenerateRandomSpots(genStatus, SPOT_LIQUID, 10, 50, 500, 100);
+    if (viewZindex == ViewManager::FRONTVIEW_Index)
+        GenerateRandomSpots(genStatus, SPOT_LIQUID, 10, 50, 500, 100);
     GenerateRandomSpots(genStatus, SPOT_LAND, 2, 20, 500, 45);
 
     URHO3D_LOGINFOF("MapGeneratorGround() - GenerateSpots ... OK !");

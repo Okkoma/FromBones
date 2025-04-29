@@ -401,7 +401,8 @@ void MapGeneratorDungeon::GenerateSpots(MapGeneratorStatus& genStatus)
         spots_.Push(MapSpot(SPOT_START, dinfo_.entry_.x_, dinfo_.entry_.y_-1, viewZindex, 1, 1));
     }
 
-    GenerateRandomSpots(genStatus, SPOT_LIQUID, 10, 50, 500, 100);
+    if (viewZindex == ViewManager::FRONTVIEW_Index)
+        GenerateRandomSpots(genStatus, SPOT_LIQUID, 10, 50, 500, 100);
     //GenerateRandomSpots(genStatus, SPOT_LAND, 2, 20, 500, 45);
 
     URHO3D_LOGINFOF("MapGeneratorDungeon() - GenerateSpots ... OK !");
