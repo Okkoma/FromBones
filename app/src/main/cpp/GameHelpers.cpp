@@ -2818,7 +2818,6 @@ RenderShape* GameHelpers::GetMapRenderShapeAt(const WorldMapPosition& position, 
 bool GameHelpers::AddTile(const WorldMapPosition& position, bool backgroundAdding)
 {
     MapBase* map;
-
     ObjectMaped::GetPhysicObjectAt(position.position_, map, true);
     if (!map)
     {
@@ -2857,6 +2856,25 @@ bool GameHelpers::AddTile(const WorldMapPosition& position, bool backgroundAddin
     }
 
     return result;
+}
+
+bool GameHelpers::AddWater(const WorldMapPosition& position)
+{
+    MapBase* map;
+    ObjectMaped::GetPhysicObjectAt(position.position_, map, true);
+    if (!map)
+    {
+        map = World2D::GetMapAt(position.mPoint_);
+        if (!map)
+            return false;
+    }
+
+    FluidCell* fcell = map->GetFluidCellPtr(position.tileIndex_, position.viewZIndex_);
+    if (!fcell)
+        return false;
+    
+    fcell->AddFluid(WATER, 5.f);
+    return true;
 }
 
 static const String ScrapTerrain = "Scraps_Terrain";

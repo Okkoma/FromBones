@@ -90,6 +90,7 @@ enum SpawnCategory
     SPAWN_MONSTER,
     SPAWN_PLANT,
     SPAWN_TILE,
+    SPAWN_WATER,
     SPAWN_DOOR,
     SPAWN_LIGHT,
     SPAWN_DECORATION,
@@ -102,7 +103,7 @@ enum SpawnCategory
 
 const char* SpawnCategoryNameStr[] =
 {
-    "None", "Actor", "Monster", "Plant", "Tile", "Door", "Light", "Decoration", "Container", "Collectable", "Tool", 0
+    "None", "Actor", "Monster", "Plant", "Tile", "Water", "Door", "Light", "Decoration", "Container", "Collectable", "Tool", 0
 };
 
 enum ClickMode
@@ -2991,6 +2992,12 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
             GameHelpers::AddTile(position);
             URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Tile !");
         }
+    }
+    else if (spawnCategory_ == SPAWN_WATER)
+    {
+        GameHelpers::AddWater(position);
+        URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Water !");
+
     }
     else if (spawnCategory_ == SPAWN_PLANT || spawnCategory_ == SPAWN_DOOR || spawnCategory_ == SPAWN_LIGHT || spawnCategory_ == SPAWN_DECORATION ||
              spawnCategory_ == SPAWN_CONTAINER || spawnCategory_ == SPAWN_COLLECTABLE || spawnCategory_ == SPAWN_TOOL)

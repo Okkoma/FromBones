@@ -162,6 +162,7 @@ public:
     static CollisionShape2D* GetMapCollisionShapeAt(const WorldMapPosition& position);
     static RenderShape* GetMapRenderShapeAt(const WorldMapPosition& position, int& shapeid, int& contourid, RenderCollider*& rendercollider, bool clipped=false);
     static bool AddTile(const WorldMapPosition& position, bool backgroundAdding=false);
+    static bool AddWater(const WorldMapPosition& position);
     static int RemoveTile(const WorldMapPosition& position, bool addeffects, bool adddoor, bool permutesametiles=false, bool onsameview=false);
     static bool SetTile(MapBase* map, FeatureType feat, unsigned tileindex, int layerZ, bool permutesametiles=false, Tile** removedtile=0);
     static bool SetTiles(MapBase* map, FeatureType feat, const Vector<unsigned>& tileindexes, int layerZ, bool entitymode);
