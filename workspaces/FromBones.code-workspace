@@ -18,7 +18,8 @@
 			"__functional_base": "cpp",
 			"__tree": "cpp",
 			"map": "cpp",
-			"regex": "cpp"
+			"regex": "cpp",
+			"cmath": "cpp"
 		},
 		"cmake.automaticReconfigure": false,
 		"cmake.skipConfigureIfCachePresent": true,

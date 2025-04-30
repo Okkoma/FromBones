@@ -1739,9 +1739,9 @@ void WaterLayerData::UpdateBatches()
             {
                 waterline.shape_->SetViewZ(viewZ - LAYER_FLUID);
                 if (viewZ == INNERVIEW)
-                    waterline.shape_->SetFilterBits(CC_INSIDEPROJECTILE, CM_INSIDERAIN);
+                    waterline.shape_->SetFilterBits(CC_INSIDESTATICFURNITURE, CM_INSIDERAIN);
                 else
-                    waterline.shape_->SetFilterBits(CC_OUTSIDEPROJECTILE, CM_OUTSIDERAIN);
+                    waterline.shape_->SetFilterBits(CC_OUTSIDESTATICFURNITURE, CM_OUTSIDERAIN);
             }
 
             // Expand the waterline from the watersurface

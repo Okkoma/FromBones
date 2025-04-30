@@ -403,8 +403,8 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
     Material* material = GameContext::Get().layerMaterials_[isfurniture ? LAYERFURNITURES : LAYERACTORS];
 #endif
 
-    unsigned categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEPROJECTILE : CC_INSIDEPROJECTILE;
-    unsigned maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEPROJECTILE : CM_INSIDEPROJECTILE;
+    const unsigned linkCategorybits = viewZ == FRONTVIEW ? CC_OUTSIDEEFFECT : CC_INSIDEEFFECT;
+    const unsigned linkMaskbits = viewZ == FRONTVIEW ? CM_OUTSIDEEFFECT : CM_INSIDEEFFECT;
 
     rootNode_= node_->GetScene()->CreateChild("LinksRoot", LOCAL);
     rootNode_->SetTemporary(true);
@@ -445,14 +445,21 @@ float GOC_PhysicRope::CreateRope(const Vector2& startAnchor, const Vector2& endA
         // Create rigid body
         RigidBody2D* body = node->CreateComponent<RigidBody2D>();
         body->SetBodyType(BT_DYNAMIC);
-
+        if (model_ == RM_FixedRope)
+        {
+            body->SetMass(0.01f);
+            body->SetMassCenter(Vector2::ZERO);
+            body->SetUseFixtureMass(false);
+            body->SetFixedRotation(false);
+        }
         // Create shape
         CollisionBox2D* box = node->CreateComponent<CollisionBox2D>();
         box->SetSize(boxSize);
         box->SetCenter(boxCenter);
-        box->SetDensity(2.f);
+        if (model_ == RM_ThrowableRope)
+            box->SetDensity(2.f);
         box->SetFriction(0.02f);
-        box->SetFilterBits(categorybits, maskbits);
+        box->SetFilterBits(linkCategorybits, linkMaskbits);
         box->SetViewZ(viewZ);
         if (plateform)
             box->SetColliderInfo(PLATEFORMCOLLIDER);
@@ -518,18 +525,10 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
     Material* material = GameContext::Get().layerMaterials_[(GOT::GetTypeProperties(got) & GOT_Furniture) ? LAYERFURNITURES : LAYERACTORS];
 #endif
 
-    unsigned categorybits;
-    unsigned maskbits;
-    if (model_ == RM_FixedRope || model_ == RM_ThrowableRope)
-    {
-        categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEEFFECT : CC_INSIDEEFFECT;
-        maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEFURNITURE | CM_OUTSIDEPLATEFORM  : CM_INSIDEFURNITURE | CM_INSIDEPLATEFORM;
-    }
-    else
-    {
-        categorybits = viewZ == FRONTVIEW ? CC_OUTSIDEOBJECT : CC_INSIDEOBJECT;
-        maskbits = viewZ == FRONTVIEW ? CM_OUTSIDEOBJECT | CM_OUTSIDEPLATEFORM  : CM_INSIDEOBJECT | CM_INSIDEPLATEFORM;
-    }
+    const unsigned linkCategorybits = viewZ == FRONTVIEW ? CC_OUTSIDEEFFECT : CC_INSIDEEFFECT;
+    const unsigned linkMaskbits = viewZ == FRONTVIEW ? CM_OUTSIDEFURNITURE | CM_OUTSIDEPLATEFORM : CM_INSIDEFURNITURE | CM_INSIDEPLATEFORM;    
+    const unsigned bridgeCategorybits = viewZ == FRONTVIEW ? CC_OUTSIDEOBJECT : CC_INSIDEOBJECT;
+    const unsigned bridgeMaskbits = viewZ == FRONTVIEW ? CM_OUTSIDEOBJECT | CM_OUTSIDEPLATEFORM : CM_INSIDEOBJECT | CM_INSIDEPLATEFORM;
 
     rootNode_ = node_->GetScene()->CreateChild("LinksRoot", LOCAL);
     rootNode_->SetTemporary(true);
@@ -580,7 +579,7 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
             box->SetCenter(linkPivotOffset * linkSize);
             box->SetDensity(2.f);
             box->SetFriction(0.02f);
-            box->SetFilterBits(categorybits, maskbits);
+            box->SetFilterBits(linkCategorybits, linkMaskbits);
             box->SetViewZ(viewZ);
             box->SetGroupIndex(-1);
             if (plateform)
@@ -640,7 +639,7 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
             box->SetCenter(bridgeSize * 0.5f - linkSize * linkPivotOffset);
             box->SetDensity(2.f);
             box->SetFriction(0.02f);
-            box->SetFilterBits(categorybits, maskbits);
+            box->SetFilterBits(bridgeCategorybits, bridgeMaskbits);
             box->SetViewZ(viewZ);
             if (plateform)
                 box->SetColliderInfo(PLATEFORMCOLLIDER);
@@ -691,7 +690,7 @@ float GOC_PhysicRope::CreateBridge(const Vector2& startAnchor, const Vector2& en
             box->SetCenter(-linkPivotOffset * linkSize);
             box->SetDensity(2.f);
             box->SetFriction(0.02f);
-            box->SetFilterBits(categorybits, maskbits);
+            box->SetFilterBits(linkCategorybits, linkMaskbits);
             box->SetViewZ(viewZ);
             box->SetGroupIndex(-1);
             if (plateform)
@@ -975,6 +974,7 @@ bool GOC_PhysicRope::AttachOnWalls()
     if (anchorPosition1_ == anchorPosition2_)
     {
         anchorPosition1_ = node_->GetWorldPosition2D();
+        anchorPosition1_.x_ -= 0.05f; // pour etre sur d'obtenir la tile support
 
         // find the length
         float length = lengthDefault_;
@@ -998,7 +998,7 @@ bool GOC_PhysicRope::AttachOnWalls()
                     if (viewid == -1)
                     {
                         anchorPosition1_ = anchorPosition2_ = Vector2::ZERO;
-                        URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : viewid=%d anchor1Coords=%d %d anchor2Coords=%d %d... no viewid for viewZ=%d !", anchor1Coords.x_-1, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_, viewZ);
+                        URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : viewid=%d anchor1Coords=%d %d anchor2Coords=%d %d... no viewid for viewZ=%d !", anchor1Coords.x_, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_, viewZ);
                         return false;
                     }
                 }
@@ -1008,7 +1008,7 @@ bool GOC_PhysicRope::AttachOnWalls()
                 if (anchor2Coords.x_ - anchor1Coords.x_ < 1)
                 {
                     anchorPosition1_ = anchorPosition2_ = Vector2::ZERO;
-                    URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : anchor1Coords=%d %d anchor2Coords=%d %d... can't get an enough length !", anchor1Coords.x_-1, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_);
+                    URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : anchor1Coords=%d %d anchor2Coords=%d %d... can't get an enough length !", anchor1Coords.x_, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_);
                     return false;
                 }
 
@@ -1016,14 +1016,14 @@ bool GOC_PhysicRope::AttachOnWalls()
                 if (length > lengthMax_)
                 {
                     anchorPosition1_ = anchorPosition2_ = Vector2::ZERO;
-//                    URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : length=%F > maxLength=%F ... skip !", length, lengthMax_);
+                    URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : length=%F > maxLength=%F ... skip !", length, lengthMax_);
                     return false;
                 }
 
                 mapInContact2_ = mapInContact1_;
                 anchorTileIndex2_ = map->GetTileIndex(anchor2Coords.x_, anchor2Coords.y_);
 
-//                URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnWalls : anchor1Coords=%d %d anchor2Coords=%d %d...", anchor1Coords.x_-1, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_);
+                URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnWalls : anchor1Coords=%d %d anchor2Coords=%d %d...", anchor1Coords.x_, anchor1Coords.y_, anchor2Coords.x_, anchor2Coords.y_);
             }
         }
 

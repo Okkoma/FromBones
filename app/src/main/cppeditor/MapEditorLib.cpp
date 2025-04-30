@@ -2998,13 +2998,16 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
         Node* entity = 0;
         if (GOT::GetTypeProperties(spawnObject_) & GOT_Furniture)
         {
-            int layerZ = BACKBIOME;
+            int layerZ = ViewManager::Get()->GetCurrentViewZ();
             if (spawnCategory_ == SPAWN_DOOR)
                 layerZ = THRESHOLDVIEW;
-            else if (ViewManager::Get()->GetCurrentViewZ() == FRONTVIEW)
-                layerZ = editorLayerModifier_ > 1 ? FRONTBIOME : editorLayerModifier_ > 0 ? OUTERBIOME : BACKBIOME;
-            else if (ViewManager::Get()->GetCurrentViewZ() == INNERVIEW)
-                layerZ = editorLayerModifier_ > 1 ? FRONTINNERBIOME : BACKINNERBIOME;
+            else if (spawnCategory_ == SPAWN_PLANT)
+            {
+                if (layerZ == FRONTVIEW)
+                    layerZ = editorLayerModifier_ > 1 ? FRONTBIOME : editorLayerModifier_ > 0 ? OUTERBIOME : BACKBIOME;
+                else if (layerZ == INNERVIEW)
+                    layerZ = editorLayerModifier_ > 1 ? FRONTINNERBIOME : BACKINNERBIOME;
+            }
             entity = World2D::GetWorld()->SpawnFurniture(spawnObject_, layerZ, spawnCategory_ == SPAWN_PLANT);
         }
         else if (spawnCategory_ == SPAWN_COLLECTABLE)
