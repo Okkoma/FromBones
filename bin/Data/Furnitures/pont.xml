@@ -12,7 +12,7 @@
 
 	<component type="GOC_PhysicRope" >
 		<attribute name="Model" value="FixedBridge" />
-		<attribute name="Max Length" value="10" />
+		<attribute name="Max Length" value="12.85" />
 		<attribute name="Sprites" value="SpriteSheet2D;2D/plantsstaticnew.xml@planche1;planche2;cordage4" />
 		<attribute name="Softness" value="0.1" />
 	</component>		
