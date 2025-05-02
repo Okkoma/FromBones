@@ -38,6 +38,8 @@
 
 //#define WATERLAYER_DEBUG
 
+const unsigned WaterTileColor = Color(0.5f, 0.75f, 1.f, 0.1f).ToUInt();
+const unsigned WaterLineColor = Color(1.f, 1.f, 1.f, 1.f).ToUInt();
 
 const unsigned MAX_DEFORMATIONPOINTS = 50;
 const unsigned MAX_NUMTILEBYDEFORMATIONPOINT = 9;
@@ -342,10 +344,7 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
 //        vertices2.Resize(addr2 + numSurfaces_ * WaterDeformationPoint::divisions_ * 4);
         vertices2.Resize(addr2 + numSurfacesWithTile * WaterDeformationPoint::divisions_ * 4);
 
-        const unsigned color = Color::WHITE.ToUInt();
-        const unsigned tilecolor = Color(0.5f, 0.75f, 1.f, 0.1f).ToUInt();
         const Rect fullWaterRect(0.05f, 1.f, 0.95f, 0.2f);
-
         const Vector2& mapPosition = surface_->map_->GetRootNode()->GetWorldPosition2D();
 
         // Travel the surfaces of the waterline
@@ -456,7 +455,7 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
                 vertex1.position_.z_ = vertex2.position_.z_ = vertex3.position_.z_ = vertex0.position_.z_ = zf;
 #endif
 
-                vertex1.color_ = vertex2.color_ = vertex3.color_ = vertex0.color_ = color;
+                vertex1.color_ = vertex2.color_ = vertex3.color_ = vertex0.color_ = WaterLineColor;
             }
 
             // If need, draw the tile under the surface
@@ -507,7 +506,7 @@ void WaterLine::Update(SourceBatch2D& batch, SourceBatch2D& batch2, const float 
 #ifdef FLUID_RENDER_COLORDEBUG
                     vertex21.color_ = vertex22.color_ = vertex23.color_ = vertex20.color_ = surface->debugColor_;
 #else
-                    vertex21.color_ = vertex22.color_ = vertex23.color_ = vertex20.color_ = tilecolor;
+                    vertex21.color_ = vertex22.color_ = vertex23.color_ = vertex20.color_ = WaterTileColor;
 #endif
                 }
             }
@@ -1632,6 +1631,9 @@ void WaterLayerData::UpdateTiledBatch(int viewZ, const ViewportRenderData& mapda
             unsigned coloruint = rightColor.ToUInt();
             for (int i=0; i < 4*numQuads; i++)
                 vertex[i].color_ = coloruint;
+#else 
+            for (int i=0; i < 4*numQuads; i++)
+                vertex[i].color_ = WaterTileColor;
 #endif
 
             bool drawSurface = viewZ == fluiddata.viewZ_ && allowWaterline;
@@ -1815,6 +1817,8 @@ void WaterLayer::Init()
         layerDatas_[i].viewport_ = i;
         layerDatas_[i].Clear();
     }
+
+    sourceBatchesToRender_[0].Clear();
 
     fluidUpdateTime_ = FLUID_SIMULATION_UPDATEINTERVAL+1;
 }
