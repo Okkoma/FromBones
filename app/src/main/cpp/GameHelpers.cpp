@@ -2858,7 +2858,7 @@ bool GameHelpers::AddTile(const WorldMapPosition& position, bool backgroundAddin
     return result;
 }
 
-bool GameHelpers::AddWater(const WorldMapPosition& position)
+bool GameHelpers::AddWater(const WorldMapPosition& position, float qty)
 {
     MapBase* map;
     ObjectMaped::GetPhysicObjectAt(position.position_, map, true);
@@ -2873,7 +2873,7 @@ bool GameHelpers::AddWater(const WorldMapPosition& position)
     if (!fcell)
         return false;
     
-    fcell->AddFluid(WATER, 5.f);
+    fcell->AddFluid(WATER, qty);
     return true;
 }
 

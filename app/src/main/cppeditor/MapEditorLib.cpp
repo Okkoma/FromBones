@@ -336,6 +336,8 @@ bool inspectorInLoadAttributeEditor;
 bool inspectorShowID = true;
 bool inspectorLocked_ = false;
 
+float waterQuantity_;
+
 SharedPtr<XMLFile> GetEditorUIXMLFile(const String& fileName)
 {
     String fullFileName = GameContext::Get().fs_->GetProgramDir() + "Data/" + fileName;
@@ -2839,9 +2841,14 @@ void MapEditorLibImpl::Update(float timeStep)
     {
         clickMode_ = CLICK_MOVE;
     }
+    else if (input->GetMouseButtonDown(MOUSEB_LEFT) && clickMode_ == CLICK_SPAWN && spawnCategory_ == SPAWN_WATER)
+    {
+        waterQuantity_ = Clamp(waterQuantity_+0.002f, 0.01f, 2.f);                
+    }
     else
     {
         clickMode_ = CLICK_NONE;
+        waterQuantity_ = 0.01f;
     }
 
     // Selection Mode
@@ -2995,9 +3002,8 @@ void MapEditorLibImpl::SpawnObject(const WorldMapPosition& position)
     }
     else if (spawnCategory_ == SPAWN_WATER)
     {
-        GameHelpers::AddWater(position);
-        URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Water !");
-
+        GameHelpers::AddWater(position, waterQuantity_);
+        URHO3D_LOGINFOF("MapEditorLibImpl() - SpawnObject : Spawn Water qty=%F !", waterQuantity_);
     }
     else if (spawnCategory_ == SPAWN_PLANT || spawnCategory_ == SPAWN_DOOR || spawnCategory_ == SPAWN_LIGHT || spawnCategory_ == SPAWN_DECORATION ||
              spawnCategory_ == SPAWN_CONTAINER || spawnCategory_ == SPAWN_COLLECTABLE || spawnCategory_ == SPAWN_TOOL)
