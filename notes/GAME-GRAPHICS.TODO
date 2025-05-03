@@ -1,4 +1,6 @@
 Todos:
+    ✔ 03/05/2025 : lors du switch viewZ, le waterlayer semble afficher la texture de fond pour le premier plan sur quelques msec.
+        => OK : ajout de WaterLayer::SetDirty() et modification de ObjectTiled::SetCurrentViewZ() 
 
     ✔ 24/04/2025 : il y a de gros ralentissements en Arena Fluid activé avec 2 players, en GL ou Vk (sans/avec nouveau systeme), 
         => le profiler montre un surcharge dans Physic2D. (RAF du 23/03/2024).

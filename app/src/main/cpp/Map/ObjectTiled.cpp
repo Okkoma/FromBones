@@ -517,6 +517,7 @@ void ObjectTiled::SetCurrentViewZ(int viewport, int viewZindex, bool forced)
 //            URHO3D_LOGINFOF("ObjectTiled() - SetCurrentViewZ node=%s viewport=%d viewZ=%d viewID=%d ... OK !", node_->GetName().CString(), viewport, viewZ, id);
 
             SetDirty(viewport);
+            WaterLayer::Get()->SetDirty(viewport);
         }
     }
 }
@@ -540,7 +541,6 @@ void ObjectTiled::SetDirty(int viewport)
                 ViewportRenderData& viewportdata = viewportDatas_[viewport];
                 viewportdata.sourceBatchDirty_ = true;
 //                viewportdata.sourceBatchFeatureDirty_ = true;
-                viewportdata.sourceBatchFluidDirty_ = true;
                 viewportdata.isDirty_ = false;
                 viewportdata.currentViewZindex_ = -1;
             }
@@ -552,7 +552,6 @@ void ObjectTiled::SetDirty(int viewport)
             ViewportRenderData& viewportdata = viewportDatas_[viewport];
             viewportdata.sourceBatchDirty_ = true;
 //            viewportdata.sourceBatchFeatureDirty_ = true;
-            viewportdata.sourceBatchFluidDirty_ = true;
             viewportdata.isDirty_ = false;
             viewportdata.currentViewZindex_ = -1;
 //            URHO3D_LOGINFOF("ObjectTiled() - SetDirty : %s viewport=%d ! ", node_->GetName().CString(), viewport);
@@ -708,7 +707,6 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
 
             viewportdata.sourceBatchDirty_ = true;
             viewportdata.sourceBatchFeatureDirty_ = true;
-            viewportdata.sourceBatchFluidDirty_ = true;
 
             if (isChunked_)
                 UpdateChunksVisiblity(viewportdata);
@@ -3342,7 +3340,6 @@ void ObjectTiled::UpdateSourceBatchesToRender(ViewportRenderData& viewportdata)
 
 #endif
         viewportdata.sourceBatchFeatureDirty_ = false;
-        viewportdata.sourceBatchFluidDirty_ = true;
 
 #ifdef DUMP_OBJECTTILED_UPDATEINFOS
         URHO3D_LOGERRORF("ObjectTiled() - UpdateSourceBatchesToRender ... %s(%u) viewZ=%u numChunks=%u lastNumTiledBatchesToRender_=%u ... OK !",

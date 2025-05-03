@@ -111,7 +111,7 @@ struct ViewportRenderData
         currentViewZindex_ = currentViewID_ = -1;
         indexMinView_ = indexMaxView_ = -1;
         lastNumTiledBatchesToRender_ = 0;
-        isDirty_ = sourceBatchDirty_ = sourceBatchFeatureDirty_ = sourceBatchFluidDirty_ = true;
+        isDirty_ = sourceBatchDirty_ = sourceBatchFeatureDirty_ = true;
         isPaused_ = false;
         sourceBatchesToRender_.Reserve(64);
     }
@@ -137,7 +137,7 @@ struct ViewportRenderData
     ChunkGroup chunkGroup_;
     bool isDirty_;
     bool sourceBatchDirty_;
-    bool sourceBatchFeatureDirty_, sourceBatchFluidDirty_;
+    bool sourceBatchFeatureDirty_;
     bool isPaused_;
 
     Vector<SourceBatch2D* > sourceBatchesToRender_;

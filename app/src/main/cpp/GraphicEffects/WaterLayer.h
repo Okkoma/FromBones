@@ -151,7 +151,8 @@ public:
     void Clear();
 
     void SetViewportData(bool enable, ViewportRenderData* data);
-
+    void SetDirty(int viewport);
+    
     void AddSplashAt(const float x, const float y, const float velocity);
 
     /// Return all source batches To Renderer (called by Renderer2D).

@@ -1846,6 +1846,13 @@ void WaterLayer::SetViewportData(bool enable, ViewportRenderData* mapdata)
     }
 }
 
+void WaterLayer::SetDirty(int viewport)
+{
+    WaterLayerData& layerData = layerDatas_[viewport];
+    layerData.batchesDirty_ = true;
+    sourceBatchesToRender_[0].Clear();
+}
+
 void WaterLayer::AddSplashAt(const float x, const float y, const float velocity)
 {
     for (unsigned i = 0; i < waterDeformationPoints_.Size(); i++)
