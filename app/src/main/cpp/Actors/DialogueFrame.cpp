@@ -190,14 +190,13 @@ void DialogueFrame::SetDialogue(const StringHash& dialoguekey, Actor* speaker, b
     {
         dialoguekey_ = dialoguekey;
 
-        if (!force)
+        if (speaker)
             SetSpeaker(speaker);
 
         if (dialoguekey_.Value() == 0)
             return;
 
-        if (!force)
-            msgindex_ = 0;
+        msgindex_ = 0;
 
         const Vector<DialogueMessage>* msgs = GameData::GetDialogueData()->GetMessages(dialoguekey_, speaker_);
         if (msgs)
@@ -207,10 +206,7 @@ void DialogueFrame::SetDialogue(const StringHash& dialoguekey, Actor* speaker, b
         }
     }
 
-    if (force && msgline_)
-        msgline_--;
-    else
-        msgline_ = -1;
+    msgline_ = -1;
 
     if (frameNode_ && frameNode_->IsEnabled())
         ShowNextLine();
@@ -288,13 +284,12 @@ void DialogueFrame::ToggleFrame(bool enable, float delay)
         lastSelectedNode_ = 0;
         selectedNode_ = 0;
         selectedId_ = 0;
-
-        SubscribeToEvent(E_CHANGELANGUAGE, URHO3D_HANDLER(DialogueFrame, HandleChangeLanguage));
+        
         SubscribeToInputEvents();
     }
     else
     {
-        UnsubscribeFromAllEvents();
+        UnsubscribeFromInputEvents();
     }
 
     if (frameNode_)
@@ -320,6 +315,7 @@ void DialogueFrame::OnNodeSet(Node* node)
 {
     if (node)
     {
+        SubscribeToEvent(E_CHANGELANGUAGE, URHO3D_HANDLER(DialogueFrame, HandleChangeLanguage));
 //        URHO3D_LOGINFOF("DialogueFrame() - OnNodeSet : layoutname=%s", layoutname_.CString());
     }
     else
@@ -348,6 +344,26 @@ void DialogueFrame::SubscribeToInputEvents()
     URHO3D_LOGINFOF("DialogueFrame() - SubscribeToInputEvents !");
 }
 
+void DialogueFrame::UnsubscribeFromInputEvents()
+{
+    UnsubscribeFromEvent(E_KEYDOWN);
+    UnsubscribeFromEvent(E_KEYUP);
+
+    UnsubscribeFromEvent(E_JOYSTICKBUTTONDOWN);
+    UnsubscribeFromEvent(E_JOYSTICKAXISMOVE);
+#ifndef __ANDROID__
+    UnsubscribeFromEvent(E_JOYSTICKHATMOVE);
+#endif
+    UnsubscribeFromEvent(E_TOUCHEND);
+    UnsubscribeFromEvent(E_TOUCHBEGIN);
+    UnsubscribeFromEvent(E_TOUCHMOVE);
+
+    UnsubscribeFromEvent(E_MOUSEMOVE);
+    UnsubscribeFromEvent(E_MOUSEBUTTONDOWN);
+
+    URHO3D_LOGINFOF("DialogueFrame() - UnsubscribeFromInputEvents !");
+}
+
 void DialogueFrame::ShowNextLine()
 {
     // Next Message in the dialogue
@@ -363,6 +379,11 @@ void DialogueFrame::ShowNextLine()
             GameHelpers::ParseText(msgs->At(msgindex_).text_, dialoguelines_, numMaxCharByLine_ * numMaxRowByLine_);
 
             URHO3D_LOGINFOF("DialogueFrame() - ShowNextLine : nextmessage in the dialog dialogkey=%u msgindex=%d", dialoguekey_.Value(), msgindex_);
+        }
+        else
+        {
+            URHO3D_LOGERRORF("DialogueFrame() - ShowNextLine : can't find nextmessage in the dialog dialogkey=%u msgindex=%d msgsPtr=%u", 
+                            dialoguekey_.Value(), msgindex_, msgs);
         }
     }
 
@@ -425,6 +446,7 @@ void DialogueFrame::HandleChangeLanguage(StringHash eventType, VariantMap& event
     {
         GameData::Get()->SetLanguage(l10n->GetLanguage());
         SetDialogue(dialoguekey_, 0, true);
+        URHO3D_LOGINFOF("DialogueFrame() - HandleChangeLanguage : lang=%s", l10n->GetLanguage().CString());
     }
 }
 

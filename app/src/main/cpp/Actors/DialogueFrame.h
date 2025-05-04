@@ -57,7 +57,8 @@ protected :
 
 private :
     void SubscribeToInputEvents();
-
+    void UnsubscribeFromInputEvents();
+    
     void ShowNextLine();
 
     void HandleChangeLanguage(StringHash eventType, VariantMap& eventData);

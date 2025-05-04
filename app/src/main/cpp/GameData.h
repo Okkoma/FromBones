@@ -39,6 +39,9 @@ public:
         return lang_;
     }
 
+protected:
+    void HandleChangeLanguage(StringHash eventType, VariantMap& eventData);
+
 private:
     String lang_;
     SharedPtr<DialogueData> dialogueData_;

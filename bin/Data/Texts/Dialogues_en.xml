@@ -6,29 +6,60 @@
 	<dialogue name="decline" >
         <message>No</message>
 	</dialogue>
+	<dialogue name="shop" >
+        <message>Shop</message>
+	</dialogue>
+	<dialogue name="talk" >
+        <message>Talk</message>
+	</dialogue>
 	<dialogue name="merchandise1" >
-        <message>Hello !...| Do you wan to do bargain ?</message>
-        <response name="accept" next="bargain1" />
-        <response name="decline" next="bye1" />
+        <message>Hello! ...|Do you want to see the store or just talk?</message>
+        <response name="shop" next="bargain1" />
+        <response name="talk" next="rockgolem1" />
 	</dialogue>
 	<dialogue name="bargain1" >
-        <message>there is my stuff ...</message>
+        <message>Ok, here are my articles...</message>
 		<command>
 		{
-			import "game" for Timer
-			import "game" for Actor
-			Timer.wait(1)
-			Actor.setEnableShop(true)
+			import "game" for Speaker
+			Speaker.setEnableShop(true)
+			Speaker.toggleDialogueFrame(false)
 		}
 		</command>
 	</dialogue>
 	<dialogue name="bye1" >
-        <message>See you later !</message>
+        <message>Well, see you next time!</message>
 		<command>
 		{
-			import "game" for Timer
-			Timer.wait(1)
+			import "game" for Speaker
+			Speaker.toggleDialogueFrame(false, 2)
 		}
 		</command>
+	</dialogue>
+	<dialogue name="rockgolem1" >
+		<message>Would you like me to tell you about the Rock Golems living in the area?</message>
+        <response name="accept" next="rockgolem1_1" />
+        <response name="decline" next="bye1" />
+    </dialogue>
+	<dialogue name="rockgolem1_1" >
+		<message>They are imposing giants from the first era of our world, spawned by the remnants of primordial magic and Mother Earth ...</message>
+		<message>I've heard it said that if you planted an Eliegor seed on his head, then this giant would bind himself forever to his donor!</message>
+		<message>But of course that's ancient history ... well if you're temperate enough maybe you'd be interested in this seed ...</message>
+		<message>This seed comes from an intensely purplish-red flower, usually found at the top of certain mountains.</message>
+		<message>Do you want to go on a quest for the Golem D'Eliegor?</message>
+        <response name="accept" next="rockgolem1_2" />
+        <response name="decline" next="bye1" />
+    </dialogue>
+	<dialogue name="rockgolem1_2" >
+		<message>Well, you'll have to be very careful and have a green thumb! Equip yourself well before you leave...</message>
+		<command>
+		{
+			import "game" for Contributor
+			Contributor.addMission("Eliegor")
+		}
+		</command>
+		<message>Would you like to see some items in my store?</message>
+        <response name="accept" next="bargain1" />
+        <response name="decline" next="bye1" />
 	</dialogue>
 </dialoguedata>
