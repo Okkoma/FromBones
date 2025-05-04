@@ -517,7 +517,8 @@ void ObjectTiled::SetCurrentViewZ(int viewport, int viewZindex, bool forced)
 //            URHO3D_LOGINFOF("ObjectTiled() - SetCurrentViewZ node=%s viewport=%d viewZ=%d viewID=%d ... OK !", node_->GetName().CString(), viewport, viewZ, id);
 
             SetDirty(viewport);
-            WaterLayer::Get()->SetDirty(viewport);
+            if (WaterLayer::Get())
+                WaterLayer::Get()->SetDirty(viewport);
         }
     }
 }
