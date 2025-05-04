@@ -20,6 +20,7 @@
 	<component type="CollisionCircle2D">
 		<attribute name="Radius" value="0.2" />
 		<attribute name="Friction" value="0.3" />
+		<attribute name="Density" value="5" />
 		<attribute name="Extra Contact Bits" value="31" /> <!-- Contact Stable -->
 	</component>
 	<component type="CollisionBox2D">
