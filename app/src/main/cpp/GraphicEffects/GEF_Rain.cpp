@@ -180,7 +180,7 @@ bool Droplet::CheckInFluid(const Vector2& position)
     Map* map = spawningMap_[viewport_];
     if (!map || !map->GetBounds().IsInside(position))
         map = World2D::GetCurrentMap(viewport_);
-    FluidCell* fcell = map ? map->GetFluidCellPtr(map->GetTileIndexAt(position), ViewManager::FLUIDFRONTVIEW_Index) : nullptr;
+    FluidCell* fcell = map && map->IsAvailable() ? map->GetFluidCellPtr(map->GetTileIndexAt(position), ViewManager::FLUIDFRONTVIEW_Index) : nullptr;
     return fcell && (fcell->mass_ > 0.f || (fcell->type_ == BLOCK && fcell->Top && fcell->Top->mass_ > 0.f));
 }
 
@@ -480,7 +480,7 @@ void GEF_Rain::HandleUpdate(StringHash eventType, VariantMap& eventData)
             const float ratiointensity = 0.01f;
 #endif
             Map* map = World2D::GetCurrentMap(viewport_);
-            if (map)
+            if (map && map->IsAvailable())
             {
                 for (unsigned i=0; i < Droplet::hittedTiles_.Size(); i++)
                 {
