@@ -134,8 +134,7 @@ void World2D::RegisterObject(Context* context)
     URHO3D_ACCESSOR_ATTRIBUTE("Map - Add Objects", GetMapAddObjectAttr, SetMapAddObjectAttr, bool, true, AM_FILE);
     URHO3D_ACCESSOR_ATTRIBUTE("Map - Add Furnitures", GetMapAddFurnitureAttr, SetMapAddFurnitureAttr, bool, true, AM_FILE);
     URHO3D_ACCESSOR_ATTRIBUTE("Map - Add Border", GetMapAddBorderAttr, SetMapAddBorderAttr, bool, false, AM_FILE);
-    URHO3D_ACCESSOR_ATTRIBUTE("Map - Add ImageLayer", GetMapAddImageLayerAttr, SetMapAddImageLayerAttr, String, String::EMPTY, AM_FILE);
-    URHO3D_ACCESSOR_ATTRIBUTE("Map - Add ImageLayers", GetMapAddImageLayersAttr, SetMapAddImageLayersAttr, StringVector, Variant::emptyStringVector, AM_FILE);
+    URHO3D_ACCESSOR_ATTRIBUTE("Register Backgrounds", GetRegisteredBackgrounds, RegisterBackgrounds, StringVector, Variant::emptyStringVector, AM_FILE);
 }
 
 
@@ -230,7 +229,7 @@ void World2D::SetWorldPoint(const IntVector2& worldpoint)
         if (info_)
         {
             World2DInfo::currentAtlas_ = info_->atlas_;
-            info_->ClearImageLayer();
+            info_->ClearBackGroundInfos();
         }
     }
 
@@ -342,25 +341,31 @@ void World2D::SetMapAddBorderAttr(bool addBorder)
         addBorder_ = addBorder;
 }
 
-void World2D::SetMapAddImageLayerAttr(const String& textureinfo)
+void World2D::RegisterBackground(int backtype, int iscroller, const ResourceRef& ref, const Vector2& hotspot, const Color& color)
 {
-    imageLayersInfos_.Push(textureinfo);
+    DrawableObjectInfo& dinfo = info_->backgroundDrawableObjects_.At(info_->GetBackGroundIndex(backtype, iscroller));
+    Sprite2D* sprite = Sprite2D::LoadFromResourceRef(context_, ref);
+    if (sprite)
+    {
+        sprite->SetHotSpot(hotspot);
+        // use edge offset to prevent edge bleeding with texture atlas
+        sprite->SetTextureEdgeOffset(Min(1.f, 1.f/GameContext::Get().dpiScale_));
+    }
+    else
+        URHO3D_LOGERROR("World2D - RegisterBackground : can't load sprite ref=" + ref.ToString());
 
-    Vector<String> vars = textureinfo.Split(';');
-    info_->imageLayerResources_.Push(ResourceRef(vars[0], vars[1]));
-    info_->imageLayerHotSpots_.Push(vars.Size() > 2 ? ToVector2(vars[2]) : Vector2(0.5f, 0.5f));
+    dinfo.Set(sprite, Random(100) > 49, false, color);
 }
 
-void World2D::SetMapAddImageLayersAttr(const StringVector& textureinfos)
+void World2D::RegisterBackgrounds(const StringVector& infos)
 {
-    for (unsigned i=0; i < textureinfos.Size(); i ++)
+    info_->backgroundDrawableObjects_.Resize(infos.Size());
+    for (unsigned i=0; i < infos.Size(); i++)
     {
-        Vector<String> vars = textureinfos[i].Split(';');
-        info_->imageLayerResources_.Push(ResourceRef(vars[0], vars[1]));
-        info_->imageLayerHotSpots_.Push(vars.Size() > 2 ? ToVector2(vars[2]) : Vector2(0.5f, 0.5f));
+        Vector<String> vars = infos[i].Split(';');
+        RegisterBackground(ToInt(vars[0]), ToInt(vars[1]), ResourceRef(vars[2], vars[3]), ToVector2(vars[4]), ToColor(vars[5]));
     }
-
-    imageLayersInfos_ = textureinfos;
+    backgroundInfos_ = infos;
 }
 
 void World2D::SetAnlWorldModelAttr(const String& modelfile)
@@ -780,7 +785,7 @@ void World2D::SetWorld(bool load)
         Node* scrollShapeNode2 = GameContext::Get().rootScene_->GetChild("LocalScene")->CreateChild("WorldHillTop", LOCAL);
         scrollShapeNode2->SetEnabled(false);
         ScrollingShape* scrollshape2 = scrollShapeNode2->CreateComponent<ScrollingShape>();
-        scrollshape2->SetLayer2(IntVector2(BACKSCROLL_2,-1));
+        scrollshape2->SetLayer2(IntVector2(BACKSCROLL_4,-1));
         scrollshape2->SetOrderInLayer(8);
         scrollshape2->SetViewMask(BACKGROUND_MASK);
 #ifdef ACTIVE_LAYERMATERIALS
@@ -849,17 +854,17 @@ void World2D::AddScrollers(int viewport)
 #endif
 
     // ForeGround 1
-    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_5, 11, 2.f*Vector2::ONE, Vector2(0.f, 0.f), Vector2(0.0f, 0.0f), 0, false, false, Vector2::ZERO, Color(0.75f, 0.65f, 0.45f, 1.f), false);
+    DrawableScroller::AddScroller(viewport, 0, material, LIT, BACKSCROLL_5, 11, 2.f*Vector2::ONE, Vector2(0.f, 0.f), Vector2(0.0f, 0.0f), 0, false, false, Vector2::ZERO, Color(0.75f, 0.65f, 0.45f, 1.f), false);
     // ForeGround 2
-    DrawableScroller::AddScroller(viewport, material, LIT, BACKSCROLL_4, 9, 2.f*Vector2::ONE, Vector2(0.f, 0.f), WorldEllipseParallax, boundcurve, true, true, Vector2(0.f, 2.f), Color(0.55f, 0.55f, 0.45f, 1.f), false);
+    DrawableScroller::AddScroller(viewport, 1, material, LIT, BACKSCROLL_4, 9, 2.f*Vector2::ONE, Vector2(0.f, 0.f), WorldEllipseParallax, boundcurve, true, true, Vector2(0.f, 2.f), Color(0.55f, 0.55f, 0.45f, 1.f), false);
     // MiddleGround 1
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_3, 7, 2.f*Vector2::ONE, Vector2(0.f, 1.f*info_->mTileHeight_), Vector2(0.8f, 0.6f), boundcurve, false, true, Vector2(0.f, -2.f), Color::WHITE);
+    DrawableScroller::AddScroller(viewport, 2, material, UNLIT, BACKSCROLL_3, 7, 2.f*Vector2::ONE, Vector2(0.f, 1.f*info_->mTileHeight_), Vector2(0.8f, 0.6f), boundcurve, false, true, Vector2(0.f, -2.f), Color::WHITE, false);
     // MiddleGround 2
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_3, 5, 2.f*Vector2::ONE, Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.9f, 0.8f), boundcurve, false, true, Vector2(0.f, -1.f), Color(0.85f, 0.85f, 0.85f, 1.f));
+    DrawableScroller::AddScroller(viewport, 3, material, UNLIT, BACKSCROLL_3, 5, 2.f*Vector2::ONE, Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.9f, 0.8f), boundcurve, false, true, Vector2(0.f, -1.f), Color(0.85f, 0.85f, 0.85f, 1.f), false);
     // MiddleGround 3
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_2, 3, 2.f*Vector2(0.9f, 0.9f), Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.95f, 0.9f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.65f, 0.65f, 0.65f, 1.f));
+    DrawableScroller::AddScroller(viewport, 4, material, UNLIT, BACKSCROLL_2, 3, 2.f*Vector2(0.9f, 0.9f), Vector2(0.f, 1.5f*info_->mTileHeight_), Vector2(0.95f, 0.9f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.65f, 0.65f, 0.65f, 1.f), false);
     // BackGround
-    DrawableScroller::AddScroller(viewport, material, UNLIT, BACKSCROLL_1, 1, 2.f*Vector2(0.85f, 0.85f), Vector2(0.f, 2.5f*info_->mTileHeight_), Vector2(0.99f, 0.95f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.5f, 0.5f, 0.5f, 1.f));
+    DrawableScroller::AddScroller(viewport, 5, material, UNLIT, BACKSCROLL_1, 1, 2.f*Vector2(0.85f, 0.85f), Vector2(0.f, 2.5f*info_->mTileHeight_), Vector2(0.99f, 0.95f), boundcurve, false, true, Vector2(0.f, 0.f), Color(0.5f, 0.5f, 0.5f, 1.f), false);
 }
 
 void World2D::GoToMap(const ShortIntVector2& mpoint, const IntVector2& mposition, int viewZ, int viewport)

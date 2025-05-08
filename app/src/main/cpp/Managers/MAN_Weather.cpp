@@ -631,21 +631,25 @@ void WeatherManager::UpdateTimePeriod()
     if (worldtime_ < NIGHTHOURMAX || worldtime_ > NIGHTHOURMIN)
     {
         timeperiod_ = TIME_NIGHT;
+        GameContext::Get().lastluminosity_ = GameContext::Get().luminosity_;
         GameContext::Get().luminosity_ = 0.2f;
     }
     else if (worldtime_ >= NIGHTHOURMAX && worldtime_ <= DAYHOURMIN)
     {
         timeperiod_ = TIME_DAWN;
+        GameContext::Get().lastluminosity_ = GameContext::Get().luminosity_;
         GameContext::Get().luminosity_ = 0.2f + 0.8f * (worldtime_ - NIGHTHOURMAX) / (DAYHOURMIN - NIGHTHOURMAX);
     }
     else if (worldtime_ > DAYHOURMIN && worldtime_ < DAYHOURMAX)
     {
         timeperiod_ = TIME_DAY;
+        GameContext::Get().lastluminosity_ = GameContext::Get().luminosity_;
         GameContext::Get().luminosity_ = 1.f;
     }
     else if (worldtime_ >= DAYHOURMAX && worldtime_ <= NIGHTHOURMIN)
     {
         timeperiod_ = TIME_TWILIGHT;
+        GameContext::Get().lastluminosity_ = GameContext::Get().luminosity_;
         GameContext::Get().luminosity_ = 1.f - 0.8f * (worldtime_ - DAYHOURMAX) / (NIGHTHOURMIN - DAYHOURMAX);
     }
 }

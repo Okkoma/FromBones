@@ -615,10 +615,6 @@ private:
     void UpdateRenderShapeBorders();
     void ClearConnectedMaps();
 
-    // Background Setters
-public:
-    bool AddBackGroundLayers(HiresTimer* timer);
-
     // Minimap Setters
 public:
 private:
@@ -704,6 +700,10 @@ public:
     {
         return mapTopography_;
     }
+    int GetBackGroundType() const 
+    {
+        return backgroundType_;
+    }
     int GetRealViewZ(int viewZ) const
     {
         return featuredMap_->GetRealViewZAt(viewZ);
@@ -747,6 +747,7 @@ private:
     // Status
     Rect bounds_;
     MapTopography mapTopography_;
+    int backgroundType_;
     int visible_;
 
     Map* connectedMaps_[4];

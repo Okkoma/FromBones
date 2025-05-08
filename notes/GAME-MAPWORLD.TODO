@@ -1,7 +1,38 @@
 Todos:
-
+    ☐ 05/05/2025 : world inversion - lorsque l'on s'approche de la surface inferieur du monde il faudrait inverser le monde, comme un sablier en somme.
+        => pour cela, il faut inverser les Y : les cartes en mémoire ou visibles sont à inverser, les batches des drawables de décors à recalculer et les positions des objets.
+        ==> pas mal d'impact sur le calcul des coordonnées, et il faut aussi penser à la sauvegarde du monde avec un nouveau parametre WorldYDirection_, le waterlayer ...
+        
+    ☐ 05/05/2025 : gestion du background / changement de région, biome
+        => c'est assez confus, utilisation de DrawableScroller pour l'affichage, Map en setter (Map::AddBackGroundLayers), et les sprites sont dans World2DInfo via World2D::SetMapAddImageLayerAttr...
+        => l'ideal serait de s'affranchir de Map::AddBackGroundLayers et d'utiliser une valeur donnant le tableau de sprites à utiliser pour la map.
+        ==> pour chaque map, calcul des dénivellés, calcul de la valeur moyenne d'eau, calcul de la temperature (en fonction de l'altitude à partir de l'ellipse de ground).
+        ==> enregistrer le tableau de sprites de background correspondant à une valeur de biome ?
+        => il faut aussi considerer le changement en fonction de l'altitude : dans le cas ou la joueur vole très haut, les montagnes arrières ne sont plus visibles, 
+            il faut assurer la transition vers d'autres scrollers type ciel, étoiles, chateau dans le ciel ...
+            de meme lorsque le joueur est profondémement sous terre...
+        => actuellement, la gestion est confuse et n'est pas vraiement adaptée à un changement de scroller en Y.
+        => DrawableScroller utilise la fonction GetWorldScrollerObjectInfo pour obtenir le sprite à afficher en fonction de la map courante.
+        ==> le changement de sprite doit prendre en compte les zones de profondeur Y.
+            zone de profondeur Y nécessaire : sky, surface, underground. sky peut se superposer à surface. underground peut se superposer à surface.
+        ==> le code actuel ne gère que la surface (cf. DrawableScroller::HandleUpdateEllipseMode et World2D::AddScrollers et Map::AddBackGroundLayers).
+        => 1. dans GetWorldScrollerObjectInfo, remplacer l'argument Map par un int: background Index, cet index sera donné par la Map.
+        => 2. modifier World2D::AddScrollers et DrawableScroller::AddScroller pour ajouter l'index de scroller (pour le moment, il est implicite)
+        => 3. déclarer une nouvelle table static comprenant les Sprite2D de background pour les differents scrollers en fonction du type de background et remplacer DrawableScroller::worldScrollerObjectInfos_
+        => 4. supprimer Map::AddBackGroundLayers
+        => 5. remplacer DrawableScroller::GetWorldScrollerObjectInfo par World2DInfo::GetBackGroundInfo(int backgroundtype,int scrollerindex)
+              modifier DrawableObjectInfo pour supprimer zone et ajouter color
+        => 6. enregistrer dans World2DInfo::backgroundDrawableObjects_ via World2D::SetMapAddImageLayerAttr, les infos pour tous les Sprite2D de background pour ce monde.
+            World2D::SetMapAddImageLayersAttr devient World2D::RegisterBackgrounds(const StringVector& entry) et World2D::RegisterBackground(int type, const Vector<Sprite2D*>& )
+        ==> faire un essai avec la seule texture actuelle fond.png en changeant la couleur en fonction du type de background
+            le type de background est défini par 3 axes : Topographie de la Map (dénivellés), Carte d'eau (qui va définir la végétation), Temperature () permettant les variations suivantes : plaine, montagne, desert, jungle)
+        ==> la carte d'eau est la carte biome actuelle qui est à renommer.
+        ==> les scrollers en background changent rarement ce qui ne permet pas d'avoir un fond en accord avec l'avant plan.
+        ==> la fonction DrawableScroller::UpdateDrawablesOnTopCurve n'utilise pas World2DInfo::GetBackGroundInfo => pas le changement de sprite de background pour les
+            scrollers avec parallax. Après modification, le dernier backscroller ne change jamais... mais les autres ...oui.
+        ===> RAF : trouver pourquoi le dernier backscroller ne change jamais de sprite.
+                    
     ☐ 23/03/2024 : adapter les furnitures flore en fonction de la zone (biome : prendre en compte si sous l'eau aussi)
-
     ☐ 23/03/2024 : rajouter les lacs et mers
         => creer une world ellipse pour le liquide, à l'interieur de cette ellipse on pourra remplir en eau.
         => il faudra identifier les zones ou l'on voudra remplir en lac ou en mer
@@ -70,7 +101,8 @@ Todos:
 
     ☐ 27/05/2023 : supprimer les fenetres dans le Backview. il est bizarre d'avoir des trous lorsque l'on est en frontview.
         => OK modification de ObjectFeatured::SetViewConfiguration
-        - 27/05/2023 : les Tronc ou autre furniture Static posent probleme au niveau collision si ils sont en Innerview mais restant visible en frontview :
+
+    ☐ 27/05/2023 : les Tronc ou autre furniture Static posent probleme au niveau collision si ils sont en Innerview mais restant visible en frontview :
          le player voudrait pouvoir s'y accrocher et le choix est fait que ce ne sera jamais le cas pour éviter que les furnitures innerview dans des murs ne pisent entrer en collision avec les acteurs du frontview
         => modifier le visuel pour mettre en backactorview ces furnitures.
         ==> OK : modification de Urho3D::Drawable2D::GetSourceBatchesToRender()
@@ -135,7 +167,6 @@ Todos:
         ==> forcer le status à Unloading_Map.
 
     ☐ 13/03/2023 : il faut absolument que la map current soit generer en priorité ainsi qu'afficher.
-
     ☐ 06/03/2023 : ajout de MapGeneratorDungeon::MakeRandomWalk()
         => pas encore top : pour le moment desactivation
 
@@ -276,7 +307,6 @@ Todos:
         ===> OK : RAF les FluidSources sont aussi à sauvegarder avec leur états de fluid en cours.
 
     ☐ 26/05/2022 : les maps qui doivent etre visible apres teleportation doivent aussi etre prechargées.
-
     ☐ 02/10/2021 : en world il y a certains problemes :
         => le basculement des entités d'une map vers une autre ne s'operent pas toujours. (probleme existant surement avant)
         => les entités mortes qui n'ont pas basculé vers leur nouvelle map, vont reapparaitre et se remettre en dead lors du deplacement vers la map affectée
@@ -545,7 +575,6 @@ Todos:
         ===> OK Correctif dans ViewManager::SwitchToViewIndex -> GameHelpers::UpdateLayering -> GameHelpers::SetDrawableLayerView pour eviter le changement des layers des rendershapes.
 
     ☐ 26/09/2020 : Si changement de resolution d'écran, ou redimensionnement de la fenetre, apres teleportation via GOC_Portal il y a un zoom de camera apres la teleportation par GOC_Portal.
-
     ☐ 26/07/2020 : pouvoir ajouter des lumieres/torches
         => gestion de l'enlightement : calcul de la zone à éclairer et ajout de la light adéquate (rayon ...)
 
@@ -587,7 +616,6 @@ Todos:
         --> pour le moment utilisation d'un random skin cf MapCreator::GenerateDungeonMap()
 
     ☐ 14/01/2020 : Modifier les Decals de bordure et les Tiles de Background en fonction des Biomes (penser à la vegetation).
-
     ☐ 13/01/2020 : decalage des layers de +4 DefsViews.h afin d'avoir plus de place entre le BACKGROUND et les BACKBIOME (pb furnitures arbres en chevauchement avec tiles de background)
         => ainsi les layerZ classique changent (BACKGROUND:6=>10 INNERVIEW:20=>24 FRONTVIEW:40=>44)
         ==> possibilité d'avoir des vegetations en avant plan dans l'innerview grace à (FRONTBIOME) à implementer dans MapGenerator::GenerateBiomeFurnitures()
@@ -599,7 +627,6 @@ Todos:
         ===> 10/01/2020 : pour le moment la biomemap est un simplefbm ce qui pourrait etre suffisant
         ====> voir pour la correspondance des valeurs de la biomeMap
         =====> voir pour creer une TemperatureMap et une HumidityMap pour générer les biomes.
-
     ☐ 10/11/2017 : finir l'ajout des furnitures (s'appuyant sur BiomeMap à créer)
         -> seules les furnitures des Chunks Visible doivent s'afficher ce qui n'est pas le cas pour Portal pour le moment
         => mais dans ce cas comment gérer les chunks non visible dont les furnitures dépassent
@@ -625,7 +652,6 @@ Todos:
             if faut egalement dissocier l'affichage des Tiles de celui des Entities/Furnitures afin de ne pas avoir l'affichage des tiles bloqués par celui de l'affichage des entities d'une autre map
 
     ☐ 15/09/2018 : ajouter dans MapGeneratorDungeon des templates de tours, chateaux parametrables
-
     ☐ 03/08/2017 : Possibilité de créer des Custom Maps (via Editor Intégré ?) intéressant pour les lieux particuliers comme les boss zones
         -> cf. EDITOR
 
@@ -645,12 +671,10 @@ Todos:
         -> voire avec le worldgenerator si possibilité de reprendre les cartes intermédiaires pour générer une terrainMap;
         ==> 17/03/2018 : terrainMap générée avec le worldGenerator (simple fbm) ou bien par default avec MapGenerator::GenerateDefaultTerrainMap()
         ===> dans le cas où l'on utilise un backscroller opaque les batches des tiles et decals sur le layer du backscroller ne sont pas nécessaires
-
     ☐ Créer une PopulationMap
         --> permet de placer les habitations et donjons
         --> comment gérer la diversité des espèces par région ?
         ---> suivants les biomes et terrain, altitude, profondeur et milieu (eau, air, terrain)
-
     ☐ 24/08/2018 : Les TileModifiers ne sont pas sauvegarder
         => Correctif appliqué dans Map::SaveTileModifiersTo()
         ==> Attention : le Counter MAP_FUNC1 est utilisé, donc il doit être initialisé à 0 au debut de la sauvegarde.
@@ -658,7 +682,6 @@ Todos:
         ==> Finir de mettre Asynchrone le code appelé par World2D::SaveWorld()
 
     ☐ 13/06/2018 : voir Box2D pour recentrer les coordonnées dans le cadre d'un monde infini (donc pb sur les float).
-
     ☐ 25/04/2018 : lors de la génération des Spots en dungeon, certains spots se trouvent en exterieur.
         => bien vérifier que ceux-ci soient bien à l'intérieur des murs du dungeon.
 
@@ -666,12 +689,11 @@ Todos:
 Archive:
 
     ✔ OK 17/01/2023 : amelioration de World2D dans la gestion de la visibilité => evite d'avoir visibleAreaMap trop importante qui ralentissait l'application en cas de dezoom (dynamic zoom)
-
     ✔ 08/04/2020 : ajouter le lustre
         => 28/12/2022 : utilisation de GOC_PhysicsGrapin (à renommer ?)
         ==> OK : quelques modifications dans GOC_Animator2D et GOC_Destroyer.
 
-    ✔ 09/12/2b022 : Correctif sur GOC_Destroyer::Unstuck()
+    ✔ 09/12/2022 : Correctif sur GOC_Destroyer::Unstuck()
         => 10/12/2022 : encore des pb notamment le drawable apparait figer loin du RigidBody qui est coincé dans un mur.
         ==> le Unstuck n'arrive pas à setter la position du body correctement.
         ===> 28/12/2022 OK : Correctif dans GOC_Destroyer::Unstuck() avec ajout de RigidBody2D::SetBodyPosition() qui permet de setter la position dans Box2D. Utilisation egalement dans GOC_Destroyer::SetWorldMapPosition().
@@ -1072,7 +1094,6 @@ Archive:
         => Semble corrigé depuis correctif du 09/10/2017
 
     ✔ 09/10/2017 : Correctif pour l'update des fluids dans ObjectTiled : l'update des batches est bien réalisé seulement si la simulation apporte des changements.
-
     ✔ reactivation des fluids : FluidSimulator + render in ObjectTile
         ==> Test en cours
         => prévoir le déversement des fluids entre les maps

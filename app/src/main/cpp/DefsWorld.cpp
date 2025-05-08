@@ -390,7 +390,7 @@ World2DInfo::World2DInfo(const World2DInfo& winfo) :
     defaultGenerator_(winfo.defaultGenerator_),
     wBounds_(winfo.wBounds_),
     node_(winfo.node_),
-    imageLayerResources_(winfo.imageLayerResources_),
+    backgroundDrawableObjects_(winfo.backgroundDrawableObjects_),
     genParams_(winfo.genParams_),
     atlas_(winfo.atlas_),
     worldModel_(winfo.worldModel_)
@@ -422,7 +422,7 @@ World2DInfo& World2DInfo::operator=(const World2DInfo& winfo)
     defaultGenerator_ = winfo.defaultGenerator_;
     wBounds_ = winfo.wBounds_;
     node_ = winfo.node_;
-    imageLayerResources_ = winfo.imageLayerResources_;
+    backgroundDrawableObjects_ = winfo.backgroundDrawableObjects_;
     genParams_ = winfo.genParams_;
     atlas_ = winfo.atlas_;
     worldModel_ = winfo.worldModel_;

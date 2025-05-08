@@ -43,18 +43,40 @@
 
 			<attribute name="Map - Num Entities" value="10 15" />
 			
-			<attribute name="Map - Add Objects" value="true" />
+			<attribute name="Map - Add Objects" value="false" />
 			<attribute name="Map - Add Furnitures" value="true" />
 			<attribute name="Map - Add Border" value="false" />
 
-			<!-- <attribute name="Map - Add ImageLayer" value="SpriteSheet2D;Levels/fonds.xml@fond3;0.5 0.7" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;Levels/fonds.xml@fond3" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;Levels/fonds.xml@fond1" /> -->
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond3" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond2" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond2" />
-			<attribute name="Map - Add ImageLayer" value="SpriteSheet2D;2D/fonds.xml@fond1" />
+			<attribute name="Register Backgrounds">
+				<string value="0;0;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7;1 1 1 1" />
+				<string value="0;1;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.5;1 1 1 1" />
+				<string value="0;2;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;1 1 1 1" />
+				<string value="0;3;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;1 1 1 1" />
+				<string value="0;4;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />
+				<string value="0;5;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />
+				<string value="0;6;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />							
+				<string value="1;0;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7;1 0 0 1" />
+				<string value="1;1;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.5;1 0 0 1" />
+				<string value="1;2;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;1 0 0 1" />
+				<string value="1;3;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;1 0 0 1" />
+				<string value="1;4;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 0 0 1" />
+				<string value="1;5;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />						
+				<string value="1;6;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />					
+				<string value="2;0;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7;0 1 0 1" />
+				<string value="2;1;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.5;0 1 0 1" />
+				<string value="2;2;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;0 1 0 1" />
+				<string value="2;3;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;0 1 0 1" />
+				<string value="2;4;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;0 1 0 1" />
+				<string value="2;5;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />		
+				<string value="2;6;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />										
+				<string value="3;0;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.7;0 0 1 1" />
+				<string value="3;1;SpriteSheet2D;2D/fonds.xml@fond3;0.5 0.5;0 0 1 1" />
+				<string value="3;2;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;0 0 1 1" />
+				<string value="3;3;SpriteSheet2D;2D/fonds.xml@fond2;0.5 0.5;0 0 1 1" />
+				<string value="3;4;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;0 0 1 1" />		
+				<string value="3;5;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />		
+				<string value="3;6;SpriteSheet2D;2D/fonds.xml@fond1;0.5 0.5;1 1 1 1" />												
+			</attribute>
 
 			<attribute name="Collider - Force Shape Type" value="true" />
 			<attribute name="Collider - Shape Type" value="Chains" />

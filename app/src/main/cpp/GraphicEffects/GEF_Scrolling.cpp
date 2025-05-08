@@ -934,35 +934,7 @@ void GEF_Scrolling::HandleUpdate(StringHash eventType, VariantMap& eventData)
 
 
 
-
 /// DrawableScroller
-
-DrawableObjectInfo::DrawableObjectInfo(const ShortIntVector2& mpoint, Sprite2D* sprite, Material* material, bool flipX, bool flipY) :
-    sprite_(sprite),
-    material_(material)
-{
-    if (!sprite_)
-        return;
-
-    zone_.x_ = mpoint.x_;
-    zone_.y_ = mpoint.y_;
-
-    sprite_->GetDrawRectangle(drawRect_, flipX, flipY);
-    sprite_->GetTextureRectangle(textureRect_, flipX, flipY);
-}
-
-void DrawableObjectInfo::Set(const ShortIntVector2& mpoint, Sprite2D* sprite, Material* material, bool flipX, bool flipY)
-{
-    zone_.x_ = mpoint.x_;
-    zone_.y_ = mpoint.y_;
-
-    sprite_ = sprite;
-    sprite_->GetDrawRectangle(drawRect_, flipX, flipY);
-    sprite_->GetTextureRectangle(textureRect_, flipX, flipY);
-
-    material_ = material;
-}
-
 
 DrawableScroller::ScrollerViewInfo DrawableScroller::scrollerinfos_[MAX_VIEWPORTS];
 bool DrawableScroller::flatmode_ = false;
@@ -1103,24 +1075,6 @@ void DrawableScroller::Clear()
     drawablePool_.Clear();
     freeDrawables_.Clear();
     drawables_.Clear();
-
-    worldScrollerObjectInfos_.Clear();
-}
-
-void DrawableScroller::RemoveAllObjectsOnMap(const ShortIntVector2& mpoint)
-{
-    unsigned numviewports = ViewManager::Get()->GetNumViewports();
-
-    for (int viewport=0; viewport < numviewports; viewport++)
-    {
-        ScrollerViewInfo& info = scrollerinfos_[viewport];
-
-        unsigned numscrollers = info.drawableScrollers_.Size();
-        for (unsigned i = 0; i < numscrollers; ++i)
-            info.drawableScrollers_[i]->RemoveScrollerObjects(mpoint);
-    }
-
-//    URHO3D_LOGINFOF("DrawableScroller() - RemoveAllObjectsOnMap : mpoint=%s !", mpoint.ToString().CString());
 }
 
 void DrawableScroller::SetParallax(const Vector2& parallax)
@@ -1133,41 +1087,19 @@ void DrawableScroller::SetLogTest(bool enable)
     logtest_ = enable;
 }
 
-void DrawableScroller::ResizeWorldScrollerObjectInfos(const ShortIntVector2& mpoint, unsigned numobjects, Sprite2D* sprite)
-{
-    Vector<DrawableObjectInfo>& drawableobjectinfos = worldScrollerObjectInfos_[mpoint];
 
-    if (drawableobjectinfos.Size() == numobjects)
-        return;
-
-    drawableobjectinfos.Resize(numobjects);
-
-    Material* material = customMaterial_ ? customMaterial_ : renderer_->GetMaterial(sprite->GetTexture(), GetBlendMode());
-
-    // add infos to scroller
-    for (Vector<DrawableObjectInfo>::Iterator it=drawableobjectinfos.Begin(); it!=drawableobjectinfos.End(); ++it)
-    {
-        it->Set(mpoint, sprite, material, Random(100) > 49, false);
-//        it->drawRect_.min_ *= scrollerscale_;
-//        it->drawRect_.max_ *= scrollerscale_;
-    }
-}
-
-void DrawableScroller::RemoveScrollerObjects(const ShortIntVector2& mpoint)
-{
-    worldScrollerObjectInfos_[mpoint].Clear();
-    sourceBatchesDirty_ = true;
-}
-
-DrawableScroller* DrawableScroller::AddScroller(int viewport, Material* material, int textureFX, int layer, int order, const Vector2& scale, const Vector2& motionBounds, const Vector2& parallax,
+DrawableScroller* DrawableScroller::AddScroller(int viewport, int iscroller, Material* material, int textureFX, int layer, int order, const Vector2& scale, const Vector2& motionBounds, const Vector2& parallax,
         EllipseW* boundCurve, bool allowBottomCurve, bool rotFollowCurve, const Vector2& offset, const Color& color, bool logTest)
 {
     ScrollerViewInfo& info = scrollerinfos_[viewport];
 
-    DrawableScroller* scroller = GameContext::Get().rootScene_->CreateComponent<DrawableScroller>();
+    if (iscroller >= info.drawableScrollers_.Size())
+        info.drawableScrollers_.Resize(iscroller+1);
 
+    DrawableScroller*& scroller = info.drawableScrollers_[iscroller];
+    scroller = GameContext::Get().rootScene_->CreateComponent<DrawableScroller>();
     scroller->SetViewport(viewport);
-    scroller->SetId(info.drawableScrollers_.Size());
+    scroller->SetId(iscroller);
     scroller->SetCustomMaterial(material);
     scroller->SetTextureFX(textureFX);
     scroller->SetLayer2(IntVector2(layer,-1));
@@ -1181,11 +1113,7 @@ DrawableScroller* DrawableScroller::AddScroller(int viewport, Material* material
     scroller->SetOffset(offset);
     scroller->SetColor(color);
     scroller->SetLogTest(logTest);
-
-    info.drawableScrollers_.Push(scroller);
-
 //    URHO3D_LOGINFOF("DrawableScroller() - AddScroller : viewport=%d id=%u scrollerptr=%u parallax=%s", scroller->viewport_, scroller->id_, scroller, parallax.ToString().CString());
-
     return scroller;
 }
 
@@ -1240,8 +1168,6 @@ void DrawableScroller::OnSetEnabled()
     sourceBatchesDirty_ = true;
 }
 
-//#define DRAWABLESCROLLER_COLORZONETEST
-
 void DrawableScroller::UpdateSourceBatches()
 {
     if (!sourceBatchesDirty_)
@@ -1252,12 +1178,13 @@ void DrawableScroller::UpdateSourceBatches()
 #ifdef DUMP_DRAWABLESCROLLER_WARNINGS
         URHO3D_LOGWARNINGF("DrawableScroller() - UpdateSourceBatches : viewport=%d map=%s => no drawableobjects !", viewport_, World2D::GetCurrentMapPoint(viewport_).ToString().CString());
 #endif
-        sourceBatches_[0].Clear();
+        sourceBatches_[0][0].vertices_.Clear();
         sourceBatchesDirty_ = false;
         return;
     }
-
-    sourceBatches_[0].Clear();
+    
+    Vector<Vertex2D>& vertices = sourceBatches_[0][0].vertices_;
+    vertices.Clear();
 
     if (!IsEnabledEffective() || !visibility_)
     {
@@ -1266,22 +1193,12 @@ void DrawableScroller::UpdateSourceBatches()
         return;
     }
 
-    const Material* lastmaterial = 0;
+    Material* material = sourceBatches_[0][0].material_;
     int ibatch = -1;
     int draworder = GetDrawOrder();
 
-    unsigned color;
-    {
-        float alpha = color_.a_;
-        Color lumcolor = color_ * GameContext::Get().luminosity_;
-        lumcolor.a_ = alpha;
-        color = lumcolor.ToUInt();
-    }
-
-#ifdef DRAWABLESCROLLER_COLORZONETEST
-    Color colorzone;
-    colorzone.a_ = 1.f;
-#endif
+    Color lumcolor = color_ * GameContext::Get().luminosity_;
+    lumcolor.a_ = color_.a_;
 
     if (!boundcurve_ || !rotationFollowCurve_)
     {
@@ -1334,21 +1251,7 @@ void DrawableScroller::UpdateSourceBatches()
             drawable.v3_.uv_ = Vector2(textureRect.max_.x_, textureRect.min_.y_);
         }
 
-#ifdef DRAWABLESCROLLER_COLORZONETEST
-        colorzone.r_ = colorzone.g_ = colorzone.b_ = 0.25f*(float)(Abs(dinfo.zone_.x_)) + 0.25f;
-        drawable.v0_.color_ = drawable.v1_.color_ = drawable.v2_.color_ = drawable.v3_.color_ = colorzone.ToUInt();
-#else
-        drawable.v0_.color_ = drawable.v1_.color_ = drawable.v2_.color_ = drawable.v3_.color_ = color;
-#endif
-        Material* const& material = dinfo.material_;
-        if (lastmaterial != material)
-        {
-            ibatch++;
-            sourceBatches_[0].Resize(ibatch+1);
-            sourceBatches_[0].Back().material_ = material;
-            sourceBatches_[0].Back().drawOrder_ = draworder;
-            lastmaterial = material;
-        }
+        drawable.v0_.color_ = drawable.v1_.color_ = drawable.v2_.color_ = drawable.v3_.color_ = (drawable.info_->color_ * lumcolor).ToUInt();
 
 #ifdef URHO3D_VULKAN
         unsigned texmode = 0;
@@ -1358,8 +1261,7 @@ void DrawableScroller::UpdateSourceBatches()
         SetTextureMode(TXM_UNIT, material ? material->GetTextureUnit(dinfo.sprite_->GetTexture()) : 0, texmode);
         SetTextureMode(TXM_FX, textureFX_, texmode);
         drawable.v0_.texmode_ = drawable.v1_.texmode_ = drawable.v2_.texmode_ = drawable.v3_.texmode_ = texmode;
-
-        Vector<Vertex2D>& vertices = sourceBatches_[0].Back().vertices_;
+        
         vertices.Push(drawable.v0_);
         vertices.Push(drawable.v1_);
         vertices.Push(drawable.v2_);
@@ -1524,8 +1426,8 @@ bool DrawableScroller::SetDrawableObjects()
 {
     if (drawablePool_.Size() > 0)
     {
-        if (logtest_)
-            URHO3D_LOGERRORF("DrawableScroller() - SetDrawableObjects : this=%u viewport=%d drawablePool_.Size()=%u drawables_.Size()=%u ... skip !", this, viewport_, drawablePool_.Size(), drawables_.Size());
+        //if (logtest_)
+        //    URHO3D_LOGERRORF("DrawableScroller() - SetDrawableObjects : this=%u viewport=%d drawablePool_.Size()=%u drawables_.Size()=%u ... skip !", this, viewport_, drawablePool_.Size(), drawables_.Size());
         return true;
     }
 
@@ -1540,15 +1442,8 @@ bool DrawableScroller::SetDrawableObjects()
         return false;
     }
 
-    DrawableObjectInfo* dinfo = GetWorldScrollerObjectInfo(map->GetMapPoint(), 0);
-    if (!dinfo)
-    {
-        if (logtest_)
-            URHO3D_LOGWARNINGF("DrawableScroller() - SetDrawableObjects : viewport=%d map=%s => no dinfo ... skip !", viewport_, map->GetMapPoint().ToString().CString());
-        return false;
-    }
-
-    if (dinfo->drawRect_.Size().x_ <= 0.f)
+    const DrawableObjectInfo* dinfo = World2D::GetWorldInfo()->GetBackGroundInfoPtr(map->GetBackGroundType(), id_);
+    if (!dinfo || dinfo->drawRect_.Size().x_ <= 0.f)
     {
         URHO3D_LOGERRORF("DrawableScroller() - SetDrawableObjects : dinfo->drawRect_.Size().x_ <= 0.f !");
         return false;
@@ -1682,6 +1577,12 @@ void DrawableScroller::ClearDrawables()
     drawablesTopCurve_.Clear();
 }
 
+void DrawableScroller::SetEnabledDrawables(bool enable)
+{
+    for (auto& drawable : drawables_)
+        drawable->enable_ = enable;
+}
+
 void DrawableScroller::SetDrawableVertices(DrawableObject& drawable)
 {
     matrix_.Set(scrollerposition_ + Vector2(0.f, drawable.angle_.x_ != 0.f ? (drawable.angle_.x_ > 0.f ? scrolleroffset_.y_ : -scrolleroffset_.y_) : 0.f) + drawable.position_, drawable.angle_, scrollerscale_);
@@ -1775,6 +1676,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
 
     const float quadrantx = bmin.x_ < boundcurve_->center_.x_ ? -1.f : 1.f;
     Vector2 pos;
+    Map* map = World2D::GetCurrentMap(viewport_);
+    const DrawableObjectInfo* dinfo = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
 
     // On X Ellipse border Add Drawable
     if (freeDrawables_.Size() && bmin.y_ == boundcurve_->center_.y_)
@@ -1787,6 +1690,7 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
             drawable.angle_.x_ = 0.f;
             drawable.position_.x_ = boundcurve_->GetMinX();
             drawable.angle_.y_ = 1.f;
+            drawable.info_ = dinfo;
             SetDrawableVertices(drawable);
             drawables.Insert(0, &drawable);
             freeDrawables_.Pop();
@@ -1796,13 +1700,13 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         }
         else if (quadrantx > 0.f && (!drawables.Size() || drawables.Back()->position_.x_ != boundcurve_->GetMaxX()))
         {
-
             DrawableObject& drawable = *freeDrawables_.Back();
             drawable.flipX_ = drawables.Size() % 3;
             drawable.position_.y_ = boundcurve_->center_.y_;
             drawable.angle_.x_ = 0.f;
             drawable.position_.x_ = boundcurve_->GetMaxX();
             drawable.angle_.y_ = -1.f;
+            drawable.info_ = dinfo;
             SetDrawableVertices(drawable);
             drawables.Insert(drawables.Size(), &drawable);
             freeDrawables_.Pop();
@@ -1818,19 +1722,19 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         DrawableObject& drawable = *freeDrawables_.Back();
         drawable.flipX_ = false;
         drawable.position_.x_ = (first.x_ + last.x_) / 2.f - scrollerposition_.x_;
-
+        drawable.info_ = dinfo;
         boundcurve_->GetPositionOn(scrollerposition_.x_, 1.f, drawable.position_, drawable.angle_);
-
-        SetDrawableVertices(drawable);
+        SetDrawableVertices(drawable);        
         if (visibleRect.IsInside(drawable.rect_) == OUTSIDE)
         {
-//            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... can't add first drawable at (%F,%F) scrollY=%F Rect(%F,%F %F,%F) Outside visiblerect(%F,%F %F,%F) !",
-//                            this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, scrollerposition_.y_,
-//                            drawable.rect_.min_.x_, drawable.rect_.min_.y_, drawable.rect_.max_.x_, drawable.rect_.max_.y_,
-//                            visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_);
+            if (logtest_)
+                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... can't add first drawable at (%F,%F) scrollY=%F Rect(%F,%F %F,%F) Outside visiblerect(%F,%F %F,%F) !",
+                            this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, scrollerposition_.y_,
+                            drawable.rect_.min_.x_, drawable.rect_.min_.y_, drawable.rect_.max_.x_, drawable.rect_.max_.y_,
+                            visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_);
             return;
         }
-
+       
         drawables.Insert(0, &drawable);
         freeDrawables_.Pop();
 
@@ -1863,6 +1767,7 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         if (drawable.position_.x_ >= pos.x_)
             break;
 
+        drawable.info_ = dinfo;
         SetDrawableVertices(drawable);
         if (visibleRect.IsInside(drawable.rect_) == OUTSIDE)
             break;
@@ -1893,11 +1798,11 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         DrawableObject& drawable = *freeDrawables_.Back();
         drawable.flipX_ = drawables.Size() % 3;
         drawable.position_.x_ = pos.x_ + w * overlap;
-
         boundcurve_->GetPositionOn(scrollerposition_.x_, 1.f, drawable.position_, drawable.angle_);
         if (drawable.position_.x_ <= pos.x_)
             break;
 
+        drawable.info_ = dinfo;
         SetDrawableVertices(drawable);
         if (visibleRect.IsInside(drawable.rect_) == OUTSIDE)
             break;
@@ -2129,11 +2034,20 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
     if (!info.camPositionCount_ && info.nodeToFollow_)
         info.camPosition_ = info.nodeToFollow_->GetWorldPosition2D();
 
-    if (info.camPosition_ == info.lastCamPosition_ && GameContext::Get().luminosity_ == GameContext::Get().lastluminosity_)
+    if (info.camPosition_ == info.lastCamPosition_)
+    {
+        if (GameContext::Get().luminosity_ != GameContext::Get().lastluminosity_)
+            sourceBatchesDirty_ = true;
         return;
+    }
 
     const Vector2 camInitialOffset = info.camPosition_ - info.initialPosition_;
     const Vector2 camMotion = info.camPosition_ - info.lastCamPosition_;
+
+    if (logtest_)
+        URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... campos=%s last=%s lum=%F lastlum=%F iscroller=%d count=%d", 
+                this, info.camPosition_.ToString().CString(), info.lastCamPosition_.ToString().CString(),
+                GameContext::Get().luminosity_, GameContext::Get().lastluminosity_, id_, info.camPositionCount_);
 
     // update lastCamPosition (update just once for all DrawableScrollers)
     info.camPositionCount_++;
@@ -2175,11 +2089,10 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                 {
                     leftdrawable->position_.x_ = rightdrawable->position_.x_ + drawableSize_.x_ - drawableoverlap_;
                     float y = GetNewYAtX(viewport_, scrollerposition_.x_ + leftdrawable->position_.x_, mpoint, map);
-                    DrawableObjectInfo* dinfo = map ? GetWorldScrollerObjectInfo(map->GetMapPoint(), 0) : 0;
-                    leftdrawable->enable_ = dinfo && y > -1.f;
+                    leftdrawable->enable_ = map && y > -1.f;
                     if (leftdrawable->enable_)
                     {
-                        leftdrawable->info_ = dinfo;
+                        leftdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                         leftdrawable->position_.y_ = scrolleroffset_.y_ + map->GetTopography().maporigin_.y_ + y;
                     }
 
@@ -2196,11 +2109,10 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                 {
                     rightdrawable->position_.x_ = leftdrawable->position_.x_ - drawableSize_.x_ + drawableoverlap_;
                     float y = GetNewYAtX(viewport_, scrollerposition_.x_ + rightdrawable->position_.x_, mpoint, map);
-                    DrawableObjectInfo* dinfo = map ? GetWorldScrollerObjectInfo(map->GetMapPoint(), 0) : 0;
-                    rightdrawable->enable_ = dinfo && (y > -1.f);
+                    rightdrawable->enable_ = map && (y > -1.f);
                     if (rightdrawable->enable_)
                     {
-                        rightdrawable->info_ = dinfo;
+                        rightdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                         rightdrawable->position_.y_ = scrolleroffset_.y_ + map->GetTopography().maporigin_.y_ + y;
                     }
 
@@ -2233,16 +2145,15 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                     continue;
 
                 y = GetNewYAtX(viewport_, scrollerposition_.x_ + drawable.position_.x_, mpoint, map);
-
+/*
                 // skip if in same map coord y
                 if (drawable.info_ && drawable.info_->zone_.y_ == mpoint.y_)
                     continue;
-
-                DrawableObjectInfo* dinfo = map ? GetWorldScrollerObjectInfo(map->GetMapPoint(), 0) : 0;
-                drawable.enable_ = dinfo && y > -1.f && y < MapInfo::info.mHeight_;
+*/
+                drawable.enable_ = map && y > -1.f && y < MapInfo::info.mHeight_;
                 if (drawable.enable_)
                 {
-                    drawable.info_ = dinfo;
+                    drawable.info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                     drawable.position_.y_ = scrolleroffset_.y_ + map->GetTopography().maporigin_.y_ + y;
                 }
             }
@@ -2252,7 +2163,8 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
     {
         if (!map || map->GetTopography().IsFullGround())
         {
-            ClearDrawables();
+            SetEnabledDrawables(false);
+            //ClearDrawables();
         }
         else
         {
@@ -2272,23 +2184,30 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
             if (intersections.Size() > 1)
             {
                 // no drawables : regenerate drawables list at bounds.min_
-                if (drawablesTopCurve_.Size() + drawablesBottomCurve_.Size() == 0 && lastDrawablePositionAtLeft_ > intersections.Front().x_ - scrollerposition_.x_ - scrolleroffset_.x_)
-                {
-                    lastDrawablePositionAtLeft_ = intersections.Front().x_ - scrollerposition_.x_ - scrolleroffset_.x_;
-//                    if (logtest_)
-//                        URHO3D_LOGINFOF("RemoveDrawablesOutsideBounds this=%u ... new lastDrawablePositionAtLeft_=%F ...", this, lastDrawablePositionAtLeft_);
+                if (drawablesTopCurve_.Size() + drawablesBottomCurve_.Size() == 0)
+                {   
+                    float leftbound = intersections.Front().x_ - scrollerposition_.x_ - scrolleroffset_.x_;
+                    if (lastDrawablePositionAtLeft_ > leftbound)
+                    {
+                        lastDrawablePositionAtLeft_ = leftbound;
+//                        if (logtest_)
+//                            URHO3D_LOGINFOF("RemoveDrawablesOutsideBounds this=%u ... new lastDrawablePositionAtLeft_=%F ...", this, lastDrawablePositionAtLeft_);
+                    }
                 }
 
                 if (lastDrawablePositionAtLeft_ + scrollerposition_.x_ > intersections.Back().x_)
                 {
                     // the drawables are all outside on the right
-                    ClearDrawables();
+                    SetEnabledDrawables(false);
+                    //ClearDrawables();
                     if (logtest_)
-                        URHO3D_LOGINFOF("RemoveDrawablesOutsideBounds this=%u ... lastDrawablePositionAtLeft_=%F + ScrollerX=%F > boundRight=%F => Clear All Drawables ...", this, lastDrawablePositionAtLeft_, scrollerposition_.x_, intersections.Back().x_);
+                        URHO3D_LOGINFOF("HandleUpdateEllipseMode this=%u ... lastDrawablePositionAtLeft_=%F + ScrollerX=%F > boundRight=%F => Clear All Drawables ...", this, lastDrawablePositionAtLeft_, scrollerposition_.x_, intersections.Back().x_);
                 }
 
+                if (logtest_)
+                    URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... ScrollerX=%F mapX=%d", this, scrollerposition_.x_, mpoint.x_);
+                
                 UpdateDrawablesOnTopCurve(intersections.Front(), intersections.Back());
-
                 UpdateDrawablesOnBottomCurve(intersections.Front(), intersections.Back());
 
                 drawables_ = drawablesTopCurve_;
@@ -2310,7 +2229,8 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
             }
             else if (drawables_.Size())
             {
-                ClearDrawables();
+                SetEnabledDrawables(false);
+                //ClearDrawables();
                 if (logtest_)
                     URHO3D_LOGINFOF(" this=%u ... Outside => Clear Drawables ...", this);
             }
@@ -2340,11 +2260,10 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                 {
                     leftdrawable->position_.x_ = rightdrawable->position_.x_ + drawablewidth * 0.75f;
                     float y = GetNewYAtX(viewport_, scrollerposition_.x_ + leftdrawable->position_.x_, mpoint, map);
-                    DrawableObjectInfo* dinfo = map ? GetWorldScrollerObjectInfo(map->GetMapPoint(), 0) : 0;
-                    leftdrawable->enable_ = dinfo && y > -1.f;
+                    leftdrawable->enable_ = map && y > -1.f;
                     if (leftdrawable->enable_)
                     {
-                        leftdrawable->info_ = dinfo;
+                        leftdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                         leftdrawable->position_.y_ = scrolleroffset_.y_ + map->GetTopography().maporigin_.y_ + y;
                     }
 
@@ -2361,11 +2280,10 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                 {
                     rightdrawable->position_.x_ = leftdrawable->position_.x_ - drawablewidth * 0.75f;
                     float y = GetNewYAtX(viewport_, scrollerposition_.x_ + rightdrawable->position_.x_, mpoint, map);
-                    DrawableObjectInfo* dinfo = map ? GetWorldScrollerObjectInfo(map->GetMapPoint(), 0) : 0;
-                    rightdrawable->enable_ = dinfo && (y > -1.f);
+                    rightdrawable->enable_ = map && (y > -1.f);
                     if (rightdrawable->enable_)
-                    {
-                        rightdrawable->info_ = dinfo;
+                    { 
+                        rightdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                         rightdrawable->position_.y_ = scrolleroffset_.y_ + map->GetTopography().maporigin_.y_ + y;
                     }
 
@@ -2499,11 +2417,10 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
         if (rightdrawable->info_->drawRect_.max_.x_ + rightdrawable->position_.x_ + scrollerposition_.x_ - drawableoverlap_ <= visibleRect.max_.x_)
         {
             leftdrawable->position_.x_ = rightdrawable->position_.x_ + drawableSize_.x_ - drawableoverlap_;
-            DrawableObjectInfo* dinfo = GetWorldScrollerObjectInfo(World2D::GetCurrentMapPoint(viewport_), 0);
-            leftdrawable->enable_ = dinfo != 0;
+            leftdrawable->enable_ = map;
             if (leftdrawable->enable_)
             {
-                leftdrawable->info_ = dinfo;
+                leftdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                 leftdrawable->position_.y_ = scrolleroffset_.y_;
                 if (!boundcurve_)
                     leftdrawable->position_.y_ += map->GetTopography().GetY(scrollerposition_.x_+leftdrawable->position_.x_);
@@ -2521,11 +2438,10 @@ void DrawableScroller::HandleUpdateFlatMode(StringHash eventType, VariantMap& ev
         if (leftdrawable->info_->drawRect_.min_.x_ + leftdrawable->position_.x_ + scrollerposition_.x_ + drawableoverlap_ >= visibleRect.min_.x_)
         {
             rightdrawable->position_.x_ = leftdrawable->position_.x_ - drawableSize_.x_ + drawableoverlap_;
-            DrawableObjectInfo* dinfo = GetWorldScrollerObjectInfo(World2D::GetCurrentMapPoint(viewport_), 0);
-            rightdrawable->enable_ = (dinfo != 0);
+            rightdrawable->enable_ = map;
             if (rightdrawable->enable_)
             {
-                rightdrawable->info_ = dinfo;
+                rightdrawable->info_ = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
                 rightdrawable->position_.y_ = scrolleroffset_.y_;
                 if (!boundcurve_)
                     rightdrawable->position_.y_ += map->GetTopography().GetY(scrollerposition_.x_+rightdrawable->position_.x_);

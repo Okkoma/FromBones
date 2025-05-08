@@ -4673,14 +4673,9 @@ bool Map::Set(Node* node, HiresTimer* timer)
 #ifdef ACTIVE_WORLD2D_PROFILING
         URHO3D_PROFILE(Map_SetBackGd);
 #endif
-
-        if (!AddBackGroundLayers(timer))
-        {
-#ifdef DUMP_ERROR_ON_TIMEOVER
-            LogTimeOver(ToString("Map() - Set : map=%s ... Setting BackGround", GetMapPoint().ToString().CString()), timer, delayUpdateUsec_);
-#endif
-            break;
-        }
+        // Temporary Test : change of backgroundtype with a frequency of 25 maps.
+        // to let operate the change of sprites in the last background scroller (mountains).
+        backgroundType_ = Abs(mapStatus_.mappoint_.x_) / 25 % WORLD_MAX_BACKGROUNDTYPES;
 
         SetStatus(Setting_MiniMap);
 
@@ -6530,107 +6525,6 @@ void Map::OnTileModified(int x, int y)
     SetMiniMapAt(x, y);
 
     SendEvent(MAP_UPDATE);
-}
-
-
-
-/// BACKGROUND SETTERS
-
-bool Map::AddBackGroundLayers(HiresTimer* timer)
-{
-    if (!info_->imageLayerResources_.Size())
-    {
-        URHO3D_LOGERRORF("Map() - AddBackGroundLayers : mPoint=%s mode=%s no imageLayerResources_ !", GetMapPoint().ToString().CString(), mapTopography_.flatmode_ ? "Flat":"Ellipsoid");
-        return true;
-    }
-
-#ifdef HANDLE_BACKGROUND_IMAGE
-    Node* node = node_->CreateChild("ImageLayer", LOCAL);
-    if (!node)
-        return true;
-
-    nodeImages_.Push(node);
-
-    const ResourceRef& resourceref = info_->imageLayerResources_[Random((int)info_->imageLayerResources_.Size())];
-    Sprite2D* sprite = Sprite2D::LoadFromResourceRef(context_, resourceref);
-    if (!sprite)
-        return true;
-
-    Rect drawrect;
-    if (!sprite->GetDrawRectangle(drawrect))
-        return true;
-
-    Vector2 size = drawrect.Size();
-
-    node->SetWorldScale(Vector3(MapInfo::info.mWidth_/size.x_, MapInfo::info.mHeight_/size.y_, 0.f));
-    node->SetPosition(Vector3::ZERO);
-    node->SetEnabled(false);
-
-    StaticSprite2D* background = node->CreateComponent<StaticSprite2D>(LOCAL);
-    background->SetSprite(sprite);
-    background->SetLayer2(IntVector2(BACKSCROLL_2,-1));
-    background->SetHotSpot(Vector2(0.f, 0.f));
-    background->SetUseHotSpot(true);
-#endif
-
-#ifdef HANDLE_BACKGROUND_LAYERS
-    URHO3D_LOGINFOF("Map() - AddBackGroundLayers : mPoint=%s mode=%s", GetMapPoint().ToString().CString(), mapTopography_.flatmode_ ? "Flat":"Ellipsoid");
-
-    // Flat World
-    if (mapTopography_.flatmode_ && mapTopography_.HasNoFreeSides())
-    {
-        URHO3D_LOGINFOF("Map() - AddBackGroundLayers : mPoint=%s Flat world and Nofreesides", GetMapPoint().ToString().CString());
-        return true;
-    }
-
-    // Ellipsoid World
-    if (!mapTopography_.flatmode_ && mapTopography_.IsFullGround())
-    {
-        URHO3D_LOGINFOF("Map() - AddBackGroundLayers : mPoint=%s Ellipsoid world with FullGround", GetMapPoint().ToString().CString());
-        return true;
-    }
-
-    ResourceCache* cache = GetSubsystem<ResourceCache>();
-
-    DrawableScroller* scroller;
-    Sprite2D *sprite;
-
-    for (int viewport=0; viewport < MAX_VIEWPORTS; viewport++)
-    {
-        unsigned numscrollers = DrawableScroller::GetNumScrollers(viewport);
-        for (int iscroller=0; iscroller < numscrollers; iscroller++)
-        {
-            scroller = DrawableScroller::GetScroller(viewport, iscroller);
-
-            if (!scroller)
-                continue;
-
-            /// TODO : why this ?
-            int numdrawables = 1;
-            Vector<DrawableObjectInfo>* drawableptr = scroller->GetWorldScrollerObjectInfos(GetMapPoint());
-
-            URHO3D_LOGINFOF("Map() - AddBackGroundLayers : map=%s viewport=%d drawablescroller=%d adding objects ... (%u ? %u)",
-                            GetMapPoint().ToString().CString(), viewport, iscroller, numdrawables, drawableptr ? drawableptr->Size() : 0);
-
-            if (!drawableptr || drawableptr->Size() != numdrawables)
-            {
-                int imageindex = Urho3D::Clamp((int)iscroller, 0, (int)info_->imageLayerResources_.Size()-1);
-
-                Sprite2D* sprite = Sprite2D::LoadFromResourceRef(context_, ResourceRef(info_->imageLayerResources_[imageindex]));
-                if (!sprite)
-                    continue;
-
-                sprite->SetHotSpot(info_->imageLayerHotSpots_[imageindex]);
-
-                // use edge offset to prevent edge bleeding with texture atlas
-                sprite->SetTextureEdgeOffset(Min(1.f, 1.f/GameContext::Get().dpiScale_));
-
-                scroller->ResizeWorldScrollerObjectInfos(GetMapPoint(), numdrawables, sprite);
-            }
-        }
-    }
-#endif
-    return true;
 }
 
 

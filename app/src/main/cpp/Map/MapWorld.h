@@ -150,8 +150,8 @@ public:
     void SetMapAddObjectAttr(bool addObject);
     void SetMapAddFurnitureAttr(bool addFurniture);
     void SetMapAddBorderAttr(bool addBorder);
-    void SetMapAddImageLayerAttr(const String& texture);
-    void SetMapAddImageLayersAttr(const StringVector& textureInfos);
+    void RegisterBackground(int backtype, int iscroller, const ResourceRef& ref, const Vector2& hotspot=Vector2(0.5f,0.5f), const Color& color=Color::WHITE);
+    void RegisterBackgrounds(const StringVector& infos);
     void SetAnlWorldModelAttr(const String& modelfile);
     void SetMapGeneratorAttr(const String& gen);
     void SetMapGeneratorParams(const String& params);
@@ -173,8 +173,7 @@ public:
     bool GetMapAddObjectAttr() const { return info_->addObject_; }
     bool GetMapAddFurnitureAttr() const { return info_->addFurniture_; }
     bool GetMapAddBorderAttr() const { return addBorder_; }
-    const String& GetMapAddImageLayerAttr() const { return String::EMPTY; }
-    const StringVector& GetMapAddImageLayersAttr() const { return imageLayersInfos_; }
+    const StringVector& GetRegisteredBackgrounds() const { return backgroundInfos_; }
     const String& GetAnlWorldModelAttr() const;
     const String& GetMapGeneratorAttr() const;
     const String& GetMapGeneratorParams() const;
@@ -377,7 +376,7 @@ private :
 
     IntVector2 chunkNum_;
 
-    StringVector imageLayersInfos_;
+    StringVector backgroundInfos_;
 
     unsigned generatorSeed_;
     IntVector2 generatorNumEntities_;

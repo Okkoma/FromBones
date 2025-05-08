@@ -32,6 +32,9 @@ using namespace Urho3D;
 #define WORLD_HUGE IntRect(-20,-20,20,20)
 #define WORLD_INFINITE IntRect(0,0,0,0)
 
+#define WORLD_MAX_SCROLLERS 6
+#define WORLD_MAX_BACKGROUNDTYPES 4
+
 static const IntVector2 UndefinedMapPosition(-1,-1);
 static const float VisibleRectOverscan = 4.f;
 
@@ -107,6 +110,41 @@ struct GeneratorParams
     String ToString() const;
 };
 
+struct DrawableObjectInfo
+{
+    DrawableObjectInfo() { }
+    DrawableObjectInfo(Sprite2D* sprite, bool flipX, bool flipY, const Color& color) :
+        sprite_(sprite),
+        color_(color)
+    {
+        if (sprite)
+        {
+            sprite->GetDrawRectangle(drawRect_, flipX, flipY);
+            sprite->GetTextureRectangle(textureRect_, flipX, flipY);
+        }
+    }
+
+    DrawableObjectInfo(const DrawableObjectInfo& s) :
+        sprite_(s.sprite_),
+        drawRect_(s.drawRect_),
+        textureRect_(s.textureRect_),
+        color_(s.color_) { }
+
+    void Set(Sprite2D* sprite, bool flipX, bool flipY, const Color& color)
+    {
+        sprite_ = sprite;
+        if (sprite_)
+        {        
+            sprite_->GetDrawRectangle(drawRect_, flipX, flipY);
+            sprite_->GetTextureRectangle(textureRect_, flipX, flipY);
+        }
+        color_ = color;
+    }    
+
+    SharedPtr<Sprite2D> sprite_;   
+    Rect drawRect_, textureRect_;
+    Color color_;
+};
 
 class World2DInfo
 {
@@ -145,10 +183,19 @@ public :
     }
     void ParseParams(const String& params);
 
-    void ClearImageLayer()
+    void ClearBackGroundInfos()
     {
-        imageLayerResources_.Clear();
-        imageLayerHotSpots_.Clear();
+        backgroundDrawableObjects_.Clear();
+    }
+    inline unsigned GetBackGroundIndex(int backtype, int iscroller) const { return backtype * WORLD_MAX_SCROLLERS + iscroller; }
+    DrawableObjectInfo* GetBackGroundInfoPtr(int backtype, int iscroller) const
+    {
+        const unsigned addr = GetBackGroundIndex(backtype, iscroller);
+        return addr < backgroundDrawableObjects_.Size () ? (DrawableObjectInfo*)&backgroundDrawableObjects_.At(addr) : (DrawableObjectInfo*)nullptr;
+    }
+    const DrawableObjectInfo& GetBackGroundInfo(int backtype, int iscroller) const
+    { 
+        return backgroundDrawableObjects_.At(GetBackGroundIndex(backtype, iscroller));
     }
 
     const GeneratorParams* GetMapGenParams(int z) const;
@@ -228,8 +275,9 @@ public :
     EllipseW worldGroundRef_, worldAtmosphere_, worldHillTop_, worldGround_, worldCenter_;
 
     Node* node_;
-    Vector<ResourceRef > imageLayerResources_;
-    Vector<Vector2> imageLayerHotSpots_;
+
+    // background sprites table indexed by backgroundtype and by scroller id
+    Vector<DrawableObjectInfo> backgroundDrawableObjects_;
 
     unsigned defaultGenerator_;
     HashMap<int, GeneratorParams > genParams_;

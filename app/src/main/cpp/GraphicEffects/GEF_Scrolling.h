@@ -195,31 +195,12 @@ private :
 
 /// DrawableScroller : défilement de Sprite avec parallax. Un sprite a une position et est attaché à une zone (map point)
 
-struct DrawableObjectInfo
-{
-    DrawableObjectInfo() { }
-    DrawableObjectInfo(const ShortIntVector2& mpoint, Sprite2D* sprite, Material* material, bool flipX = false, bool flipY = false);
-    DrawableObjectInfo(const DrawableObjectInfo& s) :
-        zone_(s.zone_),
-        sprite_(s.sprite_),
-        material_(s.material_),
-        drawRect_(s.drawRect_),
-        textureRect_(s.textureRect_) { }
-
-    void Set(const ShortIntVector2& mpoint, Sprite2D* sprite, Material* material, bool flipX = false, bool flipY = false);
-
-    IntVector2 zone_;
-    SharedPtr<Sprite2D> sprite_;
-    Material* material_;
-    Rect drawRect_, textureRect_;
-};
-
 struct DrawableObject
 {
     Vector2 position_, angle_, size_;
     Vertex2D v0_, v1_, v2_, v3_;
     Rect rect_;
-    DrawableObjectInfo* info_;
+    const DrawableObjectInfo* info_;
     bool enable_, flipX_;
 };
 
@@ -244,10 +225,9 @@ public:
         scrollerinfos_[viewport].intensity_ = intensity;
     }
 
-    static DrawableScroller* AddScroller(int viewport, Material* material, int textureFX, int layer, int order, const Vector2& scale, const Vector2& motionBounds,
+    static DrawableScroller* AddScroller(int viewport, int iscroller, Material* material, int textureFX, int layer, int order, const Vector2& scale, const Vector2& motionBounds,
                                          const Vector2& parallax = Vector2::ONE, EllipseW* boundCurve=0, bool allowBottomCurve_=false, bool rotFollowCurve=false,
                                          const Vector2& offset = Vector2::ZERO, const Color& color = Color::WHITE, bool logTest=false);
-    static void RemoveAllObjectsOnMap(const ShortIntVector2& mpoint);
 
     static unsigned GetNumScrollers(int viewport)
     {
@@ -296,29 +276,9 @@ public:
         motionBounds_ = motionBounds;
     }
 
-    void ResizeWorldScrollerObjectInfos(const ShortIntVector2& mpoint, unsigned numobjects, Sprite2D* sprite);
-    void RemoveScrollerObjects(const ShortIntVector2& mpoint);
-
     const Vector2& GetParallax() const
     {
         return parallax_;
-    }
-
-    Vector<DrawableObjectInfo>* GetWorldScrollerObjectInfos(const ShortIntVector2& mpoint)
-    {
-        HashMap<ShortIntVector2, Vector<DrawableObjectInfo> >::Iterator it = worldScrollerObjectInfos_.Find(mpoint);
-        return it != worldScrollerObjectInfos_.End() ? &it->second_ : 0;
-    }
-    DrawableObjectInfo* GetWorldScrollerObjectInfo(const ShortIntVector2& mpoint, unsigned index)
-    {
-        HashMap<ShortIntVector2, Vector<DrawableObjectInfo> >::Iterator it = worldScrollerObjectInfos_.Find(mpoint);
-        if (it != worldScrollerObjectInfos_.End())
-        {
-            Vector<DrawableObjectInfo>& objects = it->second_;
-            return objects.Size() > index ? &objects[index] : 0;
-        }
-
-        return 0;
     }
 
     virtual BoundingBox GetWorldBoundingBox2D();
@@ -337,6 +297,7 @@ private:
     friend struct DrawableObject;
 
     void ClearDrawables();
+    void SetEnabledDrawables(bool enable);
     bool SetDrawableObjects();
 
     inline void SetDrawableVertices(DrawableObject& drawable);
@@ -361,8 +322,6 @@ private:
     float drawableoverlap_;
     float lastDrawablePositionAtLeft_;
     Matrix2x3 matrix_;
-
-    HashMap<ShortIntVector2, Vector<DrawableObjectInfo> > worldScrollerObjectInfos_;
 
     Vector<DrawableObject> drawablePool_;
     Vector<DrawableObject* > freeDrawables_;
