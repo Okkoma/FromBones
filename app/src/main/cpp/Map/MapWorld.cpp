@@ -343,7 +343,8 @@ void World2D::SetMapAddBorderAttr(bool addBorder)
 
 void World2D::RegisterBackground(int backtype, int iscroller, const ResourceRef& ref, const Vector2& hotspot, const Color& color)
 {
-    DrawableObjectInfo& dinfo = info_->backgroundDrawableObjects_.At(info_->GetBackGroundIndex(backtype, iscroller));
+    unsigned index = info_->GetBackGroundIndex(backtype, iscroller);
+    DrawableObjectInfo& dinfo = info_->backgroundDrawableObjects_.At(index);
     Sprite2D* sprite = Sprite2D::LoadFromResourceRef(context_, ref);
     if (sprite)
     {
@@ -355,6 +356,7 @@ void World2D::RegisterBackground(int backtype, int iscroller, const ResourceRef&
         URHO3D_LOGERROR("World2D - RegisterBackground : can't load sprite ref=" + ref.ToString());
 
     dinfo.Set(sprite, Random(100) > 49, false, color);
+    URHO3D_LOGERRORF("World2D::RegisterBackground - iscroller=%d backtype=%d backgroundDrawableObjects_[%u] Size=%u", iscroller, backtype, index, info_->backgroundDrawableObjects_.Size());
 }
 
 void World2D::RegisterBackgrounds(const StringVector& infos)

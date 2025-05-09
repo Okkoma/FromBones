@@ -34,6 +34,7 @@ using namespace Urho3D;
 
 #define WORLD_MAX_SCROLLERS 6
 #define WORLD_MAX_BACKGROUNDTYPES 4
+#define WORLD_NUM_MAPS_BEFORE_BACKGROUND_CHANGE 20
 
 static const IntVector2 UndefinedMapPosition(-1,-1);
 static const float VisibleRectOverscan = 4.f;

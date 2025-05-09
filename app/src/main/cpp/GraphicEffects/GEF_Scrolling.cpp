@@ -1633,37 +1633,13 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
     else
         visibleRect.max_.y_ = bmax.y_;
 
-    // Remove Drawables Outside Bounds
-    if (drawables.Size())
-    {
-        Vector<DrawableObject*>::Iterator it = drawables.Begin();
-        while (it != drawables.End())
-        {
-            if (visibleRect.IsInside((*it)->rect_) == OUTSIDE)
-            {
-//                if (logtest_)
-//                    URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... visibleRect(%F,%F %F,%F) ... Outside => remove drawable at (%F,%F) Rect(%F,%F %F,%F)",
-//                                this, visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_, (*it)->position_.x_, (*it)->position_.y_, (*it)->rect_.min_.x_, (*it)->rect_.min_.y_, (*it)->rect_.max_.x_, (*it)->rect_.max_.y_);
-
-                freeDrawables_.Push(*it);
-                it = drawables.Erase(it);
-                continue;
-            }
-
-            ++it;
-        }
-    }
-
     if (!freeDrawables_.Size())
         return;
 
     if (visibleRect.max_.y_ < boundcurve_->center_.y_)
         return;
 
-    if (logtest_)
-        URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... entry(%F,%F %F,%F) bounds(%F,%F %F,%F) ... scroll=%F %F ", this, first.x_, first.y_, last.x_, last.y_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, scrollerposition_.x_, scrollerposition_.y_);
-
-    // Update Positions for existing drawables
+    // 1. Update Positions for existing drawables
     if (scrollerposition_.x_ * scrollerposition_.y_ != 0.f)
     {
         for (Vector<DrawableObject*>::Iterator it = drawables.Begin(); it != drawables.End(); ++it)
@@ -1674,10 +1650,31 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         }
     }
 
+    // 2. Remove Drawables Outside Bounds (the positions need to be updated first)
+    if (drawables.Size())
+    {
+        Vector<DrawableObject*>::Iterator it = drawables.Begin();
+        while (it != drawables.End())
+        {
+            if (visibleRect.IsInside((*it)->rect_) == OUTSIDE)
+            {
+               if (logtest_)
+                   URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d ... visibleRect(%F,%F %F,%F) ... Outside => remove drawable at (%F,%F) Rect(%F,%F %F,%F)",
+                               id_, visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_, (*it)->position_.x_, (*it)->position_.y_, (*it)->rect_.min_.x_, (*it)->rect_.min_.y_, (*it)->rect_.max_.x_, (*it)->rect_.max_.y_);
+
+                freeDrawables_.Push(*it);
+                it = drawables.Erase(it);
+                continue;
+            }
+            ++it;
+        }
+    }
+
     const float quadrantx = bmin.x_ < boundcurve_->center_.x_ ? -1.f : 1.f;
     Vector2 pos;
     Map* map = World2D::GetCurrentMap(viewport_);
-    const DrawableObjectInfo* dinfo = &World2D::GetWorldInfo()->GetBackGroundInfo(map->GetBackGroundType(), id_);
+    int backgroundtype = map && map->GetStatus() >= Generating_Map && map->GetStatus() <= Available ? map->GetBackGroundType() : 3;
+    const DrawableObjectInfo* dinfo = &World2D::GetWorldInfo()->GetBackGroundInfo(backgroundtype, id_);
 
     // On X Ellipse border Add Drawable
     if (freeDrawables_.Size() && bmin.y_ == boundcurve_->center_.y_)
@@ -1696,7 +1693,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
             freeDrawables_.Pop();
             pos = drawable.position_;
             if (logtest_)
-                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... add Xborder- drawable at (%F,%F) ... drawablesSize=%u !", this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_, drawables.Size());
+                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d bounds(%F,%F %F,%F) ... add Xborder- drawable at (%F,%F) ... drawablesSize=%u !", 
+                        id_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_, drawables.Size());
         }
         else if (quadrantx > 0.f && (!drawables.Size() || drawables.Back()->position_.x_ != boundcurve_->GetMaxX()))
         {
@@ -1712,7 +1710,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
             freeDrawables_.Pop();
             pos = drawable.position_;
             if (logtest_)
-                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... add Xborder+ drawable at (%F,%F) ... drawablesSize=%u !", this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_, drawables.Size());
+                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d bounds(%F,%F %F,%F) ... add Xborder+ drawable at (%F,%F) ... drawablesSize=%u !", 
+                        id_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_, drawables.Size());
         }
     }
 
@@ -1727,11 +1726,11 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         SetDrawableVertices(drawable);        
         if (visibleRect.IsInside(drawable.rect_) == OUTSIDE)
         {
-            if (logtest_)
-                URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... can't add first drawable at (%F,%F) scrollY=%F Rect(%F,%F %F,%F) Outside visiblerect(%F,%F %F,%F) !",
-                            this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, scrollerposition_.y_,
-                            drawable.rect_.min_.x_, drawable.rect_.min_.y_, drawable.rect_.max_.x_, drawable.rect_.max_.y_,
-                            visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_);
+            // if (logtest_)
+            //     URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d bounds(%F,%F %F,%F) ... can't add first drawable at (%F,%F) scrollY=%F Rect(%F,%F %F,%F) Outside visiblerect(%F,%F %F,%F) !",
+            //                 id_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, scrollerposition_.y_,
+            //                 drawable.rect_.min_.x_, drawable.rect_.min_.y_, drawable.rect_.max_.x_, drawable.rect_.max_.y_,
+            //                 visibleRect.min_.x_, visibleRect.min_.y_, visibleRect.max_.x_, visibleRect.max_.y_);
             return;
         }
        
@@ -1741,7 +1740,7 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         pos = drawable.position_;
 
         if (logtest_)
-            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... add first drawable at (%F,%F) !", this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_);
+            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d bounds(%F,%F %F,%F) ... add first drawable at (%F,%F) !", id_, bmin.x_, bmin.y_, bmax.x_, bmax.y_, pos.x_, pos.y_);
     }
     else
     {
@@ -1776,7 +1775,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         freeDrawables_.Pop();
 
         if (logtest_)
-            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... DirX- add drawable at (%F,%F) w=%F ... drawablesSize=%u !", this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, w, drawables.Size());
+            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d ... mpoint=%s btype=%d bounds(%F,%F %F,%F) ... DirX- add drawable at (%F,%F) w=%F ... drawablesSize=%u !", 
+                        id_, World2D::GetCurrentMapPoint(viewport_).ToString().CString(), backgroundtype,  bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, w, drawables.Size());
 
         // next drawable position
         pos = drawable.position_;
@@ -1811,7 +1811,8 @@ void DrawableScroller::UpdateDrawablesOnTopCurve(Vector2 first, Vector2 last)
         freeDrawables_.Pop();
 
         if (logtest_)
-            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : this=%u ... bounds(%F,%F %F,%F) ... DirX+ add drawable at (%F,%F) w=%F ... drawablesSize=%u", this, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, w, drawables.Size());
+            URHO3D_LOGINFOF("UpdateDrawablesOnTopCurve : idscroller=%d ... mpoint=%s btype=%u bounds(%F,%F %F,%F) ... DirX+ add drawable at (%F,%F) w=%F ... drawablesSize=%u", 
+                        id_, World2D::GetCurrentMapPoint(viewport_).ToString().CString(), backgroundtype, bmin.x_, bmin.y_, bmax.x_, bmax.y_, drawable.position_.x_, drawable.position_.y_, w, drawables.Size());
 
         // next drawable position
         pos = drawable.position_;
@@ -2044,10 +2045,10 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
     const Vector2 camInitialOffset = info.camPosition_ - info.initialPosition_;
     const Vector2 camMotion = info.camPosition_ - info.lastCamPosition_;
 
-    if (logtest_)
-        URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... campos=%s last=%s lum=%F lastlum=%F iscroller=%d count=%d", 
-                this, info.camPosition_.ToString().CString(), info.lastCamPosition_.ToString().CString(),
-                GameContext::Get().luminosity_, GameContext::Get().lastluminosity_, id_, info.camPositionCount_);
+//    if (logtest_)
+//        URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... campos=%s last=%s lum=%F lastlum=%F iscroller=%d count=%d", 
+//                this, info.camPosition_.ToString().CString(), info.lastCamPosition_.ToString().CString(),
+//                GameContext::Get().luminosity_, GameContext::Get().lastluminosity_, id_, info.camPositionCount_);
 
     // update lastCamPosition (update just once for all DrawableScrollers)
     info.camPositionCount_++;
@@ -2200,12 +2201,12 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                     // the drawables are all outside on the right
                     SetEnabledDrawables(false);
                     //ClearDrawables();
-                    if (logtest_)
-                        URHO3D_LOGINFOF("HandleUpdateEllipseMode this=%u ... lastDrawablePositionAtLeft_=%F + ScrollerX=%F > boundRight=%F => Clear All Drawables ...", this, lastDrawablePositionAtLeft_, scrollerposition_.x_, intersections.Back().x_);
+                    //if (logtest_)
+                    //    URHO3D_LOGINFOF("HandleUpdateEllipseMode this=%u ... lastDrawablePositionAtLeft_=%F + ScrollerX=%F > boundRight=%F => Clear All Drawables ...", this, lastDrawablePositionAtLeft_, scrollerposition_.x_, intersections.Back().x_);
                 }
 
-                if (logtest_)
-                    URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... ScrollerX=%F mapX=%d", this, scrollerposition_.x_, mpoint.x_);
+                //if (logtest_)
+                //    URHO3D_LOGINFOF("this=%u HandleUpdateEllipseMode ... update ... ScrollerX=%F mapX=%d", this, scrollerposition_.x_, mpoint.x_);
                 
                 UpdateDrawablesOnTopCurve(intersections.Front(), intersections.Back());
                 UpdateDrawablesOnBottomCurve(intersections.Front(), intersections.Back());

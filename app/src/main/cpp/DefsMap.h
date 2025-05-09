@@ -197,7 +197,6 @@ enum MapStatus
     Updating_ViewBatches,
     Updating_RenderShapes,
     Setting_Areas,
-    Setting_BackGround,
     Setting_MiniMap,
     Setting_Furnitures,
     Setting_Entities,

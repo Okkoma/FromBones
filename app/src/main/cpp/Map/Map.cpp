@@ -4466,6 +4466,8 @@ void Map::Initialize(const ShortIntVector2& mPoint, unsigned wseed)
 
     SetMapPoint(mPoint);
 
+    backgroundType_ = Abs(mPoint.x_) / WORLD_NUM_MAPS_BEFORE_BACKGROUND_CHANGE % WORLD_MAX_BACKGROUNDTYPES;
+
     mapStatus_.x_ = mPoint.x_;
     mapStatus_.y_ = mPoint.y_;
     mapStatus_.width_ = MapInfo::info.width_;
@@ -4658,25 +4660,6 @@ bool Map::Set(Node* node, HiresTimer* timer)
 #ifdef DUMP_MAPCREATOR_LOGS
         URHO3D_LOGERRORF("Map() - Set : status=%d timer=%d msec", mapStatus_.status_, timer ? timer->GetUSec(false)/1000 : 0);
 #endif
-        SetStatus(Setting_BackGround);
-
-        GetMapCounter(MAP_GENERAL) = 0;
-
-        if (TimeOverMaximized(timer))
-            break;
-    }
-    case Setting_BackGround:
-    {
-#ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("Map() - Set : status=%d timer=%d msec", mapStatus_.status_, timer ? timer->GetUSec(false)/1000 : 0);
-#endif
-#ifdef ACTIVE_WORLD2D_PROFILING
-        URHO3D_PROFILE(Map_SetBackGd);
-#endif
-        // Temporary Test : change of backgroundtype with a frequency of 25 maps.
-        // to let operate the change of sprites in the last background scroller (mountains).
-        backgroundType_ = Abs(mapStatus_.mappoint_.x_) / 25 % WORLD_MAX_BACKGROUNDTYPES;
-
         SetStatus(Setting_MiniMap);
 
         GetMapCounter(MAP_GENERAL) = 0;
