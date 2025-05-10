@@ -1,4 +1,7 @@
 Todos:
+    
+    ☐ 10/05/2025 : EDITOR - l'edition scml ne prend pas en compte les équipements et crash à la sortie du mode. 
+    ☐ 10/05/2025 : EDITOR - les animations power1 et power2 ne s'affichent pas dans l'editeur scml
 
     ☐ 07/06/2023 : Enrichissement de l'Editor : l'editeur en Script ne sera plus mise à jour. Utilisation uniquement du static ou du shared.
         => ajout de Animator2D : qui est un panneau d'edition des animationSet2D

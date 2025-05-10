@@ -1,5 +1,10 @@
 Todos:
 
+    ☐ 10/05/2025 : BEHAVIOR - pouvoir mettre des objets dans les coffres et armoires.
+    ☐ 10/05/2025 : BEHAVIOR - pouvoir indiquer la quantité d'objets souhaités lors du drop.
+    ☐ 10/05/2025 : BEHAVIOR - la mise à jour des stats n'est peut-etre pas bonne en rechargeant une sauvegarde. Ex: cast du feu alors que l'epee de feu n'est pas équipée.
+    ☐ 10/05/2025 : BEHAVIOR - régler les nodes montés pour toutes les entités. commencer par EliegorGolem et le skeleton pour que petit les monte bien.
+    
     ✔ 29/04/2025 : en split view, lorsque le joueur 2 est monté sur le joueur 1 et que celui-ci va dans l'INNERVIEW, le viewport du joueur 2 reste dans le FRONTVIEW
         => OK : Modification de la logique dans GOC_Destroyer::SetViewZ
         

@@ -1,5 +1,13 @@
 Todos:
 
+    ☐ 10/05/2025 : QUEST - la quete d'Eliegor peut être bloquée à la dernière étape "l'arrosage".
+        => ça fonctionne généralement avec un rockgolem instancié via l'editeur, les graines doivent être ramassées pendant la quête.
+        => avoir ces graines dans l'inventaire avant d'accepter la quête ne fonctionne pas. Mais ce n'est pas le problème avec l'arrosage.
+
+
+
+
+
     ☐ 30/03/2023 : voir pour generer des actors dans le monde avec des tasks/activités (chasseur, batisseur, agriculteur, alchimiste, commercant, voleur, assassin par exemple)
         => ce qui pourra ensuite faire de bon interacteur pour une generation aleatoire de quete (comme DaggerFall)
         ==> pas mal de costumes à faire

@@ -387,8 +387,8 @@ void Objective::Start(Mission* mission, unsigned owner)
 
     state_ = IsRunning;
 
-    URHO3D_LOGERRORF("Objective() - Start : mission=%u state=%s(%d) attribut=%s(%u)",
-                     mission_->GetID(), GoalStateNames_[state_], state_, GOT::GetType(StringHash(attribut_)).CString(), attribut_);
+    URHO3D_LOGERRORF("Objective() - Start : mission=%s(%u) state=%s(%d) attribut=%s(%u)",
+                     mission_->GetMissionData() ? mission_->GetMissionData()->name_.CString() : "unamed", mission_, GoalStateNames_[state_], state_, GOT::GetType(StringHash(attribut_)).CString(), attribut_);
 }
 
 void Objective::Stop()
@@ -643,9 +643,9 @@ void Objective::Update(unsigned owner)
             actions_[i].Execute(actor, mission_, data_->actionDatas_[i]);
     }
 
-    URHO3D_LOGERRORF("Objective() - Update : mission=%u state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
-                     mission_->GetID(), GoalStateNames_[state_], state_, GOT::GetType(StringHash(attribut_)).CString(),
-                     elapsedQty_, quantity_, numConditions_);
+    URHO3D_LOGERRORF("Objective() - Update : mission=%s(%u) state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
+                     mission_->GetMissionData() ? mission_->GetMissionData()->name_.CString() : "unamed", mission_->GetID(), GoalStateNames_[state_], 
+                     state_, GOT::GetType(StringHash(attribut_)).CString(), elapsedQty_, quantity_, numConditions_);
 }
 
 /// Class Mission Implementation
@@ -1508,6 +1508,9 @@ void MissionManager::Update()
 
 void MissionManager::HandlePostUpdate(StringHash eventType, VariantMap& eventData)
 {
+    if (!GameContext::Get().rootScene_->IsUpdateEnabled())
+        return;
+
     URHO3D_PROFILE(MissionManager);
 
     float timeStep = eventData[PostUpdate::P_TIMESTEP].GetFloat();

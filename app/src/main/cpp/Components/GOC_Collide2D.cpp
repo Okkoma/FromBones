@@ -606,7 +606,7 @@ void GOC_Collide2D::HandleBeginContact(StringHash eventType, VariantMap& eventDa
 //            player->AddDetectInteractor(actor);
 
             /// player has no interactor in progress
-            if (actor && player->GetDialogueInteractor() == 0)
+            if (actor && player && !player->GetDialogueInteractor())
             {
                 URHO3D_LOGINFOF("GOC_Collide2D() - HandleBeginContact : actor=%s(%u) Begin Contact with node %s(%u) ... send DIALOG_DETECTED",
                                 body->GetNode()->GetName().CString(), body->GetNode()->GetID(),
