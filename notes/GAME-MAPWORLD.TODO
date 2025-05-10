@@ -1,4 +1,7 @@
 Todos:
+    ☐ 10/05/2025 : WORLD - lors de l'ajout/supression de tiles, la génération de valeur pour le passage FRONTVIEW/INNERVIEW n'est pas 100% fonctionnelle    
+    ☐ 10/05/2025 : WORLD - la simulation du waterlayer n'est pas satisfaisante sur les bords de tiles alors que l'on doit avoir une cascade fine
+
     ☐ 05/05/2025 : world inversion - lorsque l'on s'approche de la surface inferieur du monde il faudrait inverser le monde, comme un sablier en somme.
         => pour cela, il faut inverser les Y : les cartes en mémoire ou visibles sont à inverser, les batches des drawables de décors à recalculer et les positions des objets.
         ==> pas mal d'impact sur le calcul des coordonnées, et il faut aussi penser à la sauvegarde du monde avec un nouveau parametre WorldYDirection_, le waterlayer ...
@@ -29,9 +32,10 @@ Todos:
         ==> la carte d'eau est la carte biome actuelle qui est à renommer.
         ==> les scrollers en background changent rarement ce qui ne permet pas d'avoir un fond en accord avec l'avant plan.
         ==> la fonction DrawableScroller::UpdateDrawablesOnTopCurve n'utilise pas World2DInfo::GetBackGroundInfo => pas le changement de sprite de background pour les
-            scrollers avec parallax. Après modification, le dernier backscroller ne change jamais... mais les autres ...oui.
-        ===> RAF : trouver pourquoi le dernier backscroller ne change jamais de sprite.
-                    
+            scrollers avec parallax. 
+        ===> 09/05/2025 : correctif appliqué corrigeant le changement de sprite ainsi qu'un probleme d'index sur les backgrounds enregistrés.
+            pour le test, on change de type de background tous les 20 maps suivant x (WORLD_NUM_MAPS_BEFORE_BACKGROUND_CHANGE).
+
     ☐ 23/03/2024 : adapter les furnitures flore en fonction de la zone (biome : prendre en compte si sous l'eau aussi)
     ☐ 23/03/2024 : rajouter les lacs et mers
         => creer une world ellipse pour le liquide, à l'interieur de cette ellipse on pourra remplir en eau.

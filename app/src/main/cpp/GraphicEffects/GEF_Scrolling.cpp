@@ -2164,8 +2164,8 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
     {
         if (!map || map->GetTopography().IsFullGround())
         {
-            SetEnabledDrawables(false);
-            //ClearDrawables();
+            //SetEnabledDrawables(false);
+            ClearDrawables();
         }
         else
         {
@@ -2199,8 +2199,8 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
                 if (lastDrawablePositionAtLeft_ + scrollerposition_.x_ > intersections.Back().x_)
                 {
                     // the drawables are all outside on the right
-                    SetEnabledDrawables(false);
-                    //ClearDrawables();
+                    //SetEnabledDrawables(false);
+                    ClearDrawables();
                     //if (logtest_)
                     //    URHO3D_LOGINFOF("HandleUpdateEllipseMode this=%u ... lastDrawablePositionAtLeft_=%F + ScrollerX=%F > boundRight=%F => Clear All Drawables ...", this, lastDrawablePositionAtLeft_, scrollerposition_.x_, intersections.Back().x_);
                 }
@@ -2230,8 +2230,8 @@ void DrawableScroller::HandleUpdateEllipseMode(StringHash eventType, VariantMap&
             }
             else if (drawables_.Size())
             {
-                SetEnabledDrawables(false);
-                //ClearDrawables();
+                //SetEnabledDrawables(false);
+                ClearDrawables();
                 if (logtest_)
                     URHO3D_LOGINFOF(" this=%u ... Outside => Clear Drawables ...", this);
             }
