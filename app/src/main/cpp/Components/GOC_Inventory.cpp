@@ -826,8 +826,11 @@ bool GOC_Inventory::CanSlotAccept(unsigned index, const Slot& slotSrc, unsigned 
 
 /// return the last slot id if freeslot
 /// or return -1
-int GOC_Inventory::AddCollectableOfType(const StringHash& type, unsigned int quantity, unsigned startIndex)
+int GOC_Inventory::AddCollectableOfType(const StringHash& type, unsigned int quantity, unsigned startIndex, bool replace)
 {
+    if (replace)
+        RemoveCollectableFromSlot(startIndex);
+
     return AddCollectableFromSlot(Slot(type, quantity), quantity, startIndex);
 }
 

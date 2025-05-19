@@ -265,13 +265,13 @@ void ObjectiveAction::Execute(Actor* actor, Mission* mission, const ObjectiveCom
         GOC_Inventory* gocinventory2 = actor2Node->GetComponent<GOC_Inventory>();
         if (gocinventory1 && gocinventory2 && gocinventory1->GetQuantityfor(argtype) > 0)
         {
-            URHO3D_LOGINFOF("ObjectiveAction() - Execute : Actor %s(%u) gives to actor %s(%u) a item %s(type=%u) OK !",
+            int slotIndex1 = gocinventory1->RemoveCollectableOfType(argtype, 1);
+            int slotIndex2 = gocinventory2->AddCollectableOfType(argtype, 1, 0, true);
+
+            URHO3D_LOGINFOF("ObjectiveAction() - Execute : Actor %s(%u) gives to actor %s(%u) a item %s(type=%u) (slotindex=%d) OK !",
                             actor1Node->GetName().CString(), actor1Node->GetID(),
                             actor2Node->GetName().CString(), actor2Node->GetID(),
-                            GOT::GetType(argtype).CString(), data.argType_);
-
-            int slotIndex1 = gocinventory1->RemoveCollectableOfType(argtype, 1);
-            int slotIndex2 = gocinventory2->AddCollectableOfType(argtype, 1);
+                            GOT::GetType(argtype).CString(), data.argType_, slotIndex2);
 
             if (avatar == actor1Node)
             {

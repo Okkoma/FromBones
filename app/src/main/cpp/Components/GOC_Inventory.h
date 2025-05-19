@@ -135,7 +135,7 @@ public :
     void SetReceiveTriggerEvent(const String& s);
     void SetGiveTriggerEvent(const String& s);
 
-    int AddCollectableOfType(const StringHash& type, unsigned int quantity, unsigned startIndex=0);
+    int AddCollectableOfType(const StringHash& type, unsigned int quantity, unsigned startIndex=0, bool replace=false);
     int AddCollectableFromSlot(const Slot& slotSrc, unsigned int& quantity, unsigned startIndex=0);
     void AddCollectableFromSlot(const Slot& slotSrc, unsigned idSlot, unsigned int& quantity, bool strictmode, bool recursive=true, unsigned startIndex=0);
 
