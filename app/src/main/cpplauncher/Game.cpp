@@ -279,43 +279,58 @@ Game::~Game()
     URHO3D_LOGINFO("Game() - ----------------------------------------");
 }
 
-/*
-void CheckGraphicBackEnds(String& str)
+void CheckWayland(String& str, const String& usableBackends)
+{
+    const char* wayland = getenv("WAYLAND_DISPLAY");
+    if (wayland)
+    {
+        str += "Wayland environnement (WAYLAND_DISPLAY=" + String(wayland) + ").\n";
+        if (usableBackends.Contains("wayland"))
+        {
+            str += "✅ Force using Wayland backend.\n";
+            setenv("SDL_VIDEODRIVER", "wayland", 1);
+        }
+    }
+}
+
+void CheckGraphicBackEnds(String& str, String& availableBackEnds, String& usableBackEnds)
 {
     str += "Testing video drivers...\n";
 
-    SDL_Init( 0 );
+    SDL_Init(0);
 
-    Vector<bool> drivers( SDL_GetNumVideoDrivers() );
-    for( int i = 0; i < drivers.Size(); ++i )
+    Vector<bool> drivers(SDL_GetNumVideoDrivers());
+    for (int i = 0; i < drivers.Size(); ++i)
     {
-        drivers[ i ] = ( 0 == SDL_VideoInit( SDL_GetVideoDriver( i ) ) );
+        drivers[i] = ( 0 == SDL_VideoInit(SDL_GetVideoDriver(i)));
         SDL_VideoQuit();
     }
 
-    str += "SDL_VIDEODRIVER available:";
-    for( int i = 0; i < drivers.Size(); ++i )
-    {
-        str += " ";
-        str += SDL_GetVideoDriver( i );
-    }
-    str += "\n";
+    availableBackEnds.Clear();
+    usableBackEnds.Clear();
 
-    str += "SDL_VIDEODRIVER usable   :";
-    for( int i = 0; i < drivers.Size(); ++i )
+    for (int i = 0; i < drivers.Size(); ++i)
     {
-        if( !drivers[ i ] ) continue;
-        str += " ";
-        str += SDL_GetVideoDriver( i );
-    }
-    str += "\n";
+        String backendName(SDL_GetVideoDriver(i));
+        availableBackEnds += " ";
+        availableBackEnds += backendName;
 
-    if( SDL_Init( SDL_INIT_EVERYTHING ) < 0 )
+        if (drivers[i])
+        {
+            usableBackEnds += " ";
+            usableBackEnds += backendName;
+        }
+    }
+
+    str += "SDL_VIDEODRIVER available: " + availableBackEnds + "\n";
+    str += "SDL_VIDEODRIVER usable   :" + usableBackEnds + "\n";
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         return;
 
     URHO3D_LOGERRORF("%s", str.CString());
 }
-*/
+
 
 void Game::Setup()
 {
@@ -470,7 +485,11 @@ void Game::Setup()
     engineParameters_["ResourcePaths"] = ResourcePaths;
 
     GameContext::Get().gameConfig_.logString += "ResourcePaths=" + ResourcePaths;
-//    CheckGraphicBackEnds(config.logString);
+
+    // Check sdl graphic backends
+    String availableBackends, usableBackends;
+    CheckGraphicBackEnds(config.logString, availableBackends, usableBackends);
+    CheckWayland(config.logString, usableBackends);
 
     GameContext::Get().gameConfig_.logLevel_ = engineParameters_["LogLevel"].GetInt();
 }
@@ -782,12 +801,6 @@ void Game::Start()
         }
     }
 #endif
-
-//    int numsdldrivers = SDL_GetNumVideoDrivers();
-//    for (int i=0; i < numsdldrivers; i++)
-//    {
-//        URHO3D_LOGINFOF("SDL available video driver [%d] = %s", i, SDL_GetVideoDriver(i));
-//    }
 
 //	URHO3D_LOGINFOF("Game() - Generate StringHash(ActiveAbility) = %u", StringHash("ActiveAbility").Value());
 //	URHO3D_LOGINFOF("Game() - Generate StringHash(Ability) = %u", StringHash("Ability").Value());

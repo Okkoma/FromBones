@@ -2,6 +2,14 @@ cmake_minimum_required (VERSION 3.10.2)
 
 project (FromBones VERSION 0.5.1)
 
+# Search a urho source or lib
+# TODO chris : resolve cmake error when NumFounded > 1
+#set (URHO3D_SEARCH_PATH ${CMAKE_SOURCE_DIR}/../Urho3D-FromBones-git-local)
+
+# Use specific urho lib
+#set (URHO3D_HOME ${CMAKE_SOURCE_DIR}/../Urho3D-FromBones-git-local/build/linux/gl/static/release)
+
+# Build urho as submodule
 set (URHO3D_HOME ${CMAKE_SOURCE_DIR}/../Urho3D-FromBones-git-local)
 set (GIT_U3D_REPO "https://github.com/Okkoma/Urho3D-FromBones.git")
 

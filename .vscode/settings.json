@@ -1,5 +1,8 @@
 {
     "cmake.automaticReconfigure": false,
     "cmake.useCMakePresets": "never",
-    "cmake.buildTask": true
+    "cmake.buildTask": true,
+    "cmake.enableAutomaticKitScan": false,
+    "cmake.configureOnOpen": false,
+    "cmake.buildDirectory": "${workspaceFolder}/build/native/default"
 }

@@ -851,8 +851,9 @@ void OptionState::SynchronizeParameters()
     Graphics* graphics = GetSubsystem<Graphics>();
     const unsigned currentMonitor = graphics->GetMonitor();
     const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
-    if (resolutions.Size() > 1)
+    if (resolutions.Size() >= 1)
     {
+        bool oneresolution = resolutions.Size() == 1;
 //        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u", currentMonitor);
         const unsigned currentResolution = graphics->FindBestResolutionIndex(currentMonitor, graphics->GetWidth(), graphics->GetHeight(), graphics->GetRefreshRate());
         if (optionParameters_[OPTION_Resolution].control_ && optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
@@ -865,8 +866,11 @@ void OptionState::SynchronizeParameters()
             control->SetVerticalAlignment(VA_CENTER);
             control->SetLayoutMode(LM_VERTICAL);
 
-            UIElement* popup = control->GetPopup();
-            popup->SetSize(popup->GetWidth(), Min(resolutions.Size()+1, 10) * (fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 2));
+            if (!oneresolution)
+            {
+                UIElement* popup = control->GetPopup();
+                popup->SetSize(popup->GetWidth(), Min(resolutions.Size()+1, 10) * (fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 2));
+            }
 
             for (PODVector<IntVector3>::ConstIterator it = resolutions.Begin(); it != resolutions.End(); ++it)
             {
@@ -890,7 +894,7 @@ void OptionState::SynchronizeParameters()
             }
 
             ListView* listview = control->GetListView();
-            listview->SetScrollBarsVisible(false, true);
+            listview->SetScrollBarsVisible(false, !oneresolution);
 
             control->SetSelection(currentResolution < resolutions.Size() ? currentResolution : 0);
 
@@ -903,7 +907,7 @@ void OptionState::SynchronizeParameters()
     }
     else
     {
-        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : can't get monitor resolutions => resolution & fullsreen controls are disabled !");
+        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : can't get monitor resolutions => resolution controls are disabled !");
         optionParameters_[OPTION_Resolution].control_->GetParent()->SetEnabled(false);
         optionParameters_[OPTION_Resolution].control_->GetParent()->SetVisible(false);
         optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetEnabled(false);

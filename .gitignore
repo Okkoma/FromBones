@@ -10,6 +10,7 @@
 /bin-tool/Input
 /bin-tool/TexturePacker
 /bin-tool/SpirvShaderPacker
+/bin/FromBones*
 /exe/*/*.log
 /exe/*/*-shared
 /exe/*/*.so
