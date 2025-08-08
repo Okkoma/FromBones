@@ -279,21 +279,7 @@ Game::~Game()
     URHO3D_LOGINFO("Game() - ----------------------------------------");
 }
 
-void CheckWayland(String& str, const String& usableBackends)
-{
-    const char* wayland = getenv("WAYLAND_DISPLAY");
-    if (wayland)
-    {
-        str += "Wayland environnement (WAYLAND_DISPLAY=" + String(wayland) + ").\n";
-        if (usableBackends.Contains("wayland"))
-        {
-            str += "✅ Force using Wayland backend.\n";
-            setenv("SDL_VIDEODRIVER", "wayland", 1);
-        }
-    }
-}
-
-void CheckGraphicBackEnds(String& str, String& availableBackEnds, String& usableBackEnds)
+void CheckGraphicBackEnds(String& str)
 {
     str += "Testing video drivers...\n";
 
@@ -306,8 +292,7 @@ void CheckGraphicBackEnds(String& str, String& availableBackEnds, String& usable
         SDL_VideoQuit();
     }
 
-    availableBackEnds.Clear();
-    usableBackEnds.Clear();
+    String availableBackEnds, usableBackEnds;
 
     for (int i = 0; i < drivers.Size(); ++i)
     {
@@ -324,6 +309,19 @@ void CheckGraphicBackEnds(String& str, String& availableBackEnds, String& usable
 
     str += "SDL_VIDEODRIVER available: " + availableBackEnds + "\n";
     str += "SDL_VIDEODRIVER usable   :" + usableBackEnds + "\n";
+
+#if defined(__linux__)
+    const char* wayland = getenv("WAYLAND_DISPLAY");
+    if (wayland)
+    {
+        str += "Wayland environnement (WAYLAND_DISPLAY=" + String(wayland) + ").\n";
+        if (usableBackEnds.Contains("wayland"))
+        {
+            str += "Force using Wayland backend.\n";
+            setenv("SDL_VIDEODRIVER", "wayland", 1);
+        }
+    }
+#endif
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         return;
@@ -487,9 +485,7 @@ void Game::Setup()
     GameContext::Get().gameConfig_.logString += "ResourcePaths=" + ResourcePaths;
 
     // Check sdl graphic backends
-    String availableBackends, usableBackends;
-    CheckGraphicBackEnds(config.logString, availableBackends, usableBackends);
-    CheckWayland(config.logString, usableBackends);
+    CheckGraphicBackEnds(config.logString);
 
     GameContext::Get().gameConfig_.logLevel_ = engineParameters_["LogLevel"].GetInt();
 }
