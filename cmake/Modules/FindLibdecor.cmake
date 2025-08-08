@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2017 the Urho3D project.
+# Copyright (c) 2008-2022 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,17 +20,17 @@
 # THE SOFTWARE.
 #
 
-# Find Direct Rendering Manager development library
+# Find Wayland libdecor
 #
-#  DRM_FOUND
-#  DRM_INCLUDE_DIRS
-#  DRM_LIBRARIES
+#  LIBDECOR_FOUND
+#  LIBDECOR_INCLUDE_DIRS
+#  LIBDECOR_LIBRARIES
 #
 
-find_path (DRM_INCLUDE_DIRS NAMES xf86drm.h DOC "DirectRenderingManager include directory")
-find_library (DRM_LIBRARIES NAMES drm DOC "DirectRenderingManager library")
+find_path (LIBDECOR_INCLUDE_DIRS NAMES libdecor.h PATH_SUFFIXES libdecor-0 DOC "Libdecor include directory")
+find_library (LIBDECOR_LIBRARIES NAMES decor-0 DOC "Libdecor library")
 
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (DRM REQUIRED_VARS DRM_LIBRARIES DRM_INCLUDE_DIRS FAIL_MESSAGE "Could NOT find Direct Rendering Manager development library")
+find_package_handle_standard_args (Libdecor REQUIRED_VARS LIBDECOR_LIBRARIES LIBDECOR_INCLUDE_DIRS FAIL_MESSAGE "Could NOT find Libdecor")
 
-mark_as_advanced (DRM_INCLUDE_DIRS DRM_LIBRARIES)
+mark_as_advanced (LIBDECOR_INCLUDE_DIRS LIBDECOR_LIBRARIES)
