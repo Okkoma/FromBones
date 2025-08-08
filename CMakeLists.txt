@@ -2,6 +2,9 @@ cmake_minimum_required (VERSION 3.10.2)
 
 project (FromBones VERSION 0.5.1)
 
+# clangd helper
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Search a urho source or lib
 # TODO chris : resolve cmake error when NumFounded > 1
 #set (URHO3D_SEARCH_PATH ${CMAKE_SOURCE_DIR}/../Urho3D-FromBones-git-local)

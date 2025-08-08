@@ -36,3 +36,6 @@ build.gradle.kts
 restorelinks
 
 exe/gl/FromBones
+
+# cmake compile commands for clang
+/compile_commands.json
