@@ -499,9 +499,9 @@ void GameContext::InitializeTextures()
     // create the render target scene for rendering alpha animatesdsprites
     int texturesize = 1024;
     SharedPtr<Texture2D> renderedTexture(new Texture2D(context_));
+    renderedTexture->SetNumLevels(1);    
     renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBFormat(), TEXTURE_RENDERTARGET);
     renderedTexture->SetMipsToSkip(QUALITY_LOW, 0);
-    renderedTexture->SetNumLevels(1);
     renderedTexture->SetName("RenderTarget2D");
     cache->AddManualResource(renderedTexture);
 #endif
@@ -606,11 +606,11 @@ void GameContext::Initialize()
 
         int texturesize = 1024;
         SharedPtr<Texture2D> renderedTexture = SharedPtr<Texture2D>(new Texture2D(context_));
+        // Don't use Mipmapping
+        renderedTexture->SetNumLevels(1);        
         renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBFormat(), TEXTURE_RENDERTARGET);
         renderedTexture->SetFilterMode(FILTER_BILINEAR);
         renderedTexture->SetName("RenderTarget2D");
-        // Don't use Mipmapping
-        renderedTexture->SetNumLevels(1);
         cache->AddManualResource(renderedTexture);
 
         // Load the material and assign render Texture to a textureunit
