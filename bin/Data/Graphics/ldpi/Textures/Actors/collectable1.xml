@@ -1,5 +1,5 @@
 <texture>
-    <mipmap enable="false" />
-    <quality high="0" />
-    <dpiscml ratio="0.75" />
+	<mipmap enable="false" />
+	<quality high="0" />
+	<dpiscml ratio="0.75" />
 </texture>

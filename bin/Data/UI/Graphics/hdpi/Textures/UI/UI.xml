@@ -1,5 +1,5 @@
 <texture>
-    <mipmap enable="false" />
-    <quality low="0" />
+	<mipmap enable="false" />
+	<quality low="0" />
 	<srgb enable="true" />
 </texture>

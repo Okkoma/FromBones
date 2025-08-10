@@ -1,6 +1,6 @@
 <texture>
-    <mipmap enable="false" />
-    <quality high="0" />
+	<mipmap enable="false" />
+	<quality high="0" />
 	<filter mode="nearest" />
 	<srgb enable="true" />
 </texture>
