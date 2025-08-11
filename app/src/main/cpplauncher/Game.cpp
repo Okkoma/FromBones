@@ -537,7 +537,8 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
 //            std::cout << "  engineParameters_[" << name.CString() << "] = " << paramElem.attribute("value").value() << std::endl;
         }
         else if (name == "WindowWidth" || name == "WindowHeight" || name == "LogLevel" || name == "MaterialQuality" || name == "TextureQuality"
-                 || name == "MultiSample" || name == "TextureFilterMode" || name == "WindowPositionX" || name == "WindowPositionY" || name == "RefreshRate")
+                 || name == "MultiSample" || name == "TextureFilterMode" || name == "WindowPositionX" || name == "WindowPositionY" || name == "RefreshRate"
+                 || name == "RenderWidth" || name == "RenderHeight")
         {
             engineParameters_[name] = paramElem.attribute("value").as_int();
             config->logString += ToString("  engineParameters_[%s] = %d \n", name.CString(),paramElem.attribute("value").as_int());
