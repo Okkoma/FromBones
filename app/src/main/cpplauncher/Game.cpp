@@ -49,6 +49,7 @@
 #include "sOptions.h"
 
 #include "SDL/SDL.h"
+
 #ifdef __ANDROID__
 #include <jni.h>
 #endif
@@ -281,16 +282,21 @@ Game::~Game()
 
 void CheckGraphicBackEnds(String& str)
 {
-    str += "Testing video drivers...\n";
+    str += "\nTesting video drivers...\n";
 
     SDL_Init(0);
+
+    // Disable the loading of libdecor for the check : because it crashes during the main initialization of the sdl.
+    String savedWaylandLibdecorSDLHint(SDL_GetHint(SDL_HINT_VIDEO_WAYLAND_ALLOW_LIBDECOR));
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_ALLOW_LIBDECOR, "false");
 
     Vector<bool> drivers(SDL_GetNumVideoDrivers());
     for (int i = 0; i < drivers.Size(); ++i)
     {
-        drivers[i] = ( 0 == SDL_VideoInit(SDL_GetVideoDriver(i)));
+        drivers[i] = (SDL_VideoInit(SDL_GetVideoDriver(i)) == 0);
         SDL_VideoQuit();
     }
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_ALLOW_LIBDECOR, savedWaylandLibdecorSDLHint.CString());
 
     String availableBackEnds, usableBackEnds;
 
@@ -310,21 +316,16 @@ void CheckGraphicBackEnds(String& str)
     str += "SDL_VIDEODRIVER available: " + availableBackEnds + "\n";
     str += "SDL_VIDEODRIVER usable   :" + usableBackEnds + "\n";
 
-#if defined(__linux__)
-    const char* wayland = getenv("WAYLAND_DISPLAY");
+    const char* wayland = SDL_getenv("WAYLAND_DISPLAY");
     if (wayland)
     {
         str += "Wayland environnement (WAYLAND_DISPLAY=" + String(wayland) + ").\n";
         if (usableBackEnds.Contains("wayland"))
         {
             str += "Force using Wayland backend.\n";
-            setenv("SDL_VIDEODRIVER", "wayland", 1);
+            SDL_setenv("SDL_VIDEODRIVER", "wayland", 1);
         }
     }
-#endif
-
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-        return;
 
     URHO3D_LOGERRORF("%s", str.CString());
 }
