@@ -538,7 +538,7 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
         }
         else if (name == "WindowWidth" || name == "WindowHeight" || name == "LogLevel" || name == "MaterialQuality" || name == "TextureQuality"
                  || name == "MultiSample" || name == "TextureFilterMode" || name == "WindowPositionX" || name == "WindowPositionY" || name == "RefreshRate"
-                 || name == "RenderWidth" || name == "RenderHeight")
+                 || name == "ViewRenderDownScale")
         {
             engineParameters_[name] = paramElem.attribute("value").as_int();
             config->logString += ToString("  engineParameters_[%s] = %d \n", name.CString(),paramElem.attribute("value").as_int());
