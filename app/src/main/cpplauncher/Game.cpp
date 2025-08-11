@@ -280,9 +280,9 @@ Game::~Game()
     URHO3D_LOGINFO("Game() - ----------------------------------------");
 }
 
-void CheckGraphicBackEnds(String& str)
+String CheckGraphicBackEnds(String& logstr)
 {
-    str += "\nTesting video drivers...\n";
+    logstr += "\nTesting video drivers...\n";
 
     SDL_Init(0);
 
@@ -313,23 +313,24 @@ void CheckGraphicBackEnds(String& str)
         }
     }
 
-    str += "SDL_VIDEODRIVER available: " + availableBackEnds + "\n";
-    str += "SDL_VIDEODRIVER usable   :" + usableBackEnds + "\n";
+    logstr += "SDL_VIDEODRIVER available: " + availableBackEnds + "\n";
+    logstr += "SDL_VIDEODRIVER usable   :" + usableBackEnds + "\n";
 
-    const char* wayland = SDL_getenv("WAYLAND_DISPLAY");
-    if (wayland)
-    {
-        str += "Wayland environnement (WAYLAND_DISPLAY=" + String(wayland) + ").\n";
-        if (usableBackEnds.Contains("wayland"))
-        {
-            str += "Force using Wayland backend.\n";
-            SDL_setenv("SDL_VIDEODRIVER", "wayland", 1);
-        }
-    }
-
-    URHO3D_LOGERRORF("%s", str.CString());
+    return usableBackEnds;
 }
 
+void SwitchToWayland(String& logstr)
+{
+    logstr += "Wayland environnement " + String(SDL_getenv("WAYLAND_DISPLAY")) + ").\n";
+    logstr += "... Force using Wayland backend.\n";
+    
+    // Toogle to wayland Backend
+    SDL_setenv("SDL_VIDEODRIVER", "wayland", 1);
+    
+    // Add SDL Hints to keep same behaviors between sdl2.14 and sdl2.30             
+    //SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_MODE_EMULATION, "false"); // Hint : Disable CVT Modes emulation : just desktop resolution            
+    SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_EMULATE_MOUSE_WARP, "false");  // Hint : Disable Mouse Warp for wayland                    
+}
 
 void Game::Setup()
 {
@@ -486,8 +487,11 @@ void Game::Setup()
     GameContext::Get().gameConfig_.logString += "ResourcePaths=" + ResourcePaths;
 
     // Check sdl graphic backends
-    CheckGraphicBackEnds(config.logString);
-
+    String backends = CheckGraphicBackEnds(config.logString);
+    // Switch to wayland if available
+    if (backends.Contains("wayland") && SDL_getenv("WAYLAND_DISPLAY"))
+        SwitchToWayland(config.logString);
+    
     GameContext::Get().gameConfig_.logLevel_ = engineParameters_["LogLevel"].GetInt();
 }
 
