@@ -8,7 +8,7 @@
 	<parameter name="RefreshRate" value="60" />
 	
 <!--
-	<parameter name="ViewRenderDownScale" value="2" />
+	<parameter name="ViewRenderScale" value="2" />
 -->
 
 	<parameter name="WindowResizable" value="false" />

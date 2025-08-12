@@ -1063,6 +1063,13 @@ void OptionState::CheckParametersChanged()
     applybutton_->SetEnabled(change);
 }
 
+bool OptionState::IsFullscreenResolution(unsigned monitor, const IntVector2& resolution) const
+{
+    // on wayland, only desktopResolution is fullscreen.
+    Graphics* graphics = GetSubsystem<Graphics>();
+    return graphics && (graphics->GetVideoDriverName() != "wayland" || resolution == graphics->GetDesktopResolution(0));
+}
+
 void OptionState::ApplyParameters()
 {
     if (category_ == "Graphics")
@@ -1128,6 +1135,21 @@ void OptionState::ApplyParameters()
                 const bool tripleBuffer = graphics->GetTripleBuffer();
                 const int multiSample = graphics->GetMultiSample();
 
+                int renderscale = graphics->GetDefaultViewRenderScale();
+                const int wantedWidth = width;
+                const int wantedHeight = height;
+                // Use Graphics::ViewRenderScale to simulate a fullscreen resolution for rendered views. (scene only, not for main ui)       
+                if (fullscreen && !IsFullscreenResolution(monitor, IntVector2(width, height)))
+                {
+                    IntVector2 desktopResolution = graphics->GetDesktopResolution(monitor);
+                    renderscale = desktopResolution.y_ > height ? desktopResolution.y_ / height : 1; 
+                    width = desktopResolution.x_;
+                    height = desktopResolution.y_;              
+                }
+
+                URHO3D_LOGINFOF("OptionState() - ApplyParameters ... video mode change to ... %dx%d (%dx%d) renderscale=%d", width, height, wantedWidth, wantedHeight, renderscale);
+
+                graphics->UpdateViewRenderRatio(renderscale);
                 graphics->SetMode(width, height, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, refreshRate);
 
     //            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;

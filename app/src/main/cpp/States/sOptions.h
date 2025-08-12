@@ -49,6 +49,7 @@ protected:
     void SwitchToCategory(const String& category);
 
     void SynchronizeParameters();
+    bool IsFullscreenResolution(unsigned monitor, const IntVector2& resolution) const;    
     void CheckParametersChanged();
     void ApplyParameters();
     void ApplyWorldChange();
