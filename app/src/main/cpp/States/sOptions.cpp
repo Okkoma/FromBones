@@ -47,6 +47,7 @@
 #include "GameCommands.h"
 #include "GameStateManager.h"
 #include "GameNetwork.h"
+#include "../cpplauncher/Game.h"
 
 #include "MapStorage.h"
 #include "MapWorld.h"
@@ -792,6 +793,41 @@ void OptionState::SwitchToCategory(const String& category)
     URHO3D_LOGINFO("OptionState() - SwitchToCategory ... OK !");
 }
 
+IntVector3 StringToResolution(const String& str) 
+{
+    IntVector3 resolution;
+    Vector<String> str2 = str.Split('-');
+    if (str2.Size() > 1)    
+        resolution.z_ = ToInt(str2[1].Substring(0U, str2[1].Find('H', 0U, true)));
+    Vector<String> str3 = str2[0].Split('x');
+    resolution.x_ = ToInt(str3.Front());
+    resolution.y_ = ToInt(str3.Back());
+    URHO3D_LOGINFOF("StringToResolution() - str=%s => resolution=%d %d %d", str.CString(), resolution.x_,resolution.y_,resolution.z_);
+    return resolution;
+}
+String ResolutionToString(const IntVector3& resolution)
+{
+    if (resolution.z_)
+        return ToString("%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_);        
+    return ToString("%dx%d", resolution.x_, resolution.y_); 
+}
+
+unsigned FindResolutionIndex(DropDownList* control, const IntVector3& resolution)
+{
+    if (!control)
+        return M_MAX_UNSIGNED;
+
+    String resolutionString = ResolutionToString(resolution);
+    for (unsigned i = 0; i < control->GetNumItems(); i++)
+    {
+        if (resolutionString == static_cast<Text*>(control->GetItem(i))->GetText())
+            return i;
+    }
+    return M_MAX_UNSIGNED;
+}
+
+static unsigned currentResolutionIndex_ = M_MAX_UNSIGNED;
+
 void OptionState::SynchronizeParameters()
 {
     URHO3D_LOGINFO("OptionState() - SynchronizeParameters ...");
@@ -850,16 +886,20 @@ void OptionState::SynchronizeParameters()
 
     Graphics* graphics = GetSubsystem<Graphics>();
     const unsigned currentMonitor = graphics->GetMonitor();
-    const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
-    if (resolutions.Size() >= 1)
-    {
-        bool oneresolution = resolutions.Size() == 1;
-//        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u", currentMonitor);
-        const unsigned currentResolution = graphics->FindBestResolutionIndex(currentMonitor, graphics->GetWidth(), graphics->GetHeight(), graphics->GetRefreshRate());
-        if (optionParameters_[OPTION_Resolution].control_ && optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
-        {
-            DropDownList* control = optionParameters_[OPTION_Resolution].control_;
 
+    if (optionParameters_[OPTION_Resolution].control_ && !optionParameters_[OPTION_Resolution].control_->GetNumItems())
+    {
+        // initialize resolutions list
+        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u initialize resolutions list...", currentMonitor);        
+        
+        currentResolutionIndex_ = M_MAX_UNSIGNED;
+
+        const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
+        if (resolutions.Size())
+        {            
+            bool oneresolution = resolutions.Size() == 1;
+
+            DropDownList* control = optionParameters_[OPTION_Resolution].control_;
             control->RemoveAllItems();
             control->SetMinSize((float)control->GetMinSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
             control->SetMaxSize((float)control->GetMaxSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
@@ -883,11 +923,7 @@ void OptionState::SynchronizeParameters()
                 resolutionEntry->SetTextAlignment(HA_CENTER);
                 resolutionEntry->SetFont(fontsize == 12 ? GameContext::Get().uiFonts_[UIFONTS_ABY12] : fontsize == 22 ? GameContext::Get().uiFonts_[UIFONTS_ABY22] : GameContext::Get().uiFonts_[UIFONTS_ABY32]);
                 resolutionEntry->SetFontSize(fontsize);
-
-                if (resolution.z_)
-                    resolutionEntry->SetText(ToString("%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_));
-                else
-                    resolutionEntry->SetText(ToString("%dx%d", resolution.x_, resolution.y_));
+                resolutionEntry->SetText(ResolutionToString(resolution));
                 resolutionEntry->SetMinWidth(CeilToInt(resolutionEntry->GetRowWidth(0) + 10));
 
 //                URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : add resolution=%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_);
@@ -896,22 +932,37 @@ void OptionState::SynchronizeParameters()
             ListView* listview = control->GetListView();
             listview->SetScrollBarsVisible(false, !oneresolution);
 
-            control->SetSelection(currentResolution < resolutions.Size() ? currentResolution : 0);
-
             GameHelpers::SetEnableScissor(control, true);
-        }
-        if (optionParameters_[OPTION_Fullscreen].control_ && optionParameters_[OPTION_Fullscreen].control_->GetSelection() != graphics->GetFullscreen())
+
+            // initialize resolution index
+            const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
+            unsigned resolutionIndex = graphics->FindBestResolutionIndex(Game::GetEngineParameters()["WindowWidth"].GetInt(), 
+                                                                        Game::GetEngineParameters()["WindowHeight"].GetInt(), 
+                                                                    Game::GetEngineParameters()["RefreshRate"].GetInt(), resolutions);
+            currentResolutionIndex_ = FindResolutionIndex(optionParameters_[OPTION_Resolution].control_, resolutions[resolutionIndex]);
+
+            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : get initial resolution=%s => currentResolutionIndex_=%u !", resolutions[resolutionIndex].ToString().CString(), currentResolutionIndex_);
+
+            if (currentResolutionIndex_ == M_MAX_UNSIGNED)
+                currentResolutionIndex_ = 0;                    
+        }    
+        else
         {
-            optionParameters_[OPTION_Fullscreen].control_->SetSelection(graphics->GetFullscreen());
+            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : can't get monitor resolutions => resolution controls are disabled !");
+            optionParameters_[OPTION_Resolution].control_->GetParent()->SetEnabled(false);
+            optionParameters_[OPTION_Resolution].control_->GetParent()->SetVisible(false);
+            optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetEnabled(false);
+            optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetVisible(false);
         }
     }
-    else
+
+    if (currentResolutionIndex_ != M_MAX_UNSIGNED && optionParameters_[OPTION_Resolution].control_ && optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolutionIndex_)
+    {               
+        optionParameters_[OPTION_Resolution].control_->SetSelection(currentResolutionIndex_);
+    }
+    if (optionParameters_[OPTION_Fullscreen].control_ && optionParameters_[OPTION_Fullscreen].control_->GetSelection() != graphics->GetFullscreen())
     {
-        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : can't get monitor resolutions => resolution controls are disabled !");
-        optionParameters_[OPTION_Resolution].control_->GetParent()->SetEnabled(false);
-        optionParameters_[OPTION_Resolution].control_->GetParent()->SetVisible(false);
-        optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetEnabled(false);
-        optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetVisible(false);
+        optionParameters_[OPTION_Fullscreen].control_->SetSelection(graphics->GetFullscreen());
     }
 
     Renderer* renderer = GetSubsystem<Renderer>();
@@ -1022,25 +1073,16 @@ void OptionState::CheckParametersChanged()
 
     if (category_ == "Graphics")
     {
-        Graphics* graphics = GetSubsystem<Graphics>();
-
-        const unsigned monitor = graphics->GetMonitor();
-
-        int width = graphics->GetWidth();
-        int height = graphics->GetHeight();
-        int refreshRate = graphics->GetRefreshRate();
-        bool fullscreen = graphics->GetFullscreen();
-
-        const unsigned currentResolution = graphics->FindBestResolutionIndex(monitor, width, height, refreshRate);
-
-        if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
+        if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolutionIndex_)
             change++;
-        if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
+        if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != GetSubsystem<Graphics>()->GetFullscreen())
             change++;
         if (optionParameters_[OPTION_TextureQuality].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureQuality())
             change++;
         if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureFilterMode())
             change++;
+
+        URHO3D_LOGERRORF("OptionState() - CheckParametersChanged ... graphics change = %d !", change);
     }
     else if (category_ == "Network")
     {
@@ -1097,14 +1139,11 @@ void OptionState::ApplyParameters()
         {
             const unsigned monitor = graphics->GetMonitor();
 
-            int width = graphics->GetWidth();
-            int height = graphics->GetHeight();
-            int refreshRate = graphics->GetRefreshRate();
+            IntVector3 resolution = StringToResolution(static_cast<Text*>(optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_))->GetText());
             bool fullscreen = graphics->GetFullscreen();
-            const unsigned currentResolution = graphics->FindBestResolutionIndex(monitor, width, height, refreshRate);
-            const PODVector<IntVector3> resolutions = graphics->GetResolutions(monitor);
-
             int videomodechanged = 0;
+
+            URHO3D_LOGERRORF("OptionState() - ApplyParameters ... currentResolutionIndex_=%u resolution=%s", currentResolutionIndex_, resolution.ToString().CString());
 
             // Texture Filter
             if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != graphics->GetDefaultTextureFilterMode())
@@ -1112,12 +1151,10 @@ void OptionState::ApplyParameters()
                 graphics->SetDefaultTextureFilterMode((TextureFilterMode)optionParameters_[OPTION_TextureFilter].control_->GetSelection());
             }
 
-            if (!currentResolution || optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolution)
+            if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolutionIndex_)
             {
-                const unsigned selectedResolution = optionParameters_[OPTION_Resolution].control_->GetSelection();
-                width = resolutions[selectedResolution].x_;
-                height = resolutions[selectedResolution].y_;
-                refreshRate = resolutions[selectedResolution].z_;
+                currentResolutionIndex_ = optionParameters_[OPTION_Resolution].control_->GetSelection();
+                resolution = StringToResolution(static_cast<Text*>(optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_))->GetText());                                
                 videomodechanged++;
             }
             if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
@@ -1136,21 +1173,21 @@ void OptionState::ApplyParameters()
                 const int multiSample = graphics->GetMultiSample();
 
                 int renderscale = graphics->GetDefaultViewRenderScale();
-                const int wantedWidth = width;
-                const int wantedHeight = height;
+                const int wantedWidth = resolution.x_;
+                const int wantedHeight = resolution.y_;
                 // Use Graphics::ViewRenderScale to simulate a fullscreen resolution for rendered views. (scene only, not for main ui)       
-                if (fullscreen && !IsFullscreenResolution(monitor, IntVector2(width, height)))
+                if (fullscreen && !IsFullscreenResolution(monitor, IntVector2(wantedWidth, wantedHeight)))
                 {
                     IntVector2 desktopResolution = graphics->GetDesktopResolution(monitor);
-                    renderscale = desktopResolution.y_ > height ? desktopResolution.y_ / height : 1; 
-                    width = desktopResolution.x_;
-                    height = desktopResolution.y_;              
+                    renderscale = desktopResolution.y_ > wantedHeight ? desktopResolution.y_ / wantedHeight + (desktopResolution.y_ % wantedHeight ? 1 : 0) : 1; 
+                    resolution.x_ = desktopResolution.x_;
+                    resolution.y_ = desktopResolution.y_;              
                 }
 
-                URHO3D_LOGINFOF("OptionState() - ApplyParameters ... video mode change to ... %dx%d (%dx%d) renderscale=%d", width, height, wantedWidth, wantedHeight, renderscale);
+                URHO3D_LOGINFOF("OptionState() - ApplyParameters ... video mode change to ... %dx%d (%dx%d) renderscale=%d", resolution.x_, resolution.y_, wantedWidth, wantedHeight, renderscale);
 
                 graphics->UpdateViewRenderRatio(renderscale);
-                graphics->SetMode(width, height, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, refreshRate);
+                graphics->SetMode(resolution.x_, resolution.y_, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, resolution.z_);
 
     //            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;
     //            GameContext::Get().InitMouse(GetContext(), MM_FREE);
