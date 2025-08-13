@@ -316,6 +316,7 @@ public :
     // Game Screen Parameters
     static const int targetwidth_;
     static const int targetheight_;
+    static const IntVector2 minResolution;
     int screenwidth_;
     int screenheight_;
     float uiScale_, uiScaleMax_, uiScaleMin_;

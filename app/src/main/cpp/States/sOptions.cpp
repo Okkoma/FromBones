@@ -793,37 +793,11 @@ void OptionState::SwitchToCategory(const String& category)
     URHO3D_LOGINFO("OptionState() - SwitchToCategory ... OK !");
 }
 
-IntVector3 StringToResolution(const String& str) 
-{
-    IntVector3 resolution;
-    Vector<String> str2 = str.Split('-');
-    if (str2.Size() > 1)    
-        resolution.z_ = ToInt(str2[1].Substring(0U, str2[1].Find('H', 0U, true)));
-    Vector<String> str3 = str2[0].Split('x');
-    resolution.x_ = ToInt(str3.Front());
-    resolution.y_ = ToInt(str3.Back());
-    URHO3D_LOGINFOF("StringToResolution() - str=%s => resolution=%d %d %d", str.CString(), resolution.x_,resolution.y_,resolution.z_);
-    return resolution;
-}
 String ResolutionToString(const IntVector3& resolution)
 {
     if (resolution.z_)
         return ToString("%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_);        
     return ToString("%dx%d", resolution.x_, resolution.y_); 
-}
-
-unsigned FindResolutionIndex(DropDownList* control, const IntVector3& resolution)
-{
-    if (!control)
-        return M_MAX_UNSIGNED;
-
-    String resolutionString = ResolutionToString(resolution);
-    for (unsigned i = 0; i < control->GetNumItems(); i++)
-    {
-        if (resolutionString == static_cast<Text*>(control->GetItem(i))->GetText())
-            return i;
-    }
-    return M_MAX_UNSIGNED;
 }
 
 static unsigned currentResolutionIndex_ = M_MAX_UNSIGNED;
@@ -889,7 +863,7 @@ void OptionState::SynchronizeParameters()
 
     if (optionParameters_[OPTION_Resolution].control_ && !optionParameters_[OPTION_Resolution].control_->GetNumItems())
     {
-        // initialize resolutions list
+
         URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u initialize resolutions list...", currentMonitor);        
         
         currentResolutionIndex_ = M_MAX_UNSIGNED;
@@ -899,6 +873,12 @@ void OptionState::SynchronizeParameters()
         {            
             bool oneresolution = resolutions.Size() == 1;
 
+            // get the initial resolution index
+            unsigned initialResolution = graphics->FindBestResolutionIndex(Game::GetEngineParameters()["WindowWidth"].GetInt(), 
+                                                                        Game::GetEngineParameters()["WindowHeight"].GetInt(), 
+                                                                    Game::GetEngineParameters()["RefreshRate"].GetInt(), resolutions);
+
+            // initialize resolutions list
             DropDownList* control = optionParameters_[OPTION_Resolution].control_;
             control->RemoveAllItems();
             control->SetMinSize((float)control->GetMinSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
@@ -912,9 +892,12 @@ void OptionState::SynchronizeParameters()
                 popup->SetSize(popup->GetWidth(), Min(resolutions.Size()+1, 10) * (fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 2));
             }
 
-            for (PODVector<IntVector3>::ConstIterator it = resolutions.Begin(); it != resolutions.End(); ++it)
+            for (unsigned index = 0; index < resolutions.Size(); index++)
             {
-                const IntVector3& resolution = *it;
+                const IntVector3& resolution = resolutions[index];
+                if (resolution.x_ < GameContext::minResolution.x_ || resolution.y_ < GameContext::minResolution.y_)
+                    continue;
+
                 Text* resolutionEntry = new Text(context_);
                 control->AddItem(resolutionEntry);
 
@@ -924,8 +907,12 @@ void OptionState::SynchronizeParameters()
                 resolutionEntry->SetFont(fontsize == 12 ? GameContext::Get().uiFonts_[UIFONTS_ABY12] : fontsize == 22 ? GameContext::Get().uiFonts_[UIFONTS_ABY22] : GameContext::Get().uiFonts_[UIFONTS_ABY32]);
                 resolutionEntry->SetFontSize(fontsize);
                 resolutionEntry->SetText(ResolutionToString(resolution));
+                // Set the graphics resolution
+                resolutionEntry->SetVar(GOA::CLIENTID, resolution);
                 resolutionEntry->SetMinWidth(CeilToInt(resolutionEntry->GetRowWidth(0) + 10));
 
+                if (index == initialResolution)
+                    currentResolutionIndex_ = control->GetNumItems()-1;
 //                URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : add resolution=%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_);
             }
 
@@ -934,17 +921,10 @@ void OptionState::SynchronizeParameters()
 
             GameHelpers::SetEnableScissor(control, true);
 
-            // initialize resolution index
-            const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
-            unsigned resolutionIndex = graphics->FindBestResolutionIndex(Game::GetEngineParameters()["WindowWidth"].GetInt(), 
-                                                                        Game::GetEngineParameters()["WindowHeight"].GetInt(), 
-                                                                    Game::GetEngineParameters()["RefreshRate"].GetInt(), resolutions);
-            currentResolutionIndex_ = FindResolutionIndex(optionParameters_[OPTION_Resolution].control_, resolutions[resolutionIndex]);
-
-            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : get initial resolution=%s => currentResolutionIndex_=%u !", resolutions[resolutionIndex].ToString().CString(), currentResolutionIndex_);
+            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : get initial resolution=%s => currentResolutionIndex_=%u !", resolutions[initialResolution].ToString().CString(), currentResolutionIndex_);
 
             if (currentResolutionIndex_ == M_MAX_UNSIGNED)
-                currentResolutionIndex_ = 0;                    
+                currentResolutionIndex_ = 0;
         }    
         else
         {
@@ -1139,7 +1119,7 @@ void OptionState::ApplyParameters()
         {
             const unsigned monitor = graphics->GetMonitor();
 
-            IntVector3 resolution = StringToResolution(static_cast<Text*>(optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_))->GetText());
+            IntVector3 resolution = optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_)->GetVar(GOA::CLIENTID).GetIntVector3();
             bool fullscreen = graphics->GetFullscreen();
             int videomodechanged = 0;
 
@@ -1154,7 +1134,7 @@ void OptionState::ApplyParameters()
             if (optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolutionIndex_)
             {
                 currentResolutionIndex_ = optionParameters_[OPTION_Resolution].control_->GetSelection();
-                resolution = StringToResolution(static_cast<Text*>(optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_))->GetText());                                
+                resolution = optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_)->GetVar(GOA::CLIENTID).GetIntVector3();                                
                 videomodechanged++;
             }
             if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)

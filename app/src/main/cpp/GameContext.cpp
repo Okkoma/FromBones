@@ -171,6 +171,7 @@ GameConfig::GameConfig() :
 
 const int GameContext::targetwidth_ = 1920;
 const int GameContext::targetheight_ = 1080;
+const IntVector2 GameContext::minResolution(640, 480);
 #ifdef URHO3D_VULKAN
 const long long GameContext::preloadDelayUsec_ = 15000;
 #else
