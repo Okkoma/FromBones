@@ -322,7 +322,7 @@ String CheckGraphicBackEnds(String& logstr)
 void SwitchToWayland(String& logstr)
 {
     logstr += "Wayland environnement " + String(SDL_getenv("WAYLAND_DISPLAY")) + ").\n";
-    logstr += "... Force using Wayland backend.\n";
+    logstr += "... use Wayland backend.\n";
     
     // Toogle to wayland Backend
     SDL_setenv("SDL_VIDEODRIVER", "wayland", 1);
@@ -489,7 +489,8 @@ void Game::Setup()
     // Check sdl graphic backends
     String backends = CheckGraphicBackEnds(config.logString);
     // Switch to wayland if available
-    if (backends.Contains("wayland") && SDL_getenv("WAYLAND_DISPLAY"))
+    const char* videoDriverRequired = SDL_getenv("SDL_VIDEODRIVER");
+    if (backends.Contains("wayland") && SDL_getenv("WAYLAND_DISPLAY") && (!videoDriverRequired || strcmp(videoDriverRequired, "wayland") == 0))
         SwitchToWayland(config.logString);
     
     GameContext::Get().gameConfig_.logLevel_ = engineParameters_["LogLevel"].GetInt();
