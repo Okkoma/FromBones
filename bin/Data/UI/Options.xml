@@ -1279,6 +1279,9 @@
                 </element>
 
                 <element>
+                    <!-- Texture Quality disable : see comments in TODO.txt 2022 -->
+                    <attribute name="Is Enabled" value="false" />
+                    <attribute name="Is Visible" value="false" />                
                     <attribute name="Min Size" value="350 50" />
                     <attribute name="Max Size" value="530 50" />
                     <attribute name="Horiz Alignment" value="Center" />
@@ -1292,9 +1295,6 @@
                     </element>
                     <element type="DropDownList" style="OptionDropDownList">
                         <attribute name="Name" value="TextureQuality" />
-
-                        <attribute name="Is Enabled" value="false" />
-
                         <attribute name="Min Size" value="170 50" />
                         <attribute name="Max Size" value="250 50" />
                         <attribute name="Resize Popup" value="true" />

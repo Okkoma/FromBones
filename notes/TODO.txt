@@ -8,6 +8,11 @@
 
 =====> IMPORTANT : 01/09/2021 par defaut le net simulateur est activé. NE PAS OUBLIER D'ACTIVER dans slikenet/include/defines.h la ligne #Define _RETAIL pour desactiver le NetSimulator en version Publique.
 
+=> 13/08/2025 : desactivation/invisible de la qualité des textures dans le menu Options - cf 09/11/2022
+
+=> 12/08/2025 : meilleure intégration de Wayland - simulation du changement de mode video. Wayland ne permet pas de changer de resolution d'écran (mode set) directement via l'application comme X11 pour une question de sécurité.
+A priori cela doit être possible en demandant à l'environnement ... cela rend l'affaire complexe car dépendant de l'environnement linux à priori.
+
 => 21/02/2023 : partitionnement de l'implementation en une libraire FromBonesLib (source dans app/main/cpp) et un Launcher Game (source dans app/main/cpplauncher) pour permettre l'ajout de l'editeur en librairie dynamique
 ==> pas mal de modification make, bake et sources
 ===> pour le moment que pour linux
