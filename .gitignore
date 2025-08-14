@@ -34,7 +34,7 @@ build.gradle.kts
 /app/keystore
 /app/*.keystore
 restorelinks
-
+/test
 exe/gl/FromBones
 
 # cmake compile commands for clang
