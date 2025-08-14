@@ -1165,6 +1165,8 @@ void Game::HandleKeyDownHUD(StringHash eventType, VariantMap& eventData)
             if (debugHud->GetMode() == DEBUGHUD_SHOW_NONE)
                 debugHud->SetMode(DEBUGHUD_SHOW_FPS);
             else if (debugHud->GetMode() == DEBUGHUD_SHOW_FPS)
+                debugHud->SetMode(DEBUGHUD_SHOW_FPS_ENV);
+            else if (debugHud->GetMode() == DEBUGHUD_SHOW_FPS_ENV)
                 debugHud->SetMode(DEBUGHUD_SHOW_ALL);
             else if (debugHud->GetMode() == DEBUGHUD_SHOW_ALL)
                 debugHud->SetMode(DEBUGHUD_SHOW_EVENTPROFILER);
