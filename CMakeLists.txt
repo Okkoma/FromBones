@@ -22,7 +22,8 @@ option (SDL_HAPTIC "Enable the Haptic subsystem" FALSE)
 option (SDL_LOCALE "Enable the Locale subsystem" FALSE)
 option (SDL_POWER "Enable the Power subsystem" FALSE)
 option (SDL_SENSOR "Enable the Sensor subsystem" TRUE)
-option (SDL_THREADS "Enable the Threads subsystem" FALSE)
+# Audio system need SDL_THREADS (semaphore).
+option (SDL_THREADS "Enable the Threads subsystem" TRUE) 
 option (SDL_TIMERS "Enable the Timers subsystem" TRUE)
 
 include (${CMAKE_SOURCE_DIR}/cmake/Urho3D.cmake)

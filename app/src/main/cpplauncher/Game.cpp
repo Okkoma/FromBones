@@ -487,11 +487,14 @@ void Game::Setup()
     GameContext::Get().gameConfig_.logString += "ResourcePaths=" + ResourcePaths;
 
     // Check sdl graphic backends
-    String backends = CheckGraphicBackEnds(config.logString);
-    // Switch to wayland if available
-    const char* videoDriverRequired = SDL_getenv("SDL_VIDEODRIVER");
-    if (backends.Contains("wayland") && SDL_getenv("WAYLAND_DISPLAY") && (!videoDriverRequired || strcmp(videoDriverRequired, "wayland") == 0))
-        SwitchToWayland(config.logString);
+    //String backends = CheckGraphicBackEnds(config.logString);
+    //if (backends.Contains("wayland"))    
+    {
+        // Switch to wayland if available
+        const char* videoDriverRequired = SDL_getenv("SDL_VIDEODRIVER");
+        if (SDL_getenv("WAYLAND_DISPLAY") && (!videoDriverRequired || strcmp(videoDriverRequired, "wayland") == 0))
+            SwitchToWayland(config.logString);
+    }
     
     GameContext::Get().gameConfig_.logLevel_ = engineParameters_["LogLevel"].GetInt();
 }
