@@ -1,4 +1,12 @@
 Todos:
+    ☐ 03/09/2025 : VK Update reprise du todo 14/06/2022
+        ✔ ajout de VkRenderSurface permettant l'utilisation de fantomette
+        ☐ il faut pouvoir utiliser la couleur de fond lors du clearpass (0,0,1,0) (bleau+alpha) (voir Urho3DRenderTarget.xml)
+            => pour cela il faut finaliser l'intégration de RenderPath avec Vk. 
+            ==> lors de l'ajout d'un renderpath à un viewport, utiliser les datas du Renderpath pour initialiser les renderpass dans VkGraphicsImpl.
+                car pour le moment un unique RenderPath est hardcoded (ForwardUrho2D).
+            => pour le moment, la couleur est configurée à chaque frame via Graphics::Clear
+            
     ✔ 03/05/2025 : lors du switch viewZ, le waterlayer semble afficher la texture de fond pour le premier plan sur quelques msec.
         => OK : ajout de WaterLayer::SetDirty() et modification de ObjectTiled::SetCurrentViewZ() 
 

@@ -17,34 +17,31 @@
 #undef SETUP_QUALITY
 
 #if defined(RPI)
-#define SETUP_QUALITY 0
+    #define SETUP_QUALITY 0
 #else
-#define SETUP_QUALITY 1
+    #define SETUP_QUALITY 1
 #endif
 
 #if defined(URHO3D_VULKAN)
-#undef SETUP_QUALITY
-#define SETUP_QUALITY 1
+    #undef SETUP_QUALITY
+    #define SETUP_QUALITY 1
 #endif
 
 /// Always now : RenderShape with terrainatlas removed
 #define USE_TILERENDERING
 
 #if (SETUP_QUALITY == 0)
-//#define ACTIVE_LAYERMATERIALS
+    //#define ACTIVE_LAYERMATERIALS
 /// ChunkBatch has less batches but can't filter MapObjectType (for drawdebug only) and Decals are under RenderColliders
-//#define USE_CHUNKBATCH
-#define ACTIVE_WEATHEREFFECTS
-#define USE_PARTICULES
+    //#define USE_CHUNKBATCH
+    #define ACTIVE_WEATHEREFFECTS
+    #define USE_PARTICULES
 #else
-#define ACTIVE_LAYERMATERIALS
-#define ACTIVE_WEATHEREFFECTS
-#define USE_PARTICULES
-#define USE_ANIMATEDFURNITURES
-
-#if !defined(URHO3D_VULKAN)
-#define ACTIVE_RENDERTARGET
-#endif
+    #define ACTIVE_LAYERMATERIALS
+    #define ACTIVE_WEATHEREFFECTS
+    #define USE_PARTICULES
+    #define USE_ANIMATEDFURNITURES
+    #define ACTIVE_RENDERTARGET
 #endif
 
 #define ACTIVE_NETWORK

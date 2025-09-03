@@ -496,17 +496,6 @@ void GameContext::InitializeTextures()
         URHO3D_LOGINFOF("GameContext() - InitializeTextures : ... Load UI SpriteSheet=%s TexturePtr=%s", spriteSheetFiles_[i], String((void*)spritesheet->GetTexture()).CString());
     }
 
-#ifdef ACTIVE_RENDERTARGET
-    // create the render target scene for rendering alpha animatesdsprites
-    int texturesize = 1024;
-    SharedPtr<Texture2D> renderedTexture(new Texture2D(context_));
-    renderedTexture->SetNumLevels(1);    
-    renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBFormat(), TEXTURE_RENDERTARGET);
-    renderedTexture->SetMipsToSkip(QUALITY_LOW, 0);
-    renderedTexture->SetName("RenderTarget2D");
-    cache->AddManualResource(renderedTexture);
-#endif
-
 #ifdef ACTIVE_LAYERMATERIALS
 #if defined(URHO3D_OPENGL)
     {
@@ -603,13 +592,12 @@ void GameContext::Initialize()
         rttScene_ = new Scene(context_);
         rttScene_->CreateComponent<Octree>();
 
-//        SharedPtr<Texture2D> renderedTexture(cache->GetResource<Texture2D>("RenderTarget2D"));
-
         int texturesize = 1024;
         SharedPtr<Texture2D> renderedTexture = SharedPtr<Texture2D>(new Texture2D(context_));
         // Don't use Mipmapping
-        renderedTexture->SetNumLevels(1);        
-        renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBFormat(), TEXTURE_RENDERTARGET);
+        renderedTexture->SetNumLevels(1);                
+        renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBAFormat(), TEXTURE_RENDERTARGET);
+        //renderedTexture->SetSize(texturesize, texturesize, Graphics::GetRGBFormat(), TEXTURE_RENDERTARGET);
         renderedTexture->SetFilterMode(FILTER_BILINEAR);
         renderedTexture->SetName("RenderTarget2D");
         cache->AddManualResource(renderedTexture);
