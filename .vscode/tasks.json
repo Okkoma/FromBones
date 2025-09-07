@@ -61,6 +61,18 @@
                 "kind": "build"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Build (GCC) Release Vulkan",
+            "type": "shell",
+            "command": "cmake -S . -B build/native/releaseVk/gcc -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release -DURHO3D_VULKAN=1 && cmake --build build/native/releaseVk/gcc -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build"
+            },
+            "problemMatcher": []
         },        
         {
             "label": "Build With Tests (GCC)",
@@ -98,12 +110,21 @@
         {
             "label": "Build (Clang) Release",
             "type": "shell",
-            "command": "cmake -S . -B build/native/release/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release && cmake --build build/native/release/clang -j$(nproc)",
+            "command": "cmake -S . -B build/native/release/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release  && cmake --build build/native/release/clang -j$(nproc)",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
             "group": "build"
-        },        
+        },
+        {
+            "label": "Build (Clang) Vulkan Release",
+            "type": "shell",
+            "command": "cmake -S . -B build/native/releaseVk/clang -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DURHO3D_VULKAN=1 && cmake --build build/native/releaseVk/clang -j$(nproc)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build"
+        },
         {
             "label": "Build With Tests (Clang)",
             "type": "shell",

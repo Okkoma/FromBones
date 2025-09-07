@@ -230,7 +230,11 @@ const char* GameContext::sceneToLoad_[MAX_NUMLEVELS+4][3] = // MAX_NUMLEVELS+Are
 //    {"Scenes/Scene_03.xml", "Music/WT - The Cave V2.wav", "Level.3"},
     {"Scenes/ArenaZone.xml", "Music/scene01.ogg", "Arena.Zone"},
     {"Scenes/TestZone1.xml", "Music/scene01.ogg", "World.Zone.1"},
+#ifdef ACTIVE_BACKGROUND_DEBUG_COLORS
+    {"Scenes/TestZone2-debug.xml", "Music/scene02.ogg", "World.Zone.2"},
+#else
     {"Scenes/TestZone2.xml", "Music/scene02.ogg", "World.Zone.2"},
+#endif
     {"Scenes/CreateMode.xml", "", "Create.Mode"},
 };
 

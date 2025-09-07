@@ -5,8 +5,8 @@
 	<command type="clear" color="0 0 1 0" output="RenderTarget2D" />
 	<command type="scenepass" pass="alpha" vertexlights="true" sort="backtofront" metadata="alpha" >
 	<!-- <command type="scenepass" pass="alpha" psdefines="CROPALPHA" vertexlights="true" sort="backtofront" metadata="alpha" > -->
-	<!-- <texture unit="diffuse" name="viewport" /> -->
-	<output index="0" name="RenderTarget2D" />
+		<!-- <texture unit="diffuse" name="viewport" /> -->
+		<output index="0" name="RenderTarget2D" />
 	</command>
 	<!-- <command type="scenepass" pass="postalpha" sort="backtofront" /> -->
 </renderpath>
