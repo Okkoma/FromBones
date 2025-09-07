@@ -24,14 +24,24 @@ jobs:
             cpp_compiler: cl
             build_type: Release
             target: windows
+            graphics: OpenGL
             cmake_options: "-DURHO3D_OPENGL=1"
                         
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
             build_type: Release
             target: linux
-            cmake_options: ""
+            graphics: OpenGL
+            cmake_options: "-DURHO3D_OPENGL=1"
+            
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            build_type: Release
+            target: linux
+            graphics: Vulkan
+            cmake_options: "-DURHO3D_VULKAN=1"            
             
     steps:
     - uses: actions/checkout@v4
@@ -105,7 +115,7 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.target }}-${{ matrix.cpp_compiler }}-release-package
+        name: ${{ matrix.target }}-${{ matrix.cpp_compiler }}-${{ matrix.graphics }}-release-package
         path: ${{ steps.strings.outputs.build-output-dir }}/*.zip
       if: |
         (matrix.target == 'windows' && matrix.build_type == 'Release') ||
