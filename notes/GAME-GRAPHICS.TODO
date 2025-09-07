@@ -1,4 +1,9 @@
 Todos:
+    ✔ 07/09/2025 : VK avec l'editor - les textures ne s'affichent pas correctement pour les fontes ni les icones
+        => pb de descriptors : les logs sont bon pourtant.
+        ==> il y a beaucoup de modification et d'allocation de descriptor du au switch entre les texture d'icones et la texture de fonte 
+            problème résolu en augmentant le nombre de descriptors dans la pool de 25 à 100 (NUMDESCRIPTORSETS) !
+
     ☐ 03/09/2025 : VK Update reprise du todo 14/06/2022
         ✔ ajout de VkRenderSurface permettant l'utilisation de fantomette
         ☐ il faut pouvoir utiliser la couleur de fond lors du clearpass (0,0,1,0) (bleau+alpha) (voir Urho3DRenderTarget.xml)
