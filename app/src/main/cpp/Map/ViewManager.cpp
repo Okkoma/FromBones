@@ -1010,7 +1010,7 @@ void ViewManager::UpdateFocus(int viewport, const float& timeStep)
 #ifdef CAMERAFOCUS_ADJUSTWALK
                     movestate = node->GetVar(GOA::MOVESTATE).GetUInt();
 
-                    if ((movestate & (MV_WALK|MV_FLY|MV_INFALL) == MV_WALK) || (movestate & MV_TOUCHGROUND))
+                    if (((movestate & (MV_WALK|MV_FLY|MV_INFALL)) == MV_WALK) || (movestate & MV_TOUCHGROUND))
                     {
 #ifdef CAMERAFOCUS_TEMPO
                         sTempoFocus += timeStep;

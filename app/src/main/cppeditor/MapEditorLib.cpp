@@ -621,7 +621,7 @@ public :
             length_ = Clamp(objinfo.width_ * PIXEL_SIZE, 0.05f, 2.f);
             width_  = Clamp(objinfo.height_ * PIXEL_SIZE * 0.5f, 0.0025f, 0.5f);
             // reduce width to keep good proportion with the length
-            if (width_ > 0.125f * length_);
+            if (width_ > 0.125f * length_)
                 width_ = 0.125f * length_;
         }
     }
@@ -2341,7 +2341,7 @@ void LoadAttributeEditor(UIElement* parent, const Variant& value, const Attribut
 
 void LoadAttributeEditor(UIElement* list, const Vector<Serializable*>& serializables, const AttributeInfo& info, unsigned index)
 {
-    bool editable = info.mode_ & AM_NOEDIT == 0;
+    bool editable = (info.mode_ & AM_NOEDIT) == 0;
 
     UIElement* parent = GetAttributeEditorParent(list, index, 0);
     if (!parent)
