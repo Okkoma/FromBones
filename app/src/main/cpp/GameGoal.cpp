@@ -387,7 +387,7 @@ void Objective::Start(Mission* mission, unsigned owner)
 
     state_ = IsRunning;
 
-    URHO3D_LOGERRORF("Objective() - Start : mission=%s(%u) state=%s(%d) attribut=%s(%u)",
+    URHO3D_LOGINFOF("Objective() - Start : mission=%s(%u) state=%s(%d) attribut=%s(%u)",
                      mission_->GetMissionData() ? mission_->GetMissionData()->name_.CString() : "unamed", mission_, GoalStateNames_[state_], state_, GOT::GetType(StringHash(attribut_)).CString(), attribut_);
 }
 
@@ -528,7 +528,7 @@ void Objective::Update(unsigned owner)
             StringHash recipe = CraftRecipes::GetRecipe(StringHash(attribut_));
             if (!recipe.Value())
             {
-                URHO3D_LOGERRORF("Objective() - Update : type=%s(%u) can't find a recipe !", objectiveTypeName.CString(), type_);
+                URHO3D_LOGINFOF("Objective() - Update : type=%s(%u) can't find a recipe !", objectiveTypeName.CString(), type_);
                 return;
             }
 
@@ -539,7 +539,7 @@ void Objective::Update(unsigned owner)
 
             if (!materials.Size() && !tools.Size())
             {
-                URHO3D_LOGERRORF("Objective() - Update : type=%s(%u) no element for recipe=%u !", objectiveTypeName.CString(), type_, attribut_);
+                URHO3D_LOGINFOF("Objective() - Update : type=%s(%u) no element for recipe=%u !", objectiveTypeName.CString(), type_, attribut_);
                 return;
             }
 
@@ -558,7 +558,7 @@ void Objective::Update(unsigned owner)
 
                 if (numMaterials < materials.Size())
                 {
-                    URHO3D_LOGERRORF("Objective() - Update : type=%s(%u) not enough materials !", objectiveTypeName.CString(), type_);
+                    URHO3D_LOGINFOF("Objective() - Update : type=%s(%u) not enough materials !", objectiveTypeName.CString(), type_);
                     return;
                 }
             }
@@ -611,7 +611,7 @@ void Objective::Update(unsigned owner)
 
                 if (numTools < tools.Size())
                 {
-                    URHO3D_LOGERRORF("Objective() - Update : type=%s(%u) not enough tools !", objectiveTypeName.CString(), type_);
+                    URHO3D_LOGINFOF("Objective() - Update : type=%s(%u) not enough tools !", objectiveTypeName.CString(), type_);
                     return;
                 }
             }
@@ -643,7 +643,7 @@ void Objective::Update(unsigned owner)
             actions_[i].Execute(actor, mission_, data_->actionDatas_[i]);
     }
 
-    URHO3D_LOGERRORF("Objective() - Update : mission=%s(%u) state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
+    URHO3D_LOGINFOF("Objective() - Update : mission=%s(%u) state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
                      mission_->GetMissionData() ? mission_->GetMissionData()->name_.CString() : "unamed", mission_->GetID(), GoalStateNames_[state_], 
                      state_, GOT::GetType(StringHash(attribut_)).CString(), elapsedQty_, quantity_, numConditions_);
 }
@@ -908,7 +908,7 @@ void Mission::Start(unsigned owner)
     else
         objectives_[objIndex_].Start(this, owner);
 
-    URHO3D_LOGERRORF("Mission() - Start : id=%u state_=%s(%d) ... OK !", id_, GoalStateNames_[state_], state_);
+    URHO3D_LOGINFOF("Mission() - Start : id=%u state_=%s(%d) ... OK !", id_, GoalStateNames_[state_], state_);
 }
 
 void Mission::Stop()
@@ -1384,7 +1384,7 @@ void MissionManager::NextMission()
 
 void MissionManager::Start()
 {
-    URHO3D_LOGERRORF("MissionManager() - Start ...");
+    URHO3D_LOGINFOF("MissionManager() - Start ...");
 
     if (!started_)
     {
@@ -1402,7 +1402,7 @@ void MissionManager::Start()
         iCount_ = missionsToComplete_.Begin();
 
         started_ = true;
-        URHO3D_LOGERRORF("MissionManager() - Start ... missionsToComplete_=%u OK !", missionsToComplete_.Size());
+        URHO3D_LOGINFOF("MissionManager() - Start ... missionsToComplete_=%u OK !", missionsToComplete_.Size());
     }
     else
     {
@@ -1422,7 +1422,7 @@ void MissionManager::Stop()
             (*it)->Stop();
         }
 
-        URHO3D_LOGERRORF("MissionManager() - Stop ... OK !");
+        URHO3D_LOGINFOF("MissionManager() - Stop ... OK !");
     }
 //    else
 //    {

@@ -20,7 +20,7 @@ GOC_EntityFollower::GOC_EntityFollower(Context* context) :
 
 GOC_EntityFollower::~GOC_EntityFollower()
 {
-//    URHO3D_LOGINFO("~GOC_EntityFollower()");
+//    URHO3D_LOGDEBUG("~GOC_EntityFollower()");
 }
 
 void GOC_EntityFollower::RegisterObject(Context* context)

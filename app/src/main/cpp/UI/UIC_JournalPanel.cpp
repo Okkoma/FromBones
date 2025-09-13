@@ -102,7 +102,7 @@ void UIC_JournalPanel::UpdateSelectedMission()
     if (!currentQuestZone_)
         return;
 
-    URHO3D_LOGERRORF("UIC_JournalPanel() - UpdateSelectedMission !");
+    URHO3D_LOGDEBUG("UIC_JournalPanel() - UpdateSelectedMission !");
 
     Text* title = static_cast<Text*>(panel_->GetChild("QuestTitle", true));
     title->SetText(selectedMission_ ? selectedMission_->GetMissionData()->title_ : "empty");

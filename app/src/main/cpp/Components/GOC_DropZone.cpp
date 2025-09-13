@@ -42,7 +42,7 @@ GOC_DropZone::GOC_DropZone(Context* context) :
 
 GOC_DropZone::~GOC_DropZone()
 {
-//    URHO3D_LOGINFO("~GOC_DropZone()");
+//    URHO3D_LOGDEBUG("~GOC_DropZone()");
     Stop();
 }
 

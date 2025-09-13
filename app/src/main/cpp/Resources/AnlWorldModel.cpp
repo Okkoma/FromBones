@@ -248,14 +248,14 @@ AnlWorldModel::AnlWorldModel(Context* context) :
 AnlWorldModel::~AnlWorldModel()
 {
     Clear();
-    URHO3D_LOGINFO("~AnlWorldModel() - " + GetName());
+    URHO3D_LOGDEBUG("~AnlWorldModel() - " + GetName());
 }
 
 void AnlWorldModel::RegisterObject(Context* context)
 {
     context->RegisterFactory<AnlWorldModel>();
 
-    URHO3D_LOGINFO("AnlWorldModel() - RegisterObject() : ... OK !");
+    URHO3D_LOGDEBUG("AnlWorldModel() - RegisterObject() : ... OK !");
 }
 
 bool AnlWorldModel::BeginLoad(Deserializer& source)
@@ -270,7 +270,7 @@ bool AnlWorldModel::BeginLoad(Deserializer& source)
     if (extension == ".xml")
         return BeginLoadFromXMLFile(source);
 
-    URHO3D_LOGERROR("Unsupported file type");
+    URHO3D_LOGERRORF("AnlWorldModel() - BeginLoad : Unsupported file type (%s)", source.GetName().CString());
     return false;
 }
 
@@ -892,7 +892,7 @@ bool AnlWorldModel::EndLoadFromXMLFile()
 
                         cindex = kernel.seed(seed_).GetIndex();
 
-                        URHO3D_LOGERRORF("AnlWorldModel() - EndLoadFromXMLFile : set seed=%u !", seed_);
+                        URHO3D_LOGINFOF("AnlWorldModel() - EndLoadFromXMLFile : set seed=%u !", seed_);
                     }
                     else
                     {
@@ -1021,12 +1021,12 @@ bool AnlWorldModel::EndLoadFromXMLFile()
                     if (radius_ == 0.f)
                     {
                         radius_ = instructions[iparam].outfloat_; // params="5 radial"
-                        URHO3D_LOGERRORF("AnlWorldModel() - EndLoadFromXMLFile : get radius=%F !", radius_);
+                        URHO3D_LOGINFOF("AnlWorldModel() - EndLoadFromXMLFile : get radius=%F !", radius_);
                     }
                     else
                     {
                         instructions[iparam].outfloat_ = radius_;
-                        URHO3D_LOGERRORF("AnlWorldModel() - EndLoadFromXMLFile : set radius=%F !", radius_);
+                        URHO3D_LOGINFOF("AnlWorldModel() - EndLoadFromXMLFile : set radius=%F !", radius_);
                     }
 
                     radiusIndex_ = iparam;
@@ -1042,7 +1042,7 @@ bool AnlWorldModel::EndLoadFromXMLFile()
                     else
                     {
                         instructions[iparam].outfloat_ = scale_.x_;
-                        URHO3D_LOGERRORF("AnlWorldModel() - EndLoadFromXMLFile : set scaleX=%F !", scale_.x_);
+                        URHO3D_LOGINFOF("AnlWorldModel() - EndLoadFromXMLFile : set scaleX=%F !", scale_.x_);
                     }
 
                     scaleIndex_ = iparam;
@@ -1457,7 +1457,7 @@ bool AnlWorldModel::UpdateGeneratingSnapShots()
 
         const int numThreads = 2;
 
-        URHO3D_LOGERRORF("AnlWorldModel() - UpdateGeneratingSnapShots : %s Generate SnapShot Started ... %s ... %s(%u)",
+        URHO3D_LOGINFOF("AnlWorldModel() - UpdateGeneratingSnapShots : %s Generate SnapShot Started ... %s ... %s(%u)",
                          ANLVersionNameStr[anlVersion_], GetName().CString(), workinfo.snapShotName_.CString(), workinfo.imodule_);
 
         // with VM, anl::map2DNoZ or anl::savefloatArray seem to be bugged (=>repeated gradient, not infinite), so use Urho3D::Image
@@ -1507,7 +1507,7 @@ bool AnlWorldModel::UpdateGeneratingSnapShots()
 
             SendEvent(GAME_WORLDSNAPSHOTSAVED);
 
-            URHO3D_LOGERRORF("AnlWorldModel() - UpdateGeneratingSnapShots : %s Generate SnapShot ... %s ... %s(%u) Saved ... OK !",
+            URHO3D_LOGINFOF("AnlWorldModel() - UpdateGeneratingSnapShots : %s Generate SnapShot ... %s ... %s(%u) Saved ... OK !",
                              ANLVersionNameStr[anlVersion_], GetName().CString(), workinfo.snapShotName_.CString(), workinfo.imodule_);
         }
 
@@ -1893,7 +1893,7 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
                     time = Max(time, it->time_);
                 time -= starttime;
 
-                URHO3D_LOGERRORF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... Threads Finished ... in %d msec ... OK !",
+                URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... Threads Finished ... in %d msec ... OK !",
                                  genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none", genStatus.map_, time);
 
 //                printf("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... Threads Finished ... in %d msec ... OK !",

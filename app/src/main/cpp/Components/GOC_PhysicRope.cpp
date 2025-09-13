@@ -64,7 +64,7 @@ GOC_PhysicRope::GOC_PhysicRope(Context* context) :
 
 GOC_PhysicRope::~GOC_PhysicRope()
 {
-//    URHO3D_LOGINFOF("~GOC_PhysicRope");
+//    URHO3D_LOGDEBUG("~GOC_PhysicRope");
 }
 
 void GOC_PhysicRope::RegisterObject(Context* context)

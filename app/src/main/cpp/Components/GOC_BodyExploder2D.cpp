@@ -63,7 +63,7 @@ GOC_BodyExploder2D::GOC_BodyExploder2D(Context* context) :
 
 GOC_BodyExploder2D::~GOC_BodyExploder2D()
 {
-//    URHO3D_LOGINFOF("~GOC_BodyExploder2D()");
+//    URHO3D_LOGDEBUG("~GOC_BodyExploder2D()");
 
     UnsubscribeFromAllEvents();
 #ifdef ACTIVE_POOL

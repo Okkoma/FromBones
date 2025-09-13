@@ -107,7 +107,7 @@ ObjectMaped::ObjectMaped(Context* context) :
 
 ObjectMaped::~ObjectMaped()
 {
-    URHO3D_LOGINFOF("~ObjectMaped() - ptr=%u ... ", this);
+    URHO3D_LOGDEBUGF("~ObjectMaped() - ptr=%u ... ", this);
 
     physicColliders_.Clear();
 
@@ -127,7 +127,7 @@ ObjectMaped::~ObjectMaped()
 
     Init();
 
-    URHO3D_LOGINFOF("~ObjectMaped() - ptr=%u ... OK !", this);
+    URHO3D_LOGDEBUGF("~ObjectMaped() - ptr=%u ... OK !", this);
 }
 
 void ObjectMaped::RegisterObject(Context* context)

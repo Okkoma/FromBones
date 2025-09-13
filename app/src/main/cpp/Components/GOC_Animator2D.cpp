@@ -196,7 +196,7 @@ String Action::ToString() const
 
 void Transition::Dump() const
 {
-    URHO3D_LOGERRORF("Transition() - Dump : event:%s(%u) sender:%d cond:%u conval:%u nextState:%u actions:%s ",
+    URHO3D_LOGINFOF("Transition() - Dump : event:%s(%u) sender:%d cond:%u conval:%u nextState:%u actions:%s ",
                     GOE::GetEventName(event).CString(), event.Value(), eventSender, condition.Value(), conditionValue.Value(),
                     nextState, GetActionsString(*this).CString());
 }
@@ -213,16 +213,16 @@ void AnimatorState::AddActions(const String& aNames)
     for (unsigned i=0; i < actionsStr.Size(); i++)
     {
         if (!actionsStr[i].Empty())
-    {
-        /// Get Action Params from actionName
+        {
+            /// Get Action Params from actionName
             Action temp = Action::EMPTY;
             GetActionParams(actionsStr[i].Trimmed(), temp);
 
             /// Check if exist in Template
             HashMap<StringHash, Action>::ConstIterator ita = GOC_Animator2D_Template::actions_.Find(StringHash(temp.name));
-        if (ita == GOC_Animator2D_Template::actions_.End())
-        {
-                URHO3D_LOGERRORF("GOC_Animator2D_Template() - AddActions : No Function Action[%d] for %s", i, temp.name.CString());
+            if (ita == GOC_Animator2D_Template::actions_.End())
+            {
+                URHO3D_LOGWARNINGF("GOC_Animator2D_Template() - AddActions : No Function Action[%d] for %s", i, temp.name.CString());
             }
             else
             {
@@ -231,15 +231,15 @@ void AnimatorState::AddActions(const String& aNames)
             }
         }
     }
-        }
+}
 
 bool AnimatorState::HasEvent(const String& eventname, int sender) const
 {
     return GetEvent(eventname, sender) != -1;
-    }
+}
 
 int AnimatorState::GetEvent(const String& eventname, int sender) const
-    {
+{
     if (eventTable.Size())
     {
         StringHash hashEventName = StringHash(eventname);
@@ -248,13 +248,13 @@ int AnimatorState::GetEvent(const String& eventname, int sender) const
             const Transition& transition = eventTable[i];
             if (transition.event == hashEventName && transition.eventSender == sender)
                 return i;
-    }
+        }
     }
     return -1;
 }
 
 int AnimatorState::GetEvent(StringHash hashEventName, int sender) const
-    {
+{
     if (eventTable.Size())
     {
         for (int i=0; i < eventTable.Size(); i++)
@@ -262,7 +262,7 @@ int AnimatorState::GetEvent(StringHash hashEventName, int sender) const
             const Transition& transition = eventTable[i];
             if (transition.event == hashEventName && transition.eventSender == sender)
                 return i;
-    }
+        }
     }
     return -1;
 }
@@ -306,7 +306,7 @@ void AnimatorState::AddTransition(const String& eventname, int sender, StringHas
             HashMap<StringHash, Action>::ConstIterator ita = GOC_Animator2D_Template::actions_.Find(StringHash(temp.name));
             if (ita == GOC_Animator2D_Template::actions_.End())
             {
-                URHO3D_LOGERRORF("GOC_Animator2D_Template() - AddTransition : No Function Action[%d] for %s", i, temp.name.CString());
+                URHO3D_LOGWARNINGF("GOC_Animator2D_Template() - AddTransition : No Function Action[%d] for %s", i, temp.name.CString());
                 continue;
             }
 
@@ -317,7 +317,7 @@ void AnimatorState::AddTransition(const String& eventname, int sender, StringHas
 
 #ifdef LOGDEBUG_ANIMATOR2D
     String actionsStr = GetActionsString(t);
-    URHO3D_LOGERRORF("GOC_Animator2D_Template() - AddTransition : state=%s(%u) event=%s(%u) sender=%s(%d) %s eventTable[%u] with Transition(nextState=%u %s)",
+    URHO3D_LOGINFOF("GOC_Animator2D_Template() - AddTransition : state=%s(%u) event=%s(%u) sender=%s(%d) %s eventTable[%u] with Transition(nextState=%u %s)",
                       name.CString(), hashName.Value(), eventname.CString(), event.Value(), EventSenderTypeNames_[sender], sender, modify ? "Modify":"Add", eventindex, nextState, !actionsStr.Empty() ? (String("actions:") + actionsStr).CString() : "noaction");
 #endif
 }
@@ -368,7 +368,7 @@ void GOC_Animator2D_Template::RegisterTemplate(const String& s, const GOC_Animat
     animtemplate.Bake();
 
 #ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGERRORF("GOC_Animator2D_Template() - RegisterTemplate %s(%u) size=%u", s.CString(), key, templates_.Size());
+    URHO3D_LOGINFOF("GOC_Animator2D_Template() - RegisterTemplate %s(%u) size=%u", s.CString(), key, templates_.Size());
 #endif
 }
 
@@ -469,7 +469,7 @@ void GOC_Animator2D_Template::ApplyEventToStates(const String& eventName, int se
     Vector<String> states = listStates.Split(';');
     if (states.Size() == 0)
     {
-        URHO3D_LOGERRORF("GOC_Animator2D_Template() - ApplyEventToStates %s to state %s Empty !", eventName.CString(), listStates.CString());
+        URHO3D_LOGWARNINGF("GOC_Animator2D_Template() - ApplyEventToStates %s to state %s Empty !", eventName.CString(), listStates.CString());
         return;
     }
     for (unsigned i=0; i < states.Size(); ++i)
@@ -506,9 +506,9 @@ void GOC_Animator2D_Template::ApplyEventToStates(const String& eventName, int se
                 StringHash nextState = nextStateName.Empty() ? StringHash(stateStr) : StringHash(nextStateName);
 #ifdef LOGDEBUG_ANIMATOR2D
                 if (actionNames.Empty())
-                    URHO3D_LOGERRORF("GOC_Animator2D_Template() - ApplyEventToStates (%s) to state=%s", eventName.CString(), state->name.CString());
+                    URHO3D_LOGINFOF("GOC_Animator2D_Template() - ApplyEventToStates (%s) to state=%s", eventName.CString(), state->name.CString());
                 else
-                    URHO3D_LOGERRORF("GOC_Animator2D_Template() - ApplyEventToStates (%s,action:%s) to state=%s", eventName.CString(), actionNames.CString(), state->name.CString());
+                    URHO3D_LOGINFOF("GOC_Animator2D_Template() - ApplyEventToStates (%s,action:%s) to state=%s", eventName.CString(), actionNames.CString(), state->name.CString());
 #endif
                 state->AddTransition(eventName, sender, cond, condVal, GetStateIndex(nextState), actionNames);
             }
@@ -526,13 +526,13 @@ void GOC_Animator2D_Template::AddAnimationSet(AnimationSet2D* animSet2D)
     if (animInfoTables_.Contains(animSet2D->GetNameHash()))
     {
 #ifdef LOGDEBUG_ANIMATOR2D
-        URHO3D_LOGERRORF("GOC_Animator2D_Template - AddAnimationSet : name=%s ... already inside Tables !", animSet2D->GetName().CString());
+        URHO3D_LOGWARNINGF("GOC_Animator2D_Template - AddAnimationSet : name=%s ... already inside Tables !", animSet2D->GetName().CString());
 #endif
         return;
     }
 
 #ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGERRORF("GOC_Animator2D_Template - AddAnimationSet : name=%s ...", animSet2D->GetName().CString());
+    URHO3D_LOGINFOF("GOC_Animator2D_Template - AddAnimationSet : name=%s ...", animSet2D->GetName().CString());
 #endif
 
     unsigned numEntities = animSet2D->GetSpriterData()->entities_.Size();
@@ -552,7 +552,7 @@ void GOC_Animator2D_Template::AddAnimationSet(AnimationSet2D* animSet2D)
         for (unsigned i=0; i < numStates; i++)
         {
 #ifdef LOGDEBUG_ANIMATOR2D
-            URHO3D_LOGERRORF("GOC_Animator2D_Template() - AddAnimationSet : entity=%s state=%s keywords=%s ...", entity->name_.CString(), transitionTable[i].name.CString(), transitionTable[i].animStateKeywords.CString());
+            URHO3D_LOGINFOF("GOC_Animator2D_Template() - AddAnimationSet : entity=%s state=%s keywords=%s ...", entity->name_.CString(), transitionTable[i].name.CString(), transitionTable[i].animStateKeywords.CString());
 #endif
             AnimInfoTable animInfos;
 
@@ -576,7 +576,7 @@ void GOC_Animator2D_Template::AddAnimationSet(AnimationSet2D* animSet2D)
                     {
                         animInfos.Push(AnimInfo(k, animName, anim2d->length_));
 #ifdef LOGDEBUG_ANIMATOR2D
-                        URHO3D_LOGERRORF("GOC_Animator2D_Template() - AddAnimationSet : entity=%s state=%s keyword=%s add animation=%s ... OK !", entity->name_.CString(), transitionTable[i].name.CString(), keyword.CString(), animName.CString());
+                        URHO3D_LOGINFOF("GOC_Animator2D_Template() - AddAnimationSet : entity=%s state=%s keyword=%s add animation=%s ... OK !", entity->name_.CString(), transitionTable[i].name.CString(), keyword.CString(), animName.CString());
 #endif
                     }
                 }
@@ -591,7 +591,7 @@ void GOC_Animator2D_Template::AddAnimationSet(AnimationSet2D* animSet2D)
         animtables.Push(animInfoTable);
     }
 #ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGERRORF("GOC_Animator2D_Template - AddAnimationSet : name=%s ... OK !", animSet2D->GetName().CString());
+    URHO3D_LOGINFOF("GOC_Animator2D_Template - AddAnimationSet : name=%s ... OK !", animSet2D->GetName().CString());
 #endif
 }
 
@@ -616,7 +616,7 @@ unsigned GOC_Animator2D_Template::GetStateIndex(const StringHash& hashname) cons
 #ifdef LOGDEBUG_ANIMATOR2D
     if (it == hashStateTable.End())
     {
-        URHO3D_LOGERRORF("GOC_Animator2D_Template() - GetStateIndex : not finding hashValue = %u => return default 0 !", hashname.Value());
+        URHO3D_LOGINFOF("GOC_Animator2D_Template() - GetStateIndex : not finding hashValue = %u => return default 0 !", hashname.Value());
         return 0;
     }
 #endif
@@ -635,7 +635,7 @@ unsigned GOC_Animator2D_Template::GetStateIndex(unsigned hashvalue) const
 #ifdef LOGDEBUG_ANIMATOR2D
     if (it == hashStateTable.End())
     {
-        URHO3D_LOGERRORF("GOC_Animator2D_Template() - GetStateIndex : not finding hashValue = %u => return default 0 !", hashvalue);
+        URHO3D_LOGINFOF("GOC_Animator2D_Template() - GetStateIndex : not finding hashValue = %u => return default 0 !", hashvalue);
         return 0;
     }
 #endif
@@ -710,7 +710,7 @@ GOC_Animator2D::GOC_Animator2D(Context* context) :
 
 GOC_Animator2D::~GOC_Animator2D()
 {
-//    URHO3D_LOGINFOF("~GOC_Animator2D()");
+//    URHO3D_LOGDEBUG("~GOC_Animator2D()");
 
     Stop();
 
@@ -1007,17 +1007,17 @@ void GOC_Animator2D::SetEventActions(const String& eventactions)
         t = s[1].Split(';');
         for (unsigned i=0; i < t.Size(); i++)
         {
-        Action action;
+            Action action;
             GetActionParams(t[i].Trimmed(), action);
 
             // Add the Event Action
-        const Action& templatedAction = GOC_Animator2D_Template::GetAction(StringHash(action.name));
-        if (templatedAction.ptr)
-        {
-            action.ptr = templatedAction.ptr;
+            const Action& templatedAction = GOC_Animator2D_Template::GetAction(StringHash(action.name));
+            if (templatedAction.ptr)
+            {
+                action.ptr = templatedAction.ptr;
                 actions.Push(action);
 #ifdef LOGDEBUG_ANIMATOR2D
-                URHO3D_LOGERRORF("GOC_Animator2D() - SetEventActions : sender=%s(%d) event=%s(%u) action=%s",
+                URHO3D_LOGINFOF("GOC_Animator2D() - SetEventActions : sender=%s(%d) event=%s(%u) action=%s",
                                 EventSenderTypeNames_[sender], sender, GOE::GetEventName(event).CString(), event.Value(), action.ToString().CString());
 #endif
             }
@@ -1169,7 +1169,7 @@ void GOC_Animator2D::SetState(const String& value)
     if (!SetState(state) && currentTemplate)
         CheckAnimation();
 
-//    URHO3D_LOGERRORF("GOC_Animator2D() - SetState : Node=%s(%u) entrystate=%s... state=%s(%u) OK !", node_->GetName().CString(), node_->GetID(), value.CString(), GOS::GetStateName(state_).CString(), state_.Value());
+//    URHO3D_LOGINFOF("GOC_Animator2D() - SetState : Node=%s(%u) entrystate=%s... state=%s(%u) OK !", node_->GetName().CString(), node_->GetID(), value.CString(), GOS::GetStateName(state_).CString(), state_.Value());
 }
 
 bool GOC_Animator2D::SetState(const StringHash& state)
@@ -1235,7 +1235,7 @@ void GOC_Animator2D::SetNetState(const StringHash& state, unsigned animVersion, 
     if (!currentTemplate)
     {
         state_ = state;
-        URHO3D_LOGERRORF("GOC_Animator2D() - SetNetState : Node=%s(%u) no Template !", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGWARNINGF("GOC_Animator2D() - SetNetState : Node=%s(%u) no Template !", node_->GetName().CString(), node_->GetID());
         return;
     }
 
@@ -1429,7 +1429,7 @@ void GOC_Animator2D::Start()
             if (((timeperiod == TIME_NIGHT || timeperiod == TIME_TWILIGHT) && event == WEATHER_TWILIGHT) ||
                 ((timeperiod == TIME_DAY   || timeperiod == TIME_DAWN)     && event == WEATHER_DAWN))
             {
-                URHO3D_LOGERRORF("GOC_Animator2D() - Start : Node=%s(%u) ... On Weather Event=%s(%u) ...",node_->GetName().CString(), node_->GetID(), GOE::GetEventName(event).CString(), event.Value());
+                URHO3D_LOGINFOF("GOC_Animator2D() - Start : Node=%s(%u) ... On Weather Event=%s(%u) ...",node_->GetName().CString(), node_->GetID(), GOE::GetEventName(event).CString(), event.Value());
                 AnimatorForcedSender = Sender_All;
                 OnEventActions(event, context_->GetEventDataMap(false));
                 AnimatorForcedSender = -1;
@@ -1456,7 +1456,7 @@ void GOC_Animator2D::Stop()
 
     if (node_->GetParent() != GameContext::Get().preloadGOTNode_ && animatedSprite && animatedSprite->GetComponent<AnimatedSprite2D>() == animatedSprite && !animatedSprite->GetRenderTargetAttr().Empty())
     {
-        URHO3D_LOGERRORF("GOC_Animator2D() - Stop : Node=%s(%u) ... use Rendered Target AnimatedSprite not already ... subscribe to E_COMPONENTCHANGED !",
+        URHO3D_LOGWARNINGF("GOC_Animator2D() - Stop : Node=%s(%u) ... use Rendered Target AnimatedSprite not already ... subscribe to E_COMPONENTCHANGED !",
                          node_->GetName().CString(), node_->GetID());
 
         SubscribeToEvent(animatedSprite, E_COMPONENTCHANGED, URHO3D_HANDLER(GOC_Animator2D, OnComponentChanged));
@@ -1485,7 +1485,7 @@ void GOC_Animator2D::ResetState()
         forceAnimVersion_ = -1;
         netChangeCounter_ = 0;
 
-//        URHO3D_LOGERRORF("GOC_Animator2D() - ResetState : %s(%u) state=%s(%u) hashStateTable=%u currentStateIndex=%u!",
+//        URHO3D_LOGINFOF("GOC_Animator2D() - ResetState : %s(%u) state=%s(%u) hashStateTable=%u currentStateIndex=%u!",
 //                         node_->GetName().CString(), node_->GetID(), GetState().CString(),
 //                         GetStateValue().Value(), currentTemplate->hashStateTable.Size(), currentStateIndex);
     }
@@ -1503,7 +1503,7 @@ bool GOC_Animator2D::PlugDrawables()
     {
         if (!animatedSprite->GetRenderTargetAttr().Empty())
         {
-            URHO3D_LOGERRORF("GOC_Animator2D() - PlugDrawables : Node=%s(%u) ... animationComponentID=%u => renderTargetComponentID=%u !",
+            URHO3D_LOGINFOF("GOC_Animator2D() - PlugDrawables : Node=%s(%u) ... animationComponentID=%u => renderTargetComponentID=%u !",
                              node_->GetName().CString(), node_->GetID(), animatedSprite->GetID(), animatedSprite->GetRenderTarget()->GetID());
 
             animatedSprite->SetFlipX(animatedSprite->GetRenderTarget()->GetFlipX());
@@ -1531,15 +1531,9 @@ bool GOC_Animator2D::PlugDrawables()
         if (!animatedSprite && animatedSprites.Size())
             animatedSprite = animatedSprites[0];
 
-//        URHO3D_LOGERRORF("GOC_Animator2D() - PlugDrawables : Node=%s(%u) ... num animatedSprites=%u ... main=%s(%u)",
+//        URHO3D_LOGINFOF("GOC_Animator2D() - PlugDrawables : Node=%s(%u) ... num animatedSprites=%u ... main=%s(%u)",
 //                          node_->GetName().CString(), node_->GetID(), animatedSprites.Size(), animatedSprite ? animatedSprite->GetNode()->GetName().CString() : "none", animatedSprite ? animatedSprite->GetNode()->GetID() : 0);
     }
-
-//	if (node_->GetID() == 16782481)
-//    {
-//        URHO3D_LOGERRORF("GOC_Animator2D() - CheckAnimatedSprite : Node=%s(%u) ... num animatedSprites = %u !",
-//                          node_->GetName().CString(), node_->GetID(), animatedSprites.Size());
-//    }
 
     return animatedSprites.Size() != 0;
 }
@@ -1589,7 +1583,7 @@ void GOC_Animator2D::CheckAttributes()
     if ((!currentState || currentState->hashName != state_) && !SetState(state_))
     {
         SetState(currentTemplate->hashStateTable[0]);
-//        URHO3D_LOGERRORF("GOC_Animator2D() - CheckAttributes : %s(%u) state=%s(%u) !",
+//        URHO3D_LOGINFOF("GOC_Animator2D() - CheckAttributes : %s(%u) state=%s(%u) !",
 //                     node_->GetName().CString(), node_->GetID(), GetState().CString(), GetStateValue().Value());
     }
 
@@ -1600,12 +1594,12 @@ void GOC_Animator2D::CheckAttributes()
 
 void GOC_Animator2D::ApplyAttributes()
 {
-//    URHO3D_LOGERRORF("GOC_Animator2D() - ApplyAttributes : %s(%u) ...", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGINFOF("GOC_Animator2D() - ApplyAttributes : %s(%u) ...", node_->GetName().CString(), node_->GetID());
 
     CheckAttributes();
     ResetState();
 
-//    URHO3D_LOGERRORF("GOC_Animator2D() - ApplyAttributes : %s(%u) ... OK !", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGINFOF("GOC_Animator2D() - ApplyAttributes : %s(%u) ... OK !", node_->GetName().CString(), node_->GetID());
 }
 
 void GOC_Animator2D::OnSetEnabled()
@@ -1618,7 +1612,7 @@ void GOC_Animator2D::OnSetEnabled()
         anim->SetLayer2(animatedSprite->GetLayer2());
         anim->SetEnabled(enable);
         anim->GetNode()->SetEnabled(enable);
-//        URHO3D_LOGERRORF("GOC_Animator2D() - OnSetEnabled : %s(%u) animnode=%s enabled=%s ...",
+//        URHO3D_LOGINFOF("GOC_Animator2D() - OnSetEnabled : %s(%u) animnode=%s enabled=%s ...",
 //                         node_->GetName().CString(), node_->GetID(), anim->GetNode()->GetName().CString(), enable ? "true" : "false");
     }
 
@@ -1638,12 +1632,12 @@ void GOC_Animator2D::OnNodeSet(Node* node)
 {
     if (node)
     {
-//        URHO3D_LOGERRORF("GOC_Animator2D() - OnNodeSet : Node=%s(%u) ... ", node->GetName().CString(), node->GetID());
+//        URHO3D_LOGINFOF("GOC_Animator2D() - OnNodeSet : Node=%s(%u) ... ", node->GetName().CString(), node->GetID());
 
 //        gocSound = node->GetComponent<GOC_SoundEmitter>();
         gocmove_ = node_->GetComponent<GOC_Move2D>();
 
-//        URHO3D_LOGERRORF("GOC_Animator2D() - OnNodeSet : Node=%s(%u) ... OK !", node->GetName().CString(), node->GetID());
+//        URHO3D_LOGINFOF("GOC_Animator2D() - OnNodeSet : Node=%s(%u) ... OK !", node->GetName().CString(), node->GetID());
     }
 }
 
@@ -1684,9 +1678,6 @@ void GOC_Animator2D::OnComponentChanged(StringHash eventType, VariantMap& eventD
 
 void GOC_Animator2D::OnEvent(StringHash eventType, VariantMap& eventData)
 {
-//    if (node_->GetID() == 16777274)
-//    URHO3D_LOGINFOF("GOC_Animator2D() - OnEvent : Node=%s(%u) - currentState %s - event %s", node_->GetName().CString(), node_->GetID(), currentState->name.CString(), GOE::GetEventName(eventType).CString());
-
     Dispatch(eventType, eventData);
 }
 
@@ -1943,7 +1934,7 @@ void GOC_Animator2D::SetAnimationSet()
                 animSet2D = GetSubsystem<ResourceCache>()->GetResource<AnimationSet2D>(scmlset);
                 AnimationSet2D::customSpritesheetFile_ = String::EMPTY;
 
-                URHO3D_LOGERRORF("GOC_Animator2D() - SetAnimationSet : %s(%u) use Rendered Target AnimatedSprite not already setted (animset=%s) !",
+                URHO3D_LOGWARNINGF("GOC_Animator2D() - SetAnimationSet : %s(%u) use Rendered Target AnimatedSprite not already setted (animset=%s) !",
                                  animatedSprite->GetNode()->GetName().CString(), animatedSprite->GetNode()->GetID(), scmlset.CString());
             }
         }
@@ -1952,7 +1943,7 @@ void GOC_Animator2D::SetAnimationSet()
     if (animSet2D)
     {
 #ifdef LOGDEBUG_ANIMATOR2D
-        URHO3D_LOGERRORF("GOC_Animator2D() - SetAnimationSet entity=%s ... animSet2D=%u currentAnimSet=%u ...", animatedSprite->GetEntityName().CString(), animSet2D->GetNameHash().Value(), currentAnimSet.Value());
+        URHO3D_LOGINFOF("GOC_Animator2D() - SetAnimationSet entity=%s ... animSet2D=%u currentAnimSet=%u ...", animatedSprite->GetEntityName().CString(), animSet2D->GetNameHash().Value(), currentAnimSet.Value());
 #endif
 
         if (currentAnimSet != animSet2D->GetNameHash())
@@ -1999,7 +1990,7 @@ void GOC_Animator2D::UpdateEntity()
     int entityid = animatedSprite->GetSpriterInstance() ? animatedSprite->GetSpriterInstance()->GetEntity()->id_ : 0;
 
 #ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGERRORF("GOC_Animator2D() - UpdateEntity : entityname=%s entityid=%d currentAnimSet=%u", animatedSprite->GetEntityName().CString(), entityid, currentAnimSet.Value());
+    URHO3D_LOGINFOF("GOC_Animator2D() - UpdateEntity : entityname=%s entityid=%d currentAnimSet=%u", animatedSprite->GetEntityName().CString(), entityid, currentAnimSet.Value());
 #endif
 
     currentAnimInfoTable = &(currentTemplate->GetAnimInfoTable(currentAnimSet, entityid));
@@ -2070,7 +2061,7 @@ inline void GOC_Animator2D::UpdateSubscriber(const AnimatorState* fromState, con
 #ifdef LOGDEBUG_ANIMATOR2D
     if (!fromState || !toState)
     {
-        URHO3D_LOGERRORF("GOC_Animator2D() - UpdateSubscriber : %s(%u) fromState=%u toState=%u",
+        URHO3D_LOGINFOF("GOC_Animator2D() - UpdateSubscriber : %s(%u) fromState=%u toState=%u",
                          node_->GetName().CString(), node_->GetID(), fromState, toState);
         return;
     }
@@ -2682,10 +2673,6 @@ inline void GOC_Animator2D::Dispatch(const StringHash& event, const VariantMap& 
                 if (event == AEVENT_ENDLOOP)
                 {
                     /// Stop State (End) Or Switch : end_loop function or switch
-//                if (node_->GetID() == 16777274)
-//                URHO3D_LOGINFOF("GOC_Animator2D() - Dispatch : End State - %s(%u) action=%s",
-//                         currentState->name.CString(), currentStateIndex,
-//                         currentState->eventTable[eventIndex].action.name.CString());
 
                     /// Get nextState in action (FindNextState)
                     FindNextState();
@@ -2812,7 +2799,7 @@ inline void GOC_Animator2D::FindNextState(const VariantMap& param)
 #ifdef LOGDEBUG_ANIMATOR2D
 //    if (!nextState)
     {
-        URHO3D_LOGERRORF("GOC_Animator2D() - FindNextState : Node=%s(%u) currentState=%s nextState=%s moveState=%s(%u)",
+        URHO3D_LOGINFOF("GOC_Animator2D() - FindNextState : Node=%s(%u) currentState=%s nextState=%s moveState=%s(%u)",
                          node_->GetName().CString(), node_->GetID(), currentState->name.CString(), nextState ? nextState->name.CString() : "None",
                          GameHelpers::GetMoveStateString(moveState).CString(), moveState);
     }
@@ -2830,7 +2817,7 @@ void GOC_Animator2D::ChangeEntity(const VariantMap& param)
     int entityid = ToInt(param.Begin()->second_.GetString()) % Min(animatedSprite->GetSpriterInstance()->GetNumEntities(), MaxEntityIds);
 
 #ifdef LOGDEBUG_ANIMATOR2D
-    URHO3D_LOGERRORF("GOC_Animator2D() - ChangeEntity : Node=%s(%u) change to entity=%s index=%d",
+    URHO3D_LOGINFOF("GOC_Animator2D() - ChangeEntity : Node=%s(%u) change to entity=%s index=%d",
                      node_->GetName().CString(), node_->GetID(), animatedSprite->GetEntityName().CString(), entityid);
 #endif
 

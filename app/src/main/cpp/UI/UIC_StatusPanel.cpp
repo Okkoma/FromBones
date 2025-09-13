@@ -118,7 +118,7 @@ void UIC_StatusPanel::Start(Object* user, Object* feeder)
         if ((it->Get()->IsInstanceOf<Button>()) && it->Get()->IsVisible())
         {
             buttons_.Push(WeakPtr<Button>(static_cast<Button*>(it->Get())));
-            URHO3D_LOGERRORF("UIC_StatusPanel() - Start : ... Find Button=%s", buttons_.Back()->GetName().CString());
+            URHO3D_LOGDEBUGF("UIC_StatusPanel() - Start : ... Find Button=%s", buttons_.Back()->GetName().CString());
         }
     }
     // Check if it's a popup and reactive the AbilityButton
@@ -131,7 +131,7 @@ void UIC_StatusPanel::Start(Object* user, Object* feeder)
 
 void UIC_StatusPanel::GainFocus()
 {
-    URHO3D_LOGERRORF("UIC_StatusPanel() - GainFocus !");
+    URHO3D_LOGDEBUGF("UIC_StatusPanel() - GainFocus !");
 
     UIPanel::GainFocus();
     GameContext::Get().ui_->SetFocusElement(GetElement());
@@ -139,7 +139,7 @@ void UIC_StatusPanel::GainFocus()
 
 void UIC_StatusPanel::LoseFocus()
 {
-    URHO3D_LOGERRORF("UIC_StatusPanel() - LoseFocus !");
+    URHO3D_LOGDEBUGF("UIC_StatusPanel() - LoseFocus !");
 
     UIPanel::LoseFocus();
     CloseCharacterSelection();
@@ -376,7 +376,7 @@ void UIC_StatusPanel::UpdateCharacter()
     if (!uisprite)
         uisprite = GameContext::Get().spriteSheets_[UIEQUIPMENT]->GetSprite("slot40");
 
-    URHO3D_LOGERRORF("UIC_StatusPanel() - UpdateCharacter : player character name = %s", name.CString());
+    URHO3D_LOGINFOF("UIC_StatusPanel() - UpdateCharacter : player character name = %s", name.CString());
 
     if (uisprite)
     {

@@ -105,9 +105,9 @@ SplashScreen::SplashScreen(Context* context, Object* eventSender, const StringHa
 
 SplashScreen::~SplashScreen()
 {
-    URHO3D_LOGINFO("~SplashScreen() - ---------------------------------------");
-    URHO3D_LOGINFO("~SplashScreen() - End");
-    URHO3D_LOGINFO("~SplashScreen() - ---------------------------------------");
+    URHO3D_LOGDEBUG("~SplashScreen() - ---------------------------------------");
+    URHO3D_LOGDEBUG("~SplashScreen() - End");
+    URHO3D_LOGDEBUG("~SplashScreen() - ---------------------------------------");
 }
 
 void SplashScreen::ResizeScreen()

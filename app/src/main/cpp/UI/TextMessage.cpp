@@ -54,14 +54,14 @@ TextMessage::TextMessage(Context* context) :
     expireEvent_(StringHash::ZERO),
     fadescale_(1.f)
 {
-    URHO3D_LOGERRORF("TextMessage() - %u", this);
+    URHO3D_LOGDEBUGF("TextMessage() - %u", this);
     SubscribeToEvent(TEXTMESSAGE_CLEAN, URHO3D_HANDLER(TextMessage, OnRemove));
     SubscribeToEvent(GAME_EXIT, URHO3D_HANDLER(TextMessage, OnRemove));
 }
 
 TextMessage::~TextMessage()
 {
-    URHO3D_LOGERRORF("~TextMessage() - %u", this);
+    URHO3D_LOGDEBUGF("~TextMessage() - %u", this);
 
     UnsubscribeFromAllEvents();
 
@@ -250,7 +250,7 @@ void TextMessage::handleUpdate1(StringHash eventType, VariantMap& eventData)
 
         UpdatePosition();
 
-        URHO3D_LOGERRORF("TextMessage() - handleUpdate1 : %s", text_->GetText().CString());
+        URHO3D_LOGDEBUGF("TextMessage() - handleUpdate1 : %s", text_->GetText().CString());
 
         /// Bizarre in this version Tex2D, we need to use a less duration otherwise the animation is incorrect
         float duration = expirationTime2_-expirationTime1_;
@@ -298,7 +298,7 @@ void TextMessage::handleUpdate1_3D(StringHash eventType, VariantMap& eventData)
         text3D_->SetEnabled(true);
         node_->SetEnabled(true);
 
-        URHO3D_LOGERRORF("TextMessage() - handleUpdate1_3D : %s text3denable=%s", text3D_->GetText().CString(), text3D_->IsEnabled() ? "true":"false");
+        URHO3D_LOGDEBUGF("TextMessage() - handleUpdate1_3D : %s text3denable=%s", text3D_->GetText().CString(), text3D_->IsEnabled() ? "true":"false");
 
         /// Bizarre in this version Tex2D, we need to use a less duration otherwise the animation is incorrect
 
@@ -407,7 +407,7 @@ void TextMessage::handleUpdate2_3D(StringHash eventType, VariantMap& eventData)
 
             if (autoRemove_)
             {
-                URHO3D_LOGERRORF("TextMessage() - handleUpdate2_3D ... autoremove !");
+                URHO3D_LOGDEBUGF("TextMessage() - handleUpdate2_3D ... autoremove !");
                 Remove();
             }
         }
@@ -426,7 +426,7 @@ void TextMessage::handleUpdate3(StringHash eventType, VariantMap& eventData)
 
         if (autoRemove_ && (text_ || node_))
         {
-//            URHO3D_LOGERRORF("TextMessage() - handleUpdate3 ... autoremove !");
+//            URHO3D_LOGDEBUGF("TextMessage() - handleUpdate3 ... autoremove !");
             Remove();
         }
     }

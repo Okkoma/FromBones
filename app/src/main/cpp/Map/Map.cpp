@@ -4213,7 +4213,7 @@ Map::~Map()
     miniMapLayers_.Clear();
     miniMapLayersByViewZIndex_.Clear();
 
-//    URHO3D_LOGINFOF("~Map() ptr=%u ... OK !", this);
+//    URHO3D_LOGDEBUGF("~Map() ptr=%u ... OK !", this);
 }
 
 void Map::Resize()
@@ -6262,7 +6262,7 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
             GameHelpers::UpdateLayering(node);
 
-            URHO3D_LOGERRORF("Map() - SetEntities Add : Map=%s ... Entities[%d] : nodeid=%u type=%s(%u) enabled=%s mapvisible=%s position=%s viewZ=%d parentNodePool=%s(%u) entityid=%d sstype=%d",
+            URHO3D_LOGINFOF("Map() - SetEntities Add : Map=%s ... Entities[%d] : nodeid=%u type=%s(%u) enabled=%s mapvisible=%s position=%s viewZ=%d parentNodePool=%s(%u) entityid=%d sstype=%d",
                             GetMapPoint().ToString().CString(), i, node->GetID(), GOT::GetType(got).CString(), got.Value(), node->IsEnabled() ? "true":"false", mapvisible ? "true":"false",
                             position.ToString().CString(), viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID(), entityid, entitydata.sstype_);
 
@@ -6329,7 +6329,7 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
             }
 
             if (TimeOver(timer))
-                URHO3D_LOGERRORF("Map() - RemoveNodes mPoint=%s ... localEntitiesNodesCleared ... timer=%d/%d msec",
+                URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... localEntitiesNodesCleared ... timer=%d/%d msec",
                                  GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
         }
 #endif

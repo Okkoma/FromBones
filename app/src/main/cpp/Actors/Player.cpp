@@ -168,7 +168,7 @@ void Player::Reset(Context* context, unsigned id)
 
 Player::~Player()
 {
-    URHO3D_LOGINFOF("~Player() - ID=%u ...", GetID());
+    URHO3D_LOGDEBUGF("~Player() - ID=%u ...", GetID());
 
     //Stop();
     if (avatar_)
@@ -191,7 +191,7 @@ Player::~Player()
         missionManager_ = 0;
     }
 
-    URHO3D_LOGINFOF("~Player() - ID=%u ... OK !", GetID());
+    URHO3D_LOGDEBUGF("~Player() - ID=%u ... OK !", GetID());
 }
 
 
@@ -522,7 +522,7 @@ bool Player::AddAvatar(int avatarIndex)
     if (!avatars_.Contains(avatarIndex))
     {
         avatars_.Push(avatarIndex);
-        URHO3D_LOGINFOF("Player() - AddAvatar : numavatars=%u !", avatars_.Size());
+        URHO3D_LOGDEBUGF("Player() - AddAvatar : numavatars=%u !", avatars_.Size());
         return true;
     }
 
@@ -641,7 +641,7 @@ void Player::UpdateAvatar(bool forced)
     if (type == StringHash::ZERO)
         return;
 
-    URHO3D_LOGERRORF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) ...", avatarIndex_, GOT::GetType(type).CString(), type.Value());
+    URHO3D_LOGINFOF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) ...", avatarIndex_, GOT::GetType(type).CString(), type.Value());
 
 //    URHO3D_LOGINFOF("Player() - UpdateAvatar : ... Skip Logs !");
 //    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, false);
@@ -706,7 +706,7 @@ void Player::UpdateAvatar(bool forced)
 
 //    GAME_SETGAMELOGENABLE(GAMELOG_PLAYER, true);
 
-    URHO3D_LOGERRORF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) avatar=%s(%u) viewmask=%u ... OK !",
+    URHO3D_LOGINFOF("Player() - UpdateAvatar : avatarIndex_=%d => change to avatar type=%s(%u) avatar=%s(%u) viewmask=%u ... OK !",
                     avatarIndex_, GOT::GetType(type).CString(), type.Value(), avatar_ ? avatar_->GetName().CString() : "none", avatar_ ? avatar_->GetID() : 0, avatar_ ? avatar_->GetDerivedComponent<AnimatedSprite2D>()->GetViewMask() : 0);
 }
 
@@ -744,7 +744,7 @@ void Player::UpdateControls(bool restartcontroller)
         if (controltype == CT_KEYBOARD)
         {
             gocPlayer->SetKeyControls(controlID_);
-            URHO3D_LOGERRORF("Player() - UpdateControls : ID=%d ControlID=%d => keyboard=%d !", GetID(), controlID_, controlID_);
+            URHO3D_LOGINFOF("Player() - UpdateControls : ID=%d ControlID=%d => keyboard=%d !", GetID(), controlID_, controlID_);
         }
 
         if (controltype == CT_JOYSTICK)
@@ -766,13 +766,13 @@ void Player::UpdateControls(bool restartcontroller)
 
             if (controlid == -1)
             {
-                URHO3D_LOGERRORF("Player() - UpdateControls : ID=%d ControlID=%d No Joystick => use Keyboard !");
+                URHO3D_LOGINFOF("Player() - UpdateControls : ID=%d ControlID=%d No Joystick => use Keyboard !");
                 gocPlayer->SetKeyControls(controlID_);
             }
             else
             {
                 gocPlayer->SetJoystickControls(controlid);
-                URHO3D_LOGERRORF("Player() - UpdateControls : ID=%d ControlID=%d => joystickid=%d !", GetID(), controlid, GameContext::Get().joystickIndexes_[controlid]);
+                URHO3D_LOGINFOF("Player() - UpdateControls : ID=%d ControlID=%d => joystickid=%d !", GetID(), controlid, GameContext::Get().joystickIndexes_[controlid]);
             }
         }
 
@@ -785,7 +785,7 @@ void Player::UpdateControls(bool restartcontroller)
                     gocPlayer->SetTouchControls(GameContext::Get().gameConfig_.screenJoystickID_);
                     UIElement* uiscreenjoy = GameContext::Get().input_->GetJoystick(GameContext::Get().gameConfig_.screenJoystickID_)->screenJoystick_;
                     uiscreenjoy->SetVisible(true);
-                    URHO3D_LOGERRORF("Player() - UpdateControls : ID=%d ControlID=%d => screenjoystick=%d !", GetID(), controlID_, GameContext::Get().gameConfig_.screenJoystickID_);
+                    URHO3D_LOGINFOF("Player() - UpdateControls : ID=%d ControlID=%d => screenjoystick=%d !", GetID(), controlID_, GameContext::Get().gameConfig_.screenJoystickID_);
                 }
             }
             else if (controltype == CT_TOUCH)
@@ -796,7 +796,7 @@ void Player::UpdateControls(bool restartcontroller)
                     UIElement* uiscreenjoy = GameContext::Get().input_->GetJoystick(GameContext::Get().gameConfig_.screenJoystickID_)->screenJoystick_;
                     uiscreenjoy->SetVisible(false);
                 }
-                URHO3D_LOGERRORF("Player() - UpdateControls : ID=%d ControlID=%d => touchscreen !", GetID(), controlID_);
+                URHO3D_LOGINFOF("Player() - UpdateControls : ID=%d ControlID=%d => touchscreen !", GetID(), controlID_);
             }
         }
     }
@@ -3181,7 +3181,7 @@ void Player::HandleClic(StringHash eventType, VariantMap& eventData)
 
 void Player::HandleUpdateTimePeriod(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGERRORF("Player() - HandleUpdateTimePeriod !");
+    URHO3D_LOGINFOF("Player() - HandleUpdateTimePeriod !");
 
     bool uselit = GameHelpers::SetLightActivation(this);
 }

@@ -102,13 +102,13 @@ MapGenerator::~MapGenerator()
 {
 //    String str;
 //    GameHelpers::AppendBufferToString(str, "PODVector=%p mapPtr=%p(%p)", &selfAllocatedMap_, selfAllocatedMap_.Size() ? &selfAllocatedMap_[0] : map_, map_);
-//    URHO3D_LOGINFOF("~%s() - ... %s", name_.CString(), str.CString());
+//    URHO3D_LOGDEBUGF("~%s() - ... %s", name_.CString(), str.CString());
 
     spots_.Clear();
     furnitures_.Clear();
     map_ = 0;
 
-    URHO3D_LOGINFOF("~%s() - OK !", name_.CString());
+    URHO3D_LOGDEBUGF("~%s() - OK !", name_.CString());
 }
 
 

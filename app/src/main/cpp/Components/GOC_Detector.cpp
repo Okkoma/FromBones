@@ -36,12 +36,12 @@ GOC_Detector::GOC_Detector(Context* context) :
     stickTarget_(false),
     target_(0)
 {
-//    URHO3D_LOGINFOF("GOC_Detector()");
+//    URHO3D_LOGDEBUG("GOC_Detector()");
 }
 
 GOC_Detector::~GOC_Detector()
 {
-//    URHO3D_LOGINFOF("~GOC_Detector()");
+//    URHO3D_LOGDEBUG("~GOC_Detector()");
 }
 
 void GOC_Detector::RegisterObject(Context* context)

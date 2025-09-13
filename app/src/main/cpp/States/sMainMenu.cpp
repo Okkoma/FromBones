@@ -70,12 +70,12 @@ MenuState::MenuState(Context* context) :
     GameState(context, "MainMenu")
 {
     drawDebug_ = 0;
-    URHO3D_LOGERROR("MenuState()");
+    URHO3D_LOGDEBUG("MenuState()");
 }
 
 MenuState::~MenuState()
 {
-    URHO3D_LOGERROR("~MenuState()");
+    URHO3D_LOGDEBUG("~MenuState()");
 }
 
 
@@ -91,9 +91,9 @@ void MenuState::Begin()
     if (IsBegun())
         return;
 
-    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
-    URHO3D_LOGERROR("MenuState() - Begin ...                               -");
-    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - Begin ...                              -");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
 
     GameContext::Get().lastLevelMode_ = LVL_NEW;
     if (!GameContext::Get().ServerMode_ && !GameContext::Get().numPlayers_)
@@ -147,9 +147,9 @@ void MenuState::Begin()
 
     GameContext::Get().ResetLuminosity();
 
-    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
-    URHO3D_LOGERROR("MenuState() - Begin ...  OK !                       -");
-    URHO3D_LOGERROR("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
+    URHO3D_LOGINFO("MenuState() - Begin ...  OK !                        -");
+    URHO3D_LOGINFO("MenuState() - ----------------------------------------");
 }
 
 void MenuState::End()
@@ -158,7 +158,7 @@ void MenuState::End()
         return;
 
     URHO3D_LOGINFO("MenuState() - ----------------------------------------");
-    URHO3D_LOGINFO("MenuState() - End ...                                  -");
+    URHO3D_LOGINFO("MenuState() - End ...                                -");
     URHO3D_LOGINFO("MenuState() - ----------------------------------------");
 
     if (titlescene_)
@@ -189,7 +189,7 @@ void MenuState::End()
 
 void MenuState::CreateScene()
 {
-    URHO3D_LOGERROR("MenuState() - CreateScene ...");
+    URHO3D_LOGINFO("MenuState() - CreateScene ...");
 
     // Get the scene instantiate by Game
     rootScene_ = GameContext::Get().rootScene_;
@@ -253,7 +253,7 @@ void MenuState::CreateScene()
 
     GameHelpers::CreateMusicNode(rootScene_);
 
-    URHO3D_LOGERROR("MenuState() - CreateScene ... OK !");
+    URHO3D_LOGINFO("MenuState() - CreateScene ... OK !");
 }
 
 void MenuState::CreateUI()

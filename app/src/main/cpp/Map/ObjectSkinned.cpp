@@ -56,11 +56,11 @@ ObjectSkinned::ObjectSkinned(unsigned width, unsigned height, unsigned numviews)
 
 ObjectSkinned::~ObjectSkinned()
 {
-//    URHO3D_LOGINFOF("~ObjectSkinned() ...");
+//    URHO3D_LOGDEBUG("~ObjectSkinned() ...");
 
     feature_.Reset();
 
-//    URHO3D_LOGINFOF("~ObjectSkinned() ... OK !");
+//    URHO3D_LOGDEBUG("~ObjectSkinned() ... OK !");
 }
 
 void ObjectSkinned::Init()

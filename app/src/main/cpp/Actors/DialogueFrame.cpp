@@ -59,13 +59,13 @@ const String INTERACTIVEKEYWORD("Interactive_");
 DialogueFrame::DialogueFrame(Context* context) :
     Component(context)
 {
-    URHO3D_LOGINFOF("DialogueFrame() ... OK !");
+    URHO3D_LOGDEBUG("DialogueFrame() ... OK !");
     enabled_ = false;
 }
 
 DialogueFrame::~DialogueFrame()
 {
-    URHO3D_LOGINFOF("~DialogueFrame() ... OK !");
+    URHO3D_LOGDEBUG("~DialogueFrame() ... OK !");
 }
 
 

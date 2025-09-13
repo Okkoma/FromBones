@@ -64,7 +64,7 @@ UIPanel::~UIPanel()
 {
     Stop();
 
-    URHO3D_LOGINFOF("~UIPanel() - panel=%s ...", name_.CString());
+    URHO3D_LOGDEBUGF("~UIPanel() - panel=%s ...", name_.CString());
 
     if (panel_)
     {
@@ -72,7 +72,7 @@ UIPanel::~UIPanel()
         panel_.Reset();
     }
 
-    URHO3D_LOGINFOF("~UIPanel() - ... OK !");
+    URHO3D_LOGDEBUGF("~UIPanel() - ... OK !");
 }
 
 void UIPanel::RegisterObject(Context* context)
@@ -492,7 +492,7 @@ void UISlotPanel::SetSlotZone()
                 numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
                 slotselector_ = startSlotIndex_;
 
-                URHO3D_LOGERRORF("%s() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", GetTypeName().CString(), startSlotIndex_, endSlotIndex2_);
+                URHO3D_LOGDEBUGF("%s() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", GetTypeName().CString(), startSlotIndex_, endSlotIndex2_);
             }
         }
     }

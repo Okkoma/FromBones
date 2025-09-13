@@ -661,7 +661,7 @@ void ScrollingLayer::ForceUpdateBatches()
     for (unsigned i=0; i < staticsprites_.Size(); i++)
         staticsprites_[i]->ForceUpdateBatches();
 
-    URHO3D_LOGERRORF("ScrollingLayer() - ForceUpdateBatches : ... OK !");
+    URHO3D_LOGINFOF("ScrollingLayer() - ForceUpdateBatches : ... OK !");
 }
 
 void ScrollingLayer::SetScale()
@@ -795,16 +795,13 @@ GEF_Scrolling::GEF_Scrolling(Context* context) :
     viewport_(0),
     started_(false)
 {
-    URHO3D_LOGINFOF("GEF_Scrolling() - this=%u", this);
+    URHO3D_LOGDEBUGF("GEF_Scrolling() - this=%u", this);
 }
 
 GEF_Scrolling::~GEF_Scrolling()
 {
-//    URHO3D_LOGINFOF("~GEF_Scrolling() - this=%u ...", this);
-
     Stop();
-
-    URHO3D_LOGINFOF("~GEF_Scrolling() - this=%u ... OK !", this);
+    URHO3D_LOGDEBUGF("~GEF_Scrolling() - this=%u ... OK !", this);
 }
 
 void GEF_Scrolling::RegisterObject(Context* context)
@@ -2493,6 +2490,6 @@ void DrawableScroller::HandleCameraPositionChanged(StringHash eventType, Variant
 
         logtest_ = false;
 
-        URHO3D_LOGERRORF("DrawableScroller() - HandleCameraPositionChanged : viewport=%d ... this=%u camerapos=%s!", viewport_, this, info.camPosition_.ToString().CString());
+        URHO3D_LOGINFOF("DrawableScroller() - HandleCameraPositionChanged : viewport=%d ... this=%u camerapos=%s!", viewport_, this, info.camPosition_.ToString().CString());
     }
 }

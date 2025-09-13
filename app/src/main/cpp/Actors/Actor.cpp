@@ -499,13 +499,13 @@ Actor::Actor(const Actor& actor) :
 Actor::~Actor()
 {
 //    Stop();
-    URHO3D_LOGINFOF("~Actor() - actorID_=%d", info_.actorID_);
+    URHO3D_LOGDEBUGF("~Actor() - actorID_=%d", info_.actorID_);
     RemoveActor(info_.actorID_);
 }
 
 void Actor::Init(Context* context, unsigned id)
 {
-    URHO3D_LOGINFOF("Actor() - Init : id=%u", id);
+    URHO3D_LOGDEBUGF("Actor() - Init : id=%u", id);
 
     info_.type_ = StringHash::ZERO;
 
@@ -599,14 +599,14 @@ void Actor::SetViewZ(int viewZ)
 
 void Actor::SetScene(Scene* scene, const Vector2& position, int viewZ)
 {
-    URHO3D_LOGERRORF("Actor() - SetScene ...");
+    URHO3D_LOGINFOF("Actor() - SetScene ...");
 
     scene_ = scene;
     SetViewZ(viewZ);
 
     ResetAvatar(position);
 
-    URHO3D_LOGERRORF("Actor() - SetScene ... !");
+    URHO3D_LOGINFOF("Actor() - SetScene ... !");
 }
 
 void Actor::SetAnimationSet(const String& nameSet)
@@ -1082,12 +1082,12 @@ void Actor::ResetAvatar(const Vector2& newposition)
 
     if (GameContext::Get().ServerMode_)
     {
-        URHO3D_LOGERRORF("Actor() - ResetAvatar : ... nodeID=%u  ... servermode ... add ocontrol ...", nodeID_);
+        URHO3D_LOGINFOF("Actor() - ResetAvatar : ... nodeID=%u  ... servermode ... add ocontrol ...", nodeID_);
         ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(avatar_, avatar_, false, false);
         oinfo->clientId_ = GameNetwork::Get()->GetClientID(connection_.Get());
     }
 
-    URHO3D_LOGERRORF("Actor() - ResetAvatar : ... nodeID=%u  ... OK !", nodeID_);
+    URHO3D_LOGINFOF("Actor() - ResetAvatar : ... nodeID=%u  ... OK !", nodeID_);
 }
 
 void Actor::ResetMapping()

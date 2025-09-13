@@ -41,7 +41,7 @@ Actor* DialogueData::dialogueContributor_ = 0;
 DialogueData::DialogueData(Context* context) :
     Resource(context)
 {
-    URHO3D_LOGINFO("DialogueData()");
+    URHO3D_LOGDEBUG("DialogueData()");
 #ifdef USE_WREN
     vm_ = (void*)wrenInitializeVM();
 #else
@@ -51,7 +51,7 @@ DialogueData::DialogueData(Context* context) :
 
 DialogueData::~DialogueData()
 {
-    URHO3D_LOGINFO("~DialogueData()");
+    URHO3D_LOGDEBUG("~DialogueData()");
 #ifdef USE_WREN
     for (unsigned i=0; i < bytecodes_.Size(); ++i)
         wrenReleaseHandle((WrenVM*)vm_, (WrenHandle*)bytecodes_[i]);
@@ -75,7 +75,7 @@ bool DialogueData::BeginLoad(Deserializer& source)
     if (extension == ".xml")
         return BeginLoadFromXMLFile(source);
 
-    URHO3D_LOGERROR("DialogueData() - BeginLoad : Unsupported file type !");
+    URHO3D_LOGERRORF("DialogueData() - BeginLoad : Unsupported file type (%s)!", source.GetName().CString());
     return false;
 }
 

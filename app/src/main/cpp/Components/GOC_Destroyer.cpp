@@ -82,7 +82,7 @@ GOC_Destroyer::GOC_Destroyer(Context* context) :
 
 GOC_Destroyer::~GOC_Destroyer()
 {
-//    URHO3D_LOGINFOF("~GOC_Destroyer() - Node=%s(%u)", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGDEBUGF("~GOC_Destroyer() - Node=%s(%u)", node_->GetName().CString(), node_->GetID());
 }
 
 void GOC_Destroyer::RegisterObject(Context* context)
@@ -303,7 +303,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
 
     if (!viewZ || viewZ == NOVIEW)
     {
-        URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) NoViewZ Setted !", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGWARNINGF("GOC_Destroyer() - SetViewZ : node=%s(%u) NoViewZ Setted !", node_->GetName().CString(), node_->GetID());
         return;
     }
 
@@ -390,7 +390,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         Node* node = *it;
         if (node == node_)
         {
-            URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) ... can not be !",
+            URHO3D_LOGDEBUGF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) ... can not be !",
                              node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
             continue;
         }
@@ -399,7 +399,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
         bool isAplayer = othercontroller && othercontroller->IsMainController() && othercontroller->GetThinker() && othercontroller->GetThinker()->IsInstanceOf<Player>();
         if (isAplayer)
         {
-            URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
+            URHO3D_LOGDEBUGF("GOC_Destroyer() - SetViewZ : %s(%u) has a children node=%s(%u) that is a localplayer ...",
                              node_->GetName().CString(), node_->GetID(), node->GetName().CString(), node->GetID());
             int viewport = ViewManager::Get()->GetControllerViewport(othercontroller->GetThinker());
             if (!viewportsToSwitch.Contains(viewport))
@@ -416,7 +416,7 @@ void GOC_Destroyer::SetViewZ(int viewZ, unsigned viewMask, int drawOrder)
     node_->SendEvent(GO_DIRTY);
 
     if (viewportsToSwitch.Size())
-        URHO3D_LOGERRORF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
+        URHO3D_LOGDEBUGF("GOC_Destroyer() - SetViewZ : node=%s(%u) viewport=%d viewZ=%d(index=%d) orderinlayer=%d viewMask=%u numdrawables=%u firstdrawable=%u layers=%s",
                          node_->GetName().CString(), node_->GetID(), viewportsToSwitch.Front(), mapWorldPosition_.viewZ_, mapWorldPosition_.viewZIndex_, drawOrder, viewMask,
                          numdrawables, numdrawables ? drawables[0]->GetID() : 0, drawables[0]->GetLayer2().ToString().CString());
 }

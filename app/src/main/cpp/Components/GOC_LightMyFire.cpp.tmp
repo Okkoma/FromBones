@@ -18,17 +18,17 @@ GOC_LightMyFire::GOC_LightMyFire(Context* context) :
     Component(context)
 
 {
-//    URHO3D_LOGINFOF("GOC_LightMyFire()");
+//    URHO3D_LOGDEBUG("GOC_LightMyFire()");
 }
 
 GOC_LightMyFire::~GOC_LightMyFire()
 {
-//    URHO3D_LOGINFOF("~GOC_Detector()");
+//    URHO3D_LOGDEBUG("~GOC_LightMyFire()");
 }
 
 void GOC_LightMyFire::RegisterObject(Context* context)
 {
-    context->RegisterFactory<GOC_Detector>();
+    context->RegisterFactory<GOC_LightMyFire>();
 
 //    URHO3D_ACCESSOR_ATTRIBUTE("Trigger Event In", GetTriggerEventInAttr, SetTriggerEventInAttr, String, GOE::GetEventName(GO_DETECTORPLAYERIN), AM_FILE);
 //    URHO3D_ACCESSOR_ATTRIBUTE("Trigger Event Out", GetTriggerEventOutAttr, SetTriggerEventOutAttr, String, GOE::GetEventName(GO_DETECTORPLAYEROFF), AM_FILE);

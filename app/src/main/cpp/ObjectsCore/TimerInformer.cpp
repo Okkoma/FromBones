@@ -24,7 +24,7 @@ TimerInformer::TimerInformer(Node* node, float delay, unsigned userdata)
 
 TimerInformer::~TimerInformer()
 {
-    URHO3D_LOGINFOF("Auto ~TimerInformer() - userData_ = %u", userData_);
+    URHO3D_LOGDEBUGF("Auto ~TimerInformer() - userData_ = %u", userData_);
 
     VariantMap eventData;
     eventData[Go_TimerInformer::GO_SENDER] = this;
@@ -55,17 +55,17 @@ DelayInformer::DelayInformer(Context* context)
 DelayInformer::DelayInformer(Object* object, float delay, const StringHash& eventType)
     : Object(object->GetContext()), autodestroy_(true)
 {
-    URHO3D_LOGERRORF("DelayInformer() - %u", this);
+    URHO3D_LOGDEBUGF("DelayInformer() - %u", this);
     Start(object, delay, eventType);
 }
 
 DelayInformer::~DelayInformer()
 {
-    URHO3D_LOGINFO("Auto ~DelayInformer()");
+    URHO3D_LOGDEBUGF("Auto ~DelayInformer()");
 
     if (autodestroy_ && object_)
     {
-        URHO3D_LOGINFOF("Auto ~DelayInformer() : sendEvent Type=%u", eventType_.Value());
+        URHO3D_LOGDEBUGF("Auto ~DelayInformer() : sendEvent Type=%u", eventType_.Value());
         object_->SendEvent(eventType_);
     }
 
@@ -103,7 +103,7 @@ void DelayInformer::handleUpdate(StringHash eventType, VariantMap& eventData)
 
 void DelayInformer::handleDestroy(StringHash eventType, VariantMap& eventData)
 {
-    URHO3D_LOGERRORF("~DelayInformer() - %u", this);
+    URHO3D_LOGDEBUGF("~DelayInformer() - %u", this);
     this->~DelayInformer();
 }
 
@@ -123,7 +123,7 @@ TimerSendEvent::TimerSendEvent(Object* object, float delay, StringHash eventType
 
 TimerSendEvent::~TimerSendEvent()
 {
-    URHO3D_LOGINFOF("Auto ~TimerSendEvent()");
+    URHO3D_LOGDEBUGF("Auto ~TimerSendEvent()");
 
     if (object_)
         object_->SendEvent(eventType_, eventData_);

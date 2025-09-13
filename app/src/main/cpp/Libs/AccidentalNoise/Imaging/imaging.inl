@@ -884,7 +884,7 @@ void mapArray2DNoZ(SChunk& chunk)
     // after first module set cache available
     nexec.SetCacheAvailable(iid);
 
-    URHO3D_LOGERRORF("mapArray2DNoZ : chunkid=%u iid=%u ... finished !", chunk.chunkid_, chunk.instruct_);
+    URHO3D_LOGDEBUGF("mapArray2DNoZ : chunkid=%u iid=%u ... finished !", chunk.chunkid_, chunk.instruct_);
 
     chunk.finished_ = true;
 }

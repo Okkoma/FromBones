@@ -166,7 +166,7 @@ void CacheMap::ResetCacheAccess()
         for (unsigned j=0; j < cacheavailable_[i].Size(); j++)
             cacheavailable_[i][j] = false;
 
-    URHO3D_LOGERRORF("CacheMap : ResetCacheAccess numaccessors=%u numinstructs=%u", cacheavailable_.Size(), cacheavailable_[0].Size());
+    URHO3D_LOGWARNINGF("CacheMap : ResetCacheAccess numaccessors=%u numinstructs=%u", cacheavailable_.Size(), cacheavailable_[0].Size());
 }
 
 

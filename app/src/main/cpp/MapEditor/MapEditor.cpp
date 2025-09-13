@@ -75,16 +75,14 @@ MapEditor::MapEditor(Context* context) :
     Object(context),
     started_(false)
 {
-    URHO3D_LOGINFOF("MapEditor()");
-
+    URHO3D_LOGDEBUG("MapEditor()");
     Start();
 }
 
 MapEditor::~MapEditor()
 {
     Stop();
-
-    URHO3D_LOGINFOF("~MapEditor() ... OK !");
+    URHO3D_LOGDEBUG("~MapEditor() ... OK !");
 }
 
 void MapEditor::Start()

@@ -18,16 +18,16 @@ void MapPool::RegisterObject(Context* context)
 MapPool::MapPool(Context* context)
     : Object(context)
 {
-    URHO3D_LOGINFOF("MapPool()");
+    URHO3D_LOGDEBUGF("MapPool()");
 }
 
 MapPool::~MapPool()
 {
-    URHO3D_LOGINFOF("~MapPool() ...");
+    URHO3D_LOGDEBUG("~MapPool() ...");
 
     maps_.Clear();
 
-    URHO3D_LOGINFOF("~MapPool() ... OK !");
+    URHO3D_LOGDEBUG("~MapPool() ... OK !");
 }
 
 

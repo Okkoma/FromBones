@@ -138,7 +138,7 @@ void Slot::UpdateUISprite()
 //        sprite_ = uisprite_;
 //    else
     if (!uisprite_)
-        URHO3D_LOGERRORF("Slot() - UpdateUISprite : type=%s(%u) no uisprite !!!", GOT::GetType(type_).CString(), type_.Value());
+        URHO3D_LOGWARNINGF("Slot() - UpdateUISprite : type=%s(%u) no uisprite !!!", GOT::GetType(type_).CString(), type_.Value());
 }
 
 unsigned int Slot::TransferTo(Slot* slot, unsigned int qtyToTransfer, unsigned int freeSpace)

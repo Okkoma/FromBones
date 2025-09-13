@@ -70,7 +70,7 @@ ObjectFeatured::ObjectFeatured(unsigned width, unsigned height, unsigned numview
 
 ObjectFeatured::~ObjectFeatured()
 {
-//    URHO3D_LOGINFOF("~ObjectFeatured() ... OK !");
+//    URHO3D_LOGDEBUG("~ObjectFeatured() ... OK !");
 }
 
 void ObjectFeatured::Clear()

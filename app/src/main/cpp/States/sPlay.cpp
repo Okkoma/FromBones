@@ -183,12 +183,12 @@ PlayState::PlayState(Context* context) :
     hiScore(0),
     sceneCleaner_(this)
 {
-//    URHO3D_LOGINFO("PlayState()");
+//    URHO3D_LOGDEBUG("PlayState()");
 }
 
 PlayState::~PlayState()
 {
-    URHO3D_LOGINFO("~PlayState()");
+    URHO3D_LOGDEBUG("~PlayState()");
 }
 
 bool PlayState::Initialize()
@@ -211,7 +211,7 @@ void PlayState::Begin()
     GameContext::Get().AllowUpdate_ = false;
 
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
-    URHO3D_LOGINFO("PlayState() - Begin ...                                -");
+    URHO3D_LOGINFO("PlayState() - Begin ...                             -");
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
 
     // Get the scene instantiate by Game
@@ -251,14 +251,14 @@ void PlayState::Begin()
     GameState::Begin();
 
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
-    URHO3D_LOGINFO("PlayState() - Begin ... OK !                         -");
+    URHO3D_LOGINFO("PlayState() - Begin ... OK !                        -");
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
 }
 
 void PlayState::End()
 {
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
-    URHO3D_LOGINFO("PlayState() - End ...                                   -");
+    URHO3D_LOGINFO("PlayState() - End ...                               -");
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
 
     UnsubscribeFromEvent(E_POSTUPDATE);
@@ -324,7 +324,7 @@ void PlayState::End()
     GameState::End();
 
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
-    URHO3D_LOGINFO("PlayState() - End ... OK !                            -");
+    URHO3D_LOGINFO("PlayState() - End ... OK !                          -");
     URHO3D_LOGINFO("PlayState() - ---------------------------------------");
 }
 

@@ -597,7 +597,7 @@ MapStorage::MapStorage(Context* context, const IntVector2& wPoint) :
 
 MapStorage::~MapStorage()
 {
-    URHO3D_LOGINFOF("~MapStorage() ... ");
+    URHO3D_LOGDEBUG("~MapStorage() ... ");
 
     if (mapPool_)
     {
@@ -620,7 +620,7 @@ MapStorage::~MapStorage()
     if (storage_ == this)
         storage_ = 0;
 
-    URHO3D_LOGINFOF("~MapStorage() ... OK !");
+    URHO3D_LOGDEBUG("~MapStorage() ... OK !");
 }
 
 void MapStorage::Clear()
@@ -889,7 +889,7 @@ Map* MapStorage::InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer)
     {
         if (mapSerializer_->IsInQueue(mPoint))
         {
-            URHO3D_LOGERRORF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... Is Serializing the MapData ... Wait 1 !", mPoint.ToString().CString(), map);
+            URHO3D_LOGWARNINGF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... Is Serializing the MapData ... Wait 1 !", mPoint.ToString().CString(), map);
             return 0;
         }
     }
@@ -948,7 +948,7 @@ Map* MapStorage::InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer)
                     mapdata->savedmapstate_ = Generating_Map;
                     mapdata->state_ = MAPASYNC_LOADING;
                     map->SetStatus(Loading_Map);
-                    URHO3D_LOGERRORF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... ClientMode ... put map in loading state ... Wait !", mPoint.ToString().CString(), map);
+                    URHO3D_LOGWARNINGF("MapStorage() - InitializeMap mPoint=%s(map=%u) ... ClientMode ... put map in loading state ... Wait !", mPoint.ToString().CString(), map);
 
                     // Add Map Request
                     VariantMap& eventdata = GameNetwork::Get()->GetClientEventData();
@@ -992,7 +992,7 @@ void MapStorage::ForceMapToUnload(Map* map)
 
     if (!mapsToUnloadFromMemory_.Contains(forcedMapToUnload_))
     {
-        URHO3D_LOGERRORF("MapStorage() - ForceMapToUnload %s map=%u !", forcedMapToUnload_.ToString().CString(), map);
+        URHO3D_LOGINFOF("MapStorage() - ForceMapToUnload %s map=%u !", forcedMapToUnload_.ToString().CString(), map);
         mapsToUnloadFromMemory_.Push(forcedMapToUnload_);
     }
 }
@@ -1526,7 +1526,7 @@ void MapStorage::UpdateBufferedArea(bool maximizeMapsToLoad)
             else if (!World2D::GetKeepedVisibleMaps().Contains(mPoint) && World2D::AllowClearMaps())
             {
                 // remove it from creation list because unloading process can be slow
-                URHO3D_LOGERRORF("MapStorage() - UpdateBufferedArea : mPoint=%s to Unload ...", mPoint.ToString().CString());
+                URHO3D_LOGINFOF("MapStorage() - UpdateBufferedArea : mPoint=%s to Unload ...", mPoint.ToString().CString());
                 mapCreator_->PurgeMap(mPoint);
 
                 if (jt == mapsToUnloadFromMemory_.End())
@@ -1552,7 +1552,7 @@ void MapStorage::UpdateBufferedArea(bool maximizeMapsToLoad)
             if (!IsInsideBufferedArea(*it) && !World2D::GetKeepedVisibleMaps().Contains(*it) && World2D::AllowClearMaps())
             {
                 // if not in the load list, remove it from creation list
-                URHO3D_LOGERRORF("MapStorage() - UpdateBufferedArea : mPoint=%s purge load list ...", it->ToString().CString());
+                URHO3D_LOGINFOF("MapStorage() - UpdateBufferedArea : mPoint=%s purge load list ...", it->ToString().CString());
                 mapCreator_->PurgeMap(*it);
 
                 it = mapsToLoadInMemory_.Erase(it);

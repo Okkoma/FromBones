@@ -505,7 +505,7 @@ void GameContext::InitializeTextures()
     {
         int texture_units;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texture_units);
-        URHO3D_LOGERRORF("GameContext() - InitializeTextures : ... GL_MAX_TEXTURE_IMAGE_UNITS=%d", texture_units);
+        URHO3D_LOGDEBUGF("GameContext() - InitializeTextures : ... GL_MAX_TEXTURE_IMAGE_UNITS=%d", texture_units);
     }
 #endif
     layerMaterials_.Resize(NUMLAYERMATERIALS);
@@ -525,7 +525,7 @@ void GameContext::InitializeTextures()
             {
                 Texture* texture = material->GetTexture((TextureUnit)i);
                 if (texture)
-                    URHO3D_LOGINFOF("  Texture Unit=%d Name=%s", i, texture->GetName().CString());
+                    URHO3D_LOGDEBUGF("  Texture Unit=%d Name=%s", i, texture->GetName().CString());
             }
         }
     }
@@ -755,7 +755,7 @@ void GameContext::InitMouse(int mode)
                 String shapename(cursorShapeNames_[i]);
                 if (spriteSheets_[UIEQUIPMENT]->GetSprite(shapename))
                 {
-                    URHO3D_LOGINFOF("GameContext() - InitMouse : Set Cursor ... Add Shape %s", shapename.CString());
+                    URHO3D_LOGDEBUGF("GameContext() - InitMouse : Set Cursor ... Add Shape %s", shapename.CString());
 
                     shapeinfo.imageRect_ = spriteSheets_[UIEQUIPMENT]->GetSprite(shapename)->GetRectangle();
                     cursor_->DefineShape(shapename, shapeinfo);
@@ -831,8 +831,6 @@ void GameContext::InitJoysticks()
         URHO3D_LOGERROR("GameContext() - InitJoysticks : ... SDL Controller Mapping Error ! ");
     else
         URHO3D_LOGINFOF("GameContext() - InitJoysticks : ... SDL Controller Mapping numControllers=%d... OK ! ", numMappedControllers);
-
-    URHO3D_LOGINFOF("GameContext() - InitJoysticks : ... SDL Controller Mapping numControllers=%d ! ", numMappedControllers);
 
     for (unsigned i = 0; i < SDL_NumJoysticks(); ++i)
     {
@@ -1460,9 +1458,9 @@ void GameContext::ResetLuminosity()
 
 void GameContext::Stop()
 {
-    URHO3D_LOGERROR("GameContext() -----------------------------------------");
-    URHO3D_LOGERROR("GameContext() - Stop  ....                            -");
-    URHO3D_LOGERROR("GameContext() -----------------------------------------");
+    URHO3D_LOGINFO("GameContext() -----------------------------------------");
+    URHO3D_LOGINFO("GameContext() - Stop  ....                            -");
+    URHO3D_LOGINFO("GameContext() -----------------------------------------");
 
     SendEvent(GAME_EXIT);
 
@@ -1527,9 +1525,9 @@ void GameContext::Stop()
 
     UnRegisterGameLibrary(context_);
 
-    URHO3D_LOGERROR("GameContext() -----------------------------------------");
-    URHO3D_LOGERROR("GameContext() - Stop  .... OK !                       -");
-    URHO3D_LOGERROR("GameContext() -----------------------------------------");
+    URHO3D_LOGINFO("GameContext() -----------------------------------------");
+    URHO3D_LOGINFO("GameContext() - Stop  .... OK !                       -");
+    URHO3D_LOGINFO("GameContext() -----------------------------------------");
 }
 
 void GameContext::Exit()

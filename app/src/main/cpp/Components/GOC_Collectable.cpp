@@ -50,20 +50,20 @@ GOC_Collectable::GOC_Collectable(Context* context) :
 
 void GOC_Collectable::Init()
 {
-//    URHO3D_LOGINFOF("GOC_Collectable() - Init");
+//    URHO3D_LOGDEBUG("GOC_Collectable() - Init");
 
     Set();
 }
 
 void GOC_Collectable::Set()
 {
-//    URHO3D_LOGINFOF("GOC_Collectable() - Set");
+//    URHO3D_LOGDEBUG("GOC_Collectable() - Set");
     // Set variables with constProps by default
 }
 
 GOC_Collectable::~GOC_Collectable()
 {
-//    URHO3D_LOGINFOF("~GOC_Collectable()");
+//    URHO3D_LOGDEBUG("~GOC_Collectable()");
     UnsubscribeFromAllEvents();
 }
 
@@ -106,7 +106,7 @@ void GOC_Collectable::AddToSlotAttr(const String& value)
 
     if (!Slot::SetSlotAttr(value, slot_))
     {
-        URHO3D_LOGERRORF("GOC_Collectable() - AddToSlotAttr : %s NOK !", value.CString());
+        URHO3D_LOGWARNINGF("GOC_Collectable() - AddToSlotAttr : %s NOK !", value.CString());
         return;
     }
 
@@ -258,7 +258,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
         const StringHash& got = slot ? slot->type_ : slotData ? StringHash((*slotData)[Net_ObjectCommand::P_CLIENTOBJECTTYPE].GetUInt()) : StringHash::ZERO;
         if (slot && !slot->sprite_)
         {
-            URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : no sprite in slot %s(%u) !", GOT::GetType(got).CString(), got.Value());
+            URHO3D_LOGWARNINGF("GOC_Collectable() - DropSlotFrom : no sprite in slot %s(%u) !", GOT::GetType(got).CString(), got.Value());
             return 0;
         }
 
@@ -335,7 +335,7 @@ Node* GOC_Collectable::DropSlotFrom(Node* owner, Slot* slot, int dropmode, int f
                     if (GameContext::Get().ServerMode_ && nodeid && node->GetID() != nodeid)
                     {
                         // Send command to link the client node with the server node
-                        URHO3D_LOGERRORF("GOC_Collectable() - DropSlotFrom : node=%s(%u) refnodeid=%u => Send Command LINKNODEID to client=%d ...", node->GetName().CString(), node->GetID(), nodeid, clientid);
+                        URHO3D_LOGINFOF("GOC_Collectable() - DropSlotFrom : node=%s(%u) refnodeid=%u => Send Command LINKNODEID to client=%d ...", node->GetName().CString(), node->GetID(), nodeid, clientid);
 
                         VariantMap& eventData = GameNetwork::Get()->GetServerEventData();
                         eventData[Net_ObjectCommand::P_NODEID] = node->GetID();

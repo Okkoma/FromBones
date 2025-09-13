@@ -157,7 +157,7 @@ GameStateManager::GameStateManager(Context* context) :
 
 GameStateManager::~GameStateManager()
 {
-    URHO3D_LOGINFO("~GameStateManager() ...");
+    URHO3D_LOGDEBUG("~GameStateManager() ...");
 
     // End all currently running states
     Stop();
@@ -168,14 +168,14 @@ GameStateManager::~GameStateManager()
     stateStack_.Clear();
 
     // Destroy any registered states
-    URHO3D_LOGINFO("~GameStateManager() - Clear States ...");
+    URHO3D_LOGDEBUG("~GameStateManager() - Clear States ...");
     registeredStates_.Clear();
-    URHO3D_LOGINFO("~GameStateManager() - Clear States ... OK !");
+    URHO3D_LOGDEBUG("~GameStateManager() - Clear States ... OK !");
 
     if (stateManager_ == this)
         stateManager_ = 0;
 
-    URHO3D_LOGINFO("~GameStateManager() ... OK ! ");
+    URHO3D_LOGDEBUG("~GameStateManager() ... OK ! ");
 }
 
 bool GameStateManager::RegisterState(GameState* pGameState)

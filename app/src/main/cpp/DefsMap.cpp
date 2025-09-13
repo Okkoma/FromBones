@@ -1127,7 +1127,7 @@ int ZoneData::GetNumPlayersInside() const
 
 MapData::MapData()
 {
-//    URHO3D_LOGINFO("MapData()");
+//    URHO3D_LOGDEBUG("MapData()");
 
     Clear();
 
@@ -1137,7 +1137,7 @@ MapData::MapData()
 
 MapData::~MapData()
 {
-//    URHO3D_LOGINFO("~MapData()");
+//    URHO3D_LOGDEBUG("~MapData()");
 }
 
 void MapData::Clear()

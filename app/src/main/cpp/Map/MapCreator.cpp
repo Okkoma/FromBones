@@ -117,7 +117,7 @@ MapCreator::MapCreator(Context* context) :
     defaultGenerator_(GEN_RANDOM),
     Random(GameRand::GetRandomizer(MAPRAND))
 {
-    URHO3D_LOGINFOF("MapCreator()");
+    URHO3D_LOGDEBUG("MapCreator()");
 
     if (!creator_)
         creator_ = this;
@@ -128,7 +128,7 @@ MapCreator::~MapCreator()
     if (creator_ == this)
         creator_ = 0;
 
-    URHO3D_LOGINFOF("~MapCreator() ... OK !");
+    URHO3D_LOGDEBUG("~MapCreator() ... OK !");
 }
 
 
@@ -256,13 +256,13 @@ void MapCreator::PurgeMapsOutsideVisibleAreas()
 
         mapsToCreate_.EraseSwap(it - mapsToCreate_.Begin());
 
-        URHO3D_LOGERRORF("MapCreator() - PurgeMapsOutsideVisibleAreas : %s !", it->ToString().CString());
+        URHO3D_LOGINFOF("MapCreator() - PurgeMapsOutsideVisibleAreas : %s !", it->ToString().CString());
     }
 }
 
 void MapCreator::PurgeMap(const ShortIntVector2& mpoint)
 {
-    URHO3D_LOGERRORF("MapCreator() - PurgeMap : %s !", mpoint.ToString().CString());
+    URHO3D_LOGINFOF("MapCreator() - PurgeMap : %s !", mpoint.ToString().CString());
     mapsToCreate_.RemoveSwap(mpoint);
 
     Map* map = World2D::GetMapAt(mpoint, false);
@@ -361,7 +361,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         map->SetStatus(Creating_Map_Layers);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Generating Map seed=%u(w=%u+inc=%u) type=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Generating Map seed=%u(w=%u+inc=%u) type=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), map->GetMapSeed(), map->GetWorldSeed(), map->GetMapSeed()-map->GetWorldSeed(),
                          typenames_[map->GetMapGeneratorStatus().generator_].CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
@@ -389,7 +389,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         map->SetStatus(Creating_Map_Colliders);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Creating Map Layers ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Creating Map Layers ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -419,7 +419,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         map->SetStatus(Creating_Map_Entities);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Creating Map Colliders ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Creating Map Colliders ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
     }
@@ -443,7 +443,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Creating Map Entities ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Creating Map Entities ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -461,7 +461,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
             return false;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Setting Map ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Setting Map ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -486,7 +486,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 #endif
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Setting Furnitures ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Setting Furnitures ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -520,7 +520,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Setting Entities ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Setting Entities ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 #endif
@@ -548,7 +548,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
 #endif
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Status=Available ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Status=Available ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -559,7 +559,7 @@ bool MapCreator::CreateMap(Map* map, HiresTimer* timer, const long long& delay)
         map->SendEvent(MAP_AVAILABLE);
 
 //#ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - CreateMap at %s ... Status=Available ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - CreateMap at %s ... Status=Available ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 //#endif
         return true;
@@ -586,7 +586,7 @@ bool MapCreator::Update(HiresTimer* timer, const long long& delay)
     URHO3D_PROFILE(MapCreator);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-    URHO3D_LOGERRORF("MapCreator() - Update : numMapsToCreate=%u ..." , mapsToCreate_.Size());
+    URHO3D_LOGINFOF("MapCreator() - Update : numMapsToCreate=%u ..." , mapsToCreate_.Size());
 #endif
 
     {
@@ -668,7 +668,7 @@ bool MapCreator::Update(HiresTimer* timer, const long long& delay)
 
             mapsToCreate_.Pop();
 
-            URHO3D_LOGERRORF("MapCreator() - Update map=%s OK ! maxdelayupdate=%dmsec (NumMapsRemainToCreate=%u) ...", map->GetMapPoint().ToString().CString(), (int)(delay_/1000), mapsToCreate_.Size());
+            URHO3D_LOGINFOF("MapCreator() - Update map=%s OK ! maxdelayupdate=%dmsec (NumMapsRemainToCreate=%u) ...", map->GetMapPoint().ToString().CString(), (int)(delay_/1000), mapsToCreate_.Size());
 
             GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, false);
         }
@@ -743,7 +743,7 @@ bool MapCreator::GenerateSimpleGroundMap(MapBase* map, HiresTimer* timer)
         mcount++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateSimpleGroundMap : map=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateSimpleGroundMap : map=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -799,7 +799,7 @@ bool MapCreator::GenerateWorldGroundMap(MapBase* map, HiresTimer* timer)
 //        GameHelpers::DumpData(&map->featuredMap_->GetFeatureView(FrontView_ViewId)[0], 0, 2, map->featuredMap_->width_, map->featuredMap_->height_);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateWorldGroundMap : map=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateWorldGroundMap : map=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
         return true;
@@ -853,7 +853,7 @@ bool MapCreator::GenerateAsteroid(MapBase* map, HiresTimer* timer)
         map->skinnedMap_->SetNumViews(1);
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateAsteroid : map=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateAsteroid : map=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
         return true;
@@ -904,7 +904,7 @@ bool MapCreator::GenerateBackGroundMap(MapBase* map, HiresTimer* timer)
         mcount2 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateBackGroundMap : map=%s ... Copy FrontView ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateBackGroundMap : map=%s ... Copy FrontView ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -929,7 +929,7 @@ bool MapCreator::GenerateBackGroundMap(MapBase* map, HiresTimer* timer)
         mcount1++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateBackGroundMap : map=%s ... Generate Maze ... time=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateBackGroundMap : map=%s ... Generate Maze ... time=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -942,7 +942,7 @@ bool MapCreator::GenerateBackGroundMap(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateBackGroundMap : map=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateBackGroundMap : map=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1023,7 +1023,7 @@ bool MapCreator::GenerateDungeonMap(MapBase* map, HiresTimer* timer)
         mcount++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateDungeonMap : map=%s ... Features INNERVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateDungeonMap : map=%s ... Features INNERVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1045,7 +1045,7 @@ bool MapCreator::GenerateDungeonMap(MapBase* map, HiresTimer* timer)
         mcount++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateDungeonMap : map=%s ... Features BACKVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateDungeonMap : map=%s ... Features BACKVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1077,7 +1077,7 @@ bool MapCreator::GenerateDungeonMap(MapBase* map, HiresTimer* timer)
         mcount++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateDungeonMap : map=%s ... Features OUTERVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateDungeonMap : map=%s ... Features OUTERVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1121,7 +1121,7 @@ bool MapCreator::GenerateCaveMap(MapBase* map, HiresTimer* timer)
         mcount++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateCaveMap : map=%s ... Features INNERVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateCaveMap : map=%s ... Features INNERVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1172,7 +1172,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... FRONTVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... FRONTVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1191,7 +1191,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... TERRAINMAP ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... TERRAINMAP ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1214,7 +1214,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... BACKGROUND ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... BACKGROUND ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1230,7 +1230,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount0++;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... Generate Topography ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... Generate Topography ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
         if (TimeOverMaximized(timer))
@@ -1252,7 +1252,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... INNERVIEW ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... INNERVIEW ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1279,7 +1279,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... Apply Filters for Feature Maps ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... Apply Filters for Feature Maps ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1308,7 +1308,7 @@ bool MapCreator::GenerateLayersBase(MapBase* map, HiresTimer* timer)
 //        map->Dump();
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayersBase : map=%s ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayersBase : map=%s ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1354,7 +1354,7 @@ bool MapCreator::GenerateLayers(Map* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayers : map=%s ... Set Fluid Cells  ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayers : map=%s ... Set Fluid Cells  ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
     }
@@ -1375,7 +1375,7 @@ bool MapCreator::GenerateLayers(Map* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayers : map=%s ... Set Skinned Views ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayers : map=%s ... Set Skinned Views ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
     }
@@ -1396,7 +1396,7 @@ bool MapCreator::GenerateLayers(Map* map, HiresTimer* timer)
         mcount1 = 0;
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateLayers : map=%s ... Set Masked Views ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateLayers : map=%s ... Set Masked Views ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
     }
@@ -1439,7 +1439,7 @@ bool MapCreator::GenerateColliders(MapBase* map, HiresTimer* timer)
     }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-    URHO3D_LOGERRORF("MapCreator() - GenerateColliders : map=%s ... timer=%d/%d msec ... OK !",
+    URHO3D_LOGINFOF("MapCreator() - GenerateColliders : map=%s ... timer=%d/%d msec ... OK !",
                      map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 #endif
@@ -1482,7 +1482,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
         generators_[map->GetMapGeneratorStatus().genInner_]->ClearFurnitures();
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... FRONTVIEW=%s INNERVIEW=%s timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... FRONTVIEW=%s INNERVIEW=%s timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), typenames_[map->GetMapGeneratorStatus().genFront_].CString(), typenames_[map->GetMapGeneratorStatus().genInner_].CString(),  timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1514,7 +1514,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
             }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-            URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... FRONTVIEW spotsize=%u timer=%d/%d msec ... OK !",
+            URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... FRONTVIEW spotsize=%u timer=%d/%d msec ... OK !",
                              map->GetMapPoint().ToString().CString(), generators_[map->GetMapGeneratorStatus().genFront_]->GetSpots().Size(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
         }
@@ -1550,7 +1550,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
 #endif
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... INNERVIEW spotsize=%u timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... INNERVIEW spotsize=%u timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), generators_[map->GetMapGeneratorStatus().genInner_]->GetSpots().Size(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 
@@ -1578,7 +1578,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
             }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-            URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... Furniture INNERVIEW ... timer=%d/%d msec ... OK !",
+            URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... Furniture INNERVIEW ... timer=%d/%d msec ... OK !",
                              map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
         }
@@ -1605,7 +1605,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
                 }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-                URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... Furniture FRONTVIEW ... timer=%d/%d msec ... OK !",
+                URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... Furniture FRONTVIEW ... timer=%d/%d msec ... OK !",
                                  map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
             }
@@ -1644,7 +1644,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
         }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... Populate Entities ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... Populate Entities ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 #endif
@@ -1674,7 +1674,7 @@ bool MapCreator::GenerateEntities(MapBase* map, HiresTimer* timer)
         }
 
 #ifdef DUMP_MAPCREATOR_LOGS
-        URHO3D_LOGERRORF("MapCreator() - GenerateEntities : map=%s ... Add Furnitures ... timer=%d/%d msec ... OK !",
+        URHO3D_LOGINFOF("MapCreator() - GenerateEntities : map=%s ... Add Furnitures ... timer=%d/%d msec ... OK !",
                          map->GetMapPoint().ToString().CString(), timer ? (int)(timer->GetUSec(false) / 1000) : 0, (int)(delay_/1000));
 #endif
 #endif

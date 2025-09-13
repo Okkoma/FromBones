@@ -223,7 +223,7 @@ static SharedPtr<Texture2D> sOptionsWorldSnapShotTexture_;
 OptionState::OptionState(Context* context) :
     GameState(context, "Options")
 {
-//    URHO3D_LOGINFO("OptionState()");
+//    URHO3D_LOGDEBUG("OptionState()");
     // Create worldMap Texture
     sOptionsWorldSnapShotTexture_ = SharedPtr<Texture2D>(new Texture2D(context_));
     sOptionsWorldSnapShotTexture_->SetNumLevels(1);
@@ -232,7 +232,7 @@ OptionState::OptionState(Context* context) :
 
 OptionState::~OptionState()
 {
-    URHO3D_LOGINFO("~OptionState()");
+    URHO3D_LOGDEBUG("~OptionState()");
     sOptionsWorldSnapShotTexture_.Reset();
 }
 
@@ -256,9 +256,9 @@ void OptionState::Begin()
     // Set UI
     if (!CreateUI())
     {
-        URHO3D_LOGINFO("OptionState() - ----------------------------------------");
-        URHO3D_LOGINFO("OptionState() - Begin ... UI NOK !                     -");
-        URHO3D_LOGINFO("OptionState() - ----------------------------------------");
+        URHO3D_LOGERROR("OptionState() - ----------------------------------------");
+        URHO3D_LOGERROR("OptionState() - Begin ... UI NOK !                     -");
+        URHO3D_LOGERROR("OptionState() - ----------------------------------------");
 
         stateManager_->PopStack();
         return;
@@ -1062,7 +1062,7 @@ void OptionState::CheckParametersChanged()
         if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != GetSubsystem<Renderer>()->GetTextureFilterMode())
             change++;
 
-        URHO3D_LOGERRORF("OptionState() - CheckParametersChanged ... graphics change = %d !", change);
+        URHO3D_LOGDEBUGF("OptionState() - CheckParametersChanged ... graphics change = %d !", change);
     }
     else if (category_ == "Network")
     {
@@ -1078,7 +1078,7 @@ void OptionState::CheckParametersChanged()
             if (serverip != GameNetwork::Get()->GetServerIP() || serverport != GameNetwork::Get()->GetServerPort())
                 change++;
         }
-        URHO3D_LOGINFOF("OptionState() - CheckParametersChanged ... network change = %d !", change);
+        URHO3D_LOGDEBUGF("OptionState() - CheckParametersChanged ... network change = %d !", change);
     }
 
     applybutton_->SetVisible(change);
@@ -1117,7 +1117,7 @@ void OptionState::ApplyParameters()
             bool fullscreen = graphics->GetFullscreen();
             int videomodechanged = 0;
 
-            URHO3D_LOGERRORF("OptionState() - ApplyParameters ... currentResolutionIndex_=%u resolution=%s", currentResolutionIndex_, resolution.ToString().CString());
+            URHO3D_LOGINFOF("OptionState() - ApplyParameters ... currentResolutionIndex_=%u resolution=%s", currentResolutionIndex_, resolution.ToString().CString());
 
             // Texture Filter
             if (optionParameters_[OPTION_TextureFilter].control_->GetSelection() != graphics->GetDefaultTextureFilterMode())

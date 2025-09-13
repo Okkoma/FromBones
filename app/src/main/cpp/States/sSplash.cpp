@@ -41,12 +41,12 @@ const StringHash SPLASH_STOP = StringHash("Splash_Stop");
 SplashState::SplashState(Context* context) :
     GameState(context,"Splash")
 {
-//    URHO3D_LOGINFO("SplashState()");
+//    URHO3D_LOGDEBUG("SplashState()");
 }
 
 SplashState::~SplashState()
 {
-    URHO3D_LOGINFO("~SplashState()");
+    URHO3D_LOGDEBUG("~SplashState()");
 }
 
 

@@ -37,7 +37,7 @@ GOC_BodyFaller2D::GOC_BodyFaller2D(Context* context)
 
 GOC_BodyFaller2D::~GOC_BodyFaller2D()
 {
-//    URHO3D_LOGINFO("~GOC_BodyFaller2D()");
+//    URHO3D_LOGDEBUG("~GOC_BodyFaller2D()");
     UnsubscribeFromAllEvents();
 }
 

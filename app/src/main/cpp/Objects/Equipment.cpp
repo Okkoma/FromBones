@@ -580,7 +580,7 @@ void Equipment::Clear()
         weaponabilities_[i] = 0;
     }
 
-    URHO3D_LOGERRORF("Equipment() - Clear ... OK !");
+    URHO3D_LOGINFO("Equipment() - Clear ... OK !");
 }
 
 void Equipment::Update(bool sendNetMessage)

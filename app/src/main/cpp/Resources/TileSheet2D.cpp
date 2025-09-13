@@ -41,7 +41,7 @@ TileSheet2D::TileSheet2D(Context* context) :
 
 TileSheet2D::~TileSheet2D()
 {
-    URHO3D_LOGINFO("~TileSheet2D() - " + GetName());
+    URHO3D_LOGDEBUG("~TileSheet2D() - " + GetName());
 }
 
 void TileSheet2D::RegisterObject(Context* context)
@@ -64,7 +64,7 @@ bool TileSheet2D::BeginLoad(Deserializer& source)
     if (extension == ".xml")
         return BeginLoadFromXMLFile(source);
 
-    URHO3D_LOGERROR("Unsupported file type");
+    URHO3D_LOGERRORF("TileSheet2D() - BeginLoad : Unsupported file type (%s) !", source.GetName().CString());
     return false;
 }
 
@@ -115,7 +115,7 @@ void TileSheet2D::UpdateTileScale(const Vector2& worldtilesize)
     {
         const Vector2 scale = (worldtilesize / tileSize_) * scaleFactor_;
 
-        URHO3D_LOGERRORF("TileSheet2D() - UpdateScale : %s TileSize=%s WorldTileSize=%s ScaleFactor=%f (Scale = %s)",
+        URHO3D_LOGDEBUGF("TileSheet2D() - UpdateScale : %s TileSize=%s WorldTileSize=%s ScaleFactor=%f (Scale = %s)",
                          GetName().CString(), tileSize_.ToString().CString(), worldtilesize.ToString().CString(), scaleFactor_, scale.ToString().CString());
 
         const float spanning = GameContext::Get().gameConfig_.tileSpanning_*PIXEL_SIZE;

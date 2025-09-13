@@ -302,20 +302,20 @@ ObjectTiled::ObjectTiled(const ObjectTiled& obj) :
 
 ObjectTiled::~ObjectTiled()
 {
-//    URHO3D_LOGINFOF("~ObjectTiled() ...");
+//    URHO3D_LOGDEBUG("~ObjectTiled() ...");
 
     skinData_.Reset();
 
     /// Free none shared ChunkInfo
     if (chinfo_ && !sharedChunkInfo_)
     {
-//        URHO3D_LOGINFOF("ObjectTiled() - FreeChunks !");
+//        URHO3D_LOGDEBUGF("~ObjectTiled() - FreeChunks !");
 
         delete chinfo_;
         chinfo_ = 0;
     }
 
-//    URHO3D_LOGINFOF("~ObjectTiled() ... OK !");
+//    URHO3D_LOGDEBUG("~ObjectTiled() ... OK !");
 }
 
 void ObjectTiled::Init()

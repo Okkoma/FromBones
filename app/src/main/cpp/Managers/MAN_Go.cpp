@@ -71,13 +71,13 @@ bool GOManager::IsA(unsigned nodeId, int controllerType)
 GOManager::GOManager(Context* context) :
     Object(context)
 {
-    URHO3D_LOGINFO("GOManager()");
+    URHO3D_LOGDEBUG("GOManager()");
     goManager_ = this;
 }
 
 GOManager::~GOManager()
 {
-    URHO3D_LOGINFO("~GOManager()");
+    URHO3D_LOGDEBUG("~GOManager()");
     goManager_ = 0;
 }
 
@@ -318,7 +318,7 @@ void GOManager::HandleGOActive(StringHash eventType, VariantMap& eventData)
             if (!activePlayer.Contains(nodeId))
             {
                 activePlayer.Push(nodeId);
-                URHO3D_LOGERRORF("GOManager() - HandleGOActive : Avatar %u active, numActiveplayers = %u", nodeId, activePlayer.Size());
+                URHO3D_LOGINFOF("GOManager() - HandleGOActive : Avatar %u active, numActiveplayers = %u", nodeId, activePlayer.Size());
             }
             break;
         }

@@ -35,7 +35,7 @@ TerrainAtlas::TerrainAtlas(Context* context) :
 TerrainAtlas::~TerrainAtlas()
 {
     UnregisterTiles();
-    URHO3D_LOGINFOF("~TerrainAtlas() - this = %u !", this);
+    URHO3D_LOGDEBUGF("~TerrainAtlas() - this = %u !", this);
 }
 
 bool TerrainAtlas::BeginLoad(Deserializer& source)
@@ -54,7 +54,7 @@ bool TerrainAtlas::BeginLoad(Deserializer& source)
     if (extension == ".xml")
         return BeginLoadFromXMLFile(source);
 
-    URHO3D_LOGERROR("Unsupported file type");
+    URHO3D_LOGERRORF("TerrainAtlas() - BeginLoad : Unsupported file type (%s) !", source.GetName().CString());
     return false;
 }
 

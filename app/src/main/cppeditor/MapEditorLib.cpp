@@ -858,7 +858,7 @@ MapEditorLibImpl::MapEditorLibImpl(Context* context) :
     if (!debugTextRootNode_)
         debugTextRootNode_ = scene_->CreateChild("EditorDebugText", LOCAL);
 
-    URHO3D_LOGINFOF("MapEditorLibImpl()");
+    URHO3D_LOGDEBUGF("MapEditorLibImpl()");
 
     CreateUI();
 
@@ -883,7 +883,7 @@ MapEditorLibImpl::~MapEditorLibImpl()
 
     scene_->SetUpdateEnabled(true);
 
-    URHO3D_LOGINFOF("~MapEditorLibImpl()");
+    URHO3D_LOGDEBUGF("~MapEditorLibImpl()");
 }
 
 
@@ -3846,7 +3846,7 @@ void MapEditorLibImpl::Clean()
 
 AnimatorEditor::AnimatorEditor(Context* context)  : Object(context)
 {
-    URHO3D_LOGINFOF("AnimatorEditor()");
+    URHO3D_LOGDEBUGF("AnimatorEditor()");
     mainScene_ = GameContext::Get().rootScene_;
     lastSelectedTimelineId_ = lastHoverTimelineId_ = -1;
     lastSelectedBoneIndex_ = -1;
@@ -3854,7 +3854,7 @@ AnimatorEditor::AnimatorEditor(Context* context)  : Object(context)
 
 AnimatorEditor::~AnimatorEditor()
 {
-    URHO3D_LOGINFOF("~AnimatorEditor()");
+    URHO3D_LOGDEBUGF("~AnimatorEditor()");
 
     FinishEdit();
 

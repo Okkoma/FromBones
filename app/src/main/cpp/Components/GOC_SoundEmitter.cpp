@@ -164,7 +164,7 @@ void GOC_SoundEmitter_Template::AddSoundForSpriterEvent(int soundid, const Strin
 
 GOC_SoundEmitter::~GOC_SoundEmitter()
 {
-//    URHO3D_LOGINFOF("~GOC_SoundEmitter()");
+//    URHO3D_LOGDEBUG("~GOC_SoundEmitter()");
     UnsubscribeFromAllEvents();
     ClearCustomTemplate();
 }

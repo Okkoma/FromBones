@@ -574,7 +574,7 @@ void WeatherManager::SetActive(int viewport, bool state, bool forced)
             }
 #endif
 #endif
-            URHO3D_LOGERRORF("WeatherManager() - SetActive : viewport=%d state=%s sunlight=%s(%s)... OK !",
+            URHO3D_LOGINFOF("WeatherManager() - SetActive : viewport=%d state=%s sunlight=%s(%s)... OK !",
                              viewport, state?"true":"false", viewdata.sunlight_ ? viewdata.sunlight_->GetNode()->GetName().CString() : "none",
                              viewdata.sunlight_ && viewdata.sunlight_->IsEnabled() ? "true":"false");
         }
@@ -585,7 +585,7 @@ void WeatherManager::SetActive(int viewport, bool state, bool forced)
 
         if (viewdata.active_ != state || forced)
         {
-            URHO3D_LOGERRORF("WeatherManager() - SetActive : viewport=%d state=%s ...", viewport, state?"true":"false");
+            URHO3D_LOGINFOF("WeatherManager() - SetActive : viewport=%d state=%s ...", viewport, state?"true":"false");
 
             if (!viewdata.sunlight_)
                 SetSunLight(viewport);
@@ -615,7 +615,7 @@ void WeatherManager::SetActive(int viewport, bool state, bool forced)
 #endif
             viewdata.active_ = state;
 
-            URHO3D_LOGERRORF("WeatherManager() - SetActive ... OK !");
+            URHO3D_LOGINFOF("WeatherManager() - SetActive ... OK !");
         }
     }
 }
@@ -927,7 +927,7 @@ void WeatherManager::HandleCameraPositionChanged(StringHash eventType, VariantMa
             World2D::GetWorld()->UpdateVisibleRectInfos(viewport);
             bool infullbackground = World2D::IsVisibleRectInFullBackGround(viewport);
 
-            URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
+            URHO3D_LOGINFOF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
 
             SetActive(viewport, !infullbackground, true);
         }
@@ -938,10 +938,10 @@ void WeatherManager::HandleCameraPositionChanged(StringHash eventType, VariantMa
         World2D::GetWorld()->UpdateVisibleRectInfos(viewport);
         bool infullbackground = World2D::IsVisibleRectInFullBackGround(viewport);
 
-        URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
+        URHO3D_LOGINFOF("WeatherManager() - HandleCameraPositionChanged : viewport=%d fullbackground=%s ... ", viewport, infullbackground?"true":"false");
 
         SetActive(viewport, !infullbackground, true);
     }
 
-    URHO3D_LOGERRORF("WeatherManager() - HandleCameraPositionChanged !");
+    URHO3D_LOGINFOF("WeatherManager() - HandleCameraPositionChanged !");
 }

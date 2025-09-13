@@ -111,7 +111,7 @@ void UIC_CraftPanel::SetSlotZone()
         numSlots_ = endSlotIndex2_ - startSlotIndex_ + 1;
         slotselector_ = startSlotIndex_;
 
-        URHO3D_LOGERRORF("UIC_CraftPanel() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", startSlotIndex_, endSlotIndex2_);
+        URHO3D_LOGDEBUGF("UIC_CraftPanel() - SetSlotZone : startSlotIndex=%u endSlotIndex=%u", startSlotIndex_, endSlotIndex2_);
     }
 }
 

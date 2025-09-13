@@ -2104,7 +2104,7 @@ bool GameHelpers::SetLightActivation(Player* player)
     const PODVector<Light*> lights = player->GetLights();
     if (!lights.Size())
     {
-        URHO3D_LOGERRORF("GameHelpers() - SetLightActivation : player=%d nolight !", player->GetID());
+        URHO3D_LOGDEBUGF("GameHelpers() - SetLightActivation : player=%d nolight !", player->GetID());
         return false;
     }
 
@@ -2112,7 +2112,7 @@ bool GameHelpers::SetLightActivation(Player* player)
     bool enlight = localplayer && GameContext::Get().gameConfig_.enlightScene_ && (GameContext::Get().luminosity_ < ENLIGHTTHRESHOLD || player->GetViewZ() == INNERVIEW);
 
     unsigned lightmask = ViewManager::Get()->GetControllerLightMask(player);
-    URHO3D_LOGERRORF("GameHelpers() - SetLightActivation : player=%d numlights=%u lit=%s lightmask=%u (nolight=%u)!", player->GetID(), lights.Size(), enlight ? "true":"false", lightmask, NOLIGHT_MASK);
+    URHO3D_LOGDEBUGF("GameHelpers() - SetLightActivation : player=%d numlights=%u lit=%s lightmask=%u (nolight=%u)!", player->GetID(), lights.Size(), enlight ? "true":"false", lightmask, NOLIGHT_MASK);
 
     for (PODVector<Light*>::ConstIterator it = lights.Begin(); it != lights.End(); ++it)
     {
@@ -4645,7 +4645,7 @@ void GameHelpers::SetUIElementFrom(T* uielement, int uitextureid, const String& 
 
     uielement->SetSize(size);
 
-    URHO3D_LOGERRORF("GameHelpers() - SetUIElementFrom : elt=%s sprite=%s(%s) texture=%s", uielement->GetName().CString(), name.CString(), String((void*)sprite2d).CString(), String((void*)sprite2d->GetTexture()).CString());
+    URHO3D_LOGDEBUGF("GameHelpers() - SetUIElementFrom : elt=%s sprite=%s(%s) texture=%s", uielement->GetName().CString(), name.CString(), String((void*)sprite2d).CString(), String((void*)sprite2d->GetTexture()).CString());
 }
 
 template< typename T >
@@ -4674,7 +4674,7 @@ void GameHelpers::SetUIElementFrom(T* uielement, int uitextureid, const Resource
 
     if (!spriteui)
     {
-        URHO3D_LOGERRORF("GameHelpers() - SetUIElementFrom : ref=%s no spriteui => use Marker", ref.ToString().CString());
+        URHO3D_LOGWARNINGF("GameHelpers() - SetUIElementFrom : ref=%s no spriteui => use Marker", ref.ToString().CString());
         uitextureid = UIEQUIPMENT;
         spriteui = GameContext::Get().spriteSheets_[uitextureid]->GetSprite("markcheck2");
     }
@@ -4687,7 +4687,7 @@ void GameHelpers::SetUIElementFrom(T* uielement, int uitextureid, const Resource
         ClampSizeTo(size, clampsize);
     uielement->SetSize(size);
 
-    URHO3D_LOGERRORF("GameHelpers() - SetUIElementFrom : elt=%s sprite=%s(%s) texture=%s", uielement->GetName().CString(), ref.name_.CString(), String((void*)spriteui).CString(), String((void*)spriteui->GetTexture()).CString());
+    URHO3D_LOGDEBUGF("GameHelpers() - SetUIElementFrom : elt=%s sprite=%s(%s) texture=%s", uielement->GetName().CString(), ref.name_.CString(), String((void*)spriteui).CString(), String((void*)spriteui->GetTexture()).CString());
 }
 
 template void GameHelpers::SetUIElementFrom(BorderImage* uielement, int uitextureid, const String& spritename, int clampsize);

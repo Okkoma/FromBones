@@ -41,7 +41,7 @@ GOC_PlayerController::GOC_PlayerController(Context* context) :
 
 GOC_PlayerController::~GOC_PlayerController()
 {
-//    URHO3D_LOGINFOF("~GOC_PlayerController()");
+//    URHO3D_LOGDEBUG("~GOC_PlayerController()");
 }
 
 void GOC_PlayerController::RegisterObject(Context* context)
@@ -88,7 +88,7 @@ int GOC_PlayerController::GetKeyForAction(int action) const
 
 void GOC_PlayerController::Start()
 {
-    URHO3D_LOGERRORF("GOC_PlayerController() - Start() !");
+    URHO3D_LOGINFOF("GOC_PlayerController() - Start() !");
 
     GOC_Controller::Start();
 

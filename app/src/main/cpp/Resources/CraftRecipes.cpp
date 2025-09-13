@@ -23,7 +23,7 @@ void CraftRecipes::LoadJSONFile(Context* context, const String& name)
 
     const JSONValue& source = jsonFile->GetRoot();
 
-    URHO3D_LOGERROR("CraftRecipes() - LoadJSONFile : " + name);
+    URHO3D_LOGINFO("CraftRecipes() - LoadJSONFile : " + name);
 
     Vector<String> materials;
     Vector<String> tools;
@@ -95,7 +95,7 @@ void CraftRecipes::RegisterRecipe(const String& name, Vector<String>& materials,
         elementsToRecipeName_[StringHash(sortedelements)] = name;
         recipeToElements_[recipe] = sortedelements;
 
-        URHO3D_LOGERRORF("CraftRecipes() - RegisterRecipe : name=%s(%u) elements=%s(%u) !", name.CString(), recipe.Value(), sortedelements.CString(), sortedHash.Value());
+        URHO3D_LOGINFOF("CraftRecipes() - RegisterRecipe : name=%s(%u) elements=%s(%u) !", name.CString(), recipe.Value(), sortedelements.CString(), sortedHash.Value());
     }
 }
 

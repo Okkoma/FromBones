@@ -28,12 +28,12 @@
 JournalData::JournalData(Context* context) :
     Resource(context)
 {
-    URHO3D_LOGINFO("JournalData()");
+    URHO3D_LOGDEBUG("JournalData()");
 }
 
 JournalData::~JournalData()
 {
-    URHO3D_LOGINFO("~JournalData()");
+    URHO3D_LOGDEBUG("~JournalData()");
 }
 
 void JournalData::RegisterObject(Context* context)
@@ -50,7 +50,7 @@ bool JournalData::BeginLoad(Deserializer& source)
     if (extension == ".xml")
         return BeginLoadFromXMLFile(source);
 
-    URHO3D_LOGERROR("JournalData() - BeginLoad : Unsupported file type !");
+    URHO3D_LOGERRORF("JournalData() - BeginLoad : Unsupported file type (%s)!", source.GetName().CString());
     return false;
 }
 

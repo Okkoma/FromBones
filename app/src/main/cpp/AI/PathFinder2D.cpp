@@ -143,7 +143,7 @@ PathFinder2D::~PathFinder2D()
 {
     Free();
 
-    URHO3D_LOGINFO("~PathFinder2D()");
+    URHO3D_LOGDEBUG("~PathFinder2D()");
 }
 
 void PathFinder2D::Init()

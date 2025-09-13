@@ -25,7 +25,7 @@ GOC_EntityAdder::GOC_EntityAdder(Context* context) :
 
 GOC_EntityAdder::~GOC_EntityAdder()
 {
-//    URHO3D_LOGINFO("~GOC_EntityAdder()");
+//    URHO3D_LOGDEBUG("~GOC_EntityAdder()");
 }
 
 void GOC_EntityAdder::RegisterObject(Context* context)

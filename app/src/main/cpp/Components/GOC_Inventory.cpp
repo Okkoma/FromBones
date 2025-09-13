@@ -539,7 +539,8 @@ void GOC_Inventory::AddToSlot(const String& value)
 //        URHO3D_LOGINFOF("GOC_Inventory() - AddToSlot OK !");
     }
     else
-        URHO3D_LOGERRORF("GOC_Inventory() - AddToSlot : Node=%s(%u) ... NOK !", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGWARNINGF("GOC_Inventory() - AddToSlot : Node=%s(%u) can't set slot with value=%s !", 
+                    node_->GetName().CString(), node_->GetID(), value.CString());
 }
 
 void GOC_Inventory::ResetSlots()
@@ -1410,7 +1411,7 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
         return;
     }
 
-    URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) ... ", node->GetName().CString(), node->GetID());
+    URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) ... ", node->GetName().CString(), node->GetID());
 
     GOC_Inventory* inventory = node->GetComponent<GOC_Inventory>();
     GOC_Controller* controller = node->GetDerivedComponent<GOC_Controller>();
@@ -1427,7 +1428,7 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
         if (inventory && IsNetworkInventoryAvailable(servernodeid))
         {
             // Get Full Inventory
-            URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
+            URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) load from clientInventories_ !", node->GetName().CString(), node->GetID());
             inventory->SetSlots(clientInventories_[servernodeid], false);
             clientInventories_.Erase(servernodeid);
             apply = true;
@@ -1544,11 +1545,11 @@ void GOC_Inventory::LoadInventory(Node* node, unsigned servernodeid, bool forceI
             }
         }
 
-        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) OK !", node->GetName().CString(), node->GetID());
+        URHO3D_LOGINFOF("GOC_Inventory() - LoadInventory ... %s(%u) OK !", node->GetName().CString(), node->GetID());
     }
     else
     {
-        URHO3D_LOGERRORF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
+        URHO3D_LOGWARNINGF("GOC_Inventory() - LoadInventory ... %s(%u) not apply ...", node->GetName().CString(), node->GetID());
     }
 }
 

@@ -61,7 +61,7 @@ GOC_Portal::GOC_Portal(Context* context) :
 
 GOC_Portal::~GOC_Portal()
 {
-//    URHO3D_LOGINFOF("~GOC_Portal");
+//    URHO3D_LOGDEBUG("~GOC_Portal");
 }
 
 void GOC_Portal::RegisterObject(Context* context)

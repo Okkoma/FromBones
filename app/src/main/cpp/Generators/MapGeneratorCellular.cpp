@@ -13,7 +13,7 @@
 
 MapGeneratorCellular::MapGeneratorCellular(const World2DInfo * info)
 {
-    URHO3D_LOGINFOF("MapGeneratorCellular()");
+    URHO3D_LOGDEBUG("MapGeneratorCellular()");
     size_x_ = info->mapWidth_;
     size_y_ = info->mapHeight_;
 
@@ -23,7 +23,7 @@ MapGeneratorCellular::MapGeneratorCellular(const World2DInfo * info)
 
 MapGeneratorCellular::~MapGeneratorCellular()
 {
-    URHO3D_LOGINFOF("~MapGeneratorCellular()");
+    URHO3D_LOGDEBUG("~MapGeneratorCellular()");
     if (grid1_) free(grid1_);
     if (grid2_) free(grid2_);
 }

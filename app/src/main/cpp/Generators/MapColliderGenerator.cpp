@@ -562,7 +562,7 @@ bool MapColliderGenerator::GenerateWorkMatrix(MapCollider* collider, HiresTimer*
         int& mcount5 = collider->map_->GetMapCounter(MAP_FUNC5);
         int forcedBlockedTileID = collider->params_->shapetype_ != SHT_ALL ? collider->params_->shapetype_ : blockMapBlockedTileID;
 
-        URHO3D_LOGERRORF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
+        URHO3D_LOGINFOF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
                            ColliderModeStr[mode], mcount5, height_, timer ? (int)(timer->GetUSec(false) / 1000) : -1, (int)(World2DInfo::delayUpdateUsec_/1000));
 
         if (mode == FrontMode)

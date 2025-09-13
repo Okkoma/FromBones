@@ -16,12 +16,12 @@
 MapGeneratorWorld::MapGeneratorWorld()
     : MapGenerator("MapGeneratorWorld")
 {
-//    URHO3D_LOGINFOF("MapGeneratorWorld()");
+//    URHO3D_LOGDEBUG("MapGeneratorWorld()");
 }
 
 MapGeneratorWorld::~MapGeneratorWorld()
 {
-    URHO3D_LOGINFOF("~MapGeneratorWorld()");
+    URHO3D_LOGDEBUG("~MapGeneratorWorld()");
     worldModel_.Reset();
 }
 

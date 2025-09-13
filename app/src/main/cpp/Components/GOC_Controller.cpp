@@ -61,7 +61,7 @@ GOC_Controller::GOC_Controller(Context* context, int type) :
 
 GOC_Controller::~GOC_Controller()
 {
-//    URHO3D_LOGINFOF("~GOC_Controller()");
+//    URHO3D_LOGDEBUG("~GOC_Controller()");
     Stop();
 }
 

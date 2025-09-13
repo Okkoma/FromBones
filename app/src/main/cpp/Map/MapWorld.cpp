@@ -178,7 +178,7 @@ World2D::World2D(Context* context) :
 
 World2D::~World2D()
 {
-    URHO3D_LOGINFOF("~World2D() - ...");
+    URHO3D_LOGDEBUG("~World2D() - ...");
 
 //	  Stop();
 
@@ -210,7 +210,7 @@ World2D::~World2D()
 
     Actor::RemoveActors();
 
-    URHO3D_LOGINFOF("~World2D() - ... OK !");
+    URHO3D_LOGDEBUG("~World2D() - ... OK !");
 }
 
 
@@ -356,7 +356,7 @@ void World2D::RegisterBackground(int backtype, int iscroller, const ResourceRef&
         URHO3D_LOGERROR("World2D - RegisterBackground : can't load sprite ref=" + ref.ToString());
 
     dinfo.Set(sprite, Random(100) > 49, false, color);
-    URHO3D_LOGERRORF("World2D::RegisterBackground - iscroller=%d backtype=%d backgroundDrawableObjects_[%u] Size=%u", iscroller, backtype, index, info_->backgroundDrawableObjects_.Size());
+    URHO3D_LOGDEBUGF("World2D() - RegisterBackground - iscroller=%d backtype=%d backgroundDrawableObjects_[%u] Size=%u", iscroller, backtype, index, info_->backgroundDrawableObjects_.Size());
 }
 
 void World2D::RegisterBackgrounds(const StringVector& infos)
@@ -2732,7 +2732,7 @@ void World2D::UpdateCollideBorders()
                     // no collision with mapcollider collisionchains
                     viewInfo.visibleCollideBorder_->SetGroupIndex(-1);
                     viewInfo.visibleCollideBorder_->SetLoop(true);
-                    URHO3D_LOGERRORF("World2D() - UpdateVisibleCollideBorders : viewport=%d Create Border Node and CollisionChain !", viewInfo.viewport_);
+                    URHO3D_LOGDEBUGF("World2D() - UpdateVisibleCollideBorders : viewport=%d Create Border Node and CollisionChain !", viewInfo.viewport_);
                 }
             }
         }
@@ -3202,7 +3202,7 @@ void TravelerViewportInfo::GetEffectiveVisibleMaps(const Vector<ShortIntVector2>
         Map* map = World2D::GetWorld()->GetMapAt(*it);
         if (map && map->IsEffectiveVisible())
         {
-            URHO3D_LOGERRORF("TravelerViewportInfo() - GetEffectiveVisibleMaps : viewport=%d mpoint=%s ", viewport_, map->GetMapPoint().ToString().CString());
+            URHO3D_LOGINFOF("TravelerViewportInfo() - GetEffectiveVisibleMaps : viewport=%d mpoint=%s ", viewport_, map->GetMapPoint().ToString().CString());
             effectiveVisibleMaps_.Push(map);
         }
     }
@@ -3305,7 +3305,7 @@ bool TravelerNodeInfo::Update()
 
         if (change)
         {
-            URHO3D_LOGERRORF("TravelerNodeInfo() - Update : mpoint=%s visibleArea=%s center=%s mPosition=%s mPosExpand=%s deltaPos=%F %F",
+            URHO3D_LOGINFOF("TravelerNodeInfo() - Update : mpoint=%s visibleArea=%s center=%s mPosition=%s mPosExpand=%s deltaPos=%F %F",
                              mPoint_.ToString().CString(), visibleArea_.ToString().CString(), visibleArea_.Center().ToString().CString(),
                              mPosition_.ToString().CString(), mPosExpand_.ToString().CString(), deltaPos.x_, deltaPos.y_);
         }
@@ -3336,7 +3336,7 @@ void World2D::SetAllowClearMaps(bool state)
 {
     world_->allowClearMaps_ = state;
 
-    URHO3D_LOGERRORF("World2D() - SetAllowClearMaps : state=%s !", state?"true":"false");
+    URHO3D_LOGINFOF("World2D() - SetAllowClearMaps : state=%s !", state?"true":"false");
 }
 
 void World2D::GetBufferExpandInfos(Vector<BufferExpandInfo>& mappoints, bool maximizeMapsToLoad) const

@@ -325,7 +325,7 @@ bool MapGeneratorDungeon::Make(MapGeneratorStatus& genStatus, HiresTimer* timer,
     else
     {
         dinfo_.dungeontype_ = type;
-        URHO3D_LOGERRORF("MapGeneratorDungeon() - Make Create a %s with %d rooms ... timer=%d/%d msec", dungeonTypeNames_[type], dinfo_.rooms_.Size(), timer ? timer->GetUSec(false) / 1000 : 0, delay/1000);
+        URHO3D_LOGINFOF("MapGeneratorDungeon() - Make Create a %s with %d rooms ... timer=%d/%d msec", dungeonTypeNames_[type], dinfo_.rooms_.Size(), timer ? timer->GetUSec(false) / 1000 : 0, delay/1000);
     }
 
     return done;
