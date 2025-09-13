@@ -1085,12 +1085,6 @@ void OptionState::CheckParametersChanged()
     applybutton_->SetEnabled(change);
 }
 
-bool OptionState::IsFullscreenResolution(unsigned monitor, const IntVector2& resolution) const
-{
-    // on wayland, only desktopResolution is fullscreen.
-    Graphics* graphics = GetSubsystem<Graphics>();
-    return graphics && (graphics->GetVideoDriverName() != "wayland" || resolution == graphics->GetDesktopResolution(0));
-}
 
 void OptionState::ApplyParameters()
 {
@@ -1152,21 +1146,6 @@ void OptionState::ApplyParameters()
                 const bool tripleBuffer = graphics->GetTripleBuffer();
                 const int multiSample = graphics->GetMultiSample();
 
-                int renderscale = graphics->GetDefaultViewRenderScale();
-                const int wantedWidth = resolution.x_;
-                const int wantedHeight = resolution.y_;
-                // Use Graphics::ViewRenderScale to simulate a fullscreen resolution for rendered views. (scene only, not for main ui)       
-                if (fullscreen && !IsFullscreenResolution(monitor, IntVector2(wantedWidth, wantedHeight)))
-                {
-                    IntVector2 desktopResolution = graphics->GetDesktopResolution(monitor);
-                    renderscale = desktopResolution.y_ > wantedHeight ? desktopResolution.y_ / wantedHeight + (desktopResolution.y_ % wantedHeight ? 1 : 0) : 1; 
-                    resolution.x_ = desktopResolution.x_;
-                    resolution.y_ = desktopResolution.y_;              
-                }
-
-                URHO3D_LOGINFOF("OptionState() - ApplyParameters ... video mode change to ... %dx%d (%dx%d) renderscale=%d", resolution.x_, resolution.y_, wantedWidth, wantedHeight, renderscale);
-
-                graphics->UpdateViewRenderRatio(renderscale);
                 graphics->SetMode(resolution.x_, resolution.y_, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, resolution.z_);
 
     //            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;

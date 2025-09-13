@@ -31,20 +31,19 @@ public:
 private:
     String LoadGameConfig(const String& fileName, GameConfig* config);
 
+    void SetupAll();
+    void SetupGraphics();
     void SetupDirectories();
     void SetupControllers();
     void SetupSubSystems();
 
+    void HandleRendererInitialized(StringHash eventType, VariantMap& eventData);
     void HandlePreloadResources(StringHash eventType, VariantMap& eventData);
     void HandleAsynchronousUpdate(StringHash eventType, VariantMap& eventData);
-
     void HandleTouchBegin(StringHash eventType, VariantMap& eventData);
     void HandleKeyDownHUD(StringHash eventType, VariantMap& eventData);
-
     void HandleWindowResize(StringHash eventType, VariantMap& eventData);
-
     void HandleBeginRendering(StringHash eventType, VariantMap& eventData);
-
     void HandleJoystickChange(StringHash eventType, VariantMap& eventData);
     void HandleConsoleCommand(StringHash eventType, VariantMap& eventData);
 

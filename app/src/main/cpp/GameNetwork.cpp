@@ -5496,7 +5496,7 @@ void GameNetwork::HandlePlayServer_NetworkUpdate(StringHash eventType, VariantMa
                 buffer.Clear();
                 List<ObjectCommandPacket*>::ConstIterator jt = clientinfo.objCmdInfo_.objCmdPacketsToSend_.Begin();
                 List<unsigned char>::ConstIterator kt = clientinfo.objCmdInfo_.objCmdPacketStampsToSend_.Begin();
-                for (jt; jt != clientinfo.objCmdInfo_.objCmdPacketsToSend_.End(); ++jt, ++kt)
+                for (; jt != clientinfo.objCmdInfo_.objCmdPacketsToSend_.End(); ++jt, ++kt)
                 {
                     ObjectCommandPacket* packet = *jt;
                     buffer.WriteUByte(*kt); // write the client stamp for the packet

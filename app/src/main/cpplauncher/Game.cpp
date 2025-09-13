@@ -712,6 +712,8 @@ void ShowLoadedSo()
 #endif
 }
 
+bool setup_ = false;
+
 void Game::Start()
 {
 #if defined(PERFORMTESTS)
@@ -725,9 +727,117 @@ void Game::Start()
 #if defined(ACTIVE_CLIPPING)
     URHO3D_LOGINFO("Game() - clipping = true");
 #endif
+
+//	URHO3D_LOGINFOF("Game() - Generate StringHash(ActiveAbility) = %u", StringHash("ActiveAbility").Value());
+//	URHO3D_LOGINFOF("Game() - Generate StringHash(Ability) = %u", StringHash("Ability").Value());
+//	URHO3D_LOGINFOF("Game() - Generate StringHash(AppliedMapping) = %u", StringHash("AppliedMapping").Value());
+//  URHO3D_LOGINFOF("Game() - Generate StringHash(Entity) = %u", StringHash("Entity").Value());
+//  URHO3D_LOGINFOF("Game() - Generate StringHash(MaxTickDelay) = %u", StringHash("MaxTickDelay").Value());
+
+//    URHO3D_LOGINFOF("Game() - Generate Matrix90_2D() = %s", Matrix2x3(Vector2::ZERO, 90.f, 1.f).ToString().CString());
+
+    engine_->SetPauseMinimized(true);
+
+    GameHelpers::SetGameLogFilter(GAMELOGFILTER);
+    URHO3D_LOGINFOF("Game() - LogFilter = %u", GameHelpers::GetGameLogFilter());
+    URHO3D_LOGINFOF("%s", GameContext::Get().gameConfig_.logString.CString());
+    URHO3D_LOGINFOF("Game() - Engine Config Applied = %s", engineConfigApplied_.Empty() ? "Default" : engineConfigApplied_.CString());
+
+#ifdef URHO3D_PROFILING
+    URHO3D_LOGINFOF("Game() - Engine Profiling actived !");
+#endif
+
+//    SpriteSheet2D* spritesheet = context_->GetSubsystem<ResourceCache>()->GetResource<SpriteSheet2D>("2D/scraps.xml");
+//    GameHelpers::SaveOffsetSpriteSheet(spritesheet, IntVector2(784, 512-180), "Data/2D/scrapsoffseted.xml");
+
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    URHO3D_LOGINFO("Game() - Start .... OK !                        -");
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    
+    if (!GetSubsystem<Graphics>()->IsInitialized() || !GetSubsystem<Renderer>()->IsInitialized())
+        SubscribeToEvent(E_RENDERER_INITIALIZED, URHO3D_HANDLER(Game, HandleRendererInitialized));
+    else
+        SetupAll();
+}
+
+void Game::Stop()
+{
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - Stop ...                               -");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+
+    UnsubscribeFromAllEvents();
+
+    GameContext::Get().Stop();
+
+#ifdef DUMP_UI
+    PODVector<UIElement*> children;
+    GetSubsystem<UI>()->GetRoot()->GetChildren(children, true);
+    for (PODVector<UIElement*>::ConstIterator it=children.Begin(); it!=children.End(); ++it)
+        URHO3D_LOGINFOF(" UI child = %s",(*it)->GetName().CString());
+#endif
+
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+    URHO3D_LOGERROR("Game() - Stop ...       OK !                     -");
+    URHO3D_LOGERROR("Game() - ----------------------------------------");
+
+#ifdef DUMP_RESOURCES
+    engine_->DumpResources(true);
+    //engine_->DumpMemory();
+#endif
+
+#ifdef URHO3D_VULKAN
+    GetSubsystem<Graphics>()->GetImpl()->DumpRegisteredPipelineInfo();
+#endif
+
+    engine_->DumpProfiler();
+
     ShowLoadedSo();
 
+    /// GAME EXIT
+
+//#ifdef __ANDROID__
+//    CallAndroidActivityMethod("finish", "()V");
+//#endif
+}
+
+void Game::SetupAll()
+{
+    if (setup_)
+        return;
+
+    SetupGraphics();
+
+    SetupDirectories();
+
+    // Create All Statics : Camera, Scene
+    GameContext::Get().Initialize();
+
+    SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(Game, HandleAsynchronousUpdate));
+
+    // Detect Controls (Touch, Joystick)
+    SetupControllers();
+
+    // Network, HUD, Localization
+    SetupSubSystems();
+
+    // Start Managers
+    GameContext::Get().Start();
+
+    setup_ = true;
+
+    // Preload Ressources
+    SubscribeToEvent(E_SCENEUPDATE, URHO3D_HANDLER(Game, HandlePreloadResources));
+}
+
+void Game::SetupGraphics()
+{
     Graphics* graphics = GetSubsystem<Graphics>();
+    Renderer* renderer = GetSubsystem<Renderer>();
+
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    URHO3D_LOGINFO("Game() - SetupGraphics ...                      -");
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
 
     bool srgb = graphics->GetSRGBSupport();
 
@@ -807,99 +917,16 @@ void Game::Start()
         }
     }
 #endif
-
-//	URHO3D_LOGINFOF("Game() - Generate StringHash(ActiveAbility) = %u", StringHash("ActiveAbility").Value());
-//	URHO3D_LOGINFOF("Game() - Generate StringHash(Ability) = %u", StringHash("Ability").Value());
-//	URHO3D_LOGINFOF("Game() - Generate StringHash(AppliedMapping) = %u", StringHash("AppliedMapping").Value());
-//  URHO3D_LOGINFOF("Game() - Generate StringHash(Entity) = %u", StringHash("Entity").Value());
-//  URHO3D_LOGINFOF("Game() - Generate StringHash(MaxTickDelay) = %u", StringHash("MaxTickDelay").Value());
-
-//    URHO3D_LOGINFOF("Game() - Generate Matrix90_2D() = %s", Matrix2x3(Vector2::ZERO, 90.f, 1.f).ToString().CString());
-
-    SetupDirectories();
-
-    GameHelpers::SetGameLogFilter(GAMELOGFILTER);
-    URHO3D_LOGINFOF("Game() - LogFilter = %u", GameHelpers::GetGameLogFilter());
-
-    URHO3D_LOGINFOF("%s", GameContext::Get().gameConfig_.logString.CString());
-    URHO3D_LOGINFOF("Game() - Engine Config Applied = %s", engineConfigApplied_.Empty() ? "Default" : engineConfigApplied_.CString());
-
-#ifdef URHO3D_PROFILING
-    URHO3D_LOGINFOF("Game() - Engine Profiling actived !");
-#endif
-
-    // Create All Statics : Camera, Scene
-    GameContext::Get().Initialize();
-
-    SubscribeToEvent(E_POSTUPDATE, URHO3D_HANDLER(Game, HandleAsynchronousUpdate));
-
-    // Detect Controls (Touch, Joystick)
-    SetupControllers();
-
-    // Network, HUD, Localization
-    SetupSubSystems();
-
-    // Start Managers
-    GameContext::Get().Start();
-
-    // Preload Ressources
-    SubscribeToEvent(E_SCENEUPDATE, URHO3D_HANDLER(Game, HandlePreloadResources));
-
-//    SpriteSheet2D* spritesheet = context_->GetSubsystem<ResourceCache>()->GetResource<SpriteSheet2D>("2D/scraps.xml");
-//    GameHelpers::SaveOffsetSpriteSheet(spritesheet, IntVector2(784, 512-180), "Data/2D/scrapsoffseted.xml");
-
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
-    URHO3D_LOGINFO("Game() - Start .... OK !                        -");
-    URHO3D_LOGINFO("Game() - ----------------------------------------");
 }
-
-void Game::Stop()
-{
-    URHO3D_LOGERROR("Game() - ----------------------------------------");
-    URHO3D_LOGERROR("Game() - Stop ...                               -");
-    URHO3D_LOGERROR("Game() - ----------------------------------------");
-
-    UnsubscribeFromAllEvents();
-
-    GameContext::Get().Stop();
-
-#ifdef DUMP_UI
-    PODVector<UIElement*> children;
-    GetSubsystem<UI>()->GetRoot()->GetChildren(children, true);
-    for (PODVector<UIElement*>::ConstIterator it=children.Begin(); it!=children.End(); ++it)
-        URHO3D_LOGINFOF(" UI child = %s",(*it)->GetName().CString());
-#endif
-
-    URHO3D_LOGERROR("Game() - ----------------------------------------");
-    URHO3D_LOGERROR("Game() - Stop ...       OK !                     -");
-    URHO3D_LOGERROR("Game() - ----------------------------------------");
-
-#ifdef DUMP_RESOURCES
-    engine_->DumpResources(true);
-    //engine_->DumpMemory();
-#endif
-
-#ifdef URHO3D_VULKAN
-    GetSubsystem<Graphics>()->GetImpl()->DumpRegisteredPipelineInfo();
-#endif
-
-    engine_->DumpProfiler();
-
-    ShowLoadedSo();
-
-    /// GAME EXIT
-
-//#ifdef __ANDROID__
-//    CallAndroidActivityMethod("finish", "()V");
-//#endif
-}
-
 
 void Game::SetupDirectories()
 {
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
+    URHO3D_LOGINFO("Game() - SetupDirectories ...                   -");
+    URHO3D_LOGINFO("Game() - ----------------------------------------");
+
     GameConfig* config = &GameContext::Get().gameConfig_;
 
-    URHO3D_LOGINFO("Game() - SetupDirectories ...");
     FileSystem* fs = context_->GetSubsystem<FileSystem>();
     if (!fs)
     {
@@ -907,7 +934,7 @@ void Game::SetupDirectories()
         return;
     }
 
-    String saveDir = fs->GetAppPreferencesDir("OkkoStudio", GameContext::GAMENAME);
+    String saveDir = fs->GetAppPreferencesDir("OkkomaStudio", GameContext::GAMENAME);
     if (saveDir.Empty())
     {
         saveDir = fs->GetUserDocumentsDir();
@@ -919,7 +946,7 @@ void Game::SetupDirectories()
         }
         else
         {
-            saveDir += ".OkkoStudio/" + GameContext::GAMENAME + "/";
+            saveDir += ".OkkomaStudio/" + GameContext::GAMENAME + "/";
             if (!fs->DirExists(saveDir))
                 fs->CreateDir(saveDir);
         }
@@ -1277,6 +1304,12 @@ void Game::HandleKeyDownHUD(StringHash eventType, VariantMap& eventData)
                                Time::GetTimeStamp().Replaced(':', '_').Replaced('.', '_').Replaced(' ', '_') + ".png");
         }
     }
+}
+
+void Game::HandleRendererInitialized(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFOF("Game() - HandleRendererInitialized !");
+    SetupAll();
 }
 
 void Game::HandleWindowResize(StringHash eventType, VariantMap& eventData)

@@ -32,6 +32,7 @@
 	<parameter name="MultiSample" value ="0" />
 
 	<parameter name="FullScreen" value="false" />
+	<parameter name="FullScreenDesktop" value="false" />
 	<parameter name="VSync" value="true" />
 
 	<variable name="multiViews_" value ="false" />
