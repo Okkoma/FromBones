@@ -585,7 +585,7 @@ bool GOC_Controller::Update(unsigned buttons, bool forceUpdate)
 
                 if (canUseAction2)
                 {
-                    URHO3D_LOGINFOF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
+                    URHO3D_LOGDEBUGF("GOC_Controller() - Update : CTRL_FIRE2 buttons(prev)=%u(%u)", control_.buttons_, prevbuttons_);
                     node_->SendEvent(GOC_CONTROLACTION2);
                 }
                 else

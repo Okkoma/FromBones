@@ -1076,7 +1076,7 @@ bool GOC_PhysicRope::AttachOnWalls()
                 SubscribeToEvent(MAPTILEREMOVED, URHO3D_HANDLER(GOC_PhysicRope, HandleBreakContact));
             }
 
-            URHO3D_LOGERRORF("GOC_PhysicRope() - AttachOnWalls : %s(%u) anchor1(map=%s;tile=%u) anchor2(map=%s;tile=%u)",
+            URHO3D_LOGINFOF("GOC_PhysicRope() - AttachOnWalls : %s(%u) anchor1(map=%s;tile=%u) anchor2(map=%s;tile=%u)",
                              node_->GetName().CString(), node_->GetID(), mapInContact1_.ToString().CString(), anchorTileIndex1_, mapInContact2_.ToString().CString(), anchorTileIndex2_);
         }
         else

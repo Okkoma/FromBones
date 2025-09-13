@@ -6018,7 +6018,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, nodeid, NOVIEW, &nodeAttributes, false, &category) : 0;
         if (node)
         {
-            URHO3D_LOGERRORF("Map() - SetEntities Load : Map=%s Entities[%d/%u] : reservedId=%u name=%s(%u) position=%s enabled=%s entityid=%d  ... OK !",
+            URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s Entities[%d/%u] : reservedId=%u name=%s(%u) position=%s enabled=%s entityid=%d  ... OK !",
                             GetMapPoint().ToString().CString(), i, numEntities, nodeid, node->GetName().CString(), node->GetID(), node->GetWorldPosition2D().ToString().CString(), node->IsEnabled() ? "true":"false",
                             entityid);
 

@@ -454,7 +454,7 @@ void GOC_Portal::HandleApplyDestination(StringHash eventType, VariantMap& eventD
                     }
 
                     node->SetEnabled(true);
-                    URHO3D_LOGERRORF("GOC_Portal() - HandleApplyDestination : repop node=%s(%u) enabled=%s !", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
+                    URHO3D_LOGINFOF("GOC_Portal() - HandleApplyDestination : repop node=%s(%u) enabled=%s !", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
                 }
 
                if (!GameContext::Get().ServerMode_)
@@ -471,7 +471,7 @@ void GOC_Portal::HandleApplyDestination(StringHash eventType, VariantMap& eventD
         }
         else
         {
-            URHO3D_LOGERRORF("GOC_Portal() - HandleApplyDestination : destination Map=%s OK !", mpoint.ToString().CString());
+            URHO3D_LOGINFOF("GOC_Portal() - HandleApplyDestination : destination Map=%s OK !", mpoint.ToString().CString());
         }
 
         if (transferOk_)
@@ -507,7 +507,7 @@ void GOC_Portal::HandleApplyDestination(StringHash eventType, VariantMap& eventD
 
                     node->SetEnabled(true);
 
-                    URHO3D_LOGERRORF("GOC_Portal() - HandleApplyDestination : repop node=%s(%u) enabled=%s !", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
+                    URHO3D_LOGINFOF("GOC_Portal() - HandleApplyDestination : repop node=%s(%u) enabled=%s !", node->GetName().CString(), node->GetID(), node->IsEnabled()?"true":"false");
                 }
 
                 teleportedInfos_.Clear();
