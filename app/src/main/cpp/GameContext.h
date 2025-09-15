@@ -233,6 +233,8 @@ public :
     void ReserveAvatarNodes();
     bool IsAvatarNodeID(unsigned id, int clientid=-1) const;
 
+    bool IsGameActive() const;
+    
     void CreatePreloaderIcon();
     void SetEnabledPreloaderIcon(bool enable);
     bool PreloadResources();

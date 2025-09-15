@@ -1131,6 +1131,7 @@ void OptionState::ApplyParameters()
                 resolution = optionParameters_[OPTION_Resolution].control_->GetItem(currentResolutionIndex_)->GetVar(GOA::CLIENTID).GetIntVector3();                                
                 videomodechanged++;
             }
+            
             if (optionParameters_[OPTION_Fullscreen].control_->GetSelection() != fullscreen)
             {
                 fullscreen = optionParameters_[OPTION_Fullscreen].control_->GetSelection();

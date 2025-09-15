@@ -3028,6 +3028,9 @@ void Player::HandleDelayedActions(StringHash eventType, VariantMap& eventData)
 
 void Player::HandleClic(StringHash eventType, VariantMap& eventData)
 {
+    if (!GameContext::Get().IsGameActive())
+        return;
+
     if (UISlotPanel::draggedElement_ && eventType != E_RELEASED)
     {
         UISlotPanel::draggedElement_.Reset();

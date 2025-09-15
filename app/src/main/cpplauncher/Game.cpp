@@ -832,13 +832,11 @@ void Game::SetupAll()
 
 void Game::SetupGraphics()
 {
-    Graphics* graphics = GetSubsystem<Graphics>();
-    Renderer* renderer = GetSubsystem<Renderer>();
-
     URHO3D_LOGINFO("Game() - ----------------------------------------");
     URHO3D_LOGINFO("Game() - SetupGraphics ...                      -");
     URHO3D_LOGINFO("Game() - ----------------------------------------");
 
+    Graphics* graphics = GetSubsystem<Graphics>();
     bool srgb = graphics->GetSRGBSupport();
 
     URHO3D_LOGINFOF("Game() - Display Device Name = %s using Graphics in %s(Dpi~%f) sRGB=%s",

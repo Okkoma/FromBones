@@ -1331,6 +1331,11 @@ bool GameContext::IsAvatarNodeID(unsigned id, int clientid) const
     return (id >= FIRSTAVATARNODEID + clientid*MAX_NUMPLAYERS && id < FIRSTAVATARNODEID + (clientid+1)*MAX_NUMPLAYERS);
 }
 
+bool GameContext::IsGameActive() const
+{
+    return !ui_->GetFocusElement();
+}
+
 bool GameContext::UnloadResources()
 {
     URHO3D_LOGINFO("GameContext() -----------------------------------------");
