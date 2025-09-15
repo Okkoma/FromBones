@@ -1,15 +1,18 @@
 //
-// Copyright (c) 2022 OkkoStudio.
+// Copyright (c) 2022-2025 Okkoma Studio.
 //
 
-package com.okkostudio.frombones;
 
-import android.content.Intent;
-import android.os.Bundle;
+package com.okkomastudio.frombones;
 
 import java.util.List;
+import android.content.Intent;
+import android.annotation.SuppressLint;
+import android.os.Bundle;
 
 import io.urho3d.UrhoActivity;
+
+@SuppressLint("SetTextI18n")
 
 public class FromBones extends UrhoActivity {
 

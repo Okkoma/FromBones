@@ -22,10 +22,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Actors ${CMAKE_CURRENT_SOURCE_DI
                     ${CMAKE_CURRENT_SOURCE_DIR}/NodePool
                     ${CMAKE_CURRENT_SOURCE_DIR}/Objects ${CMAKE_CURRENT_SOURCE_DIR}/ObjectsCore
                     ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Wren
-					${CMAKE_CURRENT_SOURCE_DIR}/States
-					${CMAKE_CURRENT_SOURCE_DIR}/UI 
-					${CMAKE_CURRENT_SOURCE_DIR}/Libs
-					${CMAKE_CURRENT_SOURCE_DIR} )
+                    ${CMAKE_CURRENT_SOURCE_DIR}/States
+                    ${CMAKE_CURRENT_SOURCE_DIR}/UI 
+                    ${CMAKE_CURRENT_SOURCE_DIR}/Libs
+                    ${CMAKE_CURRENT_SOURCE_DIR} )
 
 setup_library(${URHO3D_LIB_TYPE})
 

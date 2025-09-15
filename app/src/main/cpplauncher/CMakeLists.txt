@@ -32,10 +32,10 @@ include_directories(${SOURCE_LIB_DIR}/Actors ${SOURCE_LIB_DIR}/AI
                     ${SOURCE_LIB_DIR}/NodePool
                     ${SOURCE_LIB_DIR}/Objects ${SOURCE_LIB_DIR}/ObjectsCore
                     ${SOURCE_LIB_DIR}/Resources ${SOURCE_LIB_DIR}/Resources/Wren
-					${SOURCE_LIB_DIR}/States
-					${SOURCE_LIB_DIR}/UI 
-					${SOURCE_LIB_DIR}/Libs
-					${SOURCE_LIB_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+                    ${SOURCE_LIB_DIR}/States
+                    ${SOURCE_LIB_DIR}/UI 
+                    ${SOURCE_LIB_DIR}/Libs
+                    ${SOURCE_LIB_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 					
 # Setup target with resource copying
 setup_main_executable(NODEPS)

@@ -50,33 +50,40 @@ message (STATUS "   Build     ${CMAKE_BUILD_TYPE}")
 message (STATUS "   Library   ${URHO3D_LIB_TYPE}")
 message (STATUS "   Graphics  ${GRAPHICS_API}")
 
-add_subdirectory (app/src/main/cpp)
+if (URHO3D_HOME)
 
-if (URHO3D_LIB_TYPE STREQUAL SHARED)
-    add_subdirectory (app/src/main/cppeditor)
-endif()
+	add_subdirectory (app/src/main/cpp)
 
-add_subdirectory (app/src/main/cpplauncher)
+	if (URHO3D_LIB_TYPE STREQUAL SHARED)
+		add_subdirectory (app/src/main/cppeditor)
+	endif()
+	
+	add_subdirectory (app/src/main/cpplauncher)
 
-# Install
-# install stuff is included in UrhoCommon module
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) # Default installation folder	
-    set_property (CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE ${CMAKE_SOURCE_DIR}/exe)
+    if (NOT ANDROID)
+		# Install
+		# install stuff is included in UrhoCommon module
+		if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT) # Default installation folder	
+			set_property (CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE ${CMAKE_SOURCE_DIR}/exe)
+		endif ()
+		install (FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
+		install (FILES ${CMAKE_SOURCE_DIR}/bin/Data/EngineConfig/linux.xml DESTINATION bin RENAME engine_config.xml)
+
+		# CPack
+		set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FromBones - a 2D plateformer game")
+		set (CPACK_PACKAGE_VENDOR "https://github.com/Okkoma")
+		set (CPACK_PACKAGE_CONTACT "okkoman0xx0@gmail.com")
+		set (CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+		set (CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+		set (CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+		set (CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+		set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
+		set (CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+		set (CPACK_PACKAGE_FILE_NAME "FromBones-${CMAKE_SYSTEM_NAME}-${GRAPHICS_API}-${CPACK_PACKAGE_VERSION}")
+		set (CPACK_GENERATOR ZIP)
+		include (CPack)
+    endif ()
+else ()
+	message ("!! FromBones - wait to add source because URHO3D_HOME is undefined here !")
 endif ()
-install (FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
-install (FILES ${CMAKE_SOURCE_DIR}/bin/Data/EngineConfig/linux.xml DESTINATION bin RENAME engine_config.xml)
-
-# CPack
-set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FromBones - a 2D plateformer game")
-set (CPACK_PACKAGE_VENDOR "https://github.com/Okkoma")
-set (CPACK_PACKAGE_CONTACT "okkoman0xx0@gmail.com")
-set (CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
-set (CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set (CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set (CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set (CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
-set (CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
-set (CPACK_PACKAGE_FILE_NAME "FromBones-${CMAKE_SYSTEM_NAME}-${GRAPHICS_API}-${CPACK_PACKAGE_VERSION}")
-set (CPACK_GENERATOR ZIP)
-include (CPack)
 

@@ -31,8 +31,12 @@ build.gradle.kts
 /script/bake
 /script/archive
 /script/zipper
+
 /app/keystore
 /app/*.keystore
+keystore.properties
+app/google*
+
 restorelinks
 /test
 exe/gl/FromBones
