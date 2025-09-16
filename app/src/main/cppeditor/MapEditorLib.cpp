@@ -1047,6 +1047,8 @@ void MapEditorLibImpl::ChangePickMode(int pickmode)
         pickMode_ = pickmode;
         if (pickMode_ >= MAX_PICK_MODES)
             pickMode_ = PICK_GEOMETRIES;
+
+        URHO3D_LOGINFOF("PickMode = %s(%d) ", PickModeStr[pickMode_], pickMode_); 
     }
 }
 
@@ -2774,8 +2776,7 @@ void MapEditorLibImpl::Update(float timeStep)
     // Toggle PickMode
     if (input->GetKeyPress(KEY_TAB))
     {
-        ChangePickMode(++pickMode_);
-        URHO3D_LOGINFOF("PickMode = %s(%d) ", PickModeStr[pickMode_], pickMode_);    
+        ChangePickMode(++pickMode_);   
     }
 
     // Delete Selected Objects
@@ -3377,7 +3378,6 @@ void MapEditorLibImpl::HandleToolBarLayerAlignChanged(StringHash eventType, Vari
 void MapEditorLibImpl::HandleToolBarPickModeChanged(StringHash eventType, VariantMap& eventData)
 {
     ChangePickMode(eventData[ItemSelected::P_SELECTION].GetInt());
-    URHO3D_LOGINFOF("MapEditorLibImpl() - HandleToolBarPickModeChanged : PickMode = %s(%d)", PickModeStr[pickMode_], pickMode_);
 }
 
 void MapEditorLibImpl::HandleCategoryTypeSelected(StringHash eventType, VariantMap& eventData)

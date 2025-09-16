@@ -874,9 +874,7 @@ void OptionState::SynchronizeParameters()
             bool oneresolution = resolutions.Size() == 1;
 
             // get the initial resolution index
-            unsigned initialResolution = graphics->FindBestResolutionIndex(Game::GetEngineParameters()["WindowWidth"].GetInt(), 
-                                                                        Game::GetEngineParameters()["WindowHeight"].GetInt(), 
-                                                                    Game::GetEngineParameters()["RefreshRate"].GetInt(), resolutions);
+            unsigned initialResolution = graphics->FindBestResolutionIndex(graphics->GetWidth(), graphics->GetHeight(), graphics->GetRefreshRate(), resolutions);
 
             // initialize resolutions list
             DropDownList* control = optionParameters_[OPTION_Resolution].control_;
