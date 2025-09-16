@@ -1,4 +1,4 @@
-**/build*
+**/build/*
 **/.android
 **/.idea
 **/.lldb
@@ -24,7 +24,7 @@ exe/gl/numclients.txt
 exe/vk/FromBonesUbuntu22.04Vk-static*
 *.workspace
 *.workspace.layout
-build.gradle.kts
+
 .codelite
 .gradle
 .android
