@@ -1318,7 +1318,7 @@ bool GOC_Destroyer::Unstuck()
                     // Need to offset To Bottom
                     tileoffset.y_ += RoundToInt(numEntityInTiles.max_.y_ - numTopDirUnBlockTiles);
                 }
-                if (numEntityInTiles.min_.y_ > numBottomDirUnBlockTiles > 0.5f)
+                if (numEntityInTiles.min_.y_ - numBottomDirUnBlockTiles > 0.5f)
                 {
                     // Need To offset To Top
                     tileoffset.y_ -= RoundToInt(numEntityInTiles.min_.y_ - numBottomDirUnBlockTiles);
