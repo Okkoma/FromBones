@@ -101,7 +101,7 @@
 	, "GOT_Porte":{
 		"category":"DungeonThreshold|Doors",
 		"fileName":"Furnitures/porte.xml",
-		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_AnchorOnBack|GOT_Flippable",
+		"typeProperty":"GOT_Furniture|GOT_Spawnable|GOT_Flippable",
 		"replicateMode":0,
 		"qtyInPool": 500,
 		"entityVariation":1,

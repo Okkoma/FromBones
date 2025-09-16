@@ -3119,8 +3119,18 @@ void MapEditorLibImpl::DeleteSelectedObjects()
     {
         if (node->HasVar(GOA::GOT))
         {
-            URHO3D_LOGINFOF("node %s(%u) deleted !", node->GetName().CString(), node->GetID());
-            World2D::DestroyEntity(node->GetVar(GOA::ONMAP).GetUInt(), node);
+            unsigned mPointHash = node->GetVar(GOA::ONMAP).GetUInt();
+            ShortIntVector2 mPoint(mPointHash);    
+
+            if (World2D::RemoveActor(node))            
+                URHO3D_LOGINFOF("actor with node %s(%u) removed !", node->GetName().CString(), node->GetID());                  
+            else
+                World2D::DestroyEntity(mPoint, node);            
+
+            World2D::PurgeEntityData(mPoint, node);
+            World2D::RemoveEntity(mPoint, node->GetID());
+
+            URHO3D_LOGINFOF("node %s(%u) deleted on map=%s(%u) !", node->GetName().CString(), node->GetID(), mPoint.ToString().CString(), mPoint.ToHash());         
         }
     }
 

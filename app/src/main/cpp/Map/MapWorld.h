@@ -280,7 +280,9 @@ public:
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
     static void AddEntity(const ShortIntVector2& mPoint, unsigned id);
     static void RemoveEntity(const ShortIntVector2& mPoint, unsigned id);
-    static void DestroyEntity(unsigned mPointHash, Node* node);
+    static void DestroyEntity(const ShortIntVector2& mPoint, Node* node); 
+    static void PurgeEntityData(const ShortIntVector2& mPoint, Node* node);
+    static void PurgeEntityData(Map* map, Node* node);    
     static void PurgeEntities(const ShortIntVector2& mPoint);
     static void AddStaticFurniture(const ShortIntVector2& mPoint, Node* node, EntityData& furniture);
     static void DestroyFurnituresAt(MapBase* map, unsigned tileindex);
@@ -300,6 +302,9 @@ public:
     Node* SpawnActor(); /// For Editor
     static Actor* SpawnActor(const String& name, const StringHash& got, unsigned char entityid, const StringHash& dialogue, int viewZ, const Vector2& position);
     static Actor* SpawnActor(unsigned actorid, const Vector2& position, int viewZ);
+
+    static bool RemoveActor(Node* node);
+    static void RemoveActor(Actor* actor);
 
 /// For Network Snapshot
 public:

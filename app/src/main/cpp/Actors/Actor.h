@@ -242,7 +242,8 @@ private:
     void Clear();
 
     static Vector<WeakPtr<Actor> > actors_;
-
+    static unsigned numActors_;
+    
     int viewZ_;
     /// Current Dialogue
     StringHash dialogueFirst_;

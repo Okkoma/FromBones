@@ -974,7 +974,7 @@ void World2D::RemoveEntity(const ShortIntVector2& mPoint, unsigned id)
     }
 }
 
-void World2D::DestroyEntity(unsigned mPointHash, Node* node)
+void World2D::DestroyEntity(const ShortIntVector2& mPoint, Node* node)
 {
     if (node->GetComponent<GOC_Destroyer>())
     {
@@ -989,7 +989,7 @@ void World2D::DestroyEntity(unsigned mPointHash, Node* node)
     VariantMap& eventData = node->GetContext()->GetEventDataMap();
     eventData[Go_Destroy::GO_ID] = node->GetID();
     eventData[Go_Destroy::GO_TYPE] = node->GetVar(GOA::TYPECONTROLLER).GetInt();
-    eventData[Go_Destroy::GO_MAP] = mPointHash;
+    eventData[Go_Destroy::GO_MAP] = mPoint.ToHash();
     eventData[Go_Destroy::GO_PTR] = 0;
 
     // for static furniture
@@ -1072,7 +1072,7 @@ void World2D::DestroyFurnituresAt(MapBase* map, unsigned tileindex)
                 if (node->GetComponent<GOC_PhysicRope>())
                     continue;
 
-                DestroyEntity(map->GetMapPoint().ToHash(), node);
+                DestroyEntity(map->GetMapPoint(), node);
             }
 
             location.Erase(jt);
@@ -1129,12 +1129,25 @@ void World2D::DestroyFurnituresAt(MapBase* map, unsigned tileindex)
             if (node->GetComponent<GOC_PhysicRope>())
                 continue;
 
-            DestroyEntity(map->GetMapPoint().ToHash(), node);
+            DestroyEntity(map->GetMapPoint(), node);
 
             URHO3D_LOGINFOF("World2D() - DestroyFurnituresAt : %s(%u) remove furniture node ... OK !", node->GetName().CString(), node->GetID());
         }
     }
 }
+
+void World2D::PurgeEntityData(const ShortIntVector2& mPoint, Node* node)
+{
+    Map* map = World2D::GetMapAt(mPoint);
+    if (map && map->GetMapData())
+        map->GetMapData()->RemoveEntityData(node);    
+}
+
+void World2D::PurgeEntityData(Map* map, Node* node)
+{
+    if (map && map->GetMapData())
+        map->GetMapData()->RemoveEntityData(node);  
+}   
 
 void World2D::PurgeEntities(const ShortIntVector2& mPoint)
 {
@@ -1509,7 +1522,7 @@ Actor* World2D::SpawnActor(const String& name, const StringHash& got, unsigned c
     else
     {
         URHO3D_LOGINFOF("World2D() - SpawnActor : can't create more actor %s", GOT::GetType(got).CString());
-        Actor::RemoveActor(actor->GetID());
+        RemoveActor(actor);
     }
 
     return actor;
@@ -1542,6 +1555,18 @@ Actor* World2D::SpawnActor(unsigned actorid, const Vector2& position, int viewZ)
     return actor;
 }
 
+bool World2D::RemoveActor(Node* node)
+{
+    Actor* actor = Actor::GetWithNode(node);
+    if (actor)
+        Actor::RemoveActor(actor->GetID());
+    return actor;
+}
+
+void World2D::RemoveActor(Actor* actor)
+{
+    Actor::RemoveActor(actor->GetID());
+}
 
 /// Network World Objects
 

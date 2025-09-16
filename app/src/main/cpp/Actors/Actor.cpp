@@ -48,6 +48,7 @@ const CreateMode sceneReplicationMode = LOCAL;
 /// Class ActorStats Implementation
 
 Vector<StringHash> ActorStats::categories_;
+unsigned Actor::numActors_;
 
 void ActorStats::InitTable()
 {
@@ -116,6 +117,7 @@ void Actor::RegisterObject(Context* context)
 {
     actors_.Clear();
     actors_.Reserve(100);
+    numActors_ = 0;
 
     RemoveActors();
 }
@@ -133,7 +135,10 @@ void Actor::RemoveActor(unsigned id)
         if (actors_[index])
             actors_[index]->Stop();
         actors_[index].Reset();
-}
+
+        if (numActors_ > GameContext::Get().MAX_NUMPLAYERS)
+            numActors_--;
+    }
 }
 
 void Actor::RemoveActors()
@@ -147,6 +152,7 @@ void Actor::RemoveActors()
     }
 
     actors_.Resize(GameContext::Get().MAX_NUMPLAYERS);
+    numActors_ = GameContext::Get().MAX_NUMPLAYERS;
 
     URHO3D_LOGINFOF("Actor() - RemoveActors ... OK !");
 }
@@ -186,13 +192,14 @@ void Actor::AddActor(Actor* actor, unsigned id)
         actor->info_.actorID_ = actors_.Size();
         URHO3D_LOGINFOF("Actor() - Add Actor ID=%u ...", actor->info_.actorID_);
         actor->SetController();
+        numActors_++;
     }
 }
 
 
 bool Actor::LoadJSONFile(const String& name)
 {
-    JSONFile* jsonFile = GameContext::Get().context_->GetSubsystem<ResourceCache>()->GetResource<JSONFile>(name);
+    SharedPtr<JSONFile> jsonFile = GameContext::Get().context_->GetSubsystem<ResourceCache>()->GetTempResource<JSONFile>(name);
     if (!jsonFile)
     {
         URHO3D_LOGWARNINGF("Actor() - LoadJSONFile : %s not exist !", name.CString());
@@ -333,7 +340,7 @@ bool Actor::SaveJSONFile(const String& name)
 
 unsigned Actor::GetNumActors()
 {
-    return actors_.Size();
+    return numActors_;
 }
 
 const Vector<WeakPtr<Actor> >& Actor::GetActors()
