@@ -307,7 +307,7 @@ void ObjectiveAction::Execute(Actor* actor, Mission* mission, const ObjectiveCom
             GOC_Destroyer* destroyer = actor1Node->GetComponent<GOC_Destroyer>();
             const WorldMapPosition& wposition = destroyer->GetWorldMapPosition();
             Node* newEntity = World2D::SpawnEntity(got, RandomEntityFlag|RandomMappingFlag, 0, 0, wposition.viewZ_, PhysicEntityInfo(wposition.position_.x_,wposition.position_.y_));
-            World2D::DestroyEntity((MapBase*)World2D::GetMapAt(wposition.mPoint_), actor1Node);
+            World2D::DestroyEntity(wposition.mPoint_.ToHash(), actor1Node);
             actor1Node = newEntity;
 
             // if this action uses a varslot, update it with this new node id

@@ -64,6 +64,7 @@
 
 #include "MapWorld.h"
 #include "Map.h"
+#include "Urho3D/Input/InputConstants.h"
 #include "ViewManager.h"
 
 #include "ObjectTiled.h"
@@ -440,10 +441,12 @@ private:
     void SpawnObject(const WorldMapPosition& position);
     bool MoveObjects(const Vector2& adjust);
 
+    void DeleteSelectedObjects();
     void UnSelectObject();
     void SelectObject(Drawable* shape);
     void SelectObject(CollisionShape2D* shape);
     void SelectObject(RenderShape* shape, RenderCollider* collider);
+
     void UpdateSelectShape();
 
     void AddShapeToRender(Drawable* shape, unsigned linecolor, unsigned pointcolor);
@@ -2752,7 +2755,12 @@ void MapEditorLibImpl::Update(float timeStep)
         if (pickMode_ >= MAX_PICK_MODES)
             pickMode_ = PICK_GEOMETRIES;
 
-        URHO3D_LOGINFOF("PickMode = %s(%d) ", PickModeStr[pickMode_], pickMode_);
+        URHO3D_LOGINFOF("PickMode = %s(%d) ", PickModeStr[pickMode_], pickMode_);    
+    }
+    // Delete Selected Objects
+    if (input->GetKeyPress(KEY_DELETE))
+    {
+        DeleteSelectedObjects();
     }
 
     Drawable* drawableUnderMouse_ = 0;
@@ -3105,6 +3113,20 @@ bool MapEditorLibImpl::MoveObjects(const Vector2& adjust)
     return moved;
 }
 
+void MapEditorLibImpl::DeleteSelectedObjects()
+{
+    for (Node* node : editNodes_)
+    {
+        if (node->HasVar(GOA::GOT))
+        {
+            URHO3D_LOGINFOF("node %s(%u) deleted !", node->GetName().CString(), node->GetID());
+            World2D::DestroyEntity(node->GetVar(GOA::ONMAP).GetUInt(), node);
+        }
+    }
+
+    UnSelectObject();
+}
+
 void MapEditorLibImpl::UnSelectObject()
 {
     editNodes_.Clear();
@@ -3251,6 +3273,7 @@ void MapEditorLibImpl::UpdateSelectShape()
         AddShapeToRender(selectedRenderShape_, selectRenderShapeColor_, Color::YELLOW.ToUInt(), true);
     }
 }
+
 
 void MapEditorLibImpl::SubscribeToUIEvent()
 {

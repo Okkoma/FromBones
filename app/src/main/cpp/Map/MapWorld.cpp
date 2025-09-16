@@ -974,7 +974,7 @@ void World2D::RemoveEntity(const ShortIntVector2& mPoint, unsigned id)
     }
 }
 
-void World2D::DestroyEntity(MapBase* map, Node* node)
+void World2D::DestroyEntity(unsigned mPointHash, Node* node)
 {
     if (node->GetComponent<GOC_Destroyer>())
     {
@@ -989,7 +989,7 @@ void World2D::DestroyEntity(MapBase* map, Node* node)
     VariantMap& eventData = node->GetContext()->GetEventDataMap();
     eventData[Go_Destroy::GO_ID] = node->GetID();
     eventData[Go_Destroy::GO_TYPE] = node->GetVar(GOA::TYPECONTROLLER).GetInt();
-    eventData[Go_Destroy::GO_MAP] = map->GetMapPoint().ToHash();
+    eventData[Go_Destroy::GO_MAP] = mPointHash;
     eventData[Go_Destroy::GO_PTR] = 0;
 
     // for static furniture
@@ -1072,7 +1072,7 @@ void World2D::DestroyFurnituresAt(MapBase* map, unsigned tileindex)
                 if (node->GetComponent<GOC_PhysicRope>())
                     continue;
 
-                DestroyEntity(map, node);
+                DestroyEntity(map->GetMapPoint().ToHash(), node);
             }
 
             location.Erase(jt);
@@ -1129,7 +1129,7 @@ void World2D::DestroyFurnituresAt(MapBase* map, unsigned tileindex)
             if (node->GetComponent<GOC_PhysicRope>())
                 continue;
 
-            DestroyEntity(map, node);
+            DestroyEntity(map->GetMapPoint().ToHash(), node);
 
             URHO3D_LOGINFOF("World2D() - DestroyFurnituresAt : %s(%u) remove furniture node ... OK !", node->GetName().CString(), node->GetID());
         }

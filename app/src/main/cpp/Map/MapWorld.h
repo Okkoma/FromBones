@@ -280,7 +280,7 @@ public:
     static void AttachEntityToMapNode(Node* entity, const ShortIntVector2& mPoint, CreateMode mode=LOCAL);
     static void AddEntity(const ShortIntVector2& mPoint, unsigned id);
     static void RemoveEntity(const ShortIntVector2& mPoint, unsigned id);
-    static void DestroyEntity(MapBase* map, Node* node);
+    static void DestroyEntity(unsigned mPointHash, Node* node);
     static void PurgeEntities(const ShortIntVector2& mPoint);
     static void AddStaticFurniture(const ShortIntVector2& mPoint, Node* node, EntityData& furniture);
     static void DestroyFurnituresAt(MapBase* map, unsigned tileindex);
