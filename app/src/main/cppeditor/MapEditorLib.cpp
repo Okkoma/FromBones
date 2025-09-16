@@ -144,14 +144,14 @@ enum ResetSelectionMode
 
 const char* PickModeStr[] =
 {
-    "PICK_GEOMETRIES",
-    "PICK_RIGIDBODIES",
-    "PICK_COLLISIONSHAPES",
-    "PICK_RENDERSHAPES",
+    "Drawables",
+    "Bodies",
+    "Physics",
+    "RShapes",
 #if defined(ACTIVE_CLIPPING) && defined(ACTIVE_RENDERSHAPE_CLIPPING)
-    "PICK_RENDERSHAPES_CLIPPED",
+    "RClipped",
 #endif
-    "PICK_LIGHTS",
+    "Lights",
     0
 };
 
@@ -407,10 +407,13 @@ public :
     static MapEditorLibImpl* Get() { return editor_; }
     static UIElement* GetPanel(int panelid);
 
+    void ChangePickMode(int pickmode);
+
     void SubscribeToUIEvent();
     void HandleResizeUI(StringHash eventType, VariantMap& eventData);
     void HandleToolBarCheckBoxToogle(StringHash eventType, VariantMap& eventData);
     void HandleToolBarLayerAlignChanged(StringHash eventType, VariantMap& eventData);
+    void HandleToolBarPickModeChanged(StringHash eventType, VariantMap& eventData);    
     void HandleCategoryTypeSelected(StringHash eventType, VariantMap& eventData);
     void HandleWindowLayoutUpdated(StringHash eventType, VariantMap& eventData);
     void HandleHidePanel(StringHash eventType, VariantMap& eventData);
@@ -1037,6 +1040,17 @@ UIElement* MapEditorLibImpl::GetPanel(int panelid)
     return panel;
 }
 
+void MapEditorLibImpl::ChangePickMode(int pickmode)
+{
+    if (pickmode != pickMode_)
+    {
+        pickMode_ = pickmode;
+        if (pickMode_ >= MAX_PICK_MODES)
+            pickMode_ = PICK_GEOMETRIES;
+    }
+}
+
+
 /// SpawnBar
 
 void CreateToolBarIcon(UIElement* element, int size, int styleicons=UISTYLE_TOOLBARICONS)
@@ -1161,6 +1175,8 @@ DropDownList* CreateDropDownList(const String& title, const Vector<String>& list
     dropdownlist->ShowPopup(true);
     dropdownlist->ShowPopup(false);
 
+    CreateToolTip(dropdownlist, title, IntVector2(dropdownlist->GetWidth()/2, -20), false);
+
     return dropdownlist;
 }
 
@@ -1212,6 +1228,13 @@ void MapEditorLibImpl::CreateSpawnToolBar()
     layerAlignements.Push("Z Front");
     DropDownList* layerAlignDdl = CreateDropDownList("LayerAlign", layerAlignements, IntVector2(105,60), editorLayerModifier_);
     toolbar->AddChild(layerAlignDdl);
+
+    // Add PickMode DropDownList
+    Vector<String> pickModes;
+    for (int i = 0; i < MAX_PICK_MODES; ++i)
+        pickModes.Push(String(PickModeStr[i]));
+    DropDownList* pickModeDdl = CreateDropDownList("PickMode", pickModes, IntVector2(105,60), pickMode_);
+    toolbar->AddChild(pickModeDdl);    
 }
 
 UIElement* AddListButton(const String& name, Sprite2D* sprite, bool addpivot=false, int defaultstyleid=0, const String& defaulticon = String::EMPTY)
@@ -2751,12 +2774,10 @@ void MapEditorLibImpl::Update(float timeStep)
     // Toggle PickMode
     if (input->GetKeyPress(KEY_TAB))
     {
-        pickMode_++;
-        if (pickMode_ >= MAX_PICK_MODES)
-            pickMode_ = PICK_GEOMETRIES;
-
+        ChangePickMode(++pickMode_);
         URHO3D_LOGINFOF("PickMode = %s(%d) ", PickModeStr[pickMode_], pickMode_);    
     }
+
     // Delete Selected Objects
     if (input->GetKeyPress(KEY_DELETE))
     {
@@ -2790,7 +2811,7 @@ void MapEditorLibImpl::Update(float timeStep)
                 for (unsigned i=0; i < results.Size(); i++)
                 {
                     Drawable* d = results[i].drawable_;
-                    if (d->IsInstanceOf<ObjectTiled>() || d->IsInstanceOf<RenderShape>() || d->IsInstanceOf<DrawableScroller>())
+                    if (d->IsInstanceOf<ObjectTiled>() || d->IsInstanceOf<RenderShape>() || d->IsInstanceOf<DrawableScroller>() || d->IsInstanceOf<ScrollingShape>())
                         continue;
 
                     // Keep selected drawable if is in RayQuery Results.
@@ -3295,8 +3316,8 @@ void MapEditorLibImpl::SubscribeToUIEvent()
         for (int i = 1; i < MAX_SPAWNCATEGORIES; i++)
             SubscribeToEvent(panel->GetChild(SpawnCategoryNameStr[i], true), E_TOGGLED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarCheckBoxToogle));
 
-        DropDownList* layerAlignDdl = static_cast<DropDownList*>(panel->GetChild("LayerAlign", true));
-        SubscribeToEvent(layerAlignDdl, E_ITEMSELECTED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarLayerAlignChanged));
+        SubscribeToEvent(panel->GetChild("LayerAlign", true), E_ITEMSELECTED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarLayerAlignChanged));
+        SubscribeToEvent(panel->GetChild("PickMode", true), E_ITEMSELECTED, URHO3D_HANDLER(MapEditorLibImpl, HandleToolBarPickModeChanged));
     }
 
     // Inspector Window
@@ -3350,8 +3371,13 @@ void MapEditorLibImpl::HandleToolBarCheckBoxToogle(StringHash eventType, Variant
 void MapEditorLibImpl::HandleToolBarLayerAlignChanged(StringHash eventType, VariantMap& eventData)
 {
     editorLayerModifier_ = eventData[ItemSelected::P_SELECTION].GetInt();
+    URHO3D_LOGINFOF("MapEditorLibImpl() - HandleToolBarLayerAlignChanged : editorLayerModifier_=%d", editorLayerModifier_);
+}
 
-//    URHO3D_LOGINFOF("MapEditorLibImpl() - HandleToolBarLayerAlignChanged : editorLayerModifier_=%d", editorLayerModifier_);
+void MapEditorLibImpl::HandleToolBarPickModeChanged(StringHash eventType, VariantMap& eventData)
+{
+    ChangePickMode(eventData[ItemSelected::P_SELECTION].GetInt());
+    URHO3D_LOGINFOF("MapEditorLibImpl() - HandleToolBarPickModeChanged : PickMode = %s(%d)", PickModeStr[pickMode_], pickMode_);
 }
 
 void MapEditorLibImpl::HandleCategoryTypeSelected(StringHash eventType, VariantMap& eventData)
