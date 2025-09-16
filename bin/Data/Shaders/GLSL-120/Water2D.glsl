@@ -17,8 +17,8 @@ void VS()
 
 void PS()
 {
-	vec2 sinTexCoord = vTexCoord;
-	sinTexCoord.x += 0.1 * sin(vTexCoord.y + cElapsedTimePS);
+    vec2 sinTexCoord = vTexCoord;
+    sinTexCoord.x += 0.1 * sin(vTexCoord.y + cElapsedTimePS);
 
 //    vec3 refractColor = texture2D(sEnvMap, sinTexCoord).rgb;
 //    vec3 reflectColor = texture2D(sDiffMap, sinTexCoord).rgb * vColor.rgb;
