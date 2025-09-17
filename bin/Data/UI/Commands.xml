@@ -12,19 +12,14 @@
     <attribute name="Resize Border" value="6 6 6 6" />
     <attribute name="Opacity" value="0.99" />
     <attribute name="Horiz Alignment" value="Center" />
-    <attribute name="Vert Alignment" value="Center" />
     <attribute name="Pivot" value="0.5 0.5" />
 
-    <element> <!-- Window Bar -->
+    <element type="Text" style="OptionText">
 
-        <attribute name="Min Size" value="770 100" />
-        <attribute name="Max Size" value="770 100" />
+        <attribute name="Name" value="playerkeys" />
+        <attribute name="Text" value="Player Control Keys" />
 
-        <element type="Text" style="OptionText">
-            <attribute name="Text" value="Keys" />
-        </element>
-
-        <element type="Button">
+        <element type="Button">            <!-- Close Frame Button -->
             <attribute name="Name" value="closebutton" />
             <attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
             <attribute name="Sprite Hover" value="icon_close_on" />
@@ -35,33 +30,45 @@
             <attribute name="Horiz Alignment" value="Right" />
             <attribute name="Vert Alignment" value="Top" />
         </element>
-
     </element>
-    
-    <element> <!-- Window Content -->
 
+    <element type="BorderImage" style="EditorDivider">
+        <attribute name="Horiz Alignment" value="Center" />
+    </element>
+
+    <element>
         <attribute name="Layout Mode" value="Horizontal" />
         <attribute name="Layout Spacing" value="10" />
-        <attribute name="Min Size" value="776 425" />
-        <attribute name="Max Size" value="776 425" />
         <attribute name="Horiz Alignment" value="Center" />
         <attribute name="Vert Alignment" value="Center" />
-        
+        <attribute name="Min Size" value="770 250" />
+        <attribute name="Max Size" value="770 250" />
+
         <element>
             <attribute name="Layout Mode" value="Vertical" />
             <attribute name="Layout Spacing" value="10" />
             <element type="Text" style="OptionText">
-                <attribute name="Name" value="keys" />
                 <attribute name="Text" value=" " />
             </element>
             <element>
                 <attribute name="Layout Mode" value="Vertical" />
                 <attribute name="Layout Spacing" value="5" />
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Go Left Right :" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Go Up Down :" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Use Weapon :" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Use Power :" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Change Avatar :" /></element>
+                <attribute name="Horiz Alignment" value="Left" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Left . Right" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Up . Down" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Attack" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Power" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Switch Avatar" />
+                </element>
             </element>
         </element>
 
@@ -75,11 +82,21 @@
             <element>
                 <attribute name="Layout Mode" value="Vertical" />
                 <attribute name="Layout Spacing" value="5" />
-                <element type="Text" style="OptionText22"><attribute name="Text" value="A D" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Space S+Space" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="E" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="F" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="R" /></element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="A . D" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Space . S+Space" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="E" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="F" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="R" />
+                </element>
             </element>
         </element>
 
@@ -93,14 +110,134 @@
             <element>
                 <attribute name="Layout Mode" value="Vertical" />
                 <attribute name="Layout Spacing" value="5" />
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Left Right" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="RCtrl RCtrl+Down" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="RShift" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Slash" /></element>
-                <element type="Text" style="OptionText22"><attribute name="Text" value="Period" /></element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Left . Right" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="RCTRL . RCTRL+Down" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="RSHIFT" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Slash" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Period" />
+                </element>
+            </element>
+        </element>
+    </element>
+<!--
+    <element type="BorderImage" style="EditorMenuBar">
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Min Size" value="0 1" />
+        <attribute name="Max Size" value="700 1" />
+    </element>
+-->
+    <element type="BorderImage" style="EditorDivider">
+        <attribute name="Horiz Alignment" value="Center" />
+    </element>
+
+    <element type="Text" style="OptionText">
+        <attribute name="Name" value="devkeys" />
+        <attribute name="Text" value="Dev Main Keys" />
+    </element>
+
+    <element type="BorderImage" style="EditorDivider">
+        <attribute name="Horiz Alignment" value="Center" />
+    </element>
+
+    <element>
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="10" />
+        <attribute name="Vert Alignment" value="Center" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Min Size" value="770 250" />
+        <attribute name="Max Size" value="770 400" />
+
+        <element>
+            <attribute name="Layout Mode" value="Horizontal" />
+            <attribute name="Layout Spacing" value="2" />
+            <attribute name="Min Size" value="220 250" />
+            <attribute name="Max Size" value="220 400" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <attribute name="Horiz Alignment" value="Left" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Console" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Editor" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Time -+" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="SwitchZ" />
+                </element>
+            </element>
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="F1" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="F3" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="F7 F8" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="KP0" />
+                </element>
             </element>
         </element>
 
+        <element>
+            <attribute name="Layout Mode" value="Horizontal" />
+            <attribute name="Layout Spacing" value="2" />
+            <attribute name="Min Size" value="500 250" />
+            <attribute name="Max Size" value="500 400" />
+            <attribute name="Horiz Alignment" value="Center" />
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <attribute name="Horiz Alignment" value="Left" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Add Tile" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Del Tile" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="ObjectMap" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="Asteroid" />
+                </element>
+            </element>
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <attribute name="Horiz Alignment" value="Center" />
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="LCTRL+LMouseB" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="LSHIFT+LMouseB" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="LSHIFT+KEY2+RMouseB" />
+                </element>
+                <element type="Text" style="OptionText22">
+                    <attribute name="Text" value="LSHIFT+KEY3+RMouseB" />
+                </element>
+            </element>
+        </element>
     </element>
-    
 </element>
