@@ -17,6 +17,18 @@
     <element>
         <attribute name="Min Size" value="770 100" />
         <attribute name="Max Size" value="770 100" />
+        <element type="Button">
+            <attribute name="Name" value="commandbutton" />
+            <attribute name="Sprite" value="UI/game_ui.xml@abi_unknown" />
+            <attribute name="Sprite Hover" value="abi_unknown" />
+            <attribute name="Sprite Hover Color" value="4283203583" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Min Size" value="48 48" />
+            <attribute name="Max Size" value="48 48" />
+            <attribute name="Focus Mode" value="NotFocusable" />
+            <attribute name="Horiz Alignment" value="Left" />
+            <attribute name="Vert Alignment" value="Top" />
+        </element>           
         <element type="Text" style="OptionText">
             <attribute name="Name" value="TitleText" />
             <attribute name="Text" value="Options" />
@@ -1902,6 +1914,6 @@
             <attribute name="Focus Mode" value="NotFocusable" />
             <attribute name="Horiz Alignment" value="Right" />
             <attribute name="Vert Alignment" value="Center" />
-        </element>
+        </element>     
     </element>
 </element>

@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<element type="Window">
+    <attribute name="Name" value="Commands" />
+    <attribute name="Is Movable" value="true" />
+    <attribute name="Focus Mode" value="Focusable" />
+    <attribute name="Is Resizable" value="false" />
+    <attribute name="Min Size" value="782 607" />
+    <attribute name="Max Size" value="782 607" />
+    <attribute name="Layout Mode" value="Vertical" />
+    <attribute name="Layout Spacing" value="10" />
+    <attribute name="Layout Border" value="6 6 6 6" />
+    <attribute name="Resize Border" value="6 6 6 6" />
+    <attribute name="Opacity" value="0.99" />
+    <attribute name="Horiz Alignment" value="Center" />
+    <attribute name="Vert Alignment" value="Center" />
+    <attribute name="Pivot" value="0.5 0.5" />
+
+    <element> <!-- Window Bar -->
+
+        <attribute name="Min Size" value="770 100" />
+        <attribute name="Max Size" value="770 100" />
+
+        <element type="Text" style="OptionText">
+            <attribute name="Text" value="Keys" />
+        </element>
+
+        <element type="Button">
+            <attribute name="Name" value="closebutton" />
+            <attribute name="Sprite" value="UI/game_equipment.xml@icon_close_off" />
+            <attribute name="Sprite Hover" value="icon_close_on" />
+            <attribute name="Pressed Image Offset" value="0 0" />
+            <attribute name="Min Size" value="32 32" />
+            <attribute name="Max Size" value="32 32" />
+            <attribute name="Focus Mode" value="NotFocusable" />
+            <attribute name="Horiz Alignment" value="Right" />
+            <attribute name="Vert Alignment" value="Top" />
+        </element>
+
+    </element>
+    
+    <element> <!-- Window Content -->
+
+        <attribute name="Layout Mode" value="Horizontal" />
+        <attribute name="Layout Spacing" value="10" />
+        <attribute name="Min Size" value="776 425" />
+        <attribute name="Max Size" value="776 425" />
+        <attribute name="Horiz Alignment" value="Center" />
+        <attribute name="Vert Alignment" value="Center" />
+        
+        <element>
+            <attribute name="Layout Mode" value="Vertical" />
+            <attribute name="Layout Spacing" value="10" />
+            <element type="Text" style="OptionText">
+                <attribute name="Name" value="keys" />
+                <attribute name="Text" value=" " />
+            </element>
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Go Left Right :" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Go Up Down :" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Use Weapon :" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Use Power :" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Change Avatar :" /></element>
+            </element>
+        </element>
+
+        <element>
+            <attribute name="Layout Mode" value="Vertical" />
+            <attribute name="Layout Spacing" value="10" />
+            <element type="Text" style="OptionText">
+                <attribute name="Name" value="player1keys" />
+                <attribute name="Text" value="Player1" />
+            </element>
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <element type="Text" style="OptionText22"><attribute name="Text" value="A D" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Space S+Space" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="E" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="F" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="R" /></element>
+            </element>
+        </element>
+
+        <element>
+            <attribute name="Layout Mode" value="Vertical" />
+            <attribute name="Layout Spacing" value="10" />
+            <element type="Text" style="OptionText">
+                <attribute name="Name" value="player2keys" />
+                <attribute name="Text" value="Player2" />
+            </element>
+            <element>
+                <attribute name="Layout Mode" value="Vertical" />
+                <attribute name="Layout Spacing" value="5" />
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Left Right" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="RCtrl RCtrl+Down" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="RShift" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Slash" /></element>
+                <element type="Text" style="OptionText22"><attribute name="Text" value="Period" /></element>
+            </element>
+        </element>
+
+    </element>
+    
+</element>

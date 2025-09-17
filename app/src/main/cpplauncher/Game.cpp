@@ -769,6 +769,7 @@ void Game::Stop()
     UnsubscribeFromAllEvents();
 
     GameContext::Get().Stop();
+    GameCommands::Get().Stop();
 
 #ifdef DUMP_UI
     PODVector<UIElement*> children;
@@ -1210,6 +1211,11 @@ void Game::HandleKeyDownHUD(StringHash eventType, VariantMap& eventData)
         URHO3D_LOGINFOF("Game() - Switch ForceCreateMode = %s", GameContext::Get().forceCreateMode_ ? "on":"off");
     }
     else if (scancode == SCANCODE_F4)
+    {
+        GameCommands::Toggle();
+        URHO3D_LOGINFOF("Game() - Toggle GameCommands = %s", GameCommands::Get().IsVisible() ? "on":"off");
+    }    
+    else if (scancode == SCANCODE_F5)
     {
         // For Debug : toggle Dump UIBatch
         UIBatch::dumpBatchMerging_ = !UIBatch::dumpBatchMerging_;

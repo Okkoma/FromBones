@@ -232,7 +232,7 @@ public:
 private:
     static void UpdateScrollBars(UIElement* elt);
 public:
-    static void ToggleModalWindow(Object* owner=0, UIElement* elt=0, bool force=false);
+    static void ToggleModalWindow(Object* owner=0, UIElement* elt=0, bool hidebackup=false);
     static Window* GetModalWindow();
     static void SetEnableScissor(UIElement* elt, bool enable);
     static TextMessage* ShowUIMessage(const String& maintext, const String& endtext, bool localize, int fontsize, const IntVector2& position, float fadescale=1.f, float duration=2.f, float delaystart=0.f);

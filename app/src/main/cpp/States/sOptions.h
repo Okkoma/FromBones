@@ -66,6 +66,8 @@ protected:
     void SubscribeToEvents();
     void UnsubscribeToEvents();
 
+    void UpdateResolutionsList();
+    
     void UpdateSnapShots(bool highres=false);
     void UpdateSnapShotGrid();
 
@@ -131,6 +133,7 @@ protected:
 
     void HandleQuitMessageAck(StringHash eventType, VariantMap& eventData);
     void HandleMenuButton(StringHash eventType, VariantMap& eventData);
+    void HandleToggleCommandsPanel(StringHash eventType, VariantMap& eventData);
     void HandleKeyEscape(StringHash eventType, VariantMap& eventData);
     void HandleScreenResized(StringHash eventType, VariantMap& eventData);
 

@@ -60,6 +60,7 @@
 #include "TimerRemover.h"
 #include "TimerInformer.h"
 
+#include "Urho3D/Core/Context.h"
 #include "ViewManager.h"
 #include "MAN_Weather.h"
 
@@ -622,8 +623,7 @@ void OptionState::CloseFrame()
         {
             GameHelpers::SetMoveAnimationUI(uioptionsframe_, initialFramePosition_, IntVector2(initialFramePosition_.x_, -GetSubsystem<Graphics>()->GetHeight()), 0.f, SWITCHSCREENTIME);
             TimerRemover::Get()->Start(uioptionsframe_, SWITCHSCREENTIME + 0.05f, DISABLE);
-
-            new DelayInformer(this, SWITCHSCREENTIME + 0.1f, GAME_OPTIONSFRAME_CLOSED);
+            new DelayInformer(this, SWITCHSCREENTIME + 0.2f, GAME_OPTIONSFRAME_CLOSED);
         }
     }
 
@@ -802,6 +802,79 @@ String ResolutionToString(const IntVector3& resolution)
 
 static unsigned currentResolutionIndex_ = M_MAX_UNSIGNED;
 
+void OptionState::UpdateResolutionsList()
+{
+    Text* mastertext = static_cast<Text*>(optionParameters_[OPTION_Fullscreen].control_->GetItem(0));
+    int fontsize = mastertext->GetFontSize();
+    Font* font = mastertext->GetFont();
+    Graphics* graphics = context_->GetSubsystem<Graphics>();
+    const unsigned currentMonitor = graphics->GetMonitor();
+    const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
+
+    if (resolutions.Size())
+    {
+        bool oneresolution = resolutions.Size() == 1;
+
+        // get the initial resolution index
+        unsigned initialResolution = graphics->FindBestResolutionIndex(graphics->GetWidth(), graphics->GetHeight(), graphics->GetRefreshRate(), resolutions);
+
+        // initialize resolutions list
+        DropDownList* control = optionParameters_[OPTION_Resolution].control_;
+        control->RemoveAllItems();
+        control->SetMinSize((float)control->GetMinSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
+        control->SetMaxSize((float)control->GetMaxSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
+        control->SetVerticalAlignment(VA_CENTER);
+        control->SetLayoutMode(LM_VERTICAL);
+
+        if (!oneresolution)
+        {
+            UIElement* popup = control->GetPopup();
+            popup->SetSize(popup->GetWidth(), Min(resolutions.Size()+1, 10) * (fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 2));
+        }
+
+        for (unsigned index = 0; index < resolutions.Size(); index++)
+        {
+            const IntVector3& resolution = resolutions[index];
+            if (resolution.x_ < GameContext::minResolution.x_ || resolution.y_ < GameContext::minResolution.y_)
+                continue;
+
+            Text* resolutionEntry = new Text(context_);
+            control->AddItem(resolutionEntry);
+
+            resolutionEntry->SetStyle(mastertext->GetAppliedStyle());
+            resolutionEntry->SetAutoLocalizable(false);
+            resolutionEntry->SetTextAlignment(HA_CENTER);
+            resolutionEntry->SetFont(fontsize == 12 ? GameContext::Get().uiFonts_[UIFONTS_ABY12] : fontsize == 22 ? GameContext::Get().uiFonts_[UIFONTS_ABY22] : GameContext::Get().uiFonts_[UIFONTS_ABY32]);
+            resolutionEntry->SetFontSize(fontsize);
+            resolutionEntry->SetText(ResolutionToString(resolution));
+            // Set the graphics resolution
+            resolutionEntry->SetVar(GOA::CLIENTID, resolution);
+            resolutionEntry->SetMinWidth(CeilToInt(resolutionEntry->GetRowWidth(0) + 10));
+
+            if (index == initialResolution)
+                currentResolutionIndex_ = control->GetNumItems()-1;
+        }
+
+        ListView* listview = control->GetListView();
+        listview->SetScrollBarsVisible(false, !oneresolution);
+
+        GameHelpers::SetEnableScissor(control, true);
+
+        URHO3D_LOGINFOF("OptionState() - UpdateResolutionsList : get initial resolution=%s => currentResolutionIndex_=%u !", resolutions[initialResolution].ToString().CString(), currentResolutionIndex_);
+
+        if (currentResolutionIndex_ == M_MAX_UNSIGNED)
+            currentResolutionIndex_ = 0;
+    }    
+    else
+    {
+        URHO3D_LOGINFOF("OptionState() - UpdateResolutionsList : can't get monitor resolutions => resolution controls are disabled !");
+        optionParameters_[OPTION_Resolution].control_->GetParent()->SetEnabled(false);
+        optionParameters_[OPTION_Resolution].control_->GetParent()->SetVisible(false);
+        optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetEnabled(false);
+        optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetVisible(false);
+    }
+}
+
 void OptionState::SynchronizeParameters()
 {
     URHO3D_LOGINFO("OptionState() - SynchronizeParameters ...");
@@ -863,75 +936,8 @@ void OptionState::SynchronizeParameters()
 
     if (optionParameters_[OPTION_Resolution].control_ && !optionParameters_[OPTION_Resolution].control_->GetNumItems())
     {
-
-        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u initialize resolutions list...", currentMonitor);        
-        
-        currentResolutionIndex_ = M_MAX_UNSIGNED;
-
-        const PODVector<IntVector3> resolutions = graphics->GetResolutions(currentMonitor);
-        if (resolutions.Size())
-        {            
-            bool oneresolution = resolutions.Size() == 1;
-
-            // get the initial resolution index
-            unsigned initialResolution = graphics->FindBestResolutionIndex(graphics->GetWidth(), graphics->GetHeight(), graphics->GetRefreshRate(), resolutions);
-
-            // initialize resolutions list
-            DropDownList* control = optionParameters_[OPTION_Resolution].control_;
-            control->RemoveAllItems();
-            control->SetMinSize((float)control->GetMinSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
-            control->SetMaxSize((float)control->GetMaxSize().x_, fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 8);
-            control->SetVerticalAlignment(VA_CENTER);
-            control->SetLayoutMode(LM_VERTICAL);
-
-            if (!oneresolution)
-            {
-                UIElement* popup = control->GetPopup();
-                popup->SetSize(popup->GetWidth(), Min(resolutions.Size()+1, 10) * (fontsize * Max(1.f, GameContext::Get().uiDpiScale_) + 2));
-            }
-
-            for (unsigned index = 0; index < resolutions.Size(); index++)
-            {
-                const IntVector3& resolution = resolutions[index];
-                if (resolution.x_ < GameContext::minResolution.x_ || resolution.y_ < GameContext::minResolution.y_)
-                    continue;
-
-                Text* resolutionEntry = new Text(context_);
-                control->AddItem(resolutionEntry);
-
-                resolutionEntry->SetStyle(mastertext->GetAppliedStyle());
-                resolutionEntry->SetAutoLocalizable(false);
-                resolutionEntry->SetTextAlignment(HA_CENTER);
-                resolutionEntry->SetFont(fontsize == 12 ? GameContext::Get().uiFonts_[UIFONTS_ABY12] : fontsize == 22 ? GameContext::Get().uiFonts_[UIFONTS_ABY22] : GameContext::Get().uiFonts_[UIFONTS_ABY32]);
-                resolutionEntry->SetFontSize(fontsize);
-                resolutionEntry->SetText(ResolutionToString(resolution));
-                // Set the graphics resolution
-                resolutionEntry->SetVar(GOA::CLIENTID, resolution);
-                resolutionEntry->SetMinWidth(CeilToInt(resolutionEntry->GetRowWidth(0) + 10));
-
-                if (index == initialResolution)
-                    currentResolutionIndex_ = control->GetNumItems()-1;
-//                URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : add resolution=%dx%d-%dHz", resolution.x_, resolution.y_, resolution.z_);
-            }
-
-            ListView* listview = control->GetListView();
-            listview->SetScrollBarsVisible(false, !oneresolution);
-
-            GameHelpers::SetEnableScissor(control, true);
-
-            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : get initial resolution=%s => currentResolutionIndex_=%u !", resolutions[initialResolution].ToString().CString(), currentResolutionIndex_);
-
-            if (currentResolutionIndex_ == M_MAX_UNSIGNED)
-                currentResolutionIndex_ = 0;
-        }    
-        else
-        {
-            URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : can't get monitor resolutions => resolution controls are disabled !");
-            optionParameters_[OPTION_Resolution].control_->GetParent()->SetEnabled(false);
-            optionParameters_[OPTION_Resolution].control_->GetParent()->SetVisible(false);
-            optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetEnabled(false);
-            optionParameters_[OPTION_Fullscreen].control_->GetParent()->SetVisible(false);
-        }
+        URHO3D_LOGINFOF("OptionState() - SynchronizeParameters : video monitor=%u initialize resolutions list...", currentMonitor);
+        UpdateResolutionsList();
     }
 
     if (currentResolutionIndex_ != M_MAX_UNSIGNED && optionParameters_[OPTION_Resolution].control_ && optionParameters_[OPTION_Resolution].control_->GetSelection() != currentResolutionIndex_)
@@ -1147,10 +1153,7 @@ void OptionState::ApplyParameters()
 
                 graphics->SetMode(resolution.x_, resolution.y_, fullscreen, borderless, resizable, highDPI, vsync, tripleBuffer, multiSample, monitor, resolution.z_);
 
-    //            bool cursorvisible = GameContext::Get().cursor_ ? GameContext::Get().cursor_->IsVisible() : false;
-    //            GameContext::Get().InitMouse(GetContext(), MM_FREE);
-    //            if (GameContext::Get().cursor_)
-    //                GameContext::Get().cursor_->SetVisible(cursorvisible);
+                UpdateResolutionsList();
             }
         }
     }
@@ -1402,6 +1405,10 @@ void OptionState::SubscribeToEvents()
 
     if (closebutton_)
         SubscribeToEvent(closebutton_, E_RELEASED, URHO3D_HANDLER(OptionState, HandleCloseFrame));
+
+    Button* commandsbutton = uioptionsframe_->GetChildStaticCast<Button>("commandbutton", true);
+    if (commandsbutton)
+        SubscribeToEvent(commandsbutton, E_RELEASED, URHO3D_HANDLER(OptionState, HandleToggleCommandsPanel));        
 }
 
 void OptionState::UnsubscribeToEvents()
@@ -2559,6 +2566,11 @@ void OptionState::HandleMenuButton(StringHash eventType, VariantMap& eventData)
 
         ToggleFrame();
     }
+}
+
+void OptionState::HandleToggleCommandsPanel(StringHash eventType, VariantMap& eventData)
+{
+    GameCommands::Toggle();
 }
 
 void OptionState::HandleKeyEscape(StringHash eventType, VariantMap& eventData)

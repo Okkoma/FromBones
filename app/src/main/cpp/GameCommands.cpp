@@ -7,6 +7,7 @@
 
 #include <Urho3D/Resource/ResourceCache.h>
 
+#include <Urho3D/Graphics/Graphics.h>
 #include <Urho3D/Graphics/Camera.h>
 #include <Urho3D/Graphics/Renderer.h>
 #include <Urho3D/Scene/Scene.h>
@@ -14,6 +15,9 @@
 #include <Urho3D/Urho2D/Renderer2D.h>
 #include <Urho3D/Urho2D/AnimatedSprite2D.h>
 #include <Urho3D/Urho2D/RigidBody2D.h>
+
+#include <Urho3D/UI/UI.h>
+#include <Urho3D/UI/UIEvents.h>
 
 #include "DefsGame.h"
 
@@ -24,6 +28,7 @@
 #include "GameHelpers.h"
 #include "GameNetwork.h"
 #include "GameStateManager.h"
+#include "Urho3D/Input/InputEvents.h"
 #include "sPlay.h"
 #include "sMainMenu.h"
 
@@ -43,6 +48,37 @@
 #include "CommonComponents.h"
 
 #include "GameCommands.h"
+
+
+GameCommands* GameCommands::gameCommands_ = nullptr;
+
+
+GameCommands::GameCommands(Context* context) :
+    Object(context)
+{
+    gameCommands_ = this;
+
+    // Create Commands Frame
+    uiCommandsFrame_ = WeakPtr<UIElement>(GameHelpers::AddUIElement(String("UI/Commands.xml"), IntVector2(0, 0), HA_CENTER, VA_CENTER));
+    GameContext::Get().ui_->GetRoot()->AddChild(uiCommandsFrame_);
+
+    UIElement* closeButton = uiCommandsFrame_->GetChild(String("closebutton"), true);
+    UIElement* contentFrame = uiCommandsFrame_->GetChild(String("Content"), true);
+
+    Hide();
+}
+
+GameCommands::~GameCommands()
+{
+
+}
+
+GameCommands& GameCommands::Get()
+{
+    if (!gameCommands_)
+        gameCommands_ = new GameCommands(GameContext::Get().context_);
+    return *gameCommands_;
+}
 
 
 void GameCommands::Launch(const String& input)
@@ -907,3 +943,79 @@ void GameCommands::Launch(const String& input)
     }
 }
 
+
+void GameCommands::Show()
+{
+    URHO3D_LOGINFOF("GameCommands() - Show ...");
+    Get().SubscribeToEvents();
+    Get().uiCommandsFrame_->SetVisible(true);
+    GameHelpers::ToggleModalWindow(0, Get().uiCommandsFrame_.Get(), false);
+}
+
+void GameCommands::Hide()
+{
+    URHO3D_LOGINFOF("GameCommands() - Hide ...");
+    GameHelpers::ToggleModalWindow();
+    Get().uiCommandsFrame_->SetVisible(false);
+    Get().UnsubscribeFromAllEvents();    
+}
+
+void GameCommands::Toggle()
+{
+    if (IsVisible())
+        Hide();
+    else
+        Show();
+}
+
+bool GameCommands::IsVisible()
+{
+    return Get().uiCommandsFrame_->IsVisible();
+}
+
+void GameCommands::Stop()
+{
+    if (gameCommands_)
+    {
+        gameCommands_->UnsubscribeFromAllEvents();
+        if (gameCommands_->uiCommandsFrame_)
+            gameCommands_->uiCommandsFrame_->Remove();
+        delete gameCommands_;
+    }
+
+    gameCommands_ = nullptr;
+}
+
+
+void GameCommands::SubscribeToEvents()
+{
+    UIElement* closeButton = uiCommandsFrame_->GetChild(String("closebutton"), true);
+
+    SubscribeToEvent(closeButton, E_RELEASED, URHO3D_HANDLER(GameCommands, HandleCloseFrame));
+    SubscribeToEvent(E_KEYDOWN, URHO3D_HANDLER(GameCommands, HandleCloseFrame));
+    SubscribeToEvent(GAME_SCREENRESIZED, URHO3D_HANDLER(GameCommands, HandleScreenResized));
+}
+
+void GameCommands::HandleCloseFrame(StringHash eventType, VariantMap& eventData)
+{
+    if (eventType == E_KEYDOWN && eventData[KeyDown::P_KEY].GetInt() != KEY_ESCAPE)
+        return;
+
+    URHO3D_LOGINFO("GameCommands() - HandleCloseFrame ...");
+    Hide();
+}
+
+void GameCommands::HandleScreenResized(StringHash eventType, VariantMap& eventData)
+{
+    URHO3D_LOGINFO("GameCommands() - HandleScreenResized ...");
+
+    Graphics* graphics = GetSubsystem<Graphics>();
+    UI* ui = GameContext::Get().ui_;
+    uiCommandsFrame_->SetSize(ui->GetRoot()->GetSize());
+    GameHelpers::SetUIScale(uiCommandsFrame_, IntVector2(782, 522));
+
+    uiCommandsFrame_->SetPivot(0.5f, 0.5f);
+    uiCommandsFrame_->SetMinAnchor(0.5f, 0.5f);
+    uiCommandsFrame_->SetMaxAnchor(0.5f, 0.5f);
+    uiCommandsFrame_->SetEnableAnchor(true);
+}

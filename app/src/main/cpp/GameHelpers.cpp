@@ -4807,11 +4807,11 @@ IntVector2 GameHelpers::GetUIExitPoint(UIElement* element, const IntVector2& cur
 
 WeakPtr<Window> GameHelpers::backupModal_;
 
-void GameHelpers::ToggleModalWindow(Object* owner, UIElement* elt, bool force)
+void GameHelpers::ToggleModalWindow(Object* owner, UIElement* elt, bool hidebackup)
 {
     UI* ui = GameContext::Get().ui_;
 
-//    URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow elt=%u ... ", elt);
+    URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow elt=%u ... ", elt);
 
     // Add elt as Modal Window
     if (elt)
@@ -4819,7 +4819,7 @@ void GameHelpers::ToggleModalWindow(Object* owner, UIElement* elt, bool force)
         if (elt->GetType() != Window::GetTypeStatic())
             return;
 
-//        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow = %s ... ", elt->GetName().CString());
+        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow = %s ... ", elt->GetName().CString());
 
         if (ui->HasModalElement())
         {
@@ -4827,8 +4827,13 @@ void GameHelpers::ToggleModalWindow(Object* owner, UIElement* elt, bool force)
             Window* backup = static_cast<Window*>(ui->GetRootModalElement()->GetChild(0));
             if (backup != elt && backup && backup->GetName() != "MessageBox")
             {
+                if (hidebackup)
+                    backup->SetVisible(false);
                 backup->SetModal(false);
+                if (backupModal_ && backup != backupModal_)
+                    URHO3D_LOGWARNINGF("GameHelpers() - ToggleModalWindow overwrite prev BackupModal = %s ...", backupModal_->GetName().CString());
                 backupModal_ = backup;
+                URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Push to BackupModal = %s ...", backup->GetName().CString());
             }
         }
 
@@ -4838,44 +4843,42 @@ void GameHelpers::ToggleModalWindow(Object* owner, UIElement* elt, bool force)
 
         window->SetFocus(true);
 
-//        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow = %s ... OK !", elt->GetName().CString());
+        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow = %s modal=%d focus=%d ... OK !", elt->GetName().CString(), window->IsModal(), window->HasFocus());
     }
-    // Restore Last Modal (Backup)
-    else if (backupModal_)
+    // Remove Modal
+    else
     {
-//        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow BackupModal = %s ...", backupModal_->GetName().CString());
-
-        if (!backupModal_->IsModal())
+        // Remove the modal window
+        if (ui->HasModalElement())
         {
+            Window* window = static_cast<Window*>(ui->GetRootModalElement()->GetChild(0));
+
+            URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Reset Modal ... window=%s(%u)", window->GetName().CString(), window);
+
+            if (window->GetName() != "MessageBox")
+            {
+                window->SetModal(false);
+                window->SetFocus(false);
+                // 20200516 - Important : to not be grab to an element at start (ensure a reactive ui)
+                GameContext::Get().context_->GetSubsystem<Input>()->SetMouseGrabbed(false, true);
+            }
+
+            URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Reset Modal ... OK !");
+        }
+
+        // Restore Backup Modal
+        if (backupModal_)
+        {
+            URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Restore BackupModal = %s  ...", backupModal_->GetName().CString());
+            backupModal_->SetVisible(true);
             backupModal_->SetModal(true);
             backupModal_->SetFocus(true);
+            URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Restore BackupModal = %s modal=%d focus=%d ... OK !", 
+                backupModal_->GetName().CString(), backupModal_->IsModal(), backupModal_->HasFocus());
+
+            backupModal_.Reset();
         }
-
-//        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow BackupModal = %s ... OK !", backupModal_->GetName().CString());
-
-        backupModal_.Reset();
     }
-    // Remove the modal window
-    else if (ui->HasModalElement())
-    {
-        Window* window = static_cast<Window*>(ui->GetRootModalElement()->GetChild(0));
-
-        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Reset Modal ... window=%u", window);
-
-        if (force && owner)
-            owner->UnsubscribeFromEvent(window, E_MODALCHANGED);
-
-        if (window->GetName() != "MessageBox" || force)
-        {
-            window->SetModal(false);
-            window->SetFocus(false);
-            // 20200516 - Important : to not be grab to an element at start (ensure a reactive ui)
-            GameContext::Get().context_->GetSubsystem<Input>()->SetMouseGrabbed(false, true);
-        }
-
-        URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow Reset Modal ... OK !");
-    }
-
 //    URHO3D_LOGINFOF("GameHelpers() - ToggleModalWindow elt=%u ... OK !", elt);
 }
 
