@@ -1788,12 +1788,15 @@ void PlayState::SetViewports(bool dynamic, bool init)
         {
             const PODVector<Player* >& players = viewportplayers[viewportplayers.Size() - 1 - viewport];
 
-            // update the player lights masks to be not show
-            for (int i = 0; i < players.Size()-1; i++)
-                GameHelpers::SetLightActivation(players[i]);
+            if (players.Size())
+            {
+                // update the player lights masks to be not show
+                for (int i = 0; i < players.Size()-1; i++)
+                    GameHelpers::SetLightActivation(players[i]);
 
-            // set viewz, only the last player on the viewport will have an showed light
-            ViewManager::Get()->SwitchToViewZ(players.Back()->GetAvatar()->GetVar(GOA::ONVIEWZ).GetInt(), players.Back()->GetAvatar(), viewport);
+                // set viewz, only the last player on the viewport will have an showed light
+                ViewManager::Get()->SwitchToViewZ(players.Back()->GetAvatar()->GetVar(GOA::ONVIEWZ).GetInt(), players.Back()->GetAvatar(), viewport);
+            }
         }
 
         // update World
