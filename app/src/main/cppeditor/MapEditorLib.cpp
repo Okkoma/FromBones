@@ -70,6 +70,7 @@
 #include "ObjectTiled.h"
 #include "GEF_Scrolling.h"
 #include "RenderShape.h"
+#include "WaterLayer.h"
 
 
 
@@ -124,6 +125,7 @@ enum PickMode
 #if defined(ACTIVE_CLIPPING) && defined(ACTIVE_RENDERSHAPE_CLIPPING)
     PICK_RENDERSHAPES_CLIPPED,
 #endif
+    PICK_FLUID,
     PICK_LIGHTS,
     MAX_PICK_MODES
 };
@@ -151,6 +153,7 @@ const char* PickModeStr[] =
 #if defined(ACTIVE_CLIPPING) && defined(ACTIVE_RENDERSHAPE_CLIPPING)
     "RClipped",
 #endif
+    "Fluid",
     "Lights",
     0
 };
@@ -158,14 +161,15 @@ const char* PickModeStr[] =
 unsigned pickModeDrawableFlags[] =
 {
     DRAWABLE_GEOMETRY,
-    0,
-    0,
-    0,
+    0U,
+    0U,
+    0U,
 #if defined(ACTIVE_CLIPPING) && defined(ACTIVE_RENDERSHAPE_CLIPPING)
-    0,
+    0U,
 #endif
+    DRAWABLE_GEOMETRY,
     DRAWABLE_LIGHT,
-    0,
+    0U,
 };
 
 enum UIStyleType
@@ -2798,7 +2802,7 @@ void MapEditorLibImpl::Update(float timeStep)
         const IntRect& viewRect = GameContext::Get().renderer_->GetViewport(0)->GetRect();
         Ray ray = GameContext::Get().camera_->GetScreenRay(float(mouseposition.x_ - viewRect.left_) / viewRect.Width(), float(mouseposition.y_ - viewRect.top_) / viewRect.Height());
 
-        if (pickMode_ == PICK_GEOMETRIES || pickMode_ == PICK_LIGHTS)
+        if (pickMode_ == PICK_GEOMETRIES || pickMode_ == PICK_LIGHTS || pickMode_ == PICK_FLUID)
         {
             Drawable* drawable = 0;
             PODVector<RayQueryResult> results;
@@ -2807,27 +2811,43 @@ void MapEditorLibImpl::Update(float timeStep)
 
             if (results.Size() > 0)
             {
-                // Find the smallest drawable
-                float lastarea = M_INFINITY;
-                for (unsigned i=0; i < results.Size(); i++)
+                if (pickMode_ == PICK_FLUID)
                 {
-                    Drawable* d = results[i].drawable_;
-                    if (d->IsInstanceOf<ObjectTiled>() || d->IsInstanceOf<RenderShape>() || d->IsInstanceOf<DrawableScroller>() || d->IsInstanceOf<ScrollingShape>())
-                        continue;
-
-                    // Keep selected drawable if is in RayQuery Results.
-                    if (selectedDrawable_ == d)
+                    for (RayQueryResult& result : results)
                     {
-                        drawable = selectedDrawable_;
-                        break;
+                        if (result.drawable_->IsInstanceOf<WaterLayer>())
+                        {
+                            drawable = result.drawable_;
+                            break;
+                        }
                     }
+                }
+                else
+                {
+                    // Find the smallest drawable
+                    float lastarea = M_INFINITY-1.f;
+                    for (unsigned i=0; i < results.Size(); i++)
+                    {
+                        Drawable* d = results[i].drawable_;
+                        if (d->IsInstanceOf<ObjectTiled>() || d->IsInstanceOf<RenderShape>() ||
+                            d->IsInstanceOf<DrawableScroller>() || d->IsInstanceOf<ScrollingShape>() ||
+                            d->IsInstanceOf<WaterLayer>())
+                            continue;
 
-                    float newarea = d->GetWorldArea2D();
-                    if (IsNaN(newarea) || newarea == M_INFINITY || newarea == 0.f || newarea >= lastarea)
-                        continue;
+                        // Keep selected drawable if is in RayQuery Results.
+                        if (selectedDrawable_ == d)
+                        {
+                            drawable = selectedDrawable_;
+                            break;
+                        }
 
-                    lastarea = newarea;
-                    drawable = d;
+                        float newarea = d->GetWorldArea2D();
+                        if (IsNaN(newarea) || newarea > M_INFINITY-1.f || newarea == 0.f || newarea >= lastarea)
+                            continue;
+
+                        lastarea = newarea;
+                        drawable = d;
+                    }
                 }
             }
 
@@ -3242,6 +3262,9 @@ void MapEditorLibImpl::SelectObject(CollisionShape2D* shape)
 
 void MapEditorLibImpl::SelectObject(RenderShape* rendershape, RenderCollider* collider)
 {
+    if (!collider)
+        return;
+
     selectedDrawable_ = 0;
     selectedShape_ = 0;
     selectedRenderShape_ = rendershape;
