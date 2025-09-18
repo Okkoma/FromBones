@@ -136,6 +136,8 @@ struct WaterLayerData
 
 class WaterLayer : public Drawable2D
 {
+    URHO3D_OBJECT(WaterLayer, Drawable2D);
+    
     friend struct WaterLine;
 
 public:
