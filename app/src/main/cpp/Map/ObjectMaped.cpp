@@ -433,6 +433,12 @@ void ObjectMaped::SetMapDataPoint(int x)
         ShortIntVector2 mpoint(dataId_, fixedObjeMapedPointY);
         SetMapData(MapStorage::GetMapDataAt(mpoint));
 
+        if (!mapData_)
+        {
+            URHO3D_LOGERRORF("ObjectMaped() - SetMapDataPoint : dataId_=%d createMode=%d ... no MapData !", x, info_.createmode_);
+            return;
+        }
+
         // always clear mapdata sections if mode!=CREATEFROMMAPDATA
         if (info_.createmode_ != CREATEFROMMAPDATA)
             mapData_->Clear();
@@ -476,12 +482,16 @@ void ObjectMaped::CreateFrom(const ObjectMapedInfo& info) //int width, int heigh
     if (info_.createmode_ == CREATEFROMMAPDATA)
     {
         SetMapDataPoint(info.rect_.top_);
+        if (!mapData_)
+            return;
     }
     else if (info.createmode_ == CREATEFROMMAP)
     {
         info_.rect_ = info.rect_;
 
         SetMapDataPoint();
+        if (!mapData_)
+            return;
 
         mapData_->width_ = info_.rect_.Width()+1;
         mapData_->height_ = info_.rect_.Height()+1;
@@ -503,6 +513,8 @@ void ObjectMaped::CreateFrom(const ObjectMapedInfo& info) //int width, int heigh
         SetPhysicEnabled(mapModel_->hasPhysics_);
 
         SetMapDataPoint();
+        if (!mapData_)
+            return;
 
         mapData_->width_ = info.rect_.left_;
         mapData_->height_ = info.rect_.top_;
