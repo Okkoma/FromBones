@@ -643,7 +643,7 @@ void Objective::Update(unsigned owner)
             actions_[i].Execute(actor, mission_, data_->actionDatas_[i]);
     }
 
-    URHO3D_LOGINFOF("Objective() - Update : mission=%s(%u) state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
+    URHO3D_LOGDEBUGF("Objective() - Update : mission=%s(%u) state=%s(%d) attribut=%s qty=%u/%u numconds=%u",
                      mission_->GetMissionData() ? mission_->GetMissionData()->name_.CString() : "unamed", mission_->GetID(), GoalStateNames_[state_], 
                      state_, GOT::GetType(StringHash(attribut_)).CString(), elapsedQty_, quantity_, numConditions_);
 }
