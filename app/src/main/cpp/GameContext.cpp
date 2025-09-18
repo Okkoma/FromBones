@@ -1432,27 +1432,7 @@ void GameContext::SetMouseVisible(bool uistate, bool osstate, bool lockstate)
 
 void GameContext::SetRenderDebug(bool enable)
 {
-//    if (!gameConfig_.debugRenderEnabled_)
-//        return;
-
-    DrawDebug_ = enable;
-
-//    if (stateManager_)
-//    {
-//        const String& stateId = stateManager_->GetActiveState()->GetStateId();
-//        if (stateId == "Play")
-//        {
-//            PlayState* playstate = (PlayState*)stateManager_->GetActiveState();
-//            if (DrawDebug_ && rootScene_->GetOrCreateComponent<DebugRenderer>())
-//            {
-//                playstate->SubscribeToEvent(E_POSTRENDERUPDATE, new Urho3D::EventHandlerImpl<PlayState>(playstate, &PlayState::OnPostRenderUpdate));
-//            }
-//            else
-//            {
-//                playstate->UnsubscribeFromEvent(E_POSTRENDERUPDATE);
-//            }
-//        }
-//    }
+    DrawDebug_ = gameConfig_.debugRenderEnabled_ ? enable : false;
 }
 
 void GameContext::ResetLuminosity()

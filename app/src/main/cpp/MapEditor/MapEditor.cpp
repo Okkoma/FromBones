@@ -108,8 +108,7 @@ void MapEditor::Start()
     GameContext::Get().UnsubscribeFromEvent(E_SCENEUPDATE);
     GameContext::Get().UnsubscribeFromEvent(E_MOUSEMOVE);
 
-    GameContext::Get().gameConfig_.debugRenderEnabled_ = true;
-//    GameContext::Get().rootScene_->GetOrCreateComponent<DebugRenderer>(LOCAL);
+    GameContext::Get().rootScene_->GetOrCreateComponent<DebugRenderer>(LOCAL);
 
     SubscribeToEvents();
 

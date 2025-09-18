@@ -2466,8 +2466,9 @@ void OptionState::HandleRenderShapesChanged(StringHash eventType, VariantMap& ev
 
 void OptionState::HandleRenderDebugChanged(StringHash eventType, VariantMap& eventData)
 {
-    if (optionParameters_[OPTION_RenderDebug].control_->GetSelection() != GameContext::Get().DrawDebug_)
+    if (optionParameters_[OPTION_RenderDebug].control_->GetSelection() != GameContext::Get().gameConfig_.debugRenderEnabled_)
     {
+        GameContext::Get().gameConfig_.debugRenderEnabled_ = optionParameters_[OPTION_RenderDebug].control_->GetSelection();
         GameContext::Get().SetRenderDebug(optionParameters_[OPTION_RenderDebug].control_->GetSelection());
     }
 }
