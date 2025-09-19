@@ -1,4 +1,9 @@
 Todos:
+    ✔ 19/09/2025 : ObjectMaped - Chateau ambulant (Moving Castle) : l'ObjectTiled ne suit pas le Physics
+        => ObjectMaped utilise plusieurs nodes (node_, nodeStatic_(child), nodeFurnitures_(child)) et nodeStatic_ contient le RigidBody2D
+        ==> seulement ObjectTiled est sur node_ et souscrit sur les changements de position sur node_.
+        ==> solution : ObjectMaped souscrit à nodeStatic_ et effectue l'alignement des positions des nodes.
+
     ☐ 10/05/2025 : WORLD - lors de l'ajout/supression de tiles, la génération de valeur pour le passage FRONTVIEW/INNERVIEW n'est pas 100% fonctionnelle    
     ☐ 10/05/2025 : WORLD - la simulation du waterlayer n'est pas satisfaisante sur les bords de tiles alors que l'on doit avoir une cascade fine
 

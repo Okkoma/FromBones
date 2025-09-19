@@ -529,6 +529,16 @@ void ObjectTiled::SetRenderPaused(int viewport, bool state)
 //    URHO3D_LOGINFOF("ObjectTiled() - SetRenderPaused %s(%u) : viewport=%d ispaused=%s !", node_ ? node_->GetName().CString() : "none", node_ ? node_->GetID() : 0, viewport, state ? "true":"false");
 }
 
+void ObjectTiled::SetDynamic(bool state)
+{
+    isDynamic_ = state;
+}
+
+void ObjectTiled::SetLayerModifier(int modifier)
+{
+    layermodifier_ = modifier;
+}
+
 void ObjectTiled::SetDirty(int viewport)
 {
     if (IsEnabledEffective() && skinData_)
@@ -704,16 +714,13 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
         if (toupdate)
         {
             if (viewportdata.visibleRect_ == IntRect::ZERO)
-                URHO3D_LOGERRORF("ObjectTiled() - GetWorldBoundingBox2D : node=%s no rect=%s", node_->GetName().CString(), viewportdata.visibleRect_.ToString().CString());
+                URHO3D_LOGWARNINGF("ObjectTiled() - GetWorldBoundingBox2D : node=%s no rect=%s", node_->GetName().CString(), viewportdata.visibleRect_.ToString().CString());
 
             viewportdata.sourceBatchDirty_ = true;
             viewportdata.sourceBatchFeatureDirty_ = true;
 
             if (isChunked_)
                 UpdateChunksVisiblity(viewportdata);
-
-//            URHO3D_LOGINFOF("ObjectTiled() - GetWorldBoundingBox2D : node=%s change in rect=%s (last=%s)",
-//                            node_->GetName().CString(), viewportdata.visibleRect_.ToString().CString(), viewportdata.lastVisibleRect_.ToString().CString());
         }
     }
 
@@ -726,19 +733,17 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
     return worldBoundingBox_;
 }
 
-void ObjectTiled::OnWorldBoundingBoxUpdate()
+void ObjectTiled::UpdateVerticesPositions(Node* node)
 {
-    worldBoundingBox_ = boundingBox_.Transformed(node_->GetWorldTransform2D());
-
     if (isDynamic_)
-    {
+    {      
 #ifndef USE_CHUNKBATCH
         for (unsigned i=0; i < viewBatchesTable_.Size(); i++)
-            viewBatchesTable_[i].UpdateVerticePositions(node_);
+            viewBatchesTable_[i].UpdateVerticePositions(node);
 #else
         for (unsigned i=0; i < chunkBatches_.Size(); i++)
             for (unsigned j=0; j < chunkBatches_[i].Size(); j++)
-                chunkBatches_[i][j].UpdateVerticePositions(node_);
+                chunkBatches_[i][j].UpdateVerticePositions(node);
 //        UpdateViews();
 #endif
 
@@ -746,9 +751,15 @@ void ObjectTiled::OnWorldBoundingBoxUpdate()
             viewportDatas_[i].sourceBatchDirty_ = true;
 
 #ifdef DUMP_OBJECTTILED_UPDATEINFOS
-        URHO3D_LOGINFOF("ObjectTiled() - OnWorldBoundingBoxUpdate : node=%s(%u) dynamic update vertices !", node_->GetName().CString(), node_->GetID());
+        URHO3D_LOGINFOF("ObjectTiled() - UpdateVerticesPositions : ref node=%s(%u) dynamic update vertices !", node->GetName().CString(), node->GetID());
 #endif
     }
+}
+
+void ObjectTiled::OnWorldBoundingBoxUpdate()
+{
+    worldBoundingBox_ = boundingBox_.Transformed(node_->GetWorldTransform2D());
+    UpdateVerticesPositions(node_);
 }
 
 
@@ -3201,7 +3212,7 @@ void ObjectTiled::UpdateSourceBatchesToRender(ViewportRenderData& viewportdata)
 
     if (!sourceBatchReady_)
     {
-//        URHO3D_LOGINFOF("ObjectTiled() - UpdateSourceBatchesToRender %s ... not ready !", node_->GetName().CString());
+//        URHO3D_LOGWARNINGF("ObjectTiled() - UpdateSourceBatchesToRender %s(%u) ... not ready !", node_->GetName().CString(), node_->GetID());
         return;
     }
 

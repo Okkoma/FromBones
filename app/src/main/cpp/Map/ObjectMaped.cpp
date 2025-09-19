@@ -871,10 +871,16 @@ void ObjectMaped::HandleSet(StringHash eventType, VariantMap& eventData)
 
         node_->SetEnabled(true);
 
+        if (objectTiled_->isDynamic_)
+        {
+            nodeStatic_->AddListener(this);
+            URHO3D_LOGDEBUGF("ObjectMaped() - HandleSet : node=%s(%u) dynamic adds a listener", node_->GetName().CString(), node_->GetID());
+        }
+
         SetStatus(Available);
         Dump();
 
-        URHO3D_LOGERRORF("ObjectMaped() - HandleSet : node=%s(%u) ... status=%s(%d) ... OK !", node_->GetName().CString(), node_->GetID(), mapStatusNames[mapStatus_.status_], mapStatus_.status_);
+        URHO3D_LOGDEBUGF("ObjectMaped() - HandleSet : node=%s(%u) ... status=%s(%d) ... OK !", node_->GetName().CString(), node_->GetID(), mapStatusNames[mapStatus_.status_], mapStatus_.status_);
     }
     }
 }
@@ -1091,6 +1097,21 @@ void ObjectMaped::OnNodeSet(Node* node)
     else
     {
         UnsubscribeFromAllEvents();
+    }
+}
+
+void ObjectMaped::OnMarkedDirty(Node* node)
+{
+    // align node children with node_
+    if (!dirtyRecurse_ && nodeStatic_ && node == nodeStatic_)
+    {
+        dirtyRecurse_++;
+        Matrix2x3 transform = nodeStatic_->GetWorldTransform2D();
+        nodeStatic_->SetTransform2D(Matrix2x3::IDENTITY);
+        nodeFurniture_->SetTransform2D(Matrix2x3::IDENTITY);
+        node_->SetWorldTransform2D(transform);
+        objectTiled_->UpdateVerticesPositions(node_);
+        dirtyRecurse_ = 0;
     }
 }
 

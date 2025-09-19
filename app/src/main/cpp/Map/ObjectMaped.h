@@ -58,6 +58,8 @@ protected:
     virtual void OnTileModified(int x, int y);
     virtual void OnPhysicsSetted();
     virtual bool OnUpdateMapData(HiresTimer* timer);
+    
+    virtual void OnMarkedDirty(Node* node);
 
 private:
     void CreateWheel(Node* root, Node* vehicleNode, const Vector2& center, float scale);
@@ -120,7 +122,7 @@ private:
     int currentViewId_;
     bool physicsEnabled_;
     bool switchViewZEnabled_;
-
+    int dirtyRecurse_{0};
     WeakPtr<Node> vehicleWheels_;
 
     static WorldMapPosition sObjectMapPositionResult_;

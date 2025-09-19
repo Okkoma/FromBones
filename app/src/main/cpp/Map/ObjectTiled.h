@@ -148,15 +148,8 @@ public :
     void SetChunked(unsigned char numx, unsigned char numy);
     void SetChunked(ChunkInfo* chinfo, bool shared=true);
     void SetHotSpot(const Vector2& hotspot);
-    void SetDynamic(bool state)
-    {
-        isDynamic_ = state;
-    }
-    void SetLayerModifier(int modifier)
-    {
-        layermodifier_ = modifier;
-    }
-
+    void SetDynamic(bool state);
+    void SetLayerModifier(int modifier);
     void SetDirty(int viewport=-1);
 
     void SetCurrentViewZ(int viewport, int viewZindex=0, bool forced=false);
@@ -167,6 +160,7 @@ public :
     bool UpdateViewBatches(int numViewZ, HiresTimer* timer, const long long& delay);
     bool UpdateDirtyChunks(HiresTimer* timer, const long long& delay);
     void UpdateViews();
+    void UpdateVerticesPositions(Node* node);
 
     /// NOTE : if problem in fluid check if urho3D drawable2d has this method as virtual
     virtual BoundingBox GetWorldBoundingBox2D();
