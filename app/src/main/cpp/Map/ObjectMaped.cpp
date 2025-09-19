@@ -431,7 +431,7 @@ void ObjectMaped::SetMapDataPoint(int x)
 
         // Get or Create the mapdata for the point
         ShortIntVector2 mpoint(dataId_, fixedObjeMapedPointY);
-        SetMapData(MapStorage::GetMapDataAt(mpoint));
+        SetMapData(MapStorage::GetMapDataAt(mpoint, true));
 
         if (!mapData_)
         {

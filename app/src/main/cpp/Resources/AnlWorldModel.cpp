@@ -1568,7 +1568,7 @@ void MapGenThread(const WorkItem* item, unsigned threadIndex)
 
         FeatureType feat;
 
-        if (!info.genStatus_->features_[imodule])
+        if (info.genStatus_->features_.Size() <= imodule || !info.genStatus_->features_[imodule])
         {
             URHO3D_LOGWARNINGF("MapGenThread : thread=%d ... %s ... ERROR no featuremap for module=%u(iid=%u) ... skip!", info.ithread_, info.genStatus_->mappoint_.ToString().CString(), imodule, cindex);
             continue;
@@ -1646,7 +1646,26 @@ void MapGenThread(const WorkItem* item, unsigned threadIndex)
 //    URHO3D_LOGINFOF("MapGenThread : thread=%d ... %s ... timer=%d msec ... OK !", info.ithread_, info.genStatus_->mappoint_.ToString().CString(), info.time_);
 }
 
-inline bool CreateMapGenWorkInfos(Context* context, MapGeneratorStatus& genStatus, List<MapGenWorkInfo>& moduleInfos, anl::CKernel& kernel, Vector<unsigned int>& renderableModules)
+bool MapGenWorksFinished(List<MapGenWorkInfo>& moduleInfos)
+{
+    for (List<MapGenWorkInfo>::Iterator it = moduleInfos.Begin(); it != moduleInfos.End(); ++it)
+        if (!it->finished_)
+            return false;
+    return true;
+}
+
+PODVector<MapGenWorkInfo*> works_;
+
+int GetFinishedMapGenWorks(List<MapGenWorkInfo>& moduleInfos, PODVector<MapGenWorkInfo*>& works)
+{
+    works.Clear();
+    for (List<MapGenWorkInfo>::Iterator it = moduleInfos.Begin(); it != moduleInfos.End(); ++it)
+        if (it->finished_)
+            works.Push(&*it);
+    return works.Size();
+}
+
+bool CreateMapGenWorkInfos(Context* context, MapGeneratorStatus& genStatus, List<MapGenWorkInfo>& moduleInfos, anl::CKernel& kernel, Vector<unsigned int>& renderableModules)
 {
     WorkQueue* queue = GameContext::Get().gameWorkQueue_;
 
@@ -1658,38 +1677,35 @@ inline bool CreateMapGenWorkInfos(Context* context, MapGeneratorStatus& genStatu
 
 //    URHO3D_LOGINFOF("AnlWorldModel() - CreateMapGenWorkInfos : use numWorkItems=%u renderables=%u ... ", numthreads, renderableModules.Size());
 
-    // create the datas for the threads
-    if (moduleInfos.Size())
+    if (!MapGenWorksFinished(moduleInfos))
     {
-        // check if the works are finished
-        for (List<MapGenWorkInfo>::Iterator it = moduleInfos.Begin(); it != moduleInfos.End(); ++it)
+        anl::CacheMap& cache = anl::CNoiseExecutor::GetCache(MAPGENSLOT);
+        if (cache.cachesize_ < genStatus.width_ * genStatus.height_)
         {
-            if (!it->finished_)
-            {
-                URHO3D_LOGERRORF("AnlWorldModel() - CreateMapGenWorkInfos : Previous Works Unfinished ... Don't Add new Works  : TODO CORRECT THIS TO ALLOW ADDING WORKS !");
-                return false;
-            }
+            anl::CNoiseExecutor::ResizeCache(kernel, MAPGENSLOT, genStatus.width_, genStatus.height_, numthreads);
+            URHO3D_LOGWARNINGF("AnlWorldModel() - CreateMapGenWorkInfos : unfinished works with a smaller cache size (prevsize:%u -> newsize:%u) ... resize cache !", cache.cachesize_, genStatus.width_ * genStatus.height_);
         }
-
-//        URHO3D_LOGINFOF("AnlWorldModel() - CreateMapGenWorkInfos : mpoint=%s map=%s(%u) ... moduleInfos.Size=%u ... works finished !",
-//                        genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none", genStatus.map_, moduleInfos.Size());
     }
+    else
+        anl::CNoiseExecutor::ResizeCache(kernel, MAPGENSLOT, genStatus.width_, genStatus.height_, numthreads);
 
-    anl::CNoiseExecutor::ResizeCache(kernel, MAPGENSLOT, genStatus.width_, genStatus.height_, numthreads);
     int moduleysize = std::floor(genStatus.height_ / numthreads);
 
-    if (moduleInfos.Size() < numthreads)
-        moduleInfos.Resize(numthreads);
-
-    int thread = 0;
-    for (List<MapGenWorkInfo>::Iterator it = moduleInfos.Begin(); it != moduleInfos.End(); ++it, ++thread)
+    int numfinishedWorks = GetFinishedMapGenWorks(moduleInfos, works_);
+    while (numfinishedWorks++ < numthreads)
     {
-        MapGenWorkInfo& info = *it;
+        moduleInfos.Push(MapGenWorkInfo());
+        works_.Push(&moduleInfos.Back());
+    }
+
+    for (int ithread = 0; ithread < numthreads; ithread++)
+    {
+        MapGenWorkInfo& info = *works_[ithread];
         info.finished_ = false;
         info.time_ = 0;
-        info.ithread_ = thread;
-        info.ystart_ = thread * moduleysize;
-        info.ysize_ = thread < numthreads-1 ? moduleysize : genStatus.height_-(numthreads-1)*moduleysize;
+        info.ithread_ = ithread;
+        info.ystart_ = ithread * moduleysize;
+        info.ysize_ = ithread < numthreads-1 ? moduleysize : genStatus.height_-(numthreads-1)*moduleysize;
         info.kernel_ = &kernel;
         info.modules_ = &renderableModules;
         info.genStatus_ = &genStatus;
@@ -1698,18 +1714,19 @@ inline bool CreateMapGenWorkInfos(Context* context, MapGeneratorStatus& genStatu
     genStatus.Dump();
 
     // Add WorkerItems to WorkQueue
-    for (List<MapGenWorkInfo>::Iterator it = moduleInfos.Begin(); it != moduleInfos.End(); ++it)
+    for (int ithread = 0; ithread < numthreads; ithread++)
     {
         SharedPtr<WorkItem> item = queue->GetFreeItem();
         item->sendEvent_ = true;
         item->priority_ = ANL_WORKITEM_PRIORITY;
         item->workFunction_ = MapGenThread;
-        item->aux_ = &(*it);
+        item->aux_ = works_[ithread];
         queue->AddWorkItem(item);
     }
 
     queue->Resume();
 
+    URHO3D_LOGINFOF("CreateMapGenWorkInfos() - size=%u", moduleInfos.Size());
     return true;
 }
 #endif
@@ -1719,7 +1736,6 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
     int& imodule = genStatus.mapcount_[MAP_FUNC3];
     int& iprogress = genStatus.mapcount_[MAP_FUNC4];
     int& time = genStatus.time_;
-    int starttime = timer ? timer->GetUSec(false) / 1000 : 0;
 
 //    URHO3D_LOGERRORF("AnlWorldModel() - GenerateModules : ANL%s %s ... imodule=%d iprogress=%d  ...", ANLVersionNameStr[anlVersion_], GetName().CString(), imodule, iprogress);
 
@@ -1750,12 +1766,6 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
             anl::CKernel& kernel = *((anl::CKernel*)kernel_);
 
 #ifdef ACTIVE_WORLD2D_THREADING
-//			if (!AreThreadFinished())
-//            {
-//                URHO3D_LOGERRORF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... wait for thread allocation ... ",
-//                            genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none", genStatus.map_);
-//                return false;
-//            }
             if (!CreateMapGenWorkInfos(GetContext(), genStatus, mapGenWorkInfos_, kernel, renderableModules_))
             {
                 URHO3D_LOGERRORF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... wait for thread allocation ... ",
@@ -1768,10 +1778,6 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
             URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... numInstructions=%u numRenderableModules=%u ... ",
                             genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none",
                             genStatus.map_, kernel.getInstructions().Size(), renderableModules_.Size());
-
-//            printf("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... numInstructions=%u numRenderableModules=%u ... ",
-//                            genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none",
-//                            genStatus.map_, kernel.getInstructions().size(), renderableModules_.Size());
 #else
             anl::CNoiseExecutor::ResizeCache(kernel, MAPGENSLOT, genStatus.width_, genStatus.height_, 1);
 
@@ -1807,7 +1813,7 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
 #endif
         }
 
-        time = 0;
+        time = timer ? timer->GetUSec(false) / 1000 : 0;
         iprogress = 0;
         imodule++;
     }
@@ -1820,7 +1826,7 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
                 if (imodule > renderableModules_.Size())
                 {
                     imodule = 0;
-                    time += (timer ? timer->GetUSec(false) / 1000 : 0) - starttime;
+                    time = (timer ? timer->GetUSec(false) / 1000 : 0) - time;
                     URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : %s ... renderableModules=%u ... in %d msec ... OK !",
                                     GetName().CString(), renderableModules_.Size(), time);
                     return true;
@@ -1858,7 +1864,6 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
                     if (TimeOver(timer))
                     {
                         iprogress = y+1;
-                        time += (timer ? timer->GetUSec(false) / 1000 : 0) - starttime;
                         URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : %s ... renderableModule=%u/%u ... timer=%d/%d msec ... breakatY=%u !",
                                         GetName().CString(), imodule, renderableModules_.Size(), timer ? timer->GetUSec(false) / 1000 : 0, delay/1000, y);
 
@@ -1889,15 +1894,13 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
             {
                 iprogress = 0;
                 imodule = 0;
+                int maxtime = 0;
                 for (List<MapGenWorkInfo>::Iterator it = mapGenWorkInfos_.Begin(); it != mapGenWorkInfos_.End(); ++it)
-                    time = Max(time, it->time_);
-                time -= starttime;
-
+                    maxtime = Max(maxtime, it->time_);
+                time = maxtime - time;
+                
                 URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... Threads Finished ... in %d msec ... OK !",
                                  genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none", genStatus.map_, time);
-
-//                printf("AnlWorldModel() - GenerateModules : mpoint=%s map=%s(%u) ... Threads Finished ... in %d msec ... OK !",
-//                                genStatus.mappoint_.ToString().CString(), genStatus.map_ ? genStatus.map_->GetMapPoint().ToString().CString() : "none", genStatus.map_, time);
                 return true;
             }
 #else
@@ -1906,7 +1909,7 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
                 if (imodule > renderableModules_.Size())
                 {
                     imodule = 0;
-                    time += (timer ? timer->GetUSec(false) / 1000 : 0) - starttime;
+                    time = (timer ? timer->GetUSec(false) / 1000 : 0) - time;
                     URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : %s ... renderableModules=%u ... in %d msec ... OK !",
                                     GetName().CString(), renderableModules_.Size(), time);
                     return true;
@@ -1937,8 +1940,6 @@ bool AnlWorldModel::GenerateModules(MapGeneratorStatus& genStatus, HiresTimer* t
                     if (TimeOver(timer))
                     {
                         iprogress = y;
-                        time += (timer ? timer->GetUSec(false) / 1000 : 0) - starttime;
-
 //                        URHO3D_LOGINFOF("AnlWorldModel() - GenerateModules : %s ... renderableModule=%u/%u ... timer=%d/%d msec ... breakatY=%u !",
 //                            GetName().CString(), imodule, renderableModules_.Size(), timer ? timer->GetUSec(false) / 1000 : 0, delay/1000, y);
 
@@ -2079,24 +2080,18 @@ void AnlWorldModel::HandleWorkItemComplete(StringHash eventType, VariantMap& eve
     if (!static_cast<Object*>(item->aux_)->IsInstanceOf<MapGenWorkInfo>())
         return;
 
+    // Mark this work finished
     MapGenWorkInfo* info = static_cast<MapGenWorkInfo*>(item->aux_);
-
-//    URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... %s ... thread=%d ysize=%d finished in %d msec !", info->genStatus_->mappoint_.ToString().CString(), info->ithread_, info->ysize_, info->time_);
-
-    // Reset workinfo
     info->finished_ = true;
+    URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... %s ... thread=%d ysize=%d finished in %d msec !", info->genStatus_->mappoint_.ToString().CString(), info->ithread_, info->ysize_, info->time_);
 
-    // the WorkItems are not all finished => continue
-    for (List<MapGenWorkInfo>::ConstIterator it = mapGenWorkInfos_.Begin(); it != mapGenWorkInfos_.End(); ++it)
+
+    //  All WorkItems are finished => stop 
+    if (MapGenWorksFinished(mapGenWorkInfos_))
     {
-        if (!it->finished_)
-            return;
+        URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... All %u WorkItems Finished !", mapGenWorkInfos_.Size());
+        UnsubscribeFromEvent(GameContext::Get().gameWorkQueue_, E_WORKITEMCOMPLETED);
     }
-
-    //  All WorkItems are finished => stop
-//    URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... All WorkItems Finished !");
-
-    UnsubscribeFromEvent(GameContext::Get().gameWorkQueue_, E_WORKITEMCOMPLETED);
 }
 
 void AnlWorldModel::Clear()
