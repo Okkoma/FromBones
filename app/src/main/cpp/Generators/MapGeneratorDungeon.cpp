@@ -676,8 +676,8 @@ bool MapGeneratorDungeon::MakeDungeon(MapGeneratorStatus& genStatus, int x, int 
 
     SetConstRoomInfos();
 
-    dinfo_.entry_.x_ = x;
-    dinfo_.entry_.y_ = y;
+    dinfo_.entry_.x_ = x = Clamp(x, 0, xSize_-1);
+    dinfo_.entry_.y_ = y = Clamp(y, 0, ySize_-1);
 
     // Make one room at x y to start
     if (!MakeRoom(genStatus, -1, x, y, direction, false, false, true))
@@ -1643,7 +1643,7 @@ bool MapGeneratorDungeon::MakeRandomWalk(RoomInfo& room)
 	n = (room.size_.x_ * room.size_.y_) * coverage;
 	dx = dy = straight = 0;
 
-	if (room.entry_.x_ == -1)
+    if (room.entry_.x_ == -1)
     {
         x = room.rect_.left_ + 1 + Random.Get() % (room.size_.x_ - 2);
         y = room.rect_.top_ +  1 + Random.Get() % (room.size_.y_ - 2);
@@ -1667,7 +1667,7 @@ bool MapGeneratorDungeon::MakeRandomWalk(RoomInfo& room)
 		if (straight == 0)
 		{
 		    r = Random.Get(5);
-		    if (r > 3)
+            if (r > 3)
             {
                 straight = 4 + Random.Get(8);
             }
