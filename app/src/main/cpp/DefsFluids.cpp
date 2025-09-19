@@ -543,7 +543,13 @@ void FluidDatas::SetCells()
         if (indexFluidZ_ < mapdata->fluidValues_.Size())
         {
             const PODVector<FeatureType>& fluidCellValues = mapdata->fluidValues_[indexFluidZ_];
-
+            if (fluidCellValues.Size() != size)
+            {
+                // TODO : Fix it
+                URHO3D_LOGERRORF("FluidDatas() - SetCells : fluidvalues not mapsized !");
+                return;
+            }
+            
             URHO3D_LOGINFOF("FluidDatas() - SetCells : index=%d with fluidvalues !", indexFluidZ_);
 
             if (checkMap_)
