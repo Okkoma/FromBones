@@ -110,7 +110,7 @@ MapColliderGenerator::MapColliderGenerator(World2DInfo* info) :
     delayUpdateUsec_(World2DInfo::delayUpdateUsec_),
     debugTraceOn_(false)
 {
-    URHO3D_LOGINFOF("MapColliderGenerator()");
+    URHO3D_LOGDEBUGF("MapColliderGenerator()");
 
     info_ = info;
     atlas_ = info->atlas_;
@@ -192,7 +192,7 @@ bool MapColliderGenerator::GeneratePhysicCollider(MapBase* map, HiresTimer* time
     {
         if (map_->GetType() != ObjectMaped::GetTypeStatic())
         {
-            URHO3D_LOGERRORF("MapColliderGenerator() - GeneratePhysicCollider ... map=%s indz=%d indv=%d ... Generator blocked by map=%s ... unblock !",
+            URHO3D_LOGDEBUGF("MapColliderGenerator() - GeneratePhysicCollider ... map=%s indz=%d indv=%d ... Generator blocked by map=%s ... unblock !",
                              map->GetMapPoint().ToString().CString(), collider.params_->indz_, collider.params_->indv_, map_->GetMapPoint().ToString().CString());
 
             // reinitialize MapCounter for the current map that blocks the generator
@@ -247,7 +247,7 @@ bool MapColliderGenerator::GeneratePhysicCollider(MapBase* map, HiresTimer* time
 
             GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, true);
 
-            URHO3D_LOGINFOF("MapColliderGenerator() - GeneratePhysicCollider ... viewZ=%d viewid=%s(%d) colliderZ=%d(%d) colliderIndZV=%d,%d colliderMode=%s shapeType=%s",
+            URHO3D_LOGDEBUGF("MapColliderGenerator() - GeneratePhysicCollider ... viewZ=%d viewid=%s(%d) colliderZ=%d(%d) colliderIndZV=%d,%d colliderMode=%s shapeType=%s",
                             viewZ, ViewManager::GetViewName(viewId).CString(), viewId, colliderZ, collider.params_->colliderz_,
                             collider.params_->indz_, collider.params_->indv_, ColliderModeStr[collider.params_->mode_], ShapeTypeStr[collider.params_->shapetype_]);
 
@@ -385,7 +385,7 @@ bool MapColliderGenerator::GenerateRenderCollider(MapBase* map, HiresTimer* time
     {
         if (map_->GetType() != ObjectMaped::GetTypeStatic())
         {
-            URHO3D_LOGERRORF("MapColliderGenerator() - GenerateRenderCollider ... map=%s indz=%d indv=%d ... Generator blocked by map=%s ... unblock !", map->GetMapPoint().ToString().CString(), collider.params_->indz_, collider.params_->indv_, map_->GetMapPoint().ToString().CString());
+            URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateRenderCollider ... map=%s indz=%d indv=%d ... Generator blocked by map=%s ... unblock !", map->GetMapPoint().ToString().CString(), collider.params_->indz_, collider.params_->indv_, map_->GetMapPoint().ToString().CString());
 
             // reinitialize MapCounter for the current map that blocks the generator
             if (map_->GetStatus() == Creating_Map_Colliders && map_->GetMapCounter(MAP_GENERAL) == 1 && map_->GetMapCounter(MAP_FUNC1) == 2)
@@ -415,7 +415,7 @@ bool MapColliderGenerator::GenerateRenderCollider(MapBase* map, HiresTimer* time
     if (!timer || mcount3 > 4)
         mcount3 = 0;
 
-//    URHO3D_LOGERRORF("MapColliderGenerator() - GenerateRenderCollider ... map=%s mcount3=%d", map->GetMapPoint().ToString().CString(), mcount3);
+//    URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateRenderCollider ... map=%s mcount3=%d", map->GetMapPoint().ToString().CString(), mcount3);
 
     if (mcount3 == 0)
     {
@@ -440,7 +440,7 @@ bool MapColliderGenerator::GenerateRenderCollider(MapBase* map, HiresTimer* time
             int viewId = map->GetViewIDs(colliderZ)[collider.params_->indv_];
 
             GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, true);
-            URHO3D_LOGINFOF("MapColliderGenerator() - GenerateRenderCollider ... viewZ=%d viewid=%s(%d) colliderZ=%d(%d) colliderIndZV=%d,%d colliderMode=%s",
+            URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateRenderCollider ... viewZ=%d viewid=%s(%d) colliderZ=%d(%d) colliderIndZV=%d,%d colliderMode=%s",
                             viewZ, ViewManager::GetViewName(viewId).CString(), viewId, colliderZ, collider.params_->colliderz_,
                             collider.params_->indz_, collider.params_->indv_, ColliderModeStr[collider.params_->mode_]);
             GAME_SETGAMELOGENABLE(GAMELOG_MAPCREATE, false);
@@ -501,7 +501,7 @@ bool MapColliderGenerator::GenerateRenderCollider(MapBase* map, HiresTimer* time
         map_ = 0;
     }
 
-//    URHO3D_LOGERRORF("MapColliderGenerator() - GenerateRenderCollider ... map=%s indz=%d indv=%d numblocks=%u... OK !", map->GetMapPoint().ToString().CString(), collider.params_->indz_, collider.params_->indv_, numBlocks_);
+//    URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateRenderCollider ... map=%s indz=%d indv=%d numblocks=%u... OK !", map->GetMapPoint().ToString().CString(), collider.params_->indz_, collider.params_->indv_, numBlocks_);
 
     return true;
 }
@@ -562,7 +562,7 @@ bool MapColliderGenerator::GenerateWorkMatrix(MapCollider* collider, HiresTimer*
         int& mcount5 = collider->map_->GetMapCounter(MAP_FUNC5);
         int forcedBlockedTileID = collider->params_->shapetype_ != SHT_ALL ? collider->params_->shapetype_ : blockMapBlockedTileID;
 
-        URHO3D_LOGINFOF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
+        URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateWorkMatrix ... colliderMode=%s mcount4=1 mcount5=%d/%d starttimer=%d/%d ...",
                            ColliderModeStr[mode], mcount5, height_, timer ? (int)(timer->GetUSec(false) / 1000) : -1, (int)(World2DInfo::delayUpdateUsec_/1000));
 
         if (mode == FrontMode)
@@ -738,7 +738,7 @@ bool MapColliderGenerator::GenerateWorkMatrix(MapCollider* collider, HiresTimer*
                     }
                 }
 
-                URHO3D_LOGINFOF("MapColliderGenerator() - GenerateWorkMatrix map=%s ... TopBorderBackMode numBorderBlocks_=%u",
+                URHO3D_LOGDEBUGF("MapColliderGenerator() - GenerateWorkMatrix map=%s ... TopBorderBackMode numBorderBlocks_=%u",
                                 collider->map_->GetMapGeneratorStatus().mappoint_.ToString().CString(), numBlocks_);
             }
         }
@@ -1089,7 +1089,7 @@ bool MapColliderGenerator::GenerateBlockInfos(PhysicCollider& collider, HiresTim
                 }
         }
         collider.numShapes_[SHT_BOX] = numBlocks_;
-        URHO3D_LOGINFOF("MapColliderGenerator() : GenerateBlockInfos ... SHT_BOX numBoxes=%u OK !", numBlocks_);
+        URHO3D_LOGDEBUGF("MapColliderGenerator() : GenerateBlockInfos ... SHT_BOX numBoxes=%u OK !", numBlocks_);
     }
 
     if (blockID == BlockChainID)
@@ -1207,7 +1207,7 @@ void MapColliderGenerator::GetUpdatedBlockBoxes(const PhysicCollider& collider, 
         }
     }
 
-//	URHO3D_LOGINFOF("MapColliderGenerator() - GetUpdatedBlockBoxes : update colliderid=%d collidermode=%d x=%d y=%d Boxes ... boxesAdded=%u boxesRemoved=%u ...", collider.id_, mode, x, y, addedBlocks.Size(), removedBlocks.Size());
+//	URHO3D_LOGDEBUGF("MapColliderGenerator() - GetUpdatedBlockBoxes : update colliderid=%d collidermode=%d x=%d y=%d Boxes ... boxesAdded=%u boxesRemoved=%u ...", collider.id_, mode, x, y, addedBlocks.Size(), removedBlocks.Size());
 }
 
 void MapColliderGenerator::GetStartBlockPoint(unsigned* refmap, unsigned* mapblock, const unsigned& refMark, const unsigned& patternMark, const unsigned& index, unsigned& startPoint, unsigned& startBackTrackPoint)
@@ -1531,34 +1531,34 @@ void MapColliderGenerator::AddPointsToSegments(PODVector<Vector2>& segments, POD
             newPoint.x_ = (boundaryCoords.x_ + BlockShape[blockShapeType].min_.x_) * tileWidth_;
             newPoint.y_ = (boundaryCoords.y_ + BlockShape[blockShapeType].min_.y_) * tileHeight_;
             newInfo.side = (LeftSide | BottomSide);
-//				URHO3D_LOGINFOF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
+//				URHO3D_LOGDEBUGF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
             break;
         case 2:
             // Edge Left Top
             newPoint.x_ = (boundaryCoords.x_ + BlockShape[blockShapeType].min_.x_) * tileWidth_;
             newPoint.y_ = (boundaryCoords.y_ + BlockShape[blockShapeType].max_.y_) * tileHeight_;
             newInfo.side = (LeftSide | TopSide);
-//				URHO3D_LOGINFOF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
+//				URHO3D_LOGDEBUGF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
             break;
         case 4:
             // Edge Right Top
             newPoint.x_ = (boundaryCoords.x_ + BlockShape[blockShapeType].max_.x_) * tileWidth_;
             newPoint.y_ = (boundaryCoords.y_ + BlockShape[blockShapeType].max_.y_) * tileHeight_;
             newInfo.side = (RightSide | TopSide);
-//				URHO3D_LOGINFOF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
+//				URHO3D_LOGDEBUGF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
             break;
         case 6:
             // Edge Right Bottom
             newPoint.x_ = (boundaryCoords.x_ + BlockShape[blockShapeType].max_.x_) * tileWidth_;
             newPoint.y_ = (boundaryCoords.y_ + BlockShape[blockShapeType].min_.y_) * tileHeight_;
             newInfo.side = (RightSide | BottomSide);
-//				URHO3D_LOGINFOF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
+//				URHO3D_LOGDEBUGF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
             break;
 
         default:
             // cardinal neighborhood don't add any points
             isPointValid = false;
-//				URHO3D_LOGINFOF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
+//				URHO3D_LOGDEBUGF(" new point : neighbor=%d contactInfo=%d", neighbor, newInfo);
             break;
         }
         if (isPointValid)

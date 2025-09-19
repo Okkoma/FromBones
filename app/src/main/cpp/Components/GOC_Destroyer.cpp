@@ -97,12 +97,12 @@ void GOC_Destroyer::RegisterObject(Context* context)
     URHO3D_ATTRIBUTE("Life Notifier", bool, lifeNotifier_, true, AM_FILE);
     URHO3D_ATTRIBUTE("Buoyancy", float, buoyancy_, 0.f, AM_FILE);
 
-    URHO3D_LOGINFOF("GOC_Destroyer() - RegisterObject : hash=%u ... OK !", GOC_Destroyer::GetTypeStatic().Value());
+    URHO3D_LOGDEBUGF("GOC_Destroyer() - RegisterObject : hash=%u ... OK !", GOC_Destroyer::GetTypeStatic().Value());
 }
 
 void GOC_Destroyer::Reset(bool toActive)
 {
-//    URHO3D_LOGERRORF("GOC_Destroyer() - Reset : %s(%u) toActive=%s enabled=%s nodeEnabled=%s ... ",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - Reset : %s(%u) toActive=%s enabled=%s nodeEnabled=%s ... ",
 //                                node_->GetName().CString(), node_->GetID(), toActive ? "true" : "false", enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false");
 
     if (!body_)
@@ -159,7 +159,7 @@ void GOC_Destroyer::Reset(bool toActive)
         ResetViewZ();
         UnsubscribeFromAllEvents();
 
-//        URHO3D_LOGERRORF("GOC_Destroyer() - Reset : %s(%u) toActive=%s enabled=%s nodeEnabled=%s ... ",
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - Reset : %s(%u) toActive=%s enabled=%s nodeEnabled=%s ... ",
 //                        node_->GetName().CString(), node_->GetID(), toActive ? "true" : "false", enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false");
     }
 }
@@ -177,7 +177,7 @@ void GOC_Destroyer::SetLifeTime(float delay)
     if (lifeTime_ == delay)
         return;
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetLifeTime : %s(%u) time=%f", node_->GetName().CString(), node_->GetID(), delay);
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - SetLifeTime : %s(%u) time=%f", node_->GetName().CString(), node_->GetID(), delay);
     lifeTime_ = delay;
     elapsedTime_ = lifeTime_;
 }
@@ -189,7 +189,7 @@ void GOC_Destroyer::SetEnableLifeTimer(bool enable)
     if (activeTimer_)
     {
         elapsedTime_ = lifeTime_;
-//        URHO3D_LOGINFOF("GOC_Destroyer() - SetEnableLifeTimer : %s(%u) enable_=%s activeTimer_=%s lifetime=%f ... OK !",
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - SetEnableLifeTimer : %s(%u) enable_=%s activeTimer_=%s lifetime=%f ... OK !",
 //                    node_->GetName().CString(), node_->GetID(), enabled_ ? "true" : "false", activeTimer_ ? "true" : "false", lifeTime_);
     }
 
@@ -203,13 +203,13 @@ void GOC_Destroyer::SetEnableLifeNotifier(bool enable)
 
 void GOC_Destroyer::SetEnableUnstuck(bool enable)
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnableUnstuck : %s(%u) checkUnstuck_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - SetEnableUnstuck : %s(%u) checkUnstuck_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
     checkUnstuck_ = enable;
 }
 
 void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
 {
-    URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+    URHO3D_LOGDEBUGF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
 
     worldUpdatePosition_ = enable;
     switchViewEnable_ = body_ ? body_->GetBodyType() != BT_STATIC && !node_->GetComponent<ObjectMaped>() && worldUpdatePosition_ && !delegateNode_ : false;
@@ -223,7 +223,7 @@ void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
         }
         else if (!HasSubscribedToEvent(GetScene(), E_SCENEPOSTUPDATE))
         {
-            URHO3D_LOGINFOF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s Subscribe to Event !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
+            URHO3D_LOGDEBUGF("GOC_Destroyer() - SetEnablePositionUpdate : %s(%u) worldUpdatePosition_=%s Subscribe to Event !", node_->GetName().CString(), node_->GetID(), enable?"true":"false");
             SubscribeToEvent(GetScene(), E_SCENEPOSTUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateWorld2D));
         }
     }
@@ -231,7 +231,7 @@ void GOC_Destroyer::SetEnablePositionUpdate(bool enable)
 
 void GOC_Destroyer::SetDelegateNode(Node* node)
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetDelegateNode : %s(%u) delegateNode=%s(%u) !", node_->GetName().CString(), node_->GetID(), node?node->GetName().CString():"none", node?node->GetID():0);
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - SetDelegateNode : %s(%u) delegateNode=%s(%u) !", node_->GetName().CString(), node_->GetID(), node?node->GetName().CString():"none", node?node->GetID():0);
     delegateNode_ = node;
     switchViewEnable_ = body_ ? body_->GetBodyType() != BT_STATIC && !node_->GetComponent<ObjectMaped>() && worldUpdatePosition_ && !delegateNode_ : false;
 }
@@ -240,7 +240,7 @@ void GOC_Destroyer::CheckLifeTime()
 {
     if (activeTimer_ && elapsedTime_ && enabled_)
     {
-//        URHO3D_LOGINFOF("GOC_Destroyer() - CheckLifeTime : %s(%u) elapsedTime_=%f activeTimer !", node_->GetName().CString(), node_->GetID(), elapsedTime_);
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - CheckLifeTime : %s(%u) elapsedTime_=%f activeTimer !", node_->GetName().CString(), node_->GetID(), elapsedTime_);
         SubscribeToEvent(GetScene(), E_SCENEUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateTime));
     }
     else
@@ -251,7 +251,7 @@ void GOC_Destroyer::SetDestroyMode(int state)
 {
     if (destroyMode_ != (RemoveState)state)
     {
-//        URHO3D_LOGINFOF("GOC_Destroyer() - SetDestroyMode : %s(%u) destroyMode=%s !", node_->GetName().CString(), node_->GetID(), RemoveStateNames[state]);
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - SetDestroyMode : %s(%u) destroyMode=%s !", node_->GetName().CString(), node_->GetID(), RemoveStateNames[state]);
         destroyMode_ = (RemoveState)state;
     }
 }
@@ -264,7 +264,7 @@ void GOC_Destroyer::SetWorldMapPosition(const WorldMapPosition& wmPosition)
     if (wmPosition.viewZIndex_ != -1)
         node_->SetVar(GOA::ONVIEWZ, wmPosition.viewZ_);
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - SetWorldMapPosition : %s(%u) initialposition=%s to %s !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - SetWorldMapPosition : %s(%u) initialposition=%s to %s !",
 //                    node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), wmPosition.ToString().CString());
 
     // wmPosition.position_ is the world mass center
@@ -587,13 +587,13 @@ void GOC_Destroyer::UpdateFilterBits(int viewZ)
         }
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - UpdateFilterBits : node=%s(%u) viewZ=%d controllertype=%d", node_->GetName().CString(), node_->GetID(), viewZ, type);
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateFilterBits : node=%s(%u) viewZ=%d controllertype=%d", node_->GetName().CString(), node_->GetID(), viewZ, type);
 }
 
 
 void GOC_Destroyer::ApplyAttributes()
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - ApplyAttributes : %s(%u) componentEnable=%s nodeEnable=%s ...",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - ApplyAttributes : %s(%u) componentEnable=%s nodeEnable=%s ...",
 //                 node_->GetName().CString(), node_->GetID(), enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false");
 
     if (!enabled_)
@@ -603,16 +603,16 @@ void GOC_Destroyer::ApplyAttributes()
 //    if (GameContext::Get().ClientMode_ && IsEnabledEffective())
 //    {
 //        GOC_Controller* controller = node_->GetDerivedComponent<GOC_Controller>();
-////        URHO3D_LOGINFOF("GOC_Destroyer() - ApplyAttributes : %s(%u) controller=%u type=%d !", node_->GetName().CString(), node_->GetID(), controller, controller ? controller->GetControllerType() : -1);
+////        URHO3D_LOGDEBUGF("GOC_Destroyer() - ApplyAttributes : %s(%u) controller=%u type=%d !", node_->GetName().CString(), node_->GetID(), controller, controller ? controller->GetControllerType() : -1);
 //        if (controller)
 //            if (!controller->IsMainController())// && controller->GetControllerType()  == GO_Player)
 //            {
 //                node_->SendEvent(WORLD_ENTITYCREATE);
-//                URHO3D_LOGINFOF("GOC_Destroyer() - ApplyAttributes : %s(%u) ClientNet Replication !", node_->GetName().CString(), node_->GetID());
+//                URHO3D_LOGDEBUGF("GOC_Destroyer() - ApplyAttributes : %s(%u) ClientNet Replication !", node_->GetName().CString(), node_->GetID());
 //            }
 //    }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - ApplyAttributes : %s(%u) enable=%s nodeEnable=%s ... OK !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - ApplyAttributes : %s(%u) enable=%s nodeEnable=%s ... OK !",
 //                 node_->GetName().CString(), node_->GetID(), enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false");
 }
 
@@ -621,7 +621,7 @@ void GOC_Destroyer::OnSetEnabled()
     if (!enabled_)
         return;
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) componentEnable=%s nodeEnable=%s world2D=%s ...",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) componentEnable=%s nodeEnable=%s world2D=%s ...",
 //                    node_->GetName().CString(), node_->GetID(), enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false",
 //                    useWorld2D_ ? "true" : "false");
 
@@ -640,7 +640,7 @@ void GOC_Destroyer::OnSetEnabled()
 
 //    if (activeTimer_ && elapsedTime_)
 //    {
-//        URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) UpdateTime Started !", node_->GetName().CString(), node_->GetID());
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) UpdateTime Started !", node_->GetName().CString(), node_->GetID());
 //        SubscribeToEvent(scene, E_SCENEUPDATE, URHO3D_HANDLER(GOC_Destroyer, HandleUpdateTime));
 //    }
 
@@ -654,7 +654,7 @@ void GOC_Destroyer::OnSetEnabled()
         else
             eventData[Go_Appear::GO_TYPE] = GO_None;
         eventData[Go_Appear::GO_MAINCONTROL] = controller ? controller->IsMainController() : false;
-//        URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) Appear (NO World2D!)", node_->GetName().CString(), node_->GetID());
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) Appear (NO World2D!)", node_->GetName().CString(), node_->GetID());
 
         node_->SendEvent(GO_APPEAR, eventData);
     }
@@ -670,7 +670,7 @@ void GOC_Destroyer::OnSetEnabled()
         if (body_)
         {
             switchViewEnable_ = body_->GetBodyType() != BT_STATIC && !node_->GetComponent<ObjectMaped>() && worldUpdatePosition_;
-//			URHO3D_LOGERRORF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) body=%s(%u) switchViewEnable=%s ...",
+//			URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) body=%s(%u) switchViewEnable=%s ...",
 //								node_->GetName().CString(), node_->GetID(), body_->GetNode()->GetName().CString(), body_->GetNode()->GetID(), switchViewEnable_ ? "true":"false");
         }
     }
@@ -693,7 +693,7 @@ void GOC_Destroyer::OnSetEnabled()
         // Subscribe to UpdateWorld2D
         if (body_->GetBodyType() != BT_STATIC && worldUpdatePosition_)
         {
-//            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) start on World2D at mPoint=%s position=%s viewZ=%d subscribe to HandleUpdateWorld2D !",
+//            URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) start on World2D at mPoint=%s position=%s viewZ=%d subscribe to HandleUpdateWorld2D !",
 //					                 node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString(), node_->GetWorldPosition2D().ToString().CString(), mapWorldPosition_.viewZ_);
 
 //            body_->ApplyUserWorldTransform(node_->GetWorldPosition2D() + body_->GetMassCenter(), node_->GetWorldRotation2D());
@@ -714,18 +714,18 @@ void GOC_Destroyer::OnSetEnabled()
         // if not main controller => replicate node, keep subscribe to update position
         if (controller && !controller->IsMainController() && worldUpdatePosition_)
         {
-//            URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) enable=false !maincontroller => keep update position !",
+//            URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) enable=false !maincontroller => keep update position !",
 //                            node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString());
             return;
         }
 
-//        URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) stop on World2D at mPoint=%s",
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : node=%s(%u) stop on World2D at mPoint=%s",
 //                                    node_->GetName().CString(), node_->GetID(), mapWorldPosition_.mPoint_.ToString().CString());
 
         UnsubscribeFromEvent(GetScene(), E_SCENEPOSTUPDATE);
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) componentEnable=%s nodeEnable=%s world2D=%s bodyawake=%s ... OK !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnSetEnabled : Node=%s(%u) componentEnable=%s nodeEnable=%s world2D=%s bodyawake=%s ... OK !",
 //                    node_->GetName().CString(), node_->GetID(), enabled_ ? "true" : "false", node_->IsEnabled() ? "true" : "false",
 //                    useWorld2D_ ? "true" : "false", body_->IsAwake() ? "true" : "false");
 }
@@ -784,7 +784,7 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
     if (drawable && !drawable->IsEnabled())
         drawable->SetEnabled(true);
 
-//    URHO3D_LOGERRORF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) PASS 1 test position=%s nodepos=%s viewZ=%d ... ",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) PASS 1 test position=%s nodepos=%s viewZ=%d ... ",
 //             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), node_->GetWorldPosition2D().ToString().CString(), node_->GetVar(GOA::ONVIEWZ).GetInt());
 
     // Set Initial WorldMapPosition
@@ -811,7 +811,7 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
         eventData[Go_Appear::GO_MAP] = mPoint;
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) position=%s viewZ=%d ... ",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) position=%s viewZ=%d ... ",
 //             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), node_->GetVar(GOA::ONVIEWZ).GetInt());
 
     // Subscriber to WorldDestroy
@@ -834,14 +834,14 @@ void GOC_Destroyer::OnWorldEntityCreate(StringHash eventType, VariantMap& eventD
         node_->SendEvent(WORLD_ENTITYUPDATE, eventData);
     }
 
-//    URHO3D_LOGERRORF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) position=%s(%s) map=%s viewZ=%d ... OK !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnWorldEntityCreate : %s(%u) position=%s(%s) map=%s viewZ=%d ... OK !",
 //             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.position_.ToString().CString(),
 //             node_->GetWorldPosition2D().ToString().CString(), mapWorldPosition_.mPoint_.ToString().CString(), mapWorldPosition_.viewZ_);
 }
 
 void GOC_Destroyer::OnWorldEntityDestroy(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - OnWorldEntityDestroy : %s(%u) ...", node_->GetName().CString(), node_->GetID());
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnWorldEntityDestroy : %s(%u) ...", node_->GetName().CString(), node_->GetID());
 
 //    if (currentMap_)
 //        currentMap_->GetMapData()->RemoveEntityData(node_);
@@ -851,7 +851,7 @@ void GOC_Destroyer::OnWorldEntityDestroy(StringHash eventType, VariantMap& event
     /// don't set 0.f, it's critical time for Self-Destroying without Crash for Player Avatar
     Destroy(0.1f);
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - OnWorldEntityDestroy : ... OK !");
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - OnWorldEntityDestroy : ... OK !");
 }
 
 void GOC_Destroyer::Destroy(float delay, bool reset)
@@ -978,11 +978,11 @@ bool GOC_Destroyer::IsOnFreeTiles(int viewZ) const
         {
             unsigned tileindex = objectmaped->GetTileIndexAt(mapWorldPosition_.position_);
             result = GameHelpers::CheckFreeTilesAtViewZ(this, objectmaped, tileindex, viewZ);
-            URHO3D_LOGINFOF("GOC_Destroyer() - IsOnFreeTiles : %s(%u) ... on objectmaped=%d at tileindex=%u result=%s !", node_->GetName().CString(), node_->GetID(), ((ObjectMaped*)objectmaped)->GetPhysicObjectID(), tileindex, result ? "true":"false");
+            URHO3D_LOGDEBUGF("GOC_Destroyer() - IsOnFreeTiles : %s(%u) ... on objectmaped=%d at tileindex=%u result=%s !", node_->GetName().CString(), node_->GetID(), ((ObjectMaped*)objectmaped)->GetPhysicObjectID(), tileindex, result ? "true":"false");
         }
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - IsOnFreeTiles : %s(%u) ... result=%s !", node_->GetName().CString(), node_->GetID(), result ? "true":"false");
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - IsOnFreeTiles : %s(%u) ... result=%s !", node_->GetName().CString(), node_->GetID(), result ? "true":"false");
 
     return result;
 }
@@ -1065,7 +1065,7 @@ bool GOC_Destroyer::UpdateShapesRect()
         mapWorldPosition_.shapeRectInTile_.Define(shapesRect_.min_ / wTileSize, shapesRect_.max_/ wTileSize);
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - UpdateShapesRect : %s(%u) shapesRect_=%s mcenter=%s shapeRectInTile_=%s ", node_->GetName().CString(), node_->GetID(),
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateShapesRect : %s(%u) shapesRect_=%s mcenter=%s shapeRectInTile_=%s ", node_->GetName().CString(), node_->GetID(),
 //                     shapesRect_.ToString().CString(), body_->GetMassCenter().ToString().CString(), mapWorldPosition_.shapeRectInTile_.ToString().CString());
     return true;
 }
@@ -1096,7 +1096,7 @@ void GOC_Destroyer::AdjustPosition(const ShortIntVector2& mpoint, int viewZ, Vec
         bool check = Unstuck();
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - AdjustNodePosition : %s(%u) initialposition=%s adjustedposition=%s !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - AdjustNodePosition : %s(%u) initialposition=%s adjustedposition=%s !",
 //                    node_->GetName().CString(), node_->GetID(), position.ToString().CString(), mapWorldPosition_.position_.ToString().CString());
 
     position = mapWorldPosition_.position_;
@@ -1119,14 +1119,14 @@ void GOC_Destroyer::AdjustPositionInTile(int viewZ)
     {
         GameHelpers::AdjustPositionInTile(this, currentMap_, mapWorldPosition_);
 
-//        URHO3D_LOGINFOF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) adjustedposition_=%s !", node_->GetName().CString(), node_->GetID(),
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) adjustedposition_=%s !", node_->GetName().CString(), node_->GetID(),
 //                        mapWorldPosition_.ToString().CString());
     }
 }
 
 void GOC_Destroyer::AdjustPositionInTile(const WorldMapPosition& initialposition)
 {
-//    URHO3D_LOGINFOF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) initialposition=%s ...", node_->GetName().CString(), node_->GetID(),
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) initialposition=%s ...", node_->GetName().CString(), node_->GetID(),
 //                     initialposition.ToString().CString());
 
     if (!checkUnstuck_)
@@ -1142,7 +1142,7 @@ void GOC_Destroyer::AdjustPositionInTile(const WorldMapPosition& initialposition
     {
         GameHelpers::AdjustPositionInTile(this, currentMap_, initialposition);
 
-//        URHO3D_LOGINFOF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) adjustedposition_=%s !", node_->GetName().CString(), node_->GetID(),
+//        URHO3D_LOGDEBUGF("GOC_Destroyer() - AdjustPositionInTile : %s(%u) adjustedposition_=%s !", node_->GetName().CString(), node_->GetID(),
 //                        mapWorldPosition_.ToString().CString());
     }
 }
@@ -1309,7 +1309,7 @@ bool GOC_Destroyer::Unstuck()
                     return false;
                 }
 
-                URHO3D_LOGINFOF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTileY=%f %f freeTiles : DirTop=%d DirBottom=%d !",
+                URHO3D_LOGDEBUGF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTileY=%f %f freeTiles : DirTop=%d DirBottom=%d !",
                                 node_->GetName().CString(), node_->GetID(), numEntityInTiles.max_.y_, numEntityInTiles.min_.y_, numTopDirUnBlockTiles, numBottomDirUnBlockTiles);
 
                 // Set offset needed to Unstuck in y
@@ -1350,7 +1350,7 @@ bool GOC_Destroyer::Unstuck()
                     return false;
                 }
 
-                URHO3D_LOGINFOF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTileX=%f %f freeTiles : DirLeft=%d DirRight=%d !",
+                URHO3D_LOGDEBUGF("GOC_Destroyer() - Unstuck : %s(%u) can be unstucked numEntityInTileX=%f %f freeTiles : DirLeft=%d DirRight=%d !",
                                 node_->GetName().CString(), node_->GetID(), numEntityInTiles.min_.x_, numEntityInTiles.max_.x_, numLeftDirUnBlockTiles, numRightDirUnBlockTiles);
 
                 // Set offset needed to Unstuck in x
@@ -1398,7 +1398,7 @@ bool GOC_Destroyer::Unstuck()
     body_->SetBodyPosition(nodeposition, node_->GetWorldRotation2D());
 
 #ifdef DUMP_UNSTUCKWARNING
-    URHO3D_LOGINFOF("GOC_Destroyer() - Unstuck : %s(%u) update position=%s (tileOffset=%d %d) !",
+    URHO3D_LOGDEBUGF("GOC_Destroyer() - Unstuck : %s(%u) update position=%s (tileOffset=%d %d) !",
                     node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), tileOffset.x_, tileOffset.y_);
 #endif
 
@@ -1465,7 +1465,7 @@ bool GOC_Destroyer::HasWallInFront(bool direction)
         haswallinfront = curcell->Left && curcell->Left->type_ == BLOCK;
     }
 
-//    URHO3D_LOGERRORF("GOC_Destroyer() - HasWallInFront : node=%s(%u) position=%s distance=%d wallinfront=%s!", node_->GetName().CString(), node_->GetID(),
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - HasWallInFront : node=%s(%u) position=%s distance=%d wallinfront=%s!", node_->GetName().CString(), node_->GetID(),
 //                     mapWorldPosition_.ToString().CString(), distance, haswallinfront ? "true":"false");
 
     return haswallinfront;
@@ -1483,7 +1483,7 @@ void GOC_Destroyer::UpdateAreaStates(bool sendfluidevent)
     {
         if (body_->GetGravityScale() != NOGRAVITY)
         {
-//            URHO3D_LOGINFOF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in CLIMBING ! (m=%u) ", node_->GetName().CString(), node_->GetID(), movestates);
+//            URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in CLIMBING ! (m=%u) ", node_->GetName().CString(), node_->GetID(), movestates);
             body_->SetGravityScale(NOGRAVITY);
             node_->SendEvent(EVENT_CHANGEGRAVITY);
         }
@@ -1511,12 +1511,12 @@ void GOC_Destroyer::UpdateAreaStates(bool sendfluidevent)
                 // Limit entrance in water : inverse velocity in reaction of the mass
                 if (body_->GetLinearVelocity().y_ < -1.f && buoyancy_ > 0.f)
                 {
-//					URHO3D_LOGINFOF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) Limit entrance in water !", node_->GetName().CString(), node_->GetID());
+//					URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) Limit entrance in water !", node_->GetName().CString(), node_->GetID());
                     body_->GetBody()->SetLinearVelocity(b2Vec2(body_->GetBody()->GetLinearVelocity().x, body_->GetBody()->GetLinearVelocity().y * 0.25f));
                     body_->GetBody()->ApplyLinearImpulseToCenter(b2Vec2(0.f, 2.f * buoyancy_ * body_->GetMass()), true);
                 }
 
-//				URHO3D_LOGINFOF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in WATER ! currentCell_=%u mass=%F liquidHeight=%F > inTileY=%F",
+//				URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in WATER ! currentCell_=%u mass=%F liquidHeight=%F > inTileY=%F",
 //									node_->GetName().CString(), node_->GetID(), currentCell_, currentCell_->GetMass(), liquidHeight, mapWorldPosition_.positionInTile_.y_);
 
                 body_->SetGravityScale(WATERGRAVITY);
@@ -1528,7 +1528,7 @@ void GOC_Destroyer::UpdateAreaStates(bool sendfluidevent)
             if (buoyancy_ > 0.f && body_->GetLinearVelocity().y_ <= BUOYANCYVELMIN)
             {
                 float fy = BUOYANCYVEL * buoyancy_ * body_->GetMass();
-//				URHO3D_LOGINFOF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) Buoyancy fy=%f applied ! (m=%u) ", node_->GetName().CString(), node_->GetID(), fy, movestates);
+//				URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) Buoyancy fy=%f applied ! (m=%u) ", node_->GetName().CString(), node_->GetID(), fy, movestates);
                 body_->GetBody()->ApplyForceToCenter(b2Vec2(0.f, fy), true);
             }
         }
@@ -1537,7 +1537,7 @@ void GOC_Destroyer::UpdateAreaStates(bool sendfluidevent)
         {
             if (body_->GetGravityScale() != AIRGRAVITY || sendfluidevent)
             {
-//				URHO3D_LOGINFOF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in AIR ! currentCell_=%u mass=%F liquidHeight=%F < inTileY=%F",
+//				URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdateAreaStates : Node=%s(%u) in AIR ! currentCell_=%u mass=%F liquidHeight=%F < inTileY=%F",
 //									node_->GetName().CString(), node_->GetID(), currentCell_, currentCell_ ? currentCell_->GetMass() : 0.f, liquidHeight, mapWorldPosition_.positionInTile_.y_);
 
                 body_->SetGravityScale(AIRGRAVITY);
@@ -1578,7 +1578,7 @@ bool GOC_Destroyer::GetUpdatedWorldPosition2D(Vector2& position)
         }
     }
 
-//    URHO3D_LOGERRORF("GOC_Destroyer() - UpdatePositions : node=%s(%u) (Enabled=%s) position=%s !",
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) (Enabled=%s) position=%s !",
 //                    node_->GetName().CString(), node_->GetID(), node_->IsEnabled() ? "true":"false", position.ToString().CString());
 
     return !IsNaN(position.x_);
@@ -1716,7 +1716,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, UpdatePositionMode mo
     {
 //        if (currentMap_ && (node_->GetVar(GOA::TYPECONTROLLER).GetUInt() & (GO_AI_Ally | GO_Player)) == 0)
 //        {
-////            URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) Change MapFrom=%u => RemoveEntityData !", node_->GetName().CString(), node_->GetID(), currentMap_);
+////            URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) Change MapFrom=%u => RemoveEntityData !", node_->GetName().CString(), node_->GetID(), currentMap_);
 //            currentMap_->GetMapData()->RemoveEntityData(node_);
 //            moveEntityData_ = true;
 //        }
@@ -1728,7 +1728,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, UpdatePositionMode mo
         return false;
     }
 
-//    URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s !", node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString());
+//    URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) position=%s !", node_->GetName().CString(), node_->GetID(), sMPosition_.position_.ToString().CString());
 
     // Update position
     if (stilePositionUpdated_[0])
@@ -1966,7 +1966,7 @@ bool GOC_Destroyer::UpdatePositions(VariantMap& eventData, UpdatePositionMode mo
         // Change ViewZ and viewID
         if (viewZDirty_)
         {
-            URHO3D_LOGINFOF("GOC_Destroyer() - UpdatePositions : node=%s(%u) change %s To viewZ=%d !",
+            URHO3D_LOGDEBUGF("GOC_Destroyer() - UpdatePositions : node=%s(%u) change %s To viewZ=%d !",
                             node_->GetName().CString(), node_->GetID(), mapWorldPosition_.ToString().CString(), sViewZ_);
 
             ViewManager::Get()->SwitchToViewZ(sViewZ_, node_);

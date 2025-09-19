@@ -126,7 +126,7 @@ void MapBase::SetSize(int width, int height)
 
 void MapBase::SetStatus(int status)
 {
-//    URHO3D_LOGERRORF("MapBase() - SetStatus : ptr=%u mPoint=%s change to status=%s !", this, mapStatus_.mappoint_.ToString().CString(), mapStatusNames[status]);
+//    URHO3D_LOGDEBUGF("MapBase() - SetStatus : ptr=%u mPoint=%s change to status=%s !", this, mapStatus_.mappoint_.ToString().CString(), mapStatusNames[status]);
 
     mapStatus_.status_ = status;
     mapStatus_.ResetCounters(1);
@@ -199,7 +199,7 @@ void MapBase::AddSpots(const PODVector<MapSpot>& spots, bool adjustPositions)
     if (!mapData_)
         return;
 
-//    URHO3D_LOGINFOF("MapBase() - AddSpots ...");
+//    URHO3D_LOGDEBUGF("MapBase() - AddSpots ...");
 
     mapData_->spots_ += spots;
 
@@ -243,7 +243,7 @@ void MapBase::AddSpots(const PODVector<MapSpot>& spots, bool adjustPositions)
             }
         }
     }
-//    URHO3D_LOGINFOF("MapBase() - AddSpots ... OK");
+//    URHO3D_LOGDEBUGF("MapBase() - AddSpots ... OK");
 #endif
 }
 
@@ -278,14 +278,14 @@ void MapBase::PopulateEntities(const IntVector2& numE, const Vector<StringHash>&
             entitySpotIndexes.Push(i);
     }
 
-//    URHO3D_LOGERRORF("MapBase() - PopulateEntities ... numEntitySpots=%u numStarts=%u numFluids=%u (total=%u) ...", entitySpotIndexes.Size(), startSpotIndexes.Size(), fluidSpotIndexes.Size(), mapData_->spots_.Size());
+//    URHO3D_LOGDEBUGF("MapBase() - PopulateEntities ... numEntitySpots=%u numStarts=%u numFluids=%u (total=%u) ...", entitySpotIndexes.Size(), startSpotIndexes.Size(), fluidSpotIndexes.Size(), mapData_->spots_.Size());
     GameRand& ORand = GameRand::GetRandomizer(OBJRAND);
     unsigned numAccessSpots = startSpotIndexes.Size();
     unsigned numEntities = AllowEntities(0) && entitySpotIndexes.Size() ? (numE != IntVector2::ZERO ? ORand.Get(Min(numE.x_,numE.y_), Max(numE.x_,numE.y_)) : entitySpotIndexes.Size()) : 0;
     unsigned numBosses = bossSpotIndexes.Size() ? bossSpotIndexes.Size() : 0;
 
     mapData_->entities_.Resize(numAccessSpots + numEntities);
-//    URHO3D_LOGERRORF("MapBase() - PopulateEntities ... numEntities=%u(entry=%s) numAuthorizedCategories=%u ...", numEntities, numE.ToString().CString(), authorizedCategories.Size());
+//    URHO3D_LOGDEBUGF("MapBase() - PopulateEntities ... numEntities=%u(entry=%s) numAuthorizedCategories=%u ...", numEntities, numE.ToString().CString(), authorizedCategories.Size());
 
     // Set Start Spots
     const unsigned short gotStart = GOT::GetIndex(GOT::START);
@@ -300,7 +300,7 @@ void MapBase::PopulateEntities(const IntVector2& numE, const Vector<StringHash>&
         entitydata.sstype_ = 0;
         entitydata.SetDrawableProps(ViewManager::Get()->GetViewZ(spot.viewZIndex_));
 
-//        URHO3D_LOGINFOF("MapBase() - PopulateEntities : spot start (gotStartIndex=%u) => x:%d y:%d z:%s",gotStart, spot.position_.x_, spot.position_.y_, ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString());
+//        URHO3D_LOGDEBUGF("MapBase() - PopulateEntities : spot start (gotStartIndex=%u) => x:%d y:%d z:%s",gotStart, spot.position_.x_, spot.position_.y_, ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString());
     }
 
     // Set Entities Spots
@@ -322,7 +322,7 @@ void MapBase::PopulateEntities(const IntVector2& numE, const Vector<StringHash>&
             entitydata.sstype_ = RandomEntityFlag|RandomMappingFlag;
             entitydata.SetDrawableProps(ViewManager::Get()->GetViewZ(spot.viewZIndex_));
 
-//            URHO3D_LOGINFOF("MapBase() - PopulateEntities : spot i=%d x=%d y=%d z:%s entity=%s(%u) ...", i, spot.position_.x_, spot.position_.y_,
+//            URHO3D_LOGDEBUGF("MapBase() - PopulateEntities : spot i=%d x=%d y=%d z:%s entity=%s(%u) ...", i, spot.position_.x_, spot.position_.y_,
 //                            ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString(), GOT::GetType(StringHash(entityType)).CString(), entityType);
         }
     }
@@ -355,7 +355,7 @@ void MapBase::PopulateEntities(const IntVector2& numE, const Vector<StringHash>&
             zonedata.entityIndex_ = ORand.Get(256);
             zonedata.sstype_      = RandomEntityFlag|RandomMappingFlag;
 
-            URHO3D_LOGINFOF("MapBase() - PopulateEntities : map=%s spot boss i=%d x=%d y=%d w=%d h=%d z:%s wait for populate it ...",
+            URHO3D_LOGDEBUGF("MapBase() - PopulateEntities : map=%s spot boss i=%d x=%d y=%d w=%d h=%d z:%s wait for populate it ...",
                             GetMapPoint().ToString().CString(), i, spot.position_.x_, spot.position_.y_,spot.width_, spot.height_,
                             ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString());
         }
@@ -377,11 +377,11 @@ void MapBase::PopulateEntities(const IntVector2& numE, const Vector<StringHash>&
             float flow = FLUID_MAXVALUE * 0.5f;
             sources.Push(FluidSource(WATER, spot.position_.x_, spot.position_.y_, qty, flow));
 
-//            URHO3D_LOGINFOF("MapBase() - Populate : spot Liquid => x:%d y:%d z:%s qty:%d flow:%d", spot.position_.x_, spot.position_.y_, ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString(), qty, flow);
+//            URHO3D_LOGDEBUGF("MapBase() - Populate : spot Liquid => x:%d y:%d z:%s qty:%d flow:%d", spot.position_.x_, spot.position_.y_, ViewManager::Get()->GetViewZName(spot.viewZIndex_).CString(), qty, flow);
         }
     }
 
-//    URHO3D_LOGINFO("MapBase() - PopulateEntities ... OK !");
+//    URHO3D_LOGDEBUGF("MapBase() - PopulateEntities ... OK !");
 #endif
 }
 
@@ -401,7 +401,7 @@ void MapBase::AddFurnitures(const PODVector<EntityData>& furnitures)
         return;
 
     mapData_->furnitures_ += furnitures;
-    URHO3D_LOGINFOF("MapBase() - AddFurnitures ... add=%u total=%u", furnitures.Size(), mapData_->furnitures_.Size());
+    URHO3D_LOGDEBUGF("MapBase() - AddFurnitures ... add=%u total=%u", furnitures.Size(), mapData_->furnitures_.Size());
 }
 
 Node* MapBase::AddFurniture(const EntityData& entitydata)
@@ -433,7 +433,7 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
     node = ObjectPool::CreateChildIn(got, entityid, attachNode, 0, viewZ, 0, false, &category);
     if (!node)
     {
-//        URHO3D_LOGERRORF("MapBase() - AddFurniture : Map=%s ... type=%s(%u) tileindex=%s viewZ=%d can not create entity from ObjectPool !",
+//        URHO3D_LOGDEBUGF("MapBase() - AddFurniture : Map=%s ... type=%s(%u) tileindex=%s viewZ=%d can not create entity from ObjectPool !",
 //                        GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value(), entitydata.tileindex_, viewZ);
         mapData_->RemoveEntityData(&entitydata, true);
 
@@ -443,7 +443,7 @@ Node* MapBase::AddFurniture(EntityData& entitydata)
     mapData_->AddEntityData(node, &entitydata, true, true);
     mapData_->UpdateEntityNode(node, &entitydata);
 
-//    URHO3D_LOGERRORF("MapBase() - AddFurniture : Map=%s ... id=%u type=%s(%u) entityid=%d(entry=%u), enabled=%s position=%s viewZ=%d parentNodePool=%s(%u)",
+//    URHO3D_LOGDEBUGF("MapBase() - AddFurniture : Map=%s ... id=%u type=%s(%u) entityid=%d(entry=%u), enabled=%s position=%s viewZ=%d parentNodePool=%s(%u)",
 //                    GetMapPoint().ToString().CString(), node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, entitydata.sstype_, node->IsEnabled() ? "true":"false",
 //                    node->GetWorldPosition2D().ToString().CString(), viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID());
 
@@ -503,7 +503,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
     if (!mapData_)
         return true;
 
-//    URHO3D_LOGINFOF("MapBase() - SetFurnitures : Map=%s numfurnitures=%u ... ", GetMapPoint().ToString().CString(), mapData_->furnitures_.Size());
+//    URHO3D_LOGDEBUGF("MapBase() - SetFurnitures : Map=%s numfurnitures=%u ... ", GetMapPoint().ToString().CString(), mapData_->furnitures_.Size());
 
     int& mcount = GetMapCounter(MAP_GENERAL);
 
@@ -532,7 +532,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
         got = GOT::Get(entitydata.gotindex_);
         gotprops = GOT::GetTypeProperties(got);
 
-//        URHO3D_LOGERRORF("MapBase() - SetFurnitures : Map=%s furnitures_[%d] : type=%s(%u) tileindex=%u positionInTile=%s ...",
+//        URHO3D_LOGDEBUGF("MapBase() - SetFurnitures : Map=%s furnitures_[%d] : type=%s(%u) tileindex=%u positionInTile=%s ...",
 //                        GetMapPoint().ToString().CString(), i, GOT::GetType(got).CString(), got.Value(), entitydata.tileindex_, entitydata.GetNormalizedPositionInTile().ToString().CString());
 
         // skip if an usable furniture (a usable furniture has attributes to serialize => done by SetEntities_Load)
@@ -554,7 +554,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
         if (!node)
         {
             mapData_->RemoveEntityData(&entitydata, true);
-//            URHO3D_LOGERRORF("MapBase() - SetFurnitures : Map=%s ... furnitures_[%d] : type=%s(%u) tileindex=%u viewZ=%d can not create entity from ObjectPool !",
+//            URHO3D_LOGDEBUGF("MapBase() - SetFurnitures : Map=%s ... furnitures_[%d] : type=%s(%u) tileindex=%u viewZ=%d can not create entity from ObjectPool !",
 //                                GetMapPoint().ToString().CString(), i, GOT::GetType(got).CString(), got.Value(),  entitydata.tileindex_, viewZ);
         }
         else
@@ -563,7 +563,7 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
             mapData_->AddEntityData(node, entitydataptr, false);
             mapData_->UpdateEntityNode(node, entitydataptr);
 
-//            URHO3D_LOGERRORF("MapBase() - SetFurnitures : Map=%s ... furnitures_[%d] : id=%u type=%s(%u) entitydataptr=%u entityid=%d(entry=%d), enabled=%s position=%s (tindex=%u tposition=%d %d) viewZ=%d parent=%s(%u)",
+//            URHO3D_LOGDEBUGF("MapBase() - SetFurnitures : Map=%s ... furnitures_[%d] : id=%u type=%s(%u) entitydataptr=%u entityid=%d(entry=%d), enabled=%s position=%s (tindex=%u tposition=%d %d) viewZ=%d parent=%s(%u)",
 //                            GetMapPoint().ToString().CString(), i, node->GetID(), GOT::GetType(got).CString(), got.Value(), entitydataptr, entityid, entitydata.sstype_,
 //                            node->IsEnabled() ? "true":"false", node->GetWorldPosition2D().ToString().CString(), entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_,
 //                            viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID());
@@ -604,14 +604,14 @@ bool MapBase::SetFurnitures(HiresTimer* timer, bool checkusable)
 
         if (TimeOver(timer))
         {
-//            URHO3D_LOGINFOF("Map() - SetFurnitures ... ! timer =%d", timer->GetUSec(false)/1000);
+//            URHO3D_LOGDEBUGF("Map() - SetFurnitures ... ! timer =%d", timer->GetUSec(false)/1000);
             mcount = i;
             ObjectPool::SetForceLocalMode(true);
             return false;
         }
     }
 
-//	URHO3D_LOGINFOF("MapBase() - SetFurnitures : Map=%s numfurnitures=%u ... OK !", GetMapPoint().ToString().CString(), mapData_->furnitures_.Size());
+//	URHO3D_LOGDEBUGF("MapBase() - SetFurnitures : Map=%s numfurnitures=%u ... OK !", GetMapPoint().ToString().CString(), mapData_->furnitures_.Size());
     mcount = 0;
 #endif
     return true;
@@ -655,7 +655,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         Vector2 positionintile = entitydata.GetNormalizedPositionInTile();
         position = GetWorldTilePosition(coords, positionintile);
 
-        URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : tileindex=%u position=%s positionintile=%s layerZ=%d ...", tileindex, position.ToString().CString(), positionintile.ToString().CString(), layerZ);
+        URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : tileindex=%u position=%s positionintile=%s layerZ=%d ...", tileindex, position.ToString().CString(), positionintile.ToString().CString(), layerZ);
     }
 
     Vector2 offset = position - GetWorldTilePosition(coords);
@@ -687,12 +687,12 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         const ConnectedMap& connectmap = GetConnectedView(viewids[i]);
         ConnectIndex cindex = connectmap[tileindex];
 
-//        URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : check tileindex=%u x=%d y=%d view=%d cindex=%d ...", tileindex, coords.x_, coords.y_, viewids[i], cindex);
+//        URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : check tileindex=%u x=%d y=%d view=%d cindex=%d ...", tileindex, coords.x_, coords.y_, viewids[i], cindex);
 
         // is a block with some free sides
         if (anchorOnGroundTile && cindex < MapTilesConnectType::AllConnect)
         {
-            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnGroundTile check x=%d y=%d view=%s(%d) cindex=%d ...",
+            URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : anchorOnGroundTile check x=%d y=%d view=%s(%d) cindex=%d ...",
                             coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
 
             // find the nearest side where to spawn
@@ -721,7 +721,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         // is a block in back
         else if (anchorOnBackTile && cindex <= MapTilesConnectType::AllConnect)
         {
-            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : anchorOnBackTile check x=%d y=%d view=%s(%d) cindex=%d ...",
+            URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : anchorOnBackTile check x=%d y=%d view=%s(%d) cindex=%d ...",
                             coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
             anchor = NoneSide;
             viewid = viewids[i];
@@ -740,7 +740,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
             else if (offset.y_ > 0.f)
                 diry = -1;
 
-            URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check x=%d y=%d view=%s(%d) cindex=%d offset=%f,%f dirx=%d diry=%d ...",
+            URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check x=%d y=%d view=%s(%d) cindex=%d offset=%f,%f dirx=%d diry=%d ...",
                             coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex, offset.x_, offset.y_, dirx, diry);
 
             if (dirx && !AreCoordsOutside(coords.x_+dirx, coords.y_))
@@ -750,7 +750,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                     unsigned newtileindex = GetTileIndex(coords.x_+dirx, coords.y_);
                     cindex = GetConnectedView(viewids[i])[newtileindex];
 
-                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check dirx=%d x=%d y=%d view=%s(%d) cindex=%d ...",
+                    URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check dirx=%d x=%d y=%d view=%s(%d) cindex=%d ...",
                                     dirx, coords.x_+dirx, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
@@ -774,7 +774,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                     unsigned newtileindex = GetTileIndex(coords.x_, coords.y_+diry);
                     cindex = GetConnectedView(viewids[i])[newtileindex];
 
-                    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : Void check diry=%d x=%d y=%d view=%s(%d) cindex=%d ...",
+                    URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check diry=%d x=%d y=%d view=%s(%d) cindex=%d ...",
                                     diry, coords.x_, coords.y_+diry, mapViewsNames[viewids[i]], viewids[i], cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
@@ -822,7 +822,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         entitydata.tilepositiony_ = 100;
     }
 
-    URHO3D_LOGERRORF("Map() - AnchorEntityOnTileAt : tileindex=%u tilepositionx=%d tilepositiony=%d anchor=%d BiomeLayer=%s viewid=%s(%d) LayerZ=%d ViewZ=%d !",
+    URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : tileindex=%u tilepositionx=%d tilepositiony=%d anchor=%d BiomeLayer=%s viewid=%s(%d) LayerZ=%d ViewZ=%d !",
                      entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_, anchor, isabiome?"true":"false", mapViewsNames[viewid], viewid, layerZ, viewZ);
 
     return true;
@@ -1131,18 +1131,18 @@ void MapBase::SetTile(FeatureType feat, int x, int y, int viewZ, Tile** removedt
         if (mt->oFeat_ == featref)
         {
             cacheTileModifiers_.Erase(mt);
-//                URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Removed (original feat restored) => TileModifiers Size=%u !", cacheTileModifiers_.Size());
+//        URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Removed (original feat restored) => TileModifiers Size=%u !", cacheTileModifiers_.Size());
         }
         else
         {
             mt->feat_ = featref;
-//                URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Updated !");
+//        URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Updated !");
         }
     }
     else
     {
         cacheTileModifiers_.Push(modifier);
-//            URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Added => TileModifiers (%s(%u) %d %d %d) Size=%u !", MapFeatureType::GetName(featref), featref, x, y, viewZ, cacheTileModifiers_.Size());
+//        URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Added => TileModifiers (%s(%u) %d %d %d) Size=%u !", MapFeatureType::GetName(featref), featref, x, y, viewZ, cacheTileModifiers_.Size());
     }
 #ifdef DUMP_MAPDEBUG_SETTILE
     URHO3D_LOGINFOF("MapBase() - SetTile ... before filters feat=%s(%u)", MapFeatureType::GetName(featref), featref);
@@ -1360,18 +1360,18 @@ void MapBase::SetTiles(FeatureType feat, int viewZ, const Vector<unsigned>& tile
             if (mt->oFeat_ == featref)
             {
                 cacheTileModifiers_.Erase(mt);
-//                URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Removed (original feat restored) => TileModifiers Size=%u !", cacheTileModifiers_.Size());
+//                URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Removed (original feat restored) => TileModifiers Size=%u !", cacheTileModifiers_.Size());
             }
             else
             {
                 mt->feat_ = featref;
-//                URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Updated !");
+//                URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Updated !");
             }
         }
         else
         {
             cacheTileModifiers_.Push(modifier);
-//            URHO3D_LOGINFOF("MapBase() - SetTile : TileModifier Added => TileModifiers (%s(%u) %d %d %d) Size=%u !", MapFeatureType::GetName(featref), featref, x, y, viewZ, cacheTileModifiers_.Size());
+//            URHO3D_LOGDEBUGF("MapBase() - SetTile : TileModifier Added => TileModifiers (%s(%u) %d %d %d) Size=%u !", MapFeatureType::GetName(featref), featref, x, y, viewZ, cacheTileModifiers_.Size());
         }
 #ifdef DUMP_MAPDEBUG_SETTILE
         URHO3D_LOGINFOF("MapBase() - SetTiles ... before filters feat=%s(%u)", MapFeatureType::GetName(featref), featref);
@@ -1622,7 +1622,7 @@ bool MapBase::SetTileModifiers(const PODVector<TileModifier>& tileModifiers, Hir
 
                 GetFeatureRef(tileindex, viewid) = m.feat_;
 
-                URHO3D_LOGINFOF("MapBase() - SetTileModifiers : TileModifier Added => TileModifiers (%s(%u) %d %d %d) !",
+                URHO3D_LOGDEBUGF("MapBase() - SetTileModifiers : TileModifier Added => TileModifiers (%s(%u) %d %d %d) !",
                                 MapFeatureType::GetName(m.feat_), m.feat_, m.x_, m.y_, m.z_);
             }
             else
@@ -1646,7 +1646,7 @@ bool MapBase::SetTileModifiers(const PODVector<TileModifier>& tileModifiers, Hir
         if (!featuredMap_->ApplyFeatureFilters(cacheTileModifiers_, timer, delay))
             return false;
 
-        URHO3D_LOGINFOF("MapBase() - SetTileModifiers : map=%s numModifiers=%u", GetMapPoint().ToString().CString(), cacheTileModifiers_.Size());
+        URHO3D_LOGDEBUGF("MapBase() - SetTileModifiers : map=%s numModifiers=%u", GetMapPoint().ToString().CString(), cacheTileModifiers_.Size());
         return true;
     }
 
@@ -1741,7 +1741,7 @@ bool MapBase::CreateColliders(HiresTimer* timer, bool setPhysic)
 
     if (mcount0 == 0)
     {
-        URHO3D_LOGINFOF("MapBase() - CreateColliders : ... ");
+        URHO3D_LOGDEBUGF("MapBase() - CreateColliders : ... ");
 
         unsigned numcolliders;
 
@@ -1775,7 +1775,7 @@ bool MapBase::CreateColliders(HiresTimer* timer, bool setPhysic)
 
         mcount0 = 0;
 
-        URHO3D_LOGINFOF("MapBase() - CreateColliders : ... OK !");
+        URHO3D_LOGDEBUGF("MapBase() - CreateColliders : ... OK !");
     }
 
     return true;
@@ -1985,7 +1985,7 @@ bool MapBase::UpdateRenderColliders(HiresTimer* timer)
     unsigned numcolliders = Min(colliderNumParams_[RENDERCOLLIDERTYPE], renderColliders_.Size());
     for (unsigned i = 0; i < numcolliders; i++)
     {
-        URHO3D_LOGINFOF("MapBase() - UpdateRenderColliders : update collider i=%u ...", i);
+        URHO3D_LOGDEBUGF("MapBase() - UpdateRenderColliders : update collider i=%u ...", i);
         UpdateRenderCollider(renderColliders_[i]);
     }
 
@@ -2092,43 +2092,43 @@ bool MapBase::SetCollisionShapes(HiresTimer* timer)
     }
     if (mcount0 == 1)
     {
-//        URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionBox2D ...");
+//        URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionBox2D ...");
         if (AddCollisionBox2D(timer))
         {
             mcount1 = 0;
             mcount0++;
-            URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionBox2D ... OK !");
+            URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionBox2D ... OK !");
         }
         if (timer)
             return false;
     }
     if (mcount0 == 2)
     {
-//        URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionChain2D ...");
+//        URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionChain2D ...");
         if (AddCollisionChain2D(timer))
         {
             mcount1 = 0;
             mcount0++;
-            URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionChain2D ... OK !");
+            URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionChain2D ... OK !");
         }
         if (timer)
             return false;
     }
     if (mcount0 == 3)
     {
-//        URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionEdge2D ...");
+//        URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionEdge2D ...");
         if (AddCollisionEdge2D(timer))
         {
             mcount1 = 0;
             mcount0++;
-            URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... AddCollisionEdge2D ... OK !");
+            URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... AddCollisionEdge2D ... OK !");
         }
         if (timer)
             return false;
     }
     if (mcount0 == 4)
     {
-        URHO3D_LOGINFOF("MapBase() - SetCollisionShapes ... OK !");
+        URHO3D_LOGDEBUGF("MapBase() - SetCollisionShapes ... OK !");
         return true;
     }
 
@@ -2177,7 +2177,7 @@ bool MapBase::AddCollisionBox2D(HiresTimer* timer)
         mcount2 = 0;
         mcount1++;
 
-//        URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Init OK ...", timer ? timer->GetUSec(false)/1000 : 0);
+//        URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Init OK ...", timer ? timer->GetUSec(false)/1000 : 0);
 
 #ifdef DUMP_ERROR_ON_TIMEOVER
         if (timer)
@@ -2263,7 +2263,7 @@ bool MapBase::AddCollisionBox2D(HiresTimer* timer)
             mcount2++;
             mcount3 = 0;
             mcount1 = 1;
-//            URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Step 1 OK ...", timer ? timer->GetUSec(false)/1000 : 0);
+//            URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Step 1 OK ...", timer ? timer->GetUSec(false)/1000 : 0);
         }
         if (mcount2 == 1)
         {
@@ -2298,7 +2298,7 @@ bool MapBase::AddCollisionBox2D(HiresTimer* timer)
 
                     if (it == plateforms.End())
                     {
-//                        URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : indexView=%d => %u CollisionBoxes created ... timer=%d msec ... OK !",
+//                        URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : indexView=%d => %u CollisionBoxes created ... timer=%d msec ... OK !",
 //                                        mcount3, i, timer ? timer->GetUSec(false)/1000 : 0);
                         mcount1 = 1;
                         mcount3++;
@@ -2317,7 +2317,7 @@ bool MapBase::AddCollisionBox2D(HiresTimer* timer)
                         collisionBox->SetViewZ(collider.params_->colliderz_-1);
                         collisionBox->SetGroupIndex(colliderGroupIndex_);
                         collisionBox->SetEnabled(false);
-//                        URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : Adding a Plateform collisionbox at tileindex=%u plateformtileorigin=%u", it->first_, plateform->tileleft_);
+//                        URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : Adding a Plateform collisionbox at tileindex=%u plateformtileorigin=%u", it->first_, plateform->tileleft_);
                     }
 
                     it++;
@@ -2336,12 +2336,12 @@ bool MapBase::AddCollisionBox2D(HiresTimer* timer)
                 }
             }
 #endif
-//            URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Step 2 OK ...", timer ? timer->GetUSec(false)/1000 : 0);
+//            URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... Step 2 OK ...", timer ? timer->GetUSec(false)/1000 : 0);
         }
 
         mcount3 = 0;
 
-        URHO3D_LOGINFOF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... OK !", timer ? timer->GetUSec(false)/1000 : 0);
+        URHO3D_LOGDEBUGF("MapBase() - AddCollisionBox2D : ... timer=%d msec ... OK !", timer ? timer->GetUSec(false)/1000 : 0);
 
         return true;
     }
@@ -2386,7 +2386,7 @@ bool MapBase::AddCollisionChain2D(HiresTimer* timer)
         mcount2 = mcount3 = mcount4 = mcount5 = 0;
         mcount1++;
 
-//        URHO3D_LOGINFOF("MapBase() - AddCollisionChain2D : ... timer=%d msec ... Init OK ...", timer ? timer->GetUSec(false)/1000 : 0);
+//        URHO3D_LOGDEBUGF("MapBase() - AddCollisionChain2D : ... timer=%d msec ... Init OK ...", timer ? timer->GetUSec(false)/1000 : 0);
 
 #ifdef DUMP_ERROR_ON_TIMEOVER
         if (timer)
@@ -2436,7 +2436,7 @@ bool MapBase::AddCollisionChain2D(HiresTimer* timer)
                 {
                     if (it == contourVertices.End())
                     {
-//                        URHO3D_LOGINFOF("MapBase() - AddCollisionChain2D : index=%d => %u CollisionChains created ! %u vertices ... timer=%d msec ... OK !",
+//                        URHO3D_LOGDEBUGF("MapBase() - AddCollisionChain2D : index=%d => %u CollisionChains created ! %u vertices ... timer=%d msec ... OK !",
 //                                        mcount2, i, colliderNumVertices_, timer ? timer->GetUSec(false) /1000 : 0);
                         break;
                     }
@@ -2455,7 +2455,7 @@ bool MapBase::AddCollisionChain2D(HiresTimer* timer)
                     // No collision if other shape has the same negative Group index
                     collisionChain->SetGroupIndex(colliderGroupIndex_);
 
-//                    URHO3D_LOGINFOF("MapBase() - AddCollisionChain2D : indz=%d indv=%d contourID=%c => create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
+//                    URHO3D_LOGDEBUGF("MapBase() - AddCollisionChain2D : indz=%d indv=%d contourID=%c => create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
 //                                     physicCollider.params_->indz_, physicCollider.params_->indv_, char(65+i), collisionChain->GetID(), collisionChain, it->Size(), collisionChain->GetVertexCount(),
 //                                     chainnode->GetID(), collisionChain->GetCategoryBits(), collisionChain->GetMaskBits());
 
@@ -2525,7 +2525,7 @@ bool MapBase::AddCollisionChain2D(HiresTimer* timer)
                         // No collision if other shape has the same negative Group index
                         collisionChain->SetGroupIndex(colliderGroupIndex_);
 
-//                        URHO3D_LOGINFOF("MapBase() - AddCollisionChain2D : indz=%d indv=%d contourID=%c HoleID=%u=> create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
+//                        URHO3D_LOGDEBUGF("MapBase() - AddCollisionChain2D : indz=%d indv=%d contourID=%c HoleID=%u=> create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
 //                                        physicCollider.params_->indz_, physicCollider.params_->indv_, char(65+i), j, collisionChain->GetID(), collisionChain, it->Size(), collisionChain->GetVertexCount(),
 //                                        chainnode->GetID(), collisionChain->GetCategoryBits(), collisionChain->GetMaskBits());
 
@@ -2559,7 +2559,7 @@ bool MapBase::AddCollisionChain2D(HiresTimer* timer)
             mcount2++;
         }
 
-        URHO3D_LOGINFOF("MapBase() - AddCollisionChain2D : ... timer=%d msec ... OK !", timer ? timer->GetUSec(false)/1000 : 0);
+        URHO3D_LOGDEBUGF("MapBase() - AddCollisionChain2D : ... timer=%d msec ... OK !", timer ? timer->GetUSec(false)/1000 : 0);
         mcount2 = 0;
         return true;
     }
@@ -2619,7 +2619,7 @@ bool MapBase::SetCollisionChain2D(PhysicCollider& physicCollider, HiresTimer* ti
         {
             if (it == contourVertices.End())
             {
-//                URHO3D_LOGINFOF("MapBase() - SetCollisionChain2D : colliderid=%d => %u CollisionChains created ! %u vertices ... timer=%d msec ... OK !",
+//                URHO3D_LOGDEBUGF("MapBase() - SetCollisionChain2D : colliderid=%d => %u CollisionChains created ! %u vertices ... timer=%d msec ... OK !",
 //                                physicCollider.id_, i, colliderNumVertices_, timer ? timer->GetUSec(false) /1000 : 0);
                 break;
             }
@@ -2635,7 +2635,7 @@ bool MapBase::SetCollisionChain2D(PhysicCollider& physicCollider, HiresTimer* ti
             // No collision if other shape has the same negative Group index
             collisionChain->SetGroupIndex(colliderGroupIndex_);
 
-//            URHO3D_LOGINFOF("MapBase() - SetCollisionChain2D : indz=%d indv=%d contourID=%c => create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
+//            URHO3D_LOGDEBUGF("MapBase() - SetCollisionChain2D : indz=%d indv=%d contourID=%c => create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
 //                            physicCollider.params_->indz_, physicCollider.params_->indv_, char(65+i), collisionChain->GetID(), collisionChain, it->Size(), collisionChain->GetVertexCount(),
 //                            chainnode->GetID(), collisionChain->GetCategoryBits(), collisionChain->GetMaskBits());
 
@@ -2705,7 +2705,7 @@ bool MapBase::SetCollisionChain2D(PhysicCollider& physicCollider, HiresTimer* ti
                 // No collision if other shape has the same negative Group index
                 collisionChain->SetGroupIndex(colliderGroupIndex_);
 
-//                URHO3D_LOGINFOF("MapBase() - SetCollisionChain2D : indz=%d indv=%d contourID=%c HoleID=%u=> create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
+//                URHO3D_LOGDEBUGF("MapBase() - SetCollisionChain2D : indz=%d indv=%d contourID=%c HoleID=%u=> create CollisionChain (id=%u ptr=%u numvertices=%u) with %u vertices on nodechain=%u catbits=%u maskbits=%u",
 //                                physicCollider.params_->indz_, physicCollider.params_->indv_, char(65+i), j, collisionChain->GetID(), collisionChain, it->Size(), collisionChain->GetVertexCount(),
 //                                chainnode->GetID(), collisionChain->GetCategoryBits(), collisionChain->GetMaskBits());
 
@@ -2746,7 +2746,7 @@ bool MapBase::SetCollisionChain2D(PhysicCollider& physicCollider, HiresTimer* ti
 
 bool MapBase::AddCollisionEdge2D(HiresTimer* timer)
 {
-//    URHO3D_LOGINFOF("MapBase() - AddCollisionEdge2D ... NOT IMPLEMENTED");
+//    URHO3D_LOGDEBUGF("MapBase() - AddCollisionEdge2D ... NOT IMPLEMENTED");
     return true;
 }
 
@@ -2758,13 +2758,13 @@ static PODVector<unsigned char> sUpdatedContourIds_;
 
 bool MapBase::UpdateCollisionChain(PhysicCollider& collider, unsigned tileindex)
 {
-//    URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain ...");
+//    URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain ...");
 
     unsigned char newcontourid = collider.contourIds_[tileindex];
 
     if (newcontourid > 0 && sLastContourId_ == newcontourid)
     {
-//        URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : colliderindex=%d sLastContourId_=%u already updated at tileindex=%u !", icollider, sLastContourId_, tileindex);
+//        URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : colliderindex=%d sLastContourId_=%u already updated at tileindex=%u !", icollider, sLastContourId_, tileindex);
         return false;
     }
 
@@ -2828,7 +2828,7 @@ bool MapBase::UpdateCollisionChain(PhysicCollider& collider, unsigned tileindex)
                 collider.chains_.Push(collisionChain);
                 sUpdatedContourIds_.Push(contourid);
 
-//                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid=%c add chain on Node=%s(%u) csID=%u ptr=%u numvertices=%u at viewZ=%d !",
+//                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid=%c add chain on Node=%s(%u) csID=%u ptr=%u numvertices=%u at viewZ=%d !",
 //                                char(65+contourid), nodeChains->GetName().CString(), nodeChains->GetID(),
 //                                collisionChain->GetID(), collisionChain, collisionChain->GetVertexCount(), collider.params_->colliderz_);
             }
@@ -2861,7 +2861,7 @@ bool MapBase::UpdateCollisionChain(PhysicCollider& collider, unsigned tileindex)
 
             collisionChain->SetVertices(collider.contourVertices_[contourid]);
 
-//            URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid=%c modify vertices csID=%u ptr=%u numvertices=%u !",
+//            URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid=%c modify vertices csID=%u ptr=%u numvertices=%u !",
 //                            char(65+contourid), collisionChain->GetID(), collisionChain, collisionChain->GetVertexCount());
         }
     }
@@ -2874,7 +2874,7 @@ bool MapBase::UpdateCollisionChain(PhysicCollider& collider, unsigned tileindex)
         {
             CollisionChain2D* collisionChain = (CollisionChain2D*)(collider.chains_.Back());
 
-//            URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid=%c remove chain csID=%u ptr=%u !",
+//            URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid=%c remove chain csID=%u ptr=%u !",
 //                            char(65+collider.chains_.Size()-1), collisionChain->GetID(), collisionChain);
 
             if (collisionChain)
@@ -2884,7 +2884,7 @@ bool MapBase::UpdateCollisionChain(PhysicCollider& collider, unsigned tileindex)
         }
     }
 
-//    URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : Contours Updated ... OK !");
+//    URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : Contours Updated ... OK !");
 
     // Update Holes
 
@@ -3006,7 +3006,7 @@ bool MapBase::UpdateCollisionChain(MapCollider* mapCollider, int x, int y)
             CollisionChain2D* collisionChain = (CollisionChain2D*)(*it);
 
             // Send Event (for node hanging on the tile)
-            URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : mPoint=%s lastcontourid=%c cs=%u SendEvent MAPTILEREMOVED at %u ...", GetMapPoint().ToString().CString(), (char)(65+lastcontourid-1), collisionChain, tileindex);
+            URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : mPoint=%s lastcontourid=%c cs=%u SendEvent MAPTILEREMOVED at %u ...", GetMapPoint().ToString().CString(), (char)(65+lastcontourid-1), collisionChain, tileindex);
 
             VariantMap& eventData = context_->GetEventDataMap();
             eventData[MapTileRemoved::MAPPOINT] = GetMapPoint().ToHash();
@@ -3049,7 +3049,7 @@ bool MapBase::UpdateCollisionChain(MapCollider* mapCollider, int x, int y)
 
                 mapCollider->chains_.Push(collisionChain);
 
-                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : add chain !");
+                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : add chain !");
             }
         }
     }
@@ -3082,7 +3082,7 @@ bool MapBase::UpdateCollisionChain(MapCollider* mapCollider, int x, int y)
                 mapCollider->chains_.Insert(newnghcontourid-1, collisionChain);
                 sUpdatedContourIds_.Push(newnghcontourid);
 
-                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : reordering cs=%u contourid=%c->%c !", collisionChain, (char)(65+lastnghcontourid-1), (char)(65+newnghcontourid-1));
+                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : reordering cs=%u contourid=%c->%c !", collisionChain, (char)(65+lastnghcontourid-1), (char)(65+newnghcontourid-1));
             }
         }
     }
@@ -3104,7 +3104,7 @@ bool MapBase::UpdateCollisionChain(MapCollider* mapCollider, int x, int y)
             if (collisionChain)
             {
                 collisionChain->SetVertices(mapCollider->contourVertices_[contourid]);
-                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid=%u modify vertices !", contourid+1);
+                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid=%u modify vertices !", contourid+1);
             }
             else
             {
@@ -3134,7 +3134,7 @@ bool MapBase::UpdateCollisionChain(MapCollider* mapCollider, int x, int y)
             if (collisionChain)
                 collisionChain->Remove();
             mapCollider->chains_.Pop();
-            URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid=%d remove chain !", contourid);
+            URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid=%d remove chain !", contourid);
         }
     }
 
@@ -3245,7 +3245,7 @@ bool MapBase::UpdateCollisionChain(int x, int y, MapCollider* mapCollider)
 
                     mapCollider->chains_.Push(collisionChain);
 
-                    URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : add chain !");
+                    URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : add chain !");
                 }
             }
             else
@@ -3268,7 +3268,7 @@ bool MapBase::UpdateCollisionChain(int x, int y, MapCollider* mapCollider)
             if (collisionChain)
             {
                 collisionChain->SetVertices(mapCollider->contourVertices_[newcontourid-1]);
-                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid last=%u new=%u at x=%d y=%d modify vertices !", lastcontourid, newcontourid, x, y);
+                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid last=%u new=%u at x=%d y=%d modify vertices !", lastcontourid, newcontourid, x, y);
             }
             else
             {
@@ -3292,14 +3292,14 @@ bool MapBase::UpdateCollisionChain(int x, int y, MapCollider* mapCollider)
                 collisionChain->Remove();
                 mapCollider->chains_.Erase(it);
 
-                URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid last=%u at x=%d y=%d remove chain !", lastcontourid, x, y);
+                URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid last=%u at x=%d y=%d remove chain !", lastcontourid, x, y);
             }
             else
             {
                 if (collisionChain)
                 {
                     // modify the existing chain
-                    URHO3D_LOGINFOF("MapBase() - UpdateCollisionChain : contourid last=%u at x=%d y=%d decrease vertices !", lastcontourid, x, y);
+                    URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionChain : contourid last=%u at x=%d y=%d decrease vertices !", lastcontourid, x, y);
                     collisionChain->SetVertices(mapCollider->contourVertices_[lastcontourid-1]);
 
                     // keep track of the updated chain
@@ -3359,7 +3359,7 @@ bool MapBase::UpdateCollisionBox(PhysicCollider& collider, unsigned tileindex, b
         collisionBox->SetViewZ(collider.params_->colliderz_);
         collisionBox->SetGroupIndex(colliderGroupIndex_); // No collision if other shape has the same negative Group index
 
-        URHO3D_LOGINFOF("MapBase() - UpdateCollisionBoxes : colliderid=%d ptr=%u ... add a block collider.blocks_[%u]=%u !",
+        URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionBoxes : colliderid=%d ptr=%u ... add a block collider.blocks_[%u]=%u !",
                         collider.id_, &collider, tileindex, collider.blocks_[tileindex]);
 
         return true;
@@ -3368,7 +3368,7 @@ bool MapBase::UpdateCollisionBox(PhysicCollider& collider, unsigned tileindex, b
     // Remove Block
     else if (!add && it->second_ && it != collider.blocks_.End())
     {
-        URHO3D_LOGINFOF("MapBase() - UpdateCollisionBoxes : colliderid=%d ptr=%u ... removing a block at x=%d y=%d tileindex=%u ...",
+        URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionBoxes : colliderid=%d ptr=%u ... removing a block at x=%d y=%d tileindex=%u ...",
                         collider.id_, &collider, GetTileCoordX(tileindex), GetTileCoordY(tileindex), tileindex);
 
         if (it->second_->GetNode()->GetName() == "Box")
@@ -3378,7 +3378,7 @@ bool MapBase::UpdateCollisionBox(PhysicCollider& collider, unsigned tileindex, b
 
         collider.blocks_.Erase(it);
 
-        URHO3D_LOGINFOF("MapBase() - UpdateCollisionBoxes : ... erase the block !");
+        URHO3D_LOGDEBUGF("MapBase() - UpdateCollisionBoxes : ... erase the block !");
 
         return true;
     }
@@ -3397,7 +3397,7 @@ bool MapBase::UpdatePlateformBoxes(PhysicCollider& collider, unsigned tileindex,
     {
         // Remove a Plateform's block
 #ifdef DUMP_MAPDEBUG_SETTILE
-        URHO3D_LOGINFOF("MapBase() - UpdatePlateformBoxes : at x=%d y=%d tileindex=%u ... removing plateform ...", GetTileCoordX(tileindex), GetTileCoordY(tileindex), tileindex);
+        URHO3D_LOGDEBUGF("MapBase() - UpdatePlateformBoxes : at x=%d y=%d tileindex=%u ... removing plateform ...", GetTileCoordX(tileindex), GetTileCoordY(tileindex), tileindex);
 #endif
         Plateform* plateform = it->second_;
 
@@ -3710,7 +3710,7 @@ void MapBase::GetFurnitures(const IntRect& rect, PODVector<EntityData>& furnitur
             if (newOrigin)
                 furnitures.Back().tileindex_ = (coord.y_-offset.y_) * width + coord.x_-offset.x_;
 
-            URHO3D_LOGINFOF("MapBase() - GetFurnitures : furniture[%d] tileindex=%u(%s) => %u(%d %d)... ",
+            URHO3D_LOGDEBUGF("MapBase() - GetFurnitures : furniture[%d] tileindex=%u(%s) => %u(%d %d)... ",
                             i, furniture.tileindex_, coord.ToString().CString(), furnitures.Back().tileindex_, coord.x_-offset.x_, coord.y_-offset.y_);
         }
     }
@@ -4154,7 +4154,7 @@ void Map::Initialize(World2DInfo* winfo, ViewManager* viewManager, int chunknumx
 
     delayUpdateUsec_ = World2DInfo::delayUpdateUsec_;
 
-    URHO3D_LOGINFOF("Map() - Initialize : width=%d height=%d numchunks=%d %d", MapInfo::info.width_, MapInfo::info.height_, chunknumx, chunknumy);
+    URHO3D_LOGDEBUGF("Map() - Initialize : width=%d height=%d numchunks=%d %d", MapInfo::info.width_, MapInfo::info.height_, chunknumx, chunknumy);
 }
 
 void Map::Reset()
@@ -4185,7 +4185,7 @@ Map::Map() :
     localEntitiesNode_(0),
     replicatedEntitiesNode_(0)
 {
-//    URHO3D_LOGINFOF("Map() ptr=%u ... OK !", this);
+//    URHO3D_LOGDEBUGF("Map() ptr=%u ... OK !", this);
 
     Resize();
     Init();
@@ -4299,7 +4299,7 @@ void Map::Resize()
     splateforms_.Reserve(MapInfo::info.mapsize_ / 10);
     schains_.Reserve(MapInfo::info.mapsize_ / 10);
 
-//    URHO3D_LOGINFOF("Map() - Resize: this=%u numViews=%u numChunks=%u", this, MAP_NUMMAXVIEWS, MapInfo::info.chinfo_->chunks_.Size());
+//    URHO3D_LOGDEBUGF("Map() - Resize: this=%u numViews=%u numChunks=%u", this, MAP_NUMMAXVIEWS, MapInfo::info.chinfo_->chunks_.Size());
 }
 
 void Map::Init()
@@ -4360,13 +4360,13 @@ bool Map::Clear(HiresTimer* timer)
 
             objectTiled_->Clear();
 
-            URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... objectTiled Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+            URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... objectTiled Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
         }
 #else
         if (skinnedMap_)
         {
             skinnedMap_->Clear();
-            URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... skinnedMap Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+            URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... skinnedMap Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
         }
 #endif
         mcount++;
@@ -4383,7 +4383,7 @@ bool Map::Clear(HiresTimer* timer)
             physicColliders_[i].ClearBlocks();
         }
 
-        URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... PhysicColliders Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... PhysicColliders Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount++;
 
@@ -4395,7 +4395,7 @@ bool Map::Clear(HiresTimer* timer)
     {
         ClearConnectedMaps();
 
-        URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... Border Maps Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... Border Maps Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount++;
 
@@ -4413,7 +4413,7 @@ bool Map::Clear(HiresTimer* timer)
 
 //        DrawableScroller::RemoveAllObjectsOnMap(GetMapPoint());
 
-        URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... RenderColliders Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... RenderColliders Cleared ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount++;
         GetMapCounter(MAP_FUNC2) = 0;
@@ -4430,7 +4430,7 @@ bool Map::Clear(HiresTimer* timer)
                 return false;
         }
 
-        URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... Nodes Removed ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... Nodes Removed ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount++;
     }
@@ -4439,10 +4439,10 @@ bool Map::Clear(HiresTimer* timer)
     {
         Init();
 
-        URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... Map Reinitialized ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... Map Reinitialized ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
     }
 
-    URHO3D_LOGINFOF("Map() - Clear mPoint=%s ... timer=%d/%d msec OK !", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+    URHO3D_LOGDEBUGF("Map() - Clear mPoint=%s ... timer=%d/%d msec OK !", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
     return true;
 }
@@ -4455,14 +4455,14 @@ void Map::PullFluids()
     if (WaterLayer::Get())
         WaterLayer::Get()->Clear();
 
-    URHO3D_LOGINFOF("Map() - PullFluids mPoint=%s ... OK !", GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - PullFluids mPoint=%s ... OK !", GetMapPoint().ToString().CString());
 }
 
 
 
 void Map::Initialize(const ShortIntVector2& mPoint, unsigned wseed)
 {
-//    URHO3D_LOGINFOF("Map() - Initialize : mPoint=%s ...", mPoint.ToString().CString());
+//    URHO3D_LOGDEBUGF("Map() - Initialize : mPoint=%s ...", mPoint.ToString().CString());
 
     SetMapPoint(mPoint);
 
@@ -4478,7 +4478,7 @@ void Map::Initialize(const ShortIntVector2& mPoint, unsigned wseed)
 
     SetStatus(Initializing);
 
-//	URHO3D_LOGINFOF("Map() - Initialize : mPoint=%s map=%u ... OK !", mPoint.ToString().CString(), this);
+//    URHO3D_LOGDEBUGF("Map() - Initialize : mPoint=%s map=%u ... OK !", mPoint.ToString().CString(), this);
 }
 
 void Map::SetTagNode(Node* node)
@@ -4520,7 +4520,7 @@ bool Map::Set(Node* node, HiresTimer* timer)
         node_->SetWorldPosition2D(position);
         node_->SetWorldScale2D(node->GetWorldScale2D());
 
-//            URHO3D_LOGINFOF("Map() - Set mPoint = %s ... status=%d", GetMapPoint().ToString().CString(), mapStatus_.status_);
+//            URHO3D_LOGDEBUGF("Map() - Set mPoint = %s ... status=%d", GetMapPoint().ToString().CString(), mapStatus_.status_);
         nodeStatic_ = node_->CreateChild("Statics", LOCAL);
 
 #if defined(HANDLE_ENTITIES) || defined(HANDLE_FURNITURES)
@@ -4758,7 +4758,7 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
     if (mcount == 0)
     {
-        URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... entities=%u ...", GetMapPoint().ToString().CString(), entities.Size());
+        URHO3D_LOGDEBUGF("Map() - OnUpdateMapData map=%s ... entities=%u ...", GetMapPoint().ToString().CString(), entities.Size());
 
         entitiesAttr.Clear();
         entitiesIds.Clear();
@@ -4802,19 +4802,19 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
                 mcount++;
 
-//                URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
+//                URHO3D_LOGDEBUGF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
 
                 // Skip Save Player or Ally
                 if (GOManager::IsA(nodeId, GO_Player | GO_AI_Ally))
                 {
-//                    URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... skip player or ally nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
+//                    URHO3D_LOGDEBUGF("Map() - OnUpdateMapData map=%s ... mcount=%d/%u ... skip player or ally nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
                     continue;
                 }
 
                 node = scene->GetNode(nodeId);
                 if (!node)
                 {
-//                    URHO3D_LOGINFOF("Map() - OnUpdateMapData map=%s ... mcount=%d ... skip no node for nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
+//                    URHO3D_LOGDEBUGF("Map() - OnUpdateMapData map=%s ... mcount=%d ... skip no node for nodeid=%u ...", GetMapPoint().ToString().CString(), mcount, entities.Size(), nodeId);
                     continue;
                 }
 
@@ -4865,7 +4865,7 @@ bool Map::OnUpdateMapData(HiresTimer* timer)
 
     mcount = 0;
 
-    URHO3D_LOGINFOF("Map() - OnUpdateMapData : Map=%s ... entitiesAttr=%u ... OK !", GetMapPoint().ToString().CString(), entitiesAttr.Size());
+    URHO3D_LOGDEBUGF("Map() - OnUpdateMapData : Map=%s ... entitiesAttr=%u ... OK !", GetMapPoint().ToString().CString(), entitiesAttr.Size());
 
     return true;
 }
@@ -4915,13 +4915,13 @@ void Map::SetConnectedMap(int direction, Map* map)
             UpdateRenderShapeBorders();
         }
 
-        URHO3D_LOGINFOF("Map() - SetConnectedMap : mpoint=%s othermap=%s ... OK !", GetMapPoint().ToString().CString(), map ? map->GetMapPoint().ToString().CString() : "None");
+        URHO3D_LOGDEBUGF("Map() - SetConnectedMap : mpoint=%s othermap=%s ... OK !", GetMapPoint().ToString().CString(), map ? map->GetMapPoint().ToString().CString() : "None");
     }
 }
 
 void Map::ClearConnectedMaps()
 {
-    URHO3D_LOGINFOF("Map() - ClearConnectedMaps : mpoint=%s ...", GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - ClearConnectedMaps : mpoint=%s ...", GetMapPoint().ToString().CString());
 
     if (connectedMaps_[MapDirection::North])
         connectedMaps_[MapDirection::North]->SetConnectedMap(MapDirection::South, 0);
@@ -4935,7 +4935,7 @@ void Map::ClearConnectedMaps()
     for (int dir=0; dir < 4; dir++)
         connectedMaps_[dir] = 0;
 
-    URHO3D_LOGINFOF("Map() - ClearConnectedMaps : mpoint=%s ... OK !", GetMapPoint().ToString().CString());
+        URHO3D_LOGDEBUGF("Map() - ClearConnectedMaps : mpoint=%s ... OK !", GetMapPoint().ToString().CString());
 }
 
 // Connects Borders on 2 maps
@@ -4947,7 +4947,7 @@ void Map::ConnectHorizontalMaps(Map* mapleft, Map* mapright)
     // Connect Tiles
     if (!mapleft->GetConnectedMap(MapDirection::East) || !mapright->GetConnectedMap(MapDirection::West))
     {
-        URHO3D_LOGINFOF("Map() - ConnectHorizontalMaps : mapleft=%s mapright=%s ...", mapleft->GetMapPoint().ToString().CString(), mapright->GetMapPoint().ToString().CString());
+        URHO3D_LOGDEBUGF("Map() - ConnectHorizontalMaps : mapleft=%s mapright=%s ...", mapleft->GetMapPoint().ToString().CString(), mapright->GetMapPoint().ToString().CString());
 
         bool updateObjects = false;
 
@@ -4966,7 +4966,7 @@ void Map::ConnectHorizontalMaps(Map* mapleft, Map* mapright)
 //                    s1 = s1 + " " + String(viewIds1[i]) + "(Z=" + String(mapleft->featuredMap_->GetViewZ(viewIds1[i])) + ")";
 //                for (int i=i2; i >= 0; i--)
 //                    s2 = s2 + " " + String(viewIds2[i]) + "(Z=" + String(mapright->featuredMap_->GetViewZ(viewIds2[i])) + ")";
-//                URHO3D_LOGINFOF("Map() - ConnectHorizontalMaps : mapleft viewids=%s - mapright viewids=%s", s1.CString(), s2.CString());
+//                URHO3D_LOGDEBUGF("Map() - ConnectHorizontalMaps : mapleft viewids=%s - mapright viewids=%s", s1.CString(), s2.CString());
 //            }
 
             int viewZ1, viewZ2;
@@ -4987,7 +4987,7 @@ void Map::ConnectHorizontalMaps(Map* mapleft, Map* mapright)
                 const FeaturedMap& features1 = mapleft->GetFeatureView(viewIds1[i1]);
                 const FeaturedMap& features2 = mapright->GetFeatureView(viewIds2[i2]);
 
-//                URHO3D_LOGINFOF("Map() - ConnectHorizontalMaps : connect (viewid1=%d viewZ1=%d) with (viewid2=%d viewZ2=%d)",
+//                URHO3D_LOGDEBUGF("Map() - ConnectHorizontalMaps : connect (viewid1=%d viewZ1=%d) with (viewid2=%d viewZ2=%d)",
 //                                viewIds1[i1], viewZ1, viewIds2[i2], viewZ2);
 
                 for (int i=0; i < MapInfo::info.height_; i++)
@@ -5066,7 +5066,7 @@ void Map::ConnectHorizontalMaps(Map* mapleft, Map* mapright)
     mapleft->SetConnectedMap(MapDirection::East, mapright);
     mapright->SetConnectedMap(MapDirection::West, mapleft);
 
-    URHO3D_LOGINFOF("Map() - ConnectHorizontalMaps : ... mapleft=%s mapright=%s OK !", mapleft->GetMapPoint().ToString().CString(), mapright->GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - ConnectHorizontalMaps : ... mapleft=%s mapright=%s OK !", mapleft->GetMapPoint().ToString().CString(), mapright->GetMapPoint().ToString().CString());
 }
 
 void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
@@ -5077,7 +5077,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
     // Connect Tiles
     if (!maptop->GetConnectedMap(MapDirection::South) || !mapbottom->GetConnectedMap(MapDirection::North))
     {
-        URHO3D_LOGINFOF("Map() - ConnectVerticalMaps : maptop=%s mapbottom=%s ...", maptop->GetMapPoint().ToString().CString(), mapbottom->GetMapPoint().ToString().CString());
+        URHO3D_LOGDEBUGF("Map() - ConnectVerticalMaps : maptop=%s mapbottom=%s ...", maptop->GetMapPoint().ToString().CString(), mapbottom->GetMapPoint().ToString().CString());
 
         bool updateObjects = false;
 
@@ -5096,7 +5096,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
 //                    s1 = s1 + " " + String(viewIds1[i]) + "(Z=" + String(maptop->featuredMap_->GetViewZ(viewIds1[i])) + ")";
 //                for (int i=i2; i >= 0; i--)
 //                    s2 = s2 + " " + String(viewIds2[i]) + "(Z=" + String(mapbottom->featuredMap_->GetViewZ(viewIds2[i])) + ")";
-//                URHO3D_LOGINFOF("Map() - ConnectVerticalMaps : maptop viewids=%s - mapbottom viewids=%s", s1.CString(), s2.CString());
+//                URHO3D_LOGDEBUGF("Map() - ConnectVerticalMaps : maptop viewids=%s - mapbottom viewids=%s", s1.CString(), s2.CString());
 //            }
 
             int viewZ1, viewZ2;
@@ -5117,7 +5117,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
                 const FeaturedMap& features1 = maptop->GetFeatureView(viewIds1[i1]);
                 const FeaturedMap& features2 = mapbottom->GetFeatureView(viewIds2[i2]);
 
-//                URHO3D_LOGINFOF("Map() - ConnectVerticalMaps : connect (viewid1=%d viewZ1=%d) with (viewid2=%d viewZ2=%d)",
+//                URHO3D_LOGDEBUGF("Map() - ConnectVerticalMaps : connect (viewid1=%d viewZ1=%d) with (viewid2=%d viewZ2=%d)",
 //                                viewIds1[i1], viewZ1, viewIds2[i2], viewZ2);
 
                 addr = (MapInfo::info.height_-1) * MapInfo::info.width_;
@@ -5142,7 +5142,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
 
                         connect2 = (connect1 & BottomSide) != 0 ? connect2 | TopSide : connect2 & ~TopSide;
 
-//                        URHO3D_LOGINFOF("maptop: i=%d connectIndex=%u gid=%d", i, connect1, tile1 ? tile1->GetGid() : 0);
+//                        URHO3D_LOGDEBUGF("maptop: i=%d connectIndex=%u gid=%d", i, connect1, tile1 ? tile1->GetGid() : 0);
                     }
 
                     // Set Tile2 on Bottom Connected to top
@@ -5156,7 +5156,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
                             tile2 = atlas->GetTile(tile2->GetTerrain(), connect2);
 
                         connect1 = (connect2 & TopSide) != 0 ? connect1 | BottomSide : connect1 & ~BottomSide;
-//                        URHO3D_LOGINFOF("mapbottom: i=%d connectIndex=%u gid=%d", i, connect2, tile2 ? tile2->GetGid() : 0);
+//                        URHO3D_LOGDEBUGF("mapbottom: i=%d connectIndex=%u gid=%d", i, connect2, tile2 ? tile2->GetGid() : 0);
                     }
                 }
 
@@ -5180,7 +5180,7 @@ void Map::ConnectVerticalMaps(Map* maptop, Map* mapbottom)
     // Specific : Generate and Set Collision Shapes for Top Borders
     mapbottom->CreateTopBorderCollisionShapes();
 
-    URHO3D_LOGINFOF("Map() - ConnectVerticalMaps : ... maptop=%s mapbottom=%s OK !", maptop->GetMapPoint().ToString().CString(), mapbottom->GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - ConnectVerticalMaps : ... maptop=%s mapbottom=%s OK !", maptop->GetMapPoint().ToString().CString(), mapbottom->GetMapPoint().ToString().CString());
 }
 
 
@@ -5609,7 +5609,7 @@ bool Map::UpdateVisibility(HiresTimer* timer)
             visible_ = MAP_VISIBLE;
             World2D::GetWorld()->OnMapVisibleChanged(this);
 
-//			URHO3D_LOGINFOF("Map() - UpdateVisibility : map=%s visible=true OK !", GetMapPoint().ToString().CString());
+//			URHO3D_LOGDEBUGF("Map() - UpdateVisibility : map=%s visible=true OK !", GetMapPoint().ToString().CString());
         }
     }
     else
@@ -5644,7 +5644,7 @@ bool Map::UpdateVisibility(HiresTimer* timer)
 
             visible_ = MAP_NOVISIBLE;
 
-//			URHO3D_LOGINFOF("Map() - UpdateVisibility : map=%s visible=false OK !", GetMapPoint().ToString().CString());
+//			URHO3D_LOGDEBUGF("Map() - UpdateVisibility : map=%s visible=false OK !", GetMapPoint().ToString().CString());
         }
     }
 
@@ -5689,7 +5689,7 @@ void Map::ShowMap(HiresTimer* timer)
     if (visible_ == MAP_VISIBLE || visible_ == MAP_CHANGETOVISIBLE)
         return;
 
-//    URHO3D_LOGINFOF("Map() - ShowMap : map=%s ...", GetMapPoint().ToString().CString());
+//    URHO3D_LOGDEBUGF("Map() - ShowMap : map=%s ...", GetMapPoint().ToString().CString());
 
     visible_ = MAP_CHANGETOVISIBLE;
     GetMapCounter(MAP_VISIBILITY) = 0;
@@ -5698,7 +5698,7 @@ void Map::ShowMap(HiresTimer* timer)
     if (!timer)
         Update(0);
 
-    URHO3D_LOGINFOF("Map() - ShowMap : map=%s ... OK !", GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - ShowMap : map=%s ... OK !", GetMapPoint().ToString().CString());
 }
 
 void Map::HideMap(HiresTimer* timer)
@@ -5717,7 +5717,7 @@ void Map::HideMap(HiresTimer* timer)
 
 void Map::HandleChangeViewIndex(StringHash eventType, VariantMap& eventData)
 {
-//    URHO3D_LOGINFOF("Map() - HandleChangeViewIndex on mPoint=%s !", GetMapPoint().ToString().CString());
+//    URHO3D_LOGDEBUGF("Map() - HandleChangeViewIndex on mPoint=%s !", GetMapPoint().ToString().CString());
 
 #ifdef USE_TILERENDERING
     if (!objectTiled_)
@@ -5746,7 +5746,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
 {
 #ifdef HANDLE_ENTITIES
 
-//    URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s type=%s(%u) at %f %f on viewZ=%d mapNode=%s(%u) slotData=%u ...",
+//    URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s type=%s(%u) at %f %f on viewZ=%d mapNode=%s(%u) slotData=%u ...",
 //                    GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value(), physicInfo.positionx_, physicInfo.positiony_, viewZ,
 //                    attachNode->GetName().CString(), attachNode->GetID(), slotData);
 
@@ -5815,7 +5815,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
         }
     }
 
-    URHO3D_LOGINFOF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s viewZ=%d slotdata=%u ...",
+    URHO3D_LOGDEBUGF("Map() - AddEntity : node=%s(%u) entityid=%d mPoint=%s spawn at %s viewZ=%d slotdata=%u ...",
                     node->GetName().CString(), node->GetID(), entityid, GetMapPoint().ToString().CString(), node->GetWorldPosition2D().ToString().CString(), viewZ, slotData);
 
     GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
@@ -5838,7 +5838,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
         // It's important for netspawning (with entityidflag to rerandomize the same equipment on clients)
         controller->control_.entityid_ = entityid;
 
-//        URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d maincontrol=%s ... OK !",
+//        URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d maincontrol=%s ... OK !",
 //                    GetMapPoint().ToString().CString(), node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
 //                    viewZ, sceneInfo.zindex_, controller->IsMainController() ? "true":"false");
     }
@@ -5865,7 +5865,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
 //            drawable->SetOrderInLayer(sceneInfo.zindex_);
 ////            drawable->SetViewMask(viewManager_->viewMask_[viewZ]);
 //            drawable->SetViewMask(viewManager_->layerMask_[viewZ]);
-////            URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s type=%s(%u) at %s viewZ=%d zindex=%d dlayer=%d, dorder=%d dvmask=%u scale=%s... OK !",
+////            URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s type=%s(%u) at %s viewZ=%d zindex=%d dlayer=%d, dorder=%d dvmask=%u scale=%s... OK !",
 ////                                GetMapPoint().ToString().CString(), GOT::GetType(got).CString(), got.Value(), node->GetWorldPosition2D().ToString().CString(),
 ////                                viewZ, sceneInfo.zindex_, drawable->GetLayer(), drawable->GetOrderInLayer(), drawable->GetViewMask(), node->GetWorldScale2D().ToString().CString());
 //        }
@@ -5901,7 +5901,7 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
             {
                 ObjectControlInfo& oinfo = GameNetwork::Get()->GetOrCreateServerObjectControl(node->GetID(), node->GetID(), clientid, node);
 
-                URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d SKIPNETSPAWN ... OK !",
+                URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d SKIPNETSPAWN ... OK !",
                                 GetMapPoint().ToString().CString(), clientid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ);
             }
             else if (nodeid == LOCAL)
@@ -5912,11 +5912,11 @@ Node* Map::AddEntity(const StringHash& got, int entityid, int nodeid, unsigned h
 
                 ObjectControlInfo* oinfo = GameNetwork::Get()->AddSpawnControl(node, holder, true, true, !sceneInfo.skipNetSpawn_);
 
-                URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d sceneInfo.skipNetSpawn_=%s ... OK !",
+                URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s clientid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d sceneInfo.skipNetSpawn_=%s ... OK !",
                                 GetMapPoint().ToString().CString(), clientid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(), viewZ, sceneInfo.skipNetSpawn_ ?"true":"false");
             }
         }
-//            URHO3D_LOGINFOF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d netusage=%s ... OK !",
+//            URHO3D_LOGDEBUGF("Map() - AddEntity : mPoint=%s modeid=%d nodeid=%u type=%s(%u) entityid=%d at %s viewZ=%d zindex=%d netusage=%s ... OK !",
 //                         GetMapPoint().ToString().CString(), nodeid, node->GetID(), GOT::GetType(got).CString(), got.Value(), entityid, node->GetWorldPosition2D().ToString().CString(),
 //                         viewZ, sceneInfo.zindex_, (category && category->HasReplicatedMode()) || (outsidePool && GOT::GetConstInfo(got).replicatedMode_) ? "true":"false");
     }
@@ -5943,7 +5943,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         return true;
     }
 
-    URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s ... From Memory on nodeEntities = %s", GetMapPoint().ToString().CString(),
+    URHO3D_LOGDEBUGF("Map() - SetEntities Load : Map=%s ... From Memory on nodeEntities = %s", GetMapPoint().ToString().CString(),
                     replicationMode_ ? replicatedEntitiesNode_->GetName().CString() : localEntitiesNode_->GetName().CString());
 
     unsigned i = mcount;
@@ -6018,7 +6018,7 @@ bool Map::SetEntities_Load(HiresTimer* timer)
         Node* node = ObjectPool::Get() ? ObjectPool::CreateChildIn(got, entityid, attachNode, nodeid, NOVIEW, &nodeAttributes, false, &category) : 0;
         if (node)
         {
-            URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s Entities[%d/%u] : reservedId=%u name=%s(%u) position=%s enabled=%s entityid=%d  ... OK !",
+            URHO3D_LOGDEBUGF("Map() - SetEntities Load : Map=%s Entities[%d/%u] : reservedId=%u name=%s(%u) position=%s enabled=%s entityid=%d  ... OK !",
                             GetMapPoint().ToString().CString(), i, numEntities, nodeid, node->GetName().CString(), node->GetID(), node->GetWorldPosition2D().ToString().CString(), node->IsEnabled() ? "true":"false",
                             entityid);
 
@@ -6138,9 +6138,9 @@ bool Map::SetEntities_Load(HiresTimer* timer)
     }
 
     if (timer)
-        URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s ... timer =%d ms ... OK !", GetMapPoint().ToString().CString(), timer->GetUSec(false)/1000);
+        URHO3D_LOGDEBUGF("Map() - SetEntities Load : Map=%s ... timer =%d ms ... OK !", GetMapPoint().ToString().CString(), timer->GetUSec(false)/1000);
     else
-        URHO3D_LOGINFOF("Map() - SetEntities Load : Map=%s ... OK !", GetMapPoint().ToString().CString());
+        URHO3D_LOGDEBUGF("Map() - SetEntities Load : Map=%s ... OK !", GetMapPoint().ToString().CString());
 
     ObjectPool::SetForceLocalMode(true);
     mcount = 0;
@@ -6187,7 +6187,7 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
         if (entitydata.IsBoss())
         {
-            URHO3D_LOGINFOF("Map() - SetEntities Add : mPoint=%s Entities[%d] : type=%s(%u) skip boss entityid=%u ...",
+            URHO3D_LOGDEBUGF("Map() - SetEntities Add : mPoint=%s Entities[%d] : type=%s(%u) skip boss entityid=%u ...",
                             GetMapPoint().ToString().CString(), i, GOT::GetType(got).CString(), got.Value(), entitydata.sstype_);
             i++;
             continue;
@@ -6195,7 +6195,7 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
         viewZ = ViewManager::GetLayerZ(entitydata.drawableprops_ & FlagLayerZIndex_);
 
-//        URHO3D_LOGINFOF("Map() - SetEntities Add : mPoint=%s Entities[%d] : type=%s(%u)",
+//        URHO3D_LOGDEBUGF("Map() - SetEntities Add : mPoint=%s Entities[%d] : type=%s(%u)",
 //                GetMapPoint().ToString().CString(), i, GOT::GetType(got).CString(), got.Value());
 
         ObjectPoolCategory* category = 0;
@@ -6262,7 +6262,7 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
             GameHelpers::UpdateLayering(node);
 
-            URHO3D_LOGINFOF("Map() - SetEntities Add : Map=%s ... Entities[%d] : nodeid=%u type=%s(%u) enabled=%s mapvisible=%s position=%s viewZ=%d parentNodePool=%s(%u) entityid=%d sstype=%d",
+            URHO3D_LOGDEBUGF("Map() - SetEntities Add : Map=%s ... Entities[%d] : nodeid=%u type=%s(%u) enabled=%s mapvisible=%s position=%s viewZ=%d parentNodePool=%s(%u) entityid=%d sstype=%d",
                             GetMapPoint().ToString().CString(), i, node->GetID(), GOT::GetType(got).CString(), got.Value(), node->IsEnabled() ? "true":"false", mapvisible ? "true":"false",
                             position.ToString().CString(), viewZ, node->GetParent()->GetName().CString(), node->GetParent()->GetID(), entityid, entitydata.sstype_);
 
@@ -6278,14 +6278,14 @@ bool Map::SetEntities_Add(HiresTimer* timer)
 
         if (TimeOver(timer))
         {
-//            URHO3D_LOGINFOF("Map() - SetEntities Add ... ! timer =%d", timer->GetUSec(false)/1000);
+//            URHO3D_LOGDEBUGF("Map() - SetEntities Add ... ! timer =%d", timer->GetUSec(false)/1000);
             mcount = i;
             ObjectPool::SetForceLocalMode(true);
             return false;
         }
     }
 
-//    URHO3D_LOGINFOF("Map() - SetEntities Add ... OK !");
+//    URHO3D_LOGDEBUGF("Map() - SetEntities Add ... OK !");
 
     ObjectPool::SetForceLocalMode(true);
     mcount = 0;
@@ -6310,7 +6310,7 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
             Node* node;
             PODVector<Node*> children;
             localEntitiesNode_->GetChildren(children);
-            URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... Remove Local Entities ... numEntities=%u ...", GetMapPoint().ToString().CString(), children.Size());
+            URHO3D_LOGDEBUGF("Map() - RemoveNodes mPoint=%s ... Remove Local Entities ... numEntities=%u ...", GetMapPoint().ToString().CString(), children.Size());
 
             for (PODVector<Node*>::ConstIterator it=children.Begin(); it != children.End(); ++it)
             {
@@ -6321,7 +6321,7 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
                 if (!node)
                     continue;
 
-                URHO3D_LOGINFOF("  ... To Clear node=%s(%u)", node->GetName().CString(), node->GetID());
+                URHO3D_LOGDEBUGF("  ... To Clear node=%s(%u)", node->GetName().CString(), node->GetID());
                 if (node->GetComponent<GOC_Destroyer>())
                     node->GetComponent<GOC_Destroyer>()->Destroy();
                 else
@@ -6329,7 +6329,7 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
             }
 
             if (TimeOver(timer))
-                URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... localEntitiesNodesCleared ... timer=%d/%d msec",
+                URHO3D_LOGDEBUGF("Map() - RemoveNodes mPoint=%s ... localEntitiesNodesCleared ... timer=%d/%d msec",
                                  GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
         }
 #endif
@@ -6413,7 +6413,7 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
         if (node_)
             GameHelpers::RemoveNodeSafe(node_);
 
-        URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... RemoveNodeSafe OK ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - RemoveNodes mPoint=%s ... RemoveNodeSafe OK ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount++;
 
@@ -6430,12 +6430,12 @@ bool Map::RemoveNodes(bool removeentities, HiresTimer* timer)
         if (nodeStatic_)
             GameHelpers::RemoveNodeSafe(nodeStatic_);
 
-        URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... NodeStatic Removed ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
+        URHO3D_LOGDEBUGF("Map() - RemoveNodes mPoint=%s ... NodeStatic Removed ... timer=%d/%d msec", GetMapPoint().ToString().CString(), timer ? timer->GetUSec(false) / 1000 : 0, delayUpdateUsec_/1000);
 
         mcount = 0;
     }
 
-    URHO3D_LOGINFOF("Map() - RemoveNodes mPoint=%s ... OK !", GetMapPoint().ToString().CString());
+    URHO3D_LOGDEBUGF("Map() - RemoveNodes mPoint=%s ... OK !", GetMapPoint().ToString().CString());
     return true;
 }
 

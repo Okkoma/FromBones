@@ -681,7 +681,7 @@ bool ObjectFeatured::ApplyFeatureFilters(unsigned addr)
 {
     bool change = false;
 
-    URHO3D_LOGINFOF("ObjectFeatured() - ApplyFeatureFilters ... addr=%u numFeatureFilters=%u ... ", addr, featurefilters_.Size());
+    URHO3D_LOGDEBUGF("ObjectFeatured() - ApplyFeatureFilters ... addr=%u numFeatureFilters=%u ... ", addr, featurefilters_.Size());
     for (Vector<FeatureFilterInfo >::ConstIterator ft=featurefilters_.Begin(); ft != featurefilters_.End(); ++ft)
     {
         const FeatureFilterInfo& info = *ft;
@@ -799,7 +799,7 @@ bool ObjectFeatured::ApplyFeatureFilters(unsigned addr)
             }
         }
     }
-    URHO3D_LOGINFOF("ObjectFeatured() - ApplyFeatureFilters ... addr=%u numFeatureFilters=%u ... change=%u !", addr, featurefilters_.Size(), change);
+    URHO3D_LOGDEBUGF("ObjectFeatured() - ApplyFeatureFilters ... addr=%u numFeatureFilters=%u ... change=%u !", addr, featurefilters_.Size(), change);
 
     return change;
 }
@@ -989,13 +989,13 @@ bool ObjectFeatured::ApplyFeatureFilters(const List<TileModifier >& modifiers, H
 
 bool ObjectFeatured::ApplyFeatureFilters(HiresTimer* timer, const long long& delay)
 {
-    URHO3D_LOGINFOF("ObjectFeatured() - ApplyFeatureFilters ... ");
+    URHO3D_LOGDEBUGF("ObjectFeatured() - ApplyFeatureFilters ... ");
 
     for (;;)
     {
         if (indexToSet_ >= featurefilters_.Size())
         {
-            URHO3D_LOGINFOF("ObjectFeatured() - ApplyFeatureFilters ... OK !");
+            URHO3D_LOGDEBUGF("ObjectFeatured() - ApplyFeatureFilters ... OK !");
             indexToSet_ = 0;
             return true;
         }
@@ -1004,7 +1004,7 @@ bool ObjectFeatured::ApplyFeatureFilters(HiresTimer* timer, const long long& del
 
         indexToSet_++;
 
-//        URHO3D_LOGINFOF("ObjectFeatured() - ApplyFeatureFilters ... filter=%u/%u ... timer=%d msec",
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - ApplyFeatureFilters ... filter=%u/%u ... timer=%d msec",
 //                        indexToSet_, featurefilters_.Size(), timer ? timer->GetUSec(false) / 1000 : 0);
 
         if (TimeOver(timer))
@@ -1017,13 +1017,13 @@ bool ObjectFeatured::ApplyFeatureFilters(HiresTimer* timer, const long long& del
 
 bool ObjectFeatured::SetFluidCells(HiresTimer* timer, const long long& delay)
 {
-    URHO3D_LOGINFOF("ObjectFeatured() - SetFluidCells ... ");
+    URHO3D_LOGDEBUGF("ObjectFeatured() - SetFluidCells ... ");
 
     for (;;)
     {
         if (indexToSet_ >= fluidView_.Size())
         {
-            URHO3D_LOGINFOF("ObjectFeatured() - SetFluidCells ... OK !");
+            URHO3D_LOGDEBUGF("ObjectFeatured() - SetFluidCells ... OK !");
             indexToSet_ = 0;
             return true;
         }
@@ -1032,7 +1032,7 @@ bool ObjectFeatured::SetFluidCells(HiresTimer* timer, const long long& delay)
 
         indexToSet_++;
 
-//        URHO3D_LOGINFOF("ObjectFeatured() - SetFluidCells ... fluidView=%u/%u ... timer=%d msec",
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - SetFluidCells ... fluidView=%u/%u ... timer=%d msec",
 //                        indexToSet_, fluidView_.Size(), timer ? timer->GetUSec(false) / 1000 : 0);
 
         if (TimeOver(timer))
@@ -1266,20 +1266,20 @@ bool ObjectFeatured::UpdateMaskViews(const TileGroup& tileGroup, HiresTimer* tim
 
         indexToSet_++;
 
-//        URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews : ... indexZ=%d/%d ... timer=%d msec", indexToSet_, ViewManager::GetNumViewZ(), timer ? timer->GetUSec(false)/1000 : 0);
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews : ... indexZ=%d/%d ... timer=%d msec", indexToSet_, ViewManager::GetNumViewZ(), timer ? timer->GetUSec(false)/1000 : 0);
 
         if (HalfTimeOver(timer))
             return false;
     }
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews : ... timer=%d OK !", timer ? timer->GetUSec(false)/1000 : 0);
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews : ... timer=%d OK !", timer ? timer->GetUSec(false)/1000 : 0);
     indexToSet_ = 0;
     return true;
 }
 
 bool ObjectFeatured::UpdateMaskViews(HiresTimer* timer, const long long& delay, NeighborMode nghmode)
 {
-//    URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews : ... startTimer=%d", timer ? timer->GetUSec(false)/1000 : 0);
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews : ... startTimer=%d", timer ? timer->GetUSec(false)/1000 : 0);
 
     if (!map_ || !map_->GetObjectSkinned())
         return true;
@@ -1343,7 +1343,7 @@ bool ObjectFeatured::UpdateMaskViews(HiresTimer* timer, const long long& delay, 
             continue;
         }
 
-        //    URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews viewZ=%u : Compute MaskedViews ...", viewZ);
+        //URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews viewZ=%u : Compute MaskedViews ...", viewZ);
 
         // Note : maskCell = MapFeatureType::NoRender => MaskedCell
 
@@ -1461,13 +1461,13 @@ bool ObjectFeatured::UpdateMaskViews(HiresTimer* timer, const long long& delay, 
 
         indexToSet_++;
 
-//        URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews : ... indexZ=%d/%d ... timer=%d msec", indexToSet_, ViewManager::GetNumViewZ(), timer ? timer->GetUSec(false)/1000 : 0);
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews : ... indexZ=%d/%d ... timer=%d msec", indexToSet_, ViewManager::GetNumViewZ(), timer ? timer->GetUSec(false)/1000 : 0);
 
         if (HalfTimeOver(timer))
             return false;
     }
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - UpdateMaskViews : ... timer=%d OK !", timer ? timer->GetUSec(false)/1000 : 0);
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - UpdateMaskViews : ... timer=%d OK !", timer ? timer->GetUSec(false)/1000 : 0);
     indexToSet_ = 0;
     return true;
 }
@@ -1523,13 +1523,13 @@ void ObjectFeatured::SortViews()
 {
     viewIds_.Clear();
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - SortViews : ... DumpViewZs=%s ...", GetDumpViewZs().CString());
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - SortViews : ... DumpViewZs=%s ...", GetDumpViewZs().CString());
 
     for (HashMap<unsigned, unsigned>::ConstIterator it = viewZ_.Begin(); it != viewZ_.End(); ++it)
     {
         int viewZ = it->second_;
 
-//        URHO3D_LOGINFOF("ObjectFeatured() - SortViews : sorting viewZ=%d ...", viewZ);
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - SortViews : sorting viewZ=%d ...", viewZ);
 #ifdef SORTSINGLE
         SortViewsIds_Last(viewZ);
 #else
@@ -1547,10 +1547,10 @@ void ObjectFeatured::SortViews()
             viewIds_[viewZ] = GetViewIDs(nearestViewZ);
         }
 
-        URHO3D_LOGINFOF("ObjectFeatured() - SortViews : viewZ=%d => DumpViewIds=%s !", viewZ, GetDumpViewId(viewZ).CString());
+        URHO3D_LOGDEBUGF("ObjectFeatured() - SortViews : viewZ=%d => DumpViewIds=%s !", viewZ, GetDumpViewId(viewZ).CString());
     }
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - SortViews : ... DumpViewIDs=%s", GetDumpViewIds().CString());
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - SortViews : ... DumpViewIDs=%s", GetDumpViewIds().CString());
 }
 
 void ObjectFeatured::SortViewsIds_Last(unsigned viewZ)
@@ -1592,7 +1592,7 @@ void ObjectFeatured::SortViewsIds_All(unsigned viewZ)
     viewIds.Clear();
     viewIds.Reserve(numIds);
 
-//    URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : viewZ=%d numMaxViewZ=%d ...", viewZ, numIds);
+//    URHO3D_LOGDEBUGF("ObjectFeatured() - SortViewsIds_All : viewZ=%d numMaxViewZ=%d ...", viewZ, numIds);
 
     unsigned minViewZ = 0, lastViewZ;
     int lastid = -1;
@@ -1616,7 +1616,7 @@ void ObjectFeatured::SortViewsIds_All(unsigned viewZ)
                 lastViewZ = viewZ_[j];
             }
         }
-//        URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : pass=%d id=%d minz=%d lastz=%d...", i, id, minViewZ, lastViewZ);
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - SortViewsIds_All : pass=%d id=%d minz=%d lastz=%d...", i, id, minViewZ, lastViewZ);
 
         minViewZ = lastViewZ+1;
 
@@ -1634,9 +1634,9 @@ void ObjectFeatured::SortViewsIds_All(unsigned viewZ)
 
     numIds = viewIds.Size();
     for (int i=0; i < numIds; i++)
-        URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : Dump i=%d/%d viewId=%d viewZ=%d", i+1, numIds, viewIds[i], viewZ_[viewIds[i]]);
+        URHO3D_LOGDEBUGF("ObjectFeatured() - SortViewsIds_All : Dump i=%d/%d viewId=%d viewZ=%d", i+1, numIds, viewIds[i], viewZ_[viewIds[i]]);
 
-    URHO3D_LOGINFOF("ObjectFeatured() - SortViewsIds_All : ... OK !", viewZ);
+    URHO3D_LOGDEBUGF("ObjectFeatured() - SortViewsIds_All : ... OK !", viewZ);
 }
 
 const Vector<int>& ObjectFeatured::GetViewIDs(unsigned viewZ)
@@ -1662,7 +1662,7 @@ const Vector<int>& ObjectFeatured::GetViewIDs(unsigned viewZ)
 //            viewids.Push(0);
 //        }
 //
-//        URHO3D_LOGINFOF("ObjectFeatured() - GetViewIDs : viewZ=%d => patch use nearestviewz=%d DumpViewIds=%s !", viewZ, nearestViewZ, GetDumpViewId(viewZ).CString());
+//        URHO3D_LOGDEBUGF("ObjectFeatured() - GetViewIDs : viewZ=%d => patch use nearestviewz=%d DumpViewIds=%s !", viewZ, nearestViewZ, GetDumpViewId(viewZ).CString());
 
         return viewIds_[viewZ];
     }
