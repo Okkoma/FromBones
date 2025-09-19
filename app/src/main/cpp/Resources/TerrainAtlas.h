@@ -74,7 +74,8 @@ public:
     }
     const MapTerrain& GetBiomeTerrain(int biomeid) const
     {
-        return *(biomeTerrains_[biomeid]);
+        //assert(biomeid < biomeTerrains_.Size());
+        return *(biomeTerrains_[biomeid%biomeTerrains_.Size()]);
     }
     const Vector<MapTerrain>& GetAllTerrains() const
     {
