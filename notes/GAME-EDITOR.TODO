@@ -1,5 +1,12 @@
 Todos:
     
+    ✔ 20/09/2025 : EDITOR - en déplacant la furniture escalier.xml il y a flipping X et le physic n'a pas le meme flip comme le drawable.
+        => dans ce cas il y a appel à Map::AnchorEntityOnTileAt
+        ==> callstack MapEditorLibImpl::Update -> MapBase::RefreshEntityPosition -> MapData::SetEntityData -> Map::AnchorEntityOnTileAt
+        ===> le flipping est géré MapEditorLibImpl::Update -> MapBase::RefreshEntityPosition -> MapData::UpdateEntityNode.
+        ===> OK : correctif de la logique dans MapData::UpdateEntityNode : les collisionShapes n'ont pas d'attribut de flipping, mais on peut vérifier
+            si une modification est apportée via le drawable.
+
     ☐ 10/05/2025 : EDITOR - l'edition scml ne prend pas en compte les équipements et crash à la sortie du mode. 
     ☐ 10/05/2025 : EDITOR - les animations power1 et power2 ne s'affichent pas dans l'editeur scml
 

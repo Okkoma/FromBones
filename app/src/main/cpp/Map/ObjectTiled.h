@@ -186,6 +186,10 @@ public :
 
     inline unsigned char GetTerrainId(const TiledMap& tiles, unsigned addr);
 
+    bool IsDynamic() const
+    {
+        return isDynamic_;
+    }
     bool IsChunked() const
     {
         return isChunked_;

@@ -1726,7 +1726,7 @@ bool CreateMapGenWorkInfos(Context* context, MapGeneratorStatus& genStatus, List
 
     queue->Resume();
 
-    URHO3D_LOGINFOF("CreateMapGenWorkInfos() - size=%u", moduleInfos.Size());
+    URHO3D_LOGDEBUGF("CreateMapGenWorkInfos() - size=%u", moduleInfos.Size());
     return true;
 }
 #endif
@@ -2083,13 +2083,12 @@ void AnlWorldModel::HandleWorkItemComplete(StringHash eventType, VariantMap& eve
     // Mark this work finished
     MapGenWorkInfo* info = static_cast<MapGenWorkInfo*>(item->aux_);
     info->finished_ = true;
-    URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... %s ... thread=%d ysize=%d finished in %d msec !", info->genStatus_->mappoint_.ToString().CString(), info->ithread_, info->ysize_, info->time_);
-
+    URHO3D_LOGDEBUGF("AnlWorldModel() - HandleWorkItemComplete ... %s ... thread=%d ysize=%d finished in %d msec !", info->genStatus_->mappoint_.ToString().CString(), info->ithread_, info->ysize_, info->time_);
 
     //  All WorkItems are finished => stop 
     if (MapGenWorksFinished(mapGenWorkInfos_))
     {
-        URHO3D_LOGINFOF("AnlWorldModel() - HandleWorkItemComplete ... All %u WorkItems Finished !", mapGenWorkInfos_.Size());
+        URHO3D_LOGDEBUGF("AnlWorldModel() - HandleWorkItemComplete ... All %u WorkItems Finished !", mapGenWorkInfos_.Size());
         UnsubscribeFromEvent(GameContext::Get().gameWorkQueue_, E_WORKITEMCOMPLETED);
     }
 }

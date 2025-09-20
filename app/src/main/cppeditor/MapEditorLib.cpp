@@ -148,7 +148,7 @@ const char* PickModeStr[] =
 {
     "Drawables",
     "Bodies",
-    "Physics",
+    "CShapes",
     "RShapes",
 #if defined(ACTIVE_CLIPPING) && defined(ACTIVE_RENDERSHAPE_CLIPPING)
     "RClipped",
@@ -2829,9 +2829,11 @@ void MapEditorLibImpl::Update(float timeStep)
                     for (unsigned i=0; i < results.Size(); i++)
                     {
                         Drawable* d = results[i].drawable_;
-                        if (d->IsInstanceOf<ObjectTiled>() || d->IsInstanceOf<RenderShape>() ||
-                            d->IsInstanceOf<DrawableScroller>() || d->IsInstanceOf<ScrollingShape>() ||
-                            d->IsInstanceOf<WaterLayer>())
+                        if (d->IsInstanceOf<RenderShape>() || d->IsInstanceOf<DrawableScroller>() ||
+                            d->IsInstanceOf<ScrollingShape>() || d->IsInstanceOf<WaterLayer>())
+                            continue;
+
+                        if (d->IsInstanceOf<ObjectTiled>() && !static_cast<ObjectTiled*>(d)->IsDynamic())
                             continue;
 
                         // Keep selected drawable if is in RayQuery Results.

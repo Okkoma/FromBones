@@ -1421,7 +1421,7 @@ void MapData::SetEntityData(Node* node, EntityData* entitydata, bool priorizeEnt
     if (onTile)
         onTile = node->GetVar(GOA::ONTILE).GetInt() != -1;
 
-//    URHO3D_LOGERRORF("MapData() - SetEntityData : map=%s node=%s(%u) ... ontile=%s", map_ ? map_->GetMapPoint().ToString().CString() : "none", node->GetName().CString(), node->GetID(), onTile ? "true":"false");
+    URHO3D_LOGDEBUGF("MapData() - SetEntityData : map=%s node=%s(%u) ... ontile=%s", map_ ? map_->GetMapPoint().ToString().CString() : "none", node->GetName().CString(), node->GetID(), onTile ? "true":"false");
 
     // if ONTILE not defined (new furniture or furniture position edited)
     if (!onTile && (GOT::GetTypeProperties(got) & GOT_Anchored))
@@ -1492,7 +1492,7 @@ void MapData::UpdateEntityNode(Node* node, EntityData* entitydata)
         }
 
         entitydata = jt->second_;
-    }
+    } 
 
     // Update the Position and Orientation
     node->SetWorldPosition2D(map_->GetWorldTilePosition(map_->GetTileCoords(entitydata->tileindex_), entitydata->GetNormalizedPositionInTile()));
@@ -1502,34 +1502,25 @@ void MapData::UpdateEntityNode(Node* node, EntityData* entitydata)
 
     bool flipX = entitydata->drawableprops_ & FlagFlipX_;
     bool flipY = entitydata->drawableprops_ & FlagFlipY_;
+    bool prevFlipX = false, prevFlipY = false;    
 
     StaticSprite2D* drawable = node->GetDerivedComponent<StaticSprite2D>();
     if (drawable)
     {
-        // version for modified StaticSprite2D::UpdateDrawRectangle() (with no parameter flipX,flipY)
-        // Graphics.TODO 13/03/2024
-        // get the automatic hotspot from sprite setted from spritesheet
-//        if (flipX || flipY)
-//        {
-//            Vector2 hotspot = drawable->GetSprite()->GetHotSpot();
-//            if (flipX)
-//                hotspot.x_ = 1.f - hotspot.x_;
-//            if (flipY)
-//                hotspot.y_ = 1.f - hotspot.y_;
-//
-//            drawable->SetUseHotSpot(true);
-//            drawable->SetHotSpot(hotspot);
-//        }
-
+        prevFlipX = drawable->GetFlipX();
+        prevFlipY = drawable->GetFlipY();
         drawable->SetFlip(flipX, flipY);
     }
+
+    URHO3D_LOGDEBUGF("MapData() - UpdateEntityNode : node=%s(%u) entitydata=%u flipx=%d(%d) flipy=%d(%d)... ", 
+                        node->GetName().CString(), node->GetID(), entitydata, flipX, prevFlipX, flipY, prevFlipY);
 
     GOC_Animator2D* animator = node->GetComponent<GOC_Animator2D>();
     if (animator)
         animator->SetDirection(Vector2(flipX ? -1.f : 1.f, 0.f));
 
     // Flip physic center if drawable is flip
-    if (flipX || flipY)
+    if (flipX != prevFlipX || flipY != prevFlipY)
     {
         PODVector<CollisionShape2D*> shapes;
         node->GetDerivedComponents<CollisionShape2D>(shapes);

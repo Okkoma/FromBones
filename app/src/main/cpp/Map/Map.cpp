@@ -683,17 +683,20 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
     for (int i = startindex; i >= 0; i--)
     {
         anchor = NoneSide;
-
-        const ConnectedMap& connectmap = GetConnectedView(viewids[i]);
+        int vid = viewids[i];
+        if (vid == -1)        
+            continue;
+        
+        const ConnectedMap& connectmap = GetConnectedView(vid);
         ConnectIndex cindex = connectmap[tileindex];
 
-//        URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : check tileindex=%u x=%d y=%d view=%d cindex=%d ...", tileindex, coords.x_, coords.y_, viewids[i], cindex);
+//        URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : check tileindex=%u x=%d y=%d view=%d cindex=%d ...", tileindex, coords.x_, coords.y_, vid, cindex);
 
         // is a block with some free sides
         if (anchorOnGroundTile && cindex < MapTilesConnectType::AllConnect)
         {
             URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : anchorOnGroundTile check x=%d y=%d view=%s(%d) cindex=%d ...",
-                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
+                            coords.x_, coords.y_, mapViewsNames[vid], vid, cindex);
 
             // find the nearest side where to spawn
             if (!checkpositionintile || (Abs(offset.x_) >= halftilewidth * bordershrinkfactor && Abs(offset.x_) >= Abs(offset.y_)))
@@ -714,7 +717,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
 
             if (anchor != NoneSide)
             {
-                viewid = viewids[i];
+                viewid = vid;
                 break;
             }
         }
@@ -722,9 +725,9 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
         else if (anchorOnBackTile && cindex <= MapTilesConnectType::AllConnect)
         {
             URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : anchorOnBackTile check x=%d y=%d view=%s(%d) cindex=%d ...",
-                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
+                            coords.x_, coords.y_, mapViewsNames[vid], vid, cindex);
             anchor = NoneSide;
-            viewid = viewids[i];
+            viewid = vid;
             break;
         }
         // no tile, find the nearest block
@@ -741,17 +744,17 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                 diry = -1;
 
             URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check x=%d y=%d view=%s(%d) cindex=%d offset=%f,%f dirx=%d diry=%d ...",
-                            coords.x_, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex, offset.x_, offset.y_, dirx, diry);
+                            coords.x_, coords.y_, mapViewsNames[vid], vid, cindex, offset.x_, offset.y_, dirx, diry);
 
             if (dirx && !AreCoordsOutside(coords.x_+dirx, coords.y_))
             {
                 if (!checkpositionintile || (Abs(offset.x_) >= halftilewidth * bordershrinkfactor && Abs(offset.x_) > Abs(offset.y_)))
                 {
                     unsigned newtileindex = GetTileIndex(coords.x_+dirx, coords.y_);
-                    cindex = GetConnectedView(viewids[i])[newtileindex];
+                    cindex = GetConnectedView(vid)[newtileindex];
 
                     URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check dirx=%d x=%d y=%d view=%s(%d) cindex=%d ...",
-                                    dirx, coords.x_+dirx, coords.y_, mapViewsNames[viewids[i]], viewids[i], cindex);
+                                    dirx, coords.x_+dirx, coords.y_, mapViewsNames[vid], vid, cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
                     {
@@ -761,7 +764,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                         tileindex = newtileindex;
                         coords.x_ += dirx;
                         offset = position - GetWorldTilePosition(coords);
-                        viewid = viewids[i];
+                        viewid = vid;
                         break;
                     }
                 }
@@ -772,10 +775,10 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                 if (!checkpositionintile || (Abs(offset.y_) >= halftileheight * bordershrinkfactor && (anchor == NoneSide || Abs(offset.x_) <= Abs(offset.y_))))
                 {
                     unsigned newtileindex = GetTileIndex(coords.x_, coords.y_+diry);
-                    cindex = GetConnectedView(viewids[i])[newtileindex];
+                    cindex = GetConnectedView(vid)[newtileindex];
 
                     URHO3D_LOGDEBUGF("Map() - AnchorEntityOnTileAt : Void check diry=%d x=%d y=%d view=%s(%d) cindex=%d ...",
-                                    diry, coords.x_, coords.y_+diry, mapViewsNames[viewids[i]], viewids[i], cindex);
+                                    diry, coords.x_, coords.y_+diry, mapViewsNames[vid], vid, cindex);
 
                     if (cindex < MapTilesConnectType::AllConnect)
                     {
@@ -785,7 +788,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
                         tileindex = newtileindex;
                         coords.y_ += diry;
                         offset = position - GetWorldTilePosition(coords);
-                        viewid = viewids[i];
+                        viewid = vid;
                         break;
                     }
                 }
@@ -794,7 +797,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
     }
 
     if (viewid == NOVIEW)
-        return false;
+        URHO3D_LOGWARNINGF("Map() - AnchorEntityOnTileAt : no viewid found for viewZ=%d!", viewZ);
 
     if (anchor == NoneSide && anchorOnGroundTile)
         return false;
@@ -823,7 +826,7 @@ bool MapBase::AnchorEntityOnTileAt(EntityData& entitydata, Node* node, bool isab
     }
 
     URHO3D_LOGINFOF("Map() - AnchorEntityOnTileAt : tileindex=%u tilepositionx=%d tilepositiony=%d anchor=%d BiomeLayer=%s viewid=%s(%d) LayerZ=%d ViewZ=%d !",
-                     entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_, anchor, isabiome?"true":"false", mapViewsNames[viewid], viewid, layerZ, viewZ);
+                     entitydata.tileindex_, entitydata.tilepositionx_, entitydata.tilepositiony_, anchor, isabiome?"true":"false", viewid != NOVIEW ? mapViewsNames[viewid] : "NOVIEW", viewid, layerZ, viewZ);
 
     return true;
 }
