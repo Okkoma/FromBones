@@ -1410,7 +1410,13 @@ void OptionState::SubscribeToEvents()
 
     Button* commandsbutton = uioptionsframe_->GetChildStaticCast<Button>("commandbutton", true);
     if (commandsbutton)
-        SubscribeToEvent(commandsbutton, E_RELEASED, URHO3D_HANDLER(OptionState, HandleToggleCommandsPanel));        
+    {
+        // don't need commands panel on android or ios
+        if (GameContext::Get().gameConfig_.touchEnabled_) 
+            commandsbutton->SetVisible(false);
+        else
+            SubscribeToEvent(commandsbutton, E_RELEASED, URHO3D_HANDLER(OptionState, HandleToggleCommandsPanel));        
+    }
 }
 
 void OptionState::UnsubscribeToEvents()

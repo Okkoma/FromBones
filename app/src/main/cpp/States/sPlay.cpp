@@ -838,7 +838,12 @@ void PlayState::InitLevel(bool init, bool restart)
         }
 #endif
 
-        world_->SetWorld(toLoadGame_);
+        if (!world_->SetWorld(toLoadGame_))
+        {
+            URHO3D_LOGERRORF("PlayState() - InitLevel : Error during Setting the World !");
+            stateManager_->PopStack();
+            return;
+        }
     }
 
     // Stop the update of the physics (prevent crash)
