@@ -1,4 +1,8 @@
 Todos:
+    ☐ 21/09/2025 : sous Android (OpenGLES2) release, pb d'affichage du waterlayer apparaissant en couleur bleu clair opaque.
+        => remodification du shader waterrefract.glsl avec amplitude = 0.001 (cf test/mediump.py)
+        ==> pb de perf ?
+        
     ✔ 20/09/2025 : sous Android, en OpenGLES2 (GLSL120), probleme d'affichage du water refract (WaterLayer et shader waterrefract.glsl).
         => sur de nombreux point de vue camera, l'eau apparait en couleur unie bleu clair opaque, donc sans alpha/ondulation.
         ==> le pb n'apparait qu'en mode Release. (mode debug ok).
