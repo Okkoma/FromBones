@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10.2)
 
-project (FromBones VERSION 0.5.9)
+project (FromBones VERSION 0.6.0)
 
 # clangd helper
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -46,10 +46,6 @@ endif ()
 # Dev Game Options
 
 option (FROMBONES_TEST "Enable Testing" FALSE)
-
-if (FROMBONES_TEST)
-
-endif ()
 
 message (STATUS "Project configuration:")
 message (STATUS "   Version   ${CMAKE_PROJECT_VERSION}")
