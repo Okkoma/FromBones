@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" 
-	package="com.okkomastudio.frombones">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.okkomastudio.frombones">
         
     <!-- OpenGL ES 2.0 -->
     <uses-feature android:glEsVersion="0x00020000"/>
@@ -31,7 +32,8 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"
-            android:exported="false">
+            android:exported="true"
+            tools:ignore="IntentFilterExportedReceiver">
             <!--android:theme="@android:style/Theme.NoTitleBar.Fullscreen">-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

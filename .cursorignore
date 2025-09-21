@@ -5,7 +5,8 @@ keystore.properties
 build/*
 build-native/*
 backup/*
-bin/*
+bin/Data/Graphics/*
+bin/Data/2D/*
 bin-tool/*
 exe/*
 notes/*
