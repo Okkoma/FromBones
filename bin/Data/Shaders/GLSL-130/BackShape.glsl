@@ -54,7 +54,6 @@ void VS()
     gl_Position = GetClipPos(vec3((iPos * iModelMatrix).xy, 0.0));
 
     vTexCoord = iTexCoord;
-//    vTexCoord = GetTexCoord(iTexCoord);
     vColor = iColor;
 
     vPosition = iPos.xy;

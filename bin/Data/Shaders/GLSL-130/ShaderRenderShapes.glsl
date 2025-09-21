@@ -111,14 +111,14 @@ void PS()
 {
     vec4 diffInput;
 
-	switch(fTextureId)
-	{
+    switch(fTextureId)
+    {
         case -1: diffInput = vec4(1.0); break;
-		case  0: diffInput = ApplyTextureEffects(sUrho2DTextures[ 0]); break;
+        case  0: diffInput = ApplyTextureEffects(sUrho2DTextures[ 0]); break;
         case  1: diffInput = ApplyTextureEffects(sUrho2DTextures[ 1]); break;
         case  2: diffInput = ApplyTextureEffects(sUrho2DTextures[ 2]); break;
-        case  3: diffInput = ApplyTextureEffects(sUrho2DTextures[ 3]); break;        
-	}
+        case  3: diffInput = ApplyTextureEffects(sUrho2DTextures[ 3]); break;
+    }
 
     gl_FragColor = vColor * diffInput;
 }

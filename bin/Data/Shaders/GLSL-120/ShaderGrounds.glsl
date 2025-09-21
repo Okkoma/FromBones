@@ -50,7 +50,7 @@ varying float fTexEffect3;
 
 void VS()
 {
-	fTextureId   = iTangent.x;
+    fTextureId   = iTangent.x;
     fTexEffect1  = iTangent.y; // unlit
     fTexEffect2  = iTangent.z; // other effects (cropalpha, blur, fxaa2)
     fTexEffect3  = iTangent.w; // tile index
@@ -60,7 +60,7 @@ void VS()
 
     vTexCoord = iTexCoord;
     vColor = iColor;
-    
+
 #ifdef VERTEXLIGHT
     // Ambient & per-vertex lighting
 	vVertexLight = GetAmbient(GetZonePos(worldPos));
@@ -76,7 +76,6 @@ void VS()
 }
 
 #ifdef COMPILEPS
-
 vec4 ApplyTextureEffects(sampler2D texSampler)
 {
     vec4 value = texture2D(texSampler, vTexCoord);

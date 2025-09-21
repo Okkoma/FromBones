@@ -29,6 +29,7 @@ void VS()
 
     vTexCoord = iTexCoord;
     vColor = iColor;
+
     fTextureId   = iTangent.x;
     fTexEffect1  = iTangent.y; // unlit
     fTexEffect2  = iTangent.z; // other effects (cropalpha, blur, fxaa2)
@@ -101,7 +102,7 @@ float Round(float a)
 
 void PS()
 {
-	vec4 diffInput;
+    vec4 diffInput;
 
     float tid = Round(fTextureId);
 

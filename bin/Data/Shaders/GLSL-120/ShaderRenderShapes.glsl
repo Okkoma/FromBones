@@ -49,7 +49,6 @@ void VS()
 }
 
 #ifdef COMPILEPS
-
 vec4 ApplyBackShape(sampler2D texSampler)
 {
     // InnerLayer (0,0)

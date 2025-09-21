@@ -51,6 +51,7 @@ varying float fTexEffect3;
 void VS()
 {
     vec3 worldPos = vec3((iPos * iModelMatrix).xy, 1.0);
+    gl_Position = GetClipPos(worldPos);
 
     vTexCoord = iTexCoord;
     vColor = iColor;
@@ -59,12 +60,10 @@ void VS()
     fTexEffect2  = iTangent.z; // other effects (cropalpha, blur, fxaa2)
     fTexEffect3  = iTangent.w; // tile index
 
-    gl_Position = GetClipPos(worldPos);
-
 #ifdef VERTEXLIGHT
     // Ambient & per-vertex lighting
     vVertexLight = GetAmbient(GetZonePos(worldPos));
-    
+
     // Lit Cases
     if (fTexEffect1 == 0.0)
     {

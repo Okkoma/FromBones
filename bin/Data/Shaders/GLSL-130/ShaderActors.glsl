@@ -42,6 +42,7 @@ void VS()
     // Ambient & per-vertex lighting
     vVertexLight = GetAmbient(GetZonePos(worldPos));
 
+    // Lit Cases
     if (fTexEffect1 == uint(0))
     {
         #ifdef NUMVERTEXLIGHTS

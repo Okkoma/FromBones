@@ -47,7 +47,7 @@ void VS()
 
     if (fTexEffect1 == uint(0))
     {
-	    #ifdef NUMVERTEXLIGHTS
+        #ifdef NUMVERTEXLIGHTS
         for (int i = 0; i < NUMVERTEXLIGHTS; ++i)
             vVertexLight += GetVertexLightVolumetric(i, worldPos) * cVertexLights[i * 3].rgb;
         #endif
@@ -114,10 +114,10 @@ void PS()
 {
     vec4 diffInput;
 
-	switch(fTextureId)
-	{
+    switch(fTextureId)
+    {
         case -1: diffInput = vec4(1.0); break;
-		case  0: diffInput = ApplyTextureEffects(sUrho2DTextures[ 0]); break;
+        case  0: diffInput = ApplyTextureEffects(sUrho2DTextures[ 0]); break;
         case  1: diffInput = ApplyTextureEffects(sUrho2DTextures[ 1]); break;
         case  2: diffInput = ApplyTextureEffects(sUrho2DTextures[ 2]); break;
         case  3: diffInput = ApplyTextureEffects(sUrho2DTextures[ 3]); break;
@@ -125,8 +125,8 @@ void PS()
         case  5: diffInput = ApplyTextureEffects(sUrho2DTextures[ 5]); break;
         case  6: diffInput = ApplyTextureEffects(sUrho2DTextures[ 6]); break;
         case  7: diffInput = ApplyTextureEffects(sUrho2DTextures[ 7]); break;
-	}
+    }
 
-	//gl_FragColor = cMatDiffColor * vColor * diffInput;
+    //gl_FragColor = cMatDiffColor * vColor * diffInput;
     gl_FragColor = vColor * diffInput;
 }

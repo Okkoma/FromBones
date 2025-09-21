@@ -50,11 +50,11 @@ void VS()
 void PS()
 {
     vec4 diffInput = texture2D(sDiffMap, vTexCoord);
-        
+
 #ifdef VERTEXLIGHT
     if (fTexEffect1 < 1.0)
         diffInput *= vec4(vVertexLight, 1.0);
 #endif
-    
+
     gl_FragColor = cMatDiffColor * vColor * diffInput;
 }

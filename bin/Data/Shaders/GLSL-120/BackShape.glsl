@@ -51,11 +51,9 @@ float wireframe(vec3 vBC, float width, float feather)
 
 void VS()
 {
-    mat4 modelMatrix = iModelMatrix;
     gl_Position = GetClipPos(vec3((iPos * iModelMatrix).xy, 0.0));
 
-//    vTexCoord = GetTexCoord(iTexCoord);
-    vTexCoord = iTexCoord;    
+    vTexCoord = iTexCoord;
     vColor = iColor;
 
     vPosition = iPos.xy;

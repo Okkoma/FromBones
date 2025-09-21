@@ -22,7 +22,7 @@ void VS()
     
     vec3 worldPos = vec3((iPos * iModelMatrix).xy, 1.0);
     gl_Position = GetClipPos(worldPos);
-    
+
     vTexCoord = iTexCoord;
     vColor = iColor;
 }
