@@ -3,7 +3,6 @@
 #include "Transform.glsl"
 #include "ScreenPos.glsl"
 
-varying vec2 vTexCoord;
 varying vec2 vRefractUV;
 varying vec4 vColor;
 
@@ -11,7 +10,6 @@ void VS()
 {
     vec3 worldPos = (iPos * iModelMatrix).xyz;
 
-    vTexCoord = iTexCoord + vec2(0.25 * sin(cElapsedTime), 0.0);
     vColor = iColor;
 
     gl_Position = GetClipPos(worldPos);
@@ -22,8 +20,7 @@ void PS()
 {
     const float freq = 35.0;
     const float accel = 5.0;
-    const float amplitude = 0.0002;
-
+    const float amplitude = 0.001; // precision issue with GLES2 (don't decrease this value)
     float variation = amplitude * sin(freq * vRefractUV.x + accel * cElapsedTimePS) + amplitude * cos(freq * vRefractUV.y + accel * cElapsedTimePS);
 
     // refracted color from the refraction map (it's the viewport getted at refract pass : see ForwardUrho2D renderpath)
