@@ -1,4 +1,10 @@
 Todos:
+    ✔ 20/09/2025 : sous Android, en OpenGLES2 (GLSL120), probleme d'affichage du water refract (WaterLayer et shader waterrefract.glsl).
+        => sur de nombreux point de vue camera, l'eau apparait en couleur unie bleu clair opaque, donc sans alpha/ondulation.
+        ==> le pb n'apparait qu'en mode Release. (mode debug ok).
+        ===> il s'agit d'un problème de précision float : si variation est trop petite alors en release
+            cela générerait un mauvais UV. (voir commit Android : Fix Water shader GLES2)
+
     ✔ 07/09/2025 : VK avec l'editor - les textures ne s'affichent pas correctement pour les fontes ni les icones
         => pb de descriptors : les logs sont bon pourtant.
         ==> il y a beaucoup de modification et d'allocation de descriptor du au switch entre les texture d'icones et la texture de fonte 

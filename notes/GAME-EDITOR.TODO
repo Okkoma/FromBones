@@ -1,5 +1,9 @@
 Todos:
-    
+    ☐ 20/09/2025 : EDITOR - l'inspecteur d'attributs permet uniquement l'affichage des attributs d'un Drawable, RigidBody, CollisionShape mais pas leur edition.
+        => doit pouvoir afficher dans l'inspecteur le node root avec le nom de l'entité ainsi que les composants selon le PickMode.
+        => l'edition des attributs.
+        => ajouter la gestion des objets tel qu'ObjectMaped (MovingCastle).
+        
     ✔ 20/09/2025 : EDITOR - en déplacant la furniture escalier.xml il y a flipping X et le physic n'a pas le meme flip comme le drawable.
         => dans ce cas il y a appel à Map::AnchorEntityOnTileAt
         ==> callstack MapEditorLibImpl::Update -> MapBase::RefreshEntityPosition -> MapData::SetEntityData -> Map::AnchorEntityOnTileAt
