@@ -253,7 +253,7 @@ public:
 /// Setters
     void Start();
     void Stop();
-    void SetWorld(bool load);
+    bool SetWorld(bool load);
     void SetInfo(World2DInfo* info);
     void SetUpdateLoadingDelay(int delay = MAP_MAXDELAY);
     void SetCamera(float zoom=1.f, const Vector2& focus=Vector2::ZERO);

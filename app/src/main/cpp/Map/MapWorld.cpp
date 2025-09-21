@@ -257,6 +257,11 @@ void World2D::SetWorldSize(const IntVector2& size)
 
 void World2D::SetWorldMapSize(const IntVector2& size)
 {
+    if (!info_)
+    {
+        URHO3D_LOGERRORF("World2D() - SetWorldMapSize : no worldinfo setted !");
+        return;
+    }
     URHO3D_LOGINFOF("World2D() - SetWorldMapSize ...");
     if (info_->mapWidth_ != size.x_ || info_->mapHeight_ != size.y_)
     {
@@ -666,7 +671,7 @@ void World2D::SaveWorld(bool saveEntities)
 //const Vector2 WorldEllipseParallax(0.095f, 0.f);
 const Vector2 WorldEllipseParallax(0.f, 0.f);
 
-void World2D::SetWorld(bool load)
+bool World2D::SetWorld(bool load)
 {
     URHO3D_LOGINFOF("World2D() - SetWorld ...");
 
@@ -679,7 +684,10 @@ void World2D::SetWorld(bool load)
     int index = MapStorage::GetWorldIndex(worldPoint_);
     info_ = index != -1 ? &MapStorage::GetWorld2DInfo(index) : 0;
     if (!info_)
-        URHO3D_LOGWARNINGF("World2D() - SetWorld : no World2DInfo for worldPoint_=%s", worldPoint_.ToString().CString());
+    {
+        URHO3D_LOGERRORF("World2D() - SetWorld : no World2DInfo for worldPoint_=%s", worldPoint_.ToString().CString());
+        return false;
+    }
 
 //	MapStorage::DumpRegisterWorldPath();
 
@@ -743,7 +751,7 @@ void World2D::SetWorld(bool load)
     if (!viewManager_)
     {
         URHO3D_LOGERRORF("World2D() - Set : ViewManager Error !");
-        assert(viewManager_);
+        return false;
     }
 
     ObjectMaped::Reset();
@@ -837,6 +845,8 @@ void World2D::SetWorld(bool load)
     // Load Actors
     if (info_->addObject_)
         LoadActors();
+
+    return true;
 }
 
 void World2D::AddScrollers(int viewport)
