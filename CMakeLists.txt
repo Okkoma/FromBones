@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.10.2)
 
-project (FromBones VERSION 0.5.8)
+project (FromBones VERSION 0.5.9)
 
 # clangd helper
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
