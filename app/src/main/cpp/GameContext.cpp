@@ -1432,7 +1432,7 @@ void GameContext::SetMouseVisible(bool uistate, bool osstate, bool lockstate)
 
 void GameContext::SetRenderDebug(bool enable)
 {
-    DrawDebug_ = gameConfig_.debugRenderEnabled_ ? enable : false;
+    gameConfig_.debugRenderEnabled_ = DrawDebug_ = enable;
 }
 
 void GameContext::ResetLuminosity()

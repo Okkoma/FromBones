@@ -21,7 +21,10 @@ URHO3D_EVENT(GAME_OVER, Game_Over) { }
 URHO3D_EVENT(GAME_EXIT, Game_Exit) { }
 URHO3D_EVENT(GAME_PLAYERDIED, Game_PlayerDied) { }
 URHO3D_EVENT(GAME_WORLDSNAPSHOTSAVED, Game_WorldSnapShotSaved) { }
-
+URHO3D_EVENT(GAME_DEBUGKEYPRESSED, Game_DebugKeyPressed)
+{
+    URHO3D_PARAM(DEBUGTYPE, DebugType);    // Type of debug
+}
 /// PlayState, TextMessage
 URHO3D_EVENT(TEXTMESSAGE_CLEAN, TextMessage_Clean) { }
 

@@ -2866,25 +2866,33 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
 #endif
 
     // Debug Stuff
-    if (GameContext::Get().gameConfig_.debugRenderEnabled_ && !GameContext::Get().HasConsoleFocus())
+    if (!GameContext::Get().HasConsoleFocus())
     {
         // Toggle physics debug geometry
         if (input.GetScancodePress(SCANCODE_KP_1))
         {
-            GameContext::Get().SetRenderDebug(!GameContext::Get().DrawDebug_);
+            eventData[Game_DebugKeyPressed::DEBUGTYPE] = 1;
+            SendEvent(GAME_DEBUGKEYPRESSED, eventData);
 #ifdef USE_TILERENDERING
             ObjectTiled::SetViewRangeMode((ObjectTiled::GetViewRangeMode() + 1) % 2);
 #endif
         }
-        // Tip : Active Tagged World Info
+        // Toggle world info
         if (input.GetScancodePress(SCANCODE_KP_2))
         {
-            GameContext::Get().gameConfig_.debugWorld2DTagged_ = !GameContext::Get().gameConfig_.debugWorld2DTagged_;
+            eventData[Game_DebugKeyPressed::DEBUGTYPE] = 2;
+            SendEvent(GAME_DEBUGKEYPRESSED, eventData);            
+
             URHO3D_LOGINFOF("PlayState() - HandleUpdate : Switch Tagged World Info = %s !",
                             GameContext::Get().gameConfig_.debugWorld2DTagged_ ? "true" : "false");
         }
+    }
+    if (GameContext::Get().gameConfig_.debugRenderEnabled_ && !GameContext::Get().HasConsoleFocus())
+    {
 #ifdef USE_TILERENDERING
-        if (input.GetScancodePress(SCANCODE_KP_PERIOD) || input.GetScancodePress(SCANCODE_KP_MINUS) || input.GetScancodePress(SCANCODE_KP_PLUS))
+        if (input.GetScancodePress(SCANCODE_KP_PERIOD) || 
+            input.GetScancodePress(SCANCODE_KP_3) ||
+            input.GetScancodePress(SCANCODE_KP_9))
         {
             static PODVector<RenderShape*> rendershapes;
             GameContext::Get().rootScene_->GetComponents<RenderShape>(rendershapes, true);
@@ -2907,7 +2915,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                 }
             }
             // Tip : Cutting TiledObject To Bottom
-            if (input.GetScancodePress(SCANCODE_KP_MINUS))
+            if (input.GetScancodePress(SCANCODE_KP_3))
             {
                 int cutting = ObjectTiled::GetCuttingLevel()+5;
                 if (cutting > ViewManager::Get()->GetCurrentViewZ() - BACKGROUND)
@@ -2921,7 +2929,7 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                 ObjectTiled::SetCuttingLevel(cutting);
             }
             // Tip : Cutting TiledObject To Top
-            if (input.GetScancodePress(SCANCODE_KP_PLUS))
+            if (input.GetScancodePress(SCANCODE_KP_9))
             {
                 int cutting = ObjectTiled::GetCuttingLevel()-5;
                 if (cutting < 0)
@@ -2935,7 +2943,6 @@ void PlayState::HandleUpdate(StringHash eventType, VariantMap& eventData)
                 ObjectTiled::SetCuttingLevel(cutting);
             }
         }
-
         // Tip : MaxDrawView TiledObject
         if (input.GetScancodePress(SCANCODE_KP_ENTER))
         {
@@ -2985,12 +2992,12 @@ void PlayState::HandleCamera(float timeStep)
     Viewport* viewport = GetSubsystem<Renderer>()->GetViewport(GameContext::Get().activeviewport_);
 
     // Camera Zoom
-    if (input->GetScancodeDown(SCANCODE_KP_9))
+    if (input->GetScancodeDown(SCANCODE_KP_PLUS))
     {
         viewport->GetCamera()->SetZoom(viewport->GetCamera()->GetZoom() * 1.01f);
         moveZoomFactor = viewport->GetCamera()->GetZoom() < 0.8f ? viewport->GetCamera()->GetZoom() : 1.f;
     }
-    if (input->GetScancodeDown(SCANCODE_KP_3))
+    if (input->GetScancodeDown(SCANCODE_KP_MINUS))
     {
         viewport->GetCamera()->SetZoom(viewport->GetCamera()->GetZoom() * 0.99f);
         moveZoomFactor = viewport->GetCamera()->GetZoom() < 0.8f ? viewport->GetCamera()->GetZoom() : 1.f;

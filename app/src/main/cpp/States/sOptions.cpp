@@ -1379,6 +1379,8 @@ void OptionState::SubscribeToEvents()
     if (optionParameters_[OPTION_DebugRttScene].control_)
         SubscribeToEvent(optionParameters_[OPTION_DebugRttScene].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleDebugRttSceneChanged));
 
+    SubscribeToEvent(GAME_DEBUGKEYPRESSED, URHO3D_HANDLER(OptionState, HandleDebugKeyPressed));
+
     if (optionParameters_[OPTION_Music].control_)
         SubscribeToEvent(optionParameters_[OPTION_Music].control_, E_ITEMSELECTED, URHO3D_HANDLER(OptionState, HandleMusicChanged));
 
@@ -2518,6 +2520,27 @@ void OptionState::HandleDebugRttSceneChanged(StringHash eventType, VariantMap& e
     {
         GameContext::Get().gameConfig_.debugRttScene_ = optionParameters_[OPTION_DebugRttScene].control_->GetSelection();
         ApplyDebugRttScene();
+    }
+}
+
+void OptionState::HandleDebugKeyPressed(StringHash eventType, VariantMap& eventData)
+{
+    int type = eventData[Game_DebugKeyPressed::DEBUGTYPE].GetInt();    
+    URHO3D_LOGINFOF("OptionState() - HandleDebugKeyPressed : type=%d", type);
+    if (type == 0)
+    {
+        GameContext::Get().SetRenderDebug(!GameContext::Get().gameConfig_.debugRenderEnabled_);
+        optionParameters_[OPTION_RenderDebug].control_->SetSelection(GameContext::Get().gameConfig_.debugRenderEnabled_);
+    }
+    else if (type == 1)
+    {
+        GameContext::Get().gameConfig_.debugPhysics_ = !GameContext::Get().gameConfig_.debugPhysics_;
+        optionParameters_[OPTION_DebugPhysics].control_->SetSelection(GameContext::Get().gameConfig_.debugPhysics_);
+    }
+    else if (type == 2)
+    {
+        GameContext::Get().gameConfig_.debugWorld2D_ = !GameContext::Get().gameConfig_.debugWorld2D_;
+        optionParameters_[OPTION_DebugWorld].control_->SetSelection(GameContext::Get().gameConfig_.debugWorld2D_);
     }
 }
 

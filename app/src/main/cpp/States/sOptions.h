@@ -128,6 +128,7 @@ protected:
     void HandleDebugWorldChanged(StringHash eventType, VariantMap& eventData);
     void HandleDebugRenderShapesChanged(StringHash eventType, VariantMap& eventData);
     void HandleDebugRttSceneChanged(StringHash eventType, VariantMap& eventData);
+    void HandleDebugKeyPressed(StringHash eventType, VariantMap& eventData);
     void HandleResetMaps(StringHash eventType, VariantMap& eventData);
     void HandleSaveMapFeatures(StringHash eventType, VariantMap& eventData);
 

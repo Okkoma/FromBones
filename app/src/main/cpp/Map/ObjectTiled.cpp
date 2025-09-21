@@ -736,7 +736,7 @@ BoundingBox ObjectTiled::GetWorldBoundingBox2D()
 void ObjectTiled::UpdateVerticesPositions(Node* node)
 {
     if (isDynamic_)
-    {      
+    {
 #ifndef USE_CHUNKBATCH
         for (unsigned i=0; i < viewBatchesTable_.Size(); i++)
             viewBatchesTable_[i].UpdateVerticePositions(node);
