@@ -93,10 +93,6 @@ jobs:
           echo "Restored Cache."
         fi
 
-    - name: Configure Git for private repository access
-      run: |
-        git config --global url."https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
     - name: Export Keystore Info
       if: matrix.target == 'android'
       run: |
@@ -104,7 +100,6 @@ jobs:
         echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > "$KEYSTORE_PATH"
         chmod 600 "$KEYSTORE_PATH"
         echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> $GITHUB_ENV
-        echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
 
     - name: Build (Android)
       if: matrix.target == 'android'
