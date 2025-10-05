@@ -59,14 +59,13 @@ const char* mapStatusNames[] =
     "Updating_ViewBatches=10",
     "Updating_RenderShapes=11",
     "Setting_Areas=12",
-    "Setting_BackGround=13",
-    "Setting_MiniMap=14",
-    "Setting_Furnitures=15",
-    "Setting_Entities=16",
-    "Setting_Borders=17",
-    "Available=18",
-    "Unloading_Map=19",
-    "Saving_Map=20",
+    "Setting_MiniMap=13",
+    "Setting_Furnitures=14",
+    "Setting_Entities=15",
+    "Setting_Borders=16",
+    "Available=17",
+    "Unloading_Map=18",
+    "Saving_Map=19",
 };
 
 const char* mapViewsNames[] =
