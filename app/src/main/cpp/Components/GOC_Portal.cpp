@@ -20,6 +20,7 @@
 
 #include "TimerRemover.h"
 #include "Map.h"
+#include "MapStorage.h"
 #include "MapWorld.h"
 #include "MapCreator.h"
 #include "ViewManager.h"
@@ -275,6 +276,10 @@ void GOC_Portal::HandleBeginContact(StringHash eventType, VariantMap& eventData)
             {
                 URHO3D_LOGERRORF("GOC_Portal() - HandleBeginContact : nodeID=%u no map at destination %s", node_->GetID(), dMap_.ToString().CString());
                 return;
+            }
+            else if (destinationMap->GetStatus() > Available)
+            {
+                MapStorage::Get()->ForceMapToUnload(destinationMap);
             }
         }
         else

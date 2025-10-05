@@ -988,6 +988,13 @@ Map* MapStorage::InitializeMap(const ShortIntVector2& mPoint, HiresTimer* timer)
 
 void MapStorage::ForceMapToUnload(Map* map)
 {
+    if (forcedMapToUnload_ != UNDEFINED_MAPPOINT)
+    {
+        URHO3D_LOGERRORF("MapStorage() - ForceMapToUnload : map=%s ... has already map=%s to force to unload !", 
+                map->GetMapPoint().ToString().CString(), forcedMapToUnload_.ToString().CString());
+        return;
+    }
+
     forcedMapToUnload_ = map->GetMapPoint();
 
     if (!mapsToUnloadFromMemory_.Contains(forcedMapToUnload_))
