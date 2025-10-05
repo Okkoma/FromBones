@@ -386,6 +386,8 @@ void ObjectFeatured::SetViewConfiguration(int modeltype)
 
     /// Sorting views
     SortViews();
+
+    URHO3D_LOGERRORF("ObjectFeatured() - SetViewConfiguration : mpoint=%s modeltype=%d ...", map_->GetMapPoint().ToString().CString(), modeltype);
 }
 
 void ObjectFeatured::LinkViewIdToViewZ(unsigned viewid, unsigned zValue)
@@ -1672,6 +1674,7 @@ const Vector<int>& ObjectFeatured::GetViewIDs(unsigned viewZ)
 
 int ObjectFeatured::GetViewId(unsigned viewZ) const
 {
+    assert(viewIds_.Size() > 0);
     HashMap<unsigned, Vector<int> >::ConstIterator it = viewIds_.Find(viewZ);
     return it != viewIds_.End() ? it->second_.Back() : -1;
 //    return GetViewIDs(viewZ).Back();
@@ -1679,12 +1682,14 @@ int ObjectFeatured::GetViewId(unsigned viewZ) const
 
 int ObjectFeatured::GetViewZ(unsigned viewid) const
 {
+    assert(viewZ_.Size() > 0);
     HashMap<unsigned, unsigned>::ConstIterator it = viewZ_.Find(viewid);
     return it != viewZ_.End() ? (int)it->second_ : -1;
 }
 
 int ObjectFeatured::GetRealViewZAt(unsigned viewZ) const
 {
+    assert(viewIds_.Size() > 0);
     HashMap<unsigned, Vector<int> >::ConstIterator it = viewIds_.Find(viewZ);
     if (it == viewIds_.End())
         return NOVIEW;
@@ -1699,6 +1704,7 @@ int ObjectFeatured::GetRealViewZAt(unsigned viewZ) const
 
 unsigned ObjectFeatured::GetNearestViewZ(unsigned layerZ) const
 {
+    assert(viewIds_.Size() > 0);
     HashMap<unsigned, Vector<int> >::ConstIterator it = viewIds_.Begin();
     HashMap<unsigned, Vector<int> >::ConstIterator jt = it;
     for (it = viewIds_.Begin(); it != viewIds_.End(); ++it)
@@ -1711,6 +1717,7 @@ unsigned ObjectFeatured::GetNearestViewZ(unsigned layerZ) const
 
 unsigned ObjectFeatured::GetNearestViewId(unsigned layerZ) const
 {
+    assert(viewIds_.Size() > 0);
     HashMap<unsigned, Vector<int> >::ConstIterator it = viewIds_.Begin();
     HashMap<unsigned, Vector<int> >::ConstIterator jt = it;
     for (it = viewIds_.Begin(); it != viewIds_.End(); ++it)

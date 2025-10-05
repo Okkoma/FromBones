@@ -1922,6 +1922,12 @@ bool FindBlock(const Vector2& posInTile, const IntVector2& direction, int viewZ,
 
     // check for a block
     Map* map = World2D::GetMapAt(mp);
+    if (!map || !map->IsAvailable())
+    {
+        URHO3D_LOGERRORF("FindBlock no available map at %s ... skip !", mp.ToString().CString());
+        return false;
+    }
+
     int viewid = map->GetViewId(viewZ);
     if (viewid == -1)
     {
