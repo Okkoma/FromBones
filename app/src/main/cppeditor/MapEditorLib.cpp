@@ -6054,6 +6054,11 @@ void AnimatorEditor::SetSpriteSelectionList(SpriteSheet2D* spritesheet)
 void AnimatorEditor::HandleSpriteSelectionSpriteSelected(StringHash eventType, VariantMap& eventData)
 {
 //    URHO3D_LOGINFOF("AnimatorEditor() - HandleSpriteSelectionSpriteSelected slotindex=%d", editedSlotIndex_);
+    if (editedSlotIndex_ < 0)
+    {
+        URHO3D_LOGERRORF("AnimatorEditor() - HandleSpriteSelectionSpriteSelected : no edited slot !");
+        return;
+    }
 
     UIElement* panel = MapEditorLibImpl::GetPanel(PANEL_ANIMATOR2D_SWSPRITES);
     UIElement* spritebutton = static_cast<UIElement*>(eventData[Pressed::P_ELEMENT].GetPtr());
