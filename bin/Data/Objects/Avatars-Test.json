@@ -1,13 +1,13 @@
 {
+	"GOT_Actor_Test":{
+		"category":"Characters",
+		"fileName":"Objects/actor-medium.xml",
+		"typeProperty":"GOT_Controllable",
+		"replicateMode":1
+	},	
 	"GOT_Avatar_Petit":{
 		"category":"Characters",
 		"fileName":"Objects/avatar-petit.xml",
-		"typeProperty":"GOT_Controllable",
-		"replicateMode":1
-	},
-	"GOT_Test":{
-		"category":"Characters",
-		"fileName":"Objects/actor-medium.xml",
 		"typeProperty":"GOT_Controllable",
 		"replicateMode":1
 	},	

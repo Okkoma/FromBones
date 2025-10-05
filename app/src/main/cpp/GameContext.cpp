@@ -1196,9 +1196,11 @@ bool GameContext::PreloadResources()
         ReserveAvatarNodes();
 
         GAME_SETGAMELOGENABLE(GAMELOG_PRELOAD, false);
-
+#if defined(ACTIVE_AVATARS_TESTSET)
+        GOT::LoadJSONFile(context_, "Data/Objects/Avatars-Test.json");
+#else
         GOT::LoadJSONFile(context_, "Data/Objects/Avatars.json");
-
+#endif
         GOT::LoadJSONFile(context_, "Data/Objects/Objects.json");
 #if defined(USE_ANIMATEDFURNITURES)
         GOT::LoadJSONFile(rootScene_->GetContext(), "Data/Furnitures/Furnitures.json");
