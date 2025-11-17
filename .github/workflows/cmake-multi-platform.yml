@@ -40,14 +40,16 @@ jobs:
             cpp_compiler: clang++
             build_type: Release
             target: linux
-            cmake_options: "-DURHO3D_OPENGL=1"
-            
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
-            build_type: Release
-            target: linux
             cmake_options: "-DURHO3D_VULKAN=1"
+            
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            build_type: Release
+            target: windows
+            graphics: Vulkan
+            cmake_options: "-DURHO3D_VULKAN=1"
+            
             
     steps:
     - uses: actions/checkout@v4
