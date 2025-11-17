@@ -1,4 +1,7 @@
 Todos:
+    ☐ 05/10/2025 : si la liste des assets (furnitures, avatars, etc...) change, les Map sauvegardées seront altérées à cause du format de MapData qui ne sauvegarde que les index des GOT
+        => il faut soit sauvegarder les StringHash des Gots ou bien une table intermédiaire des gotindex->stringhash pour la sauvegarde du monde.
+    
     ✔ 19/09/2025 : ObjectMaped - Chateau ambulant (Moving Castle) : l'ObjectTiled ne suit pas le Physics
         => ObjectMaped utilise plusieurs nodes (node_, nodeStatic_(child), nodeFurnitures_(child)) et nodeStatic_ contient le RigidBody2D
         ==> seulement ObjectTiled est sur node_ et souscrit sur les changements de position sur node_.

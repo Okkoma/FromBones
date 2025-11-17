@@ -5,7 +5,7 @@
 
 #include "../cpp/ObjectsCore/ShortIntVector2.h"
 
-TEST_CASE("Test Constructor", "[core]") {
+TEST_CASE("Constructor", "[core]") {
     SECTION("s()") {
         ShortIntVector2 s;
         REQUIRE(s.x_ == 0);

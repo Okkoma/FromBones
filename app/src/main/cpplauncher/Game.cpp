@@ -647,6 +647,8 @@ String Game::LoadGameConfig(const String& fileName, GameConfig* config)
                 config->physics2DEnabled_ = value;
             else if (name == "asynLoadingWorldMap_")
                 config->asynLoadingWorldMap_ = value;
+            else if (name == "allowSrgb_")
+                config->allowSrgb_ = value;            
             else if (name == "enlightScene_")
                 config->enlightScene_ = value;
             else if (name == "fluidEnabled_")
@@ -838,7 +840,7 @@ void Game::SetupGraphics()
     URHO3D_LOGINFO("Game() - ----------------------------------------");
 
     Graphics* graphics = GetSubsystem<Graphics>();
-    bool srgb = graphics->GetSRGBSupport();
+    bool srgb = graphics->GetSRGBSupport() && GameContext::Get().gameConfig_.allowSrgb_;
 
     URHO3D_LOGINFOF("Game() - Display Device Name = %s using Graphics in %s(Dpi~%f) sRGB=%s",
                     SDL_GetDisplayName(0), DeviceDPIs_[GameContext::Get().gameConfig_.deviceDPI_],

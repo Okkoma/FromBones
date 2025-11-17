@@ -387,7 +387,7 @@ void ObjectFeatured::SetViewConfiguration(int modeltype)
     /// Sorting views
     SortViews();
 
-    URHO3D_LOGERRORF("ObjectFeatured() - SetViewConfiguration : mpoint=%s modeltype=%d ...", map_->GetMapPoint().ToString().CString(), modeltype);
+    URHO3D_LOGDEBUGF("ObjectFeatured() - SetViewConfiguration : mpoint=%s modeltype=%d ...", map_->GetMapPoint().ToString().CString(), modeltype);
 }
 
 void ObjectFeatured::LinkViewIdToViewZ(unsigned viewid, unsigned zValue)

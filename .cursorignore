@@ -1,6 +1,18 @@
 # Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
-.*/*
+.android/*
+.cache/*
+.codelite/*
+.github/*
+.gradle/*
+.idea/*
+.vscode/*
+.clang-format
+.clang-tidy
+.cursorignore
+.gitignore
 app/google-services.json
+app/.cxx/*
+app/build/*
 keystore.properties
 build/*
 build-native/*

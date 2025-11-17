@@ -70,6 +70,7 @@ struct FROMBONES_API GameConfig
     int uiDeviceDPI_;
     int frameLimiter_;
     int entitiesLimiter_;
+    bool allowSrgb_;
     bool enlightScene_;
     bool fluidEnabled_;
     bool multiviews_;

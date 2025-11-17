@@ -120,6 +120,7 @@ GameConfig::GameConfig() :
     uiDeviceDPI_(1),
     frameLimiter_(0),
     entitiesLimiter_(-1),
+    allowSrgb_(true),
     enlightScene_(false),
     fluidEnabled_(false),
     renderShapes_(true),
