@@ -14,7 +14,7 @@ on:
           - linux
 
 jobs:
-  build:    
+  build:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -89,13 +89,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-choco-
 
-    - name: Setup Windows dependencies
-      if: matrix.os == 'windows-latest'
-      shell: bash
-      run: |
-        if [ -d "C:\ProgramData\chocolatey\bin" ]; then
-          echo "Restored Cache."
-        fi
+    - name: Install Vulkan SDK
+      if: matrix.os == 'windows-latest' && matrix.graphics == 'Vulkan'
+      uses: humbletim/install-vulkan-sdk@v1.2
+      with:
+        version: 1.4.309.0
+        cache: true
 
     - name: Configure Git for private repository access
       run: |
